@@ -43,10 +43,17 @@
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg-page); color: var(--text-primary); min-height: 100vh; transition: background 0.2s, color 0.2s; }
 
   /* HEADER */
-  .header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; position: sticky; top: 38px; z-index: 101; background: var(--bg-page); }
   .header-left h1 { font-size: 18px; font-weight: 600; color: var(--text-primary); display: inline; }
   .header-left .brand { font-size: 11px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; }
-  .header-left .last-updated { font-size: 11px; color: var(--text-muted); margin-left: 12px; font-weight: 400; }
+  .last-updated { font-size: 10px; color: var(--text-muted); font-weight: 400; }
+
+  /* AVG MONTHLY REVENUE (in header) */
+  .avg-rev-strip { display: flex; gap: 4px; align-items: center; }
+  .avg-rev-chip { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; padding: 4px 10px; }
+  .avg-rev-chip + .avg-rev-chip { border-left: 1px solid var(--border); }
+  .avg-rev-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; }
+  .avg-rev-value { font-size: 14px; font-weight: 700; color: var(--text-primary); }
 
   /* THEME TOGGLE */
   .theme-toggle { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; cursor: pointer; font-size: 16px; line-height: 1; transition: all 0.15s; }
@@ -180,9 +187,24 @@
 <div class="header">
   <div class="header-left">
     <div class="brand">Karmic Skin</div>
-    <h1>Amazon Dashboard</h1><span class="last-updated" id="lastUpdated"></span>
+    <h1>Amazon Dashboard</h1>
+  </div>
+  <div class="avg-rev-strip">
+    <div class="avg-rev-chip" title="Total Amazon revenue last 90 days ÷ ~3 months">
+      <span class="avg-rev-label">90d avg/mo</span>
+      <span class="avg-rev-value" id="avgRev3m">--</span>
+    </div>
+    <div class="avg-rev-chip" title="Total Amazon revenue last 180 days ÷ ~6 months">
+      <span class="avg-rev-label">180d avg/mo</span>
+      <span class="avg-rev-value" id="avgRev6m">--</span>
+    </div>
+    <div class="avg-rev-chip" title="Total Amazon revenue last 365 days ÷ 12 months">
+      <span class="avg-rev-label">365d avg/mo</span>
+      <span class="avg-rev-value" id="avgRev12m">--</span>
+    </div>
   </div>
   <div class="date-controls">
+    <div style="text-align:right;margin-right:8px"><span style="font-size:10px;color:var(--text-muted);display:block">All figures include VAT</span><span class="last-updated" id="lastUpdated"></span></div>
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Switch theme">&#9728;&#65039;</button>
     <div class="date-picker-wrap">
       <button class="date-picker-btn" id="datePickerBtn" onclick="toggleDatePicker()">
@@ -215,8 +237,8 @@
       </div>
     </div>
     <div class="period-pills">
-      <button class="period-pill active" data-period="daily">Daily</button>
-      <button class="period-pill" data-period="weekly">Weekly</button>
+      <button class="period-pill" data-period="daily">Daily</button>
+      <button class="period-pill active" data-period="weekly">Weekly</button>
       <button class="period-pill" data-period="monthly">Monthly</button>
     </div>
   </div>
@@ -225,7 +247,7 @@
 <div class="kpi-strip">
   <div class="kpi-card" title="Total ordered product sales"><div class="label">Revenue</div><div class="value" id="kpi-revenue">--</div></div>
   <div class="kpi-card" title="Total advertising spend (monthly spread evenly across days)"><div class="label">Ad Spend</div><div class="value" id="kpi-adspend">--</div></div>
-  <div class="kpi-card" title="Ad Spend / Revenue x 100"><div class="label">ACOS</div><div class="value" id="kpi-acos">--</div></div>
+  <div class="kpi-card" title="Revenue / Ad Spend"><div class="label">ROAS</div><div class="value" id="kpi-roas">--</div></div>
   <div class="kpi-card" title="Total number of orders placed"><div class="label">Orders</div><div class="value" id="kpi-orders">--</div></div>
   <div class="kpi-card" title="Total units ordered"><div class="label">Units</div><div class="value" id="kpi-units">--</div></div>
   <div class="kpi-card" title="Total number of sessions"><div class="label">Sessions</div><div class="value" id="kpi-sessions">--</div></div>
@@ -254,9 +276,9 @@
       <span class="toggle-label">Ad Spend</span>
     </div>
     <div class="toggle-item" onclick="this.querySelector('input').click()">
-      <input type="checkbox" data-metric="acos">
+      <input type="checkbox" data-metric="roas">
       <div class="toggle-dot" style="--dot-color: #d97706"></div>
-      <span class="toggle-label">ACOS</span>
+      <span class="toggle-label">ROAS</span>
     </div>
     <div class="toggle-item" onclick="this.querySelector('input').click()">
       <input type="checkbox" data-metric="orders">
@@ -291,8 +313,8 @@
     <div class="perf-table-header">
       <h3>Performance Table</h3>
       <div class="perf-table-tabs">
-        <button class="perf-table-tab active" data-table-period="daily">Daily</button>
-        <button class="perf-table-tab" data-table-period="weekly">Weekly</button>
+        <button class="perf-table-tab" data-table-period="daily">Daily</button>
+        <button class="perf-table-tab active" data-table-period="weekly">Weekly</button>
         <button class="perf-table-tab" data-table-period="monthly">Monthly</button>
       </div>
     </div>
@@ -304,7 +326,7 @@
             <th data-col="growthPct" title="(Current Revenue - Previous Revenue) / Previous Revenue x 100">Rev Growth % <span class="sort-arrow">&#9660;</span></th>
             <th data-col="revenue" title="Total ordered product sales">Revenue <span class="sort-arrow">&#9660;</span></th>
             <th data-col="adSpend" title="Monthly ad spend spread evenly across days">Ad Spend <span class="sort-arrow">&#9660;</span></th>
-            <th data-col="acos" title="Ad Spend / Revenue x 100">ACOS <span class="sort-arrow">&#9660;</span></th>
+            <th data-col="roas" title="Revenue / Ad Spend">ROAS <span class="sort-arrow">&#9660;</span></th>
             <th data-col="orders" title="Total number of orders">Orders <span class="sort-arrow">&#9660;</span></th>
             <th data-col="units" title="Total units ordered">Units <span class="sort-arrow">&#9660;</span></th>
             <th data-col="sessions" title="Total number of sessions">Sessions <span class="sort-arrow">&#9660;</span></th>
@@ -327,7 +349,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const METRIC_CONFIG = {
   revenue:   { label: 'Revenue',         color: '#0d9488', prefix: '\u00A3', yAxis: 'y',  decimals: 0, type: 'bar' },
   adSpend:   { label: 'Ad Spend',        color: '#e11d48', prefix: '\u00A3', yAxis: 'y',  decimals: 0, type: 'bar' },
-  acos:      { label: 'ACOS',            color: '#d97706', prefix: '',       yAxis: 'y1', decimals: 1, suffix: '%', type: 'line' },
+  roas:      { label: 'ROAS',            color: '#d97706', prefix: '',       yAxis: 'y1', decimals: 2, suffix: 'x', type: 'line' },
   orders:    { label: 'Orders',          color: '#2563eb', prefix: '',       yAxis: 'y1', decimals: 0, type: 'bar' },
   units:     { label: 'Units',           color: '#7c3aed', prefix: '',       yAxis: 'y1', decimals: 0, type: 'bar' },
   sessions:  { label: 'Sessions',        color: '#059669', prefix: '',       yAxis: 'y1', decimals: 0, type: 'bar' },
@@ -369,7 +391,7 @@ let rawSalesData = [];
 let rawAdsMonthly = [];
 let dailyDataWithAds = [];
 let chart = null;
-let currentPeriod = 'daily';
+let currentPeriod = 'weekly';
 let activePreset = 'mtd';
 
 // DATE HELPERS
@@ -573,7 +595,7 @@ function aggregateData(data, period) {
   }
   return Object.values(buckets).map(b => ({
     date: b.date, revenue: b.revenue, adSpend: b.adSpend,
-    acos: b.revenue > 0 ? (b.adSpend / b.revenue) * 100 : 0,
+    roas: b.adSpend > 0 ? b.revenue / b.adSpend : 0,
     orders: b.orders, units: b.units, sessions: b.sessions, pageViews: b.pageViews,
     convRate: b.sessions > 0 ? (b.units / b.sessions) * 100 : 0,
   })).sort((a, b) => a.date.localeCompare(b.date));
@@ -588,7 +610,7 @@ function updateKPIs(data) {
 
   document.getElementById('kpi-revenue').textContent = '\u00A3' + Math.round(t.revenue).toLocaleString();
   document.getElementById('kpi-adspend').textContent = '\u00A3' + Math.round(t.adSpend).toLocaleString();
-  document.getElementById('kpi-acos').textContent = t.revenue > 0 ? ((t.adSpend / t.revenue) * 100).toFixed(1) + '%' : '--';
+  document.getElementById('kpi-roas').textContent = t.adSpend > 0 ? (t.revenue / t.adSpend).toFixed(2) + 'x' : '--';
   document.getElementById('kpi-orders').textContent = t.orders.toLocaleString();
   document.getElementById('kpi-units').textContent = t.units.toLocaleString();
   document.getElementById('kpi-sessions').textContent = t.sessions.toLocaleString();
@@ -704,7 +726,7 @@ document.querySelectorAll('.toggle-item input').forEach(cb => {
 });
 
 // PERFORMANCE TABLE
-let tablePeriod = 'daily';
+let tablePeriod = 'weekly';
 const VISIBLE_ROWS = 12;
 
 function aggregateTableData(period) {
@@ -753,7 +775,7 @@ function buildTableRows() {
 
   tableRows = chronoKeys.map(k => {
     const d = buckets[k];
-    const acos = d.revenue > 0 ? (d.adSpend / d.revenue) * 100 : 0;
+    const roas = d.adSpend > 0 ? d.revenue / d.adSpend : 0;
     const convRate = d.sessions > 0 ? (d.units / d.sessions) * 100 : 0;
     let label;
     if (tablePeriod === 'monthly') {
@@ -764,7 +786,7 @@ function buildTableRows() {
       label = new Date(k + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' });
     }
     return {
-      key: k, label, revenue: d.revenue, adSpend: d.adSpend, acos, orders: d.orders,
+      key: k, label, revenue: d.revenue, adSpend: d.adSpend, roas, orders: d.orders,
       units: d.units, sessions: d.sessions, convRate, pageViews: d.pageViews,
       growthPct: growthMap[k].revGrowth,
     };
@@ -782,11 +804,11 @@ function renderTable() {
     return sortDir === 'asc' ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
   });
 
-  // Best revenue and best ACOS (lowest ACOS with meaningful spend)
-  let bestRevVal = -Infinity, bestRevKey = null, bestAcosVal = Infinity, bestAcosKey = null;
+  // Best revenue and best ROAS (highest ROAS with meaningful spend)
+  let bestRevVal = -Infinity, bestRevKey = null, bestRoasVal = -Infinity, bestRoasKey = null;
   for (const r of rows) {
     if (r.revenue > bestRevVal) { bestRevVal = r.revenue; bestRevKey = r.key; }
-    if (r.acos > 0 && r.acos < bestAcosVal && r.adSpend > 10) { bestAcosVal = r.acos; bestAcosKey = r.key; }
+    if (r.roas > 0 && r.roas > bestRoasVal && r.adSpend > 10) { bestRoasVal = r.roas; bestRoasKey = r.key; }
   }
 
   // Update header arrows
@@ -801,14 +823,14 @@ function renderTable() {
   for (const r of rows) {
     const gC = r.growthPct === null ? 'subtle' : (r.growthPct >= 0 ? 'positive' : 'negative');
     const isTopRev = r.key === bestRevKey;
-    const isTopAcos = r.key === bestAcosKey;
+    const isTopRoas = r.key === bestRoasKey;
 
     html += `<tr>
       <td>${r.label}</td>
       <td class="${gC}">${r.growthPct === null ? '-' : (r.growthPct >= 0 ? '+' : '') + r.growthPct.toFixed(1) + '%'}</td>
       <td${isTopRev ? ' class="highlight-best"' : ''}>\u00A3${Math.round(r.revenue).toLocaleString()}</td>
       <td>\u00A3${Math.round(r.adSpend).toLocaleString()}</td>
-      <td${isTopAcos ? ' class="highlight-best"' : ''}>${r.acos.toFixed(1)}%</td>
+      <td${isTopRoas ? ' class="highlight-best"' : ''}>${r.roas.toFixed(2)}x</td>
       <td>${r.orders.toLocaleString()}</td>
       <td>${r.units.toLocaleString()}</td>
       <td>${r.sessions.toLocaleString()}</td>
@@ -844,6 +866,30 @@ document.querySelectorAll('.perf-table-tab').forEach(btn => {
 });
 
 fetchAllData();
+
+// AVG MONTHLY REVENUE - trailing days, runs once on load (Amazon data)
+(async function fetchAvgMonthlyRevenue() {
+  const now = new Date();
+  const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
+
+  async function getAvgRev(days) {
+    const from = new Date(yesterday);
+    from.setDate(from.getDate() - days + 1);
+    const url = `${SUPABASE_URL}/rest/v1/raw_amazon_sales_daily?report_date=gte.${fmtDate(from)}&report_date=lte.${fmtDate(yesterday)}&select=ordered_product_sales`;
+    const resp = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } });
+    const data = await resp.json();
+    const total = data.reduce((s, r) => s + parseFloat(r.ordered_product_sales || 0), 0);
+    const months = days / 30.44;
+    return Math.round(total / months);
+  }
+
+  try {
+    const [avg90, avg180, avg365] = await Promise.all([getAvgRev(90), getAvgRev(180), getAvgRev(365)]);
+    document.getElementById('avgRev3m').textContent = '\u00A3' + avg90.toLocaleString();
+    document.getElementById('avgRev6m').textContent = '\u00A3' + avg180.toLocaleString();
+    document.getElementById('avgRev12m').textContent = '\u00A3' + avg365.toLocaleString();
+  } catch(e) { console.error('Avg monthly revenue error:', e); }
+})();
 </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Karmic Skin | Business Dashboard</title>
+<title>Karmic Skin | Shopify Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 <style>
@@ -78,7 +78,7 @@
   .period-pill.active { background: var(--pill-active-bg); color: var(--pill-active-text); }
 
   /* KPI STRIP */
-  .kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 16px 24px; }
+  .kpi-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; padding: 16px 24px; }
   .kpi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
   .kpi-card .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
   .kpi-card .value { font-size: 20px; font-weight: 700; color: var(--text-primary); }
@@ -226,7 +226,7 @@
 <div class="header">
   <div class="header-left">
     <div class="brand">Karmic Skin</div>
-    <h1>Business Dashboard</h1>
+    <h1>Shopify Dashboard</h1>
   </div>
   <div class="avg-rev-strip">
     <div class="avg-rev-chip" title="Total revenue last 90 days ÷ ~3 months">
@@ -287,11 +287,13 @@
   <div class="kpi-card" title="Customers placing their first-ever order"><div class="label">New Customers</div><div class="value" id="kpi-new">--</div></div>
   <div class="kpi-card" title="Repeat Orders ÷ Total Orders × 100"><div class="label">Repeat %</div><div class="value" id="kpi-repeat">--</div></div>
   <div class="kpi-card" title="Ad Spend ÷ Orders"><div class="label">Blended CAC</div><div class="value" id="kpi-cac">--</div></div>
+  <div class="kpi-card" title="GA4 sessions (online store visits)"><div class="label">Sessions</div><div class="value" id="kpi-sessions">--</div></div>
+  <div class="kpi-card" title="Orders ÷ Sessions × 100"><div class="label">CVR %</div><div class="value" id="kpi-cvr">--</div></div>
 </div>
 
 <div class="dashboard-body">
   <div class="chart-area">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><h3 style="margin-bottom:0">Trends</h3><div class="period-pills"><button class="period-pill active" data-period="daily">Daily</button><button class="period-pill" data-period="weekly">Weekly</button><button class="period-pill" data-period="monthly">Monthly</button><button class="period-pill" data-period="quarterly">Quarterly</button></div></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><h3 style="margin-bottom:0">Trends</h3><div class="period-pills"><button class="period-pill" data-period="daily">Daily</button><button class="period-pill active" data-period="weekly">Weekly</button><button class="period-pill" data-period="monthly">Monthly</button><button class="period-pill" data-period="quarterly">Quarterly</button></div></div>
     <div class="chart-wrap">
       <canvas id="mainChart"></canvas>
     </div>
@@ -418,10 +420,10 @@
             <th data-col="repeatPct" title="Repeat Orders ÷ Total Orders × 100">Repeat % <span class="sort-arrow">▼</span></th>
             <th data-col="newCust" title="Customers placing their first-ever order">New Cust. <span class="sort-arrow">▼</span></th>
             <th data-col="repeat" title="Customers who have ordered before">Repeat <span class="sort-arrow">▼</span></th>
-            <th data-col="ltv" title="Trailing 12-month Revenue ÷ Unique Customers in that period">LTV 12m <span class="sort-arrow">▼</span></th>
-            <th data-col="ltv6m" title="Trailing 6-month Revenue ÷ Unique Customers in that period">LTV 6m <span class="sort-arrow">▼</span></th>
             <th data-col="meta" title="Total Meta (Facebook/Instagram) advertising spend">Meta Ad Spend <span class="sort-arrow">▼</span></th>
             <th data-col="google" title="Total Google Ads (Search/PMax) advertising spend">Google Ad Spend <span class="sort-arrow">▼</span></th>
+            <th data-col="ltv" title="Trailing 12-month Revenue ÷ Unique Customers in that period">LTV 12m <span class="sort-arrow">▼</span></th>
+            <th data-col="ltv6m" title="Trailing 6-month Revenue ÷ Unique Customers in that period">LTV 6m <span class="sort-arrow">▼</span></th>
           </tr>
         </thead>
         <tbody id="perfTableBody">
@@ -553,7 +555,7 @@ function toggleTheme() {
 
 let rawData = [];
 let chart = null;
-let currentPeriod = 'daily';
+let currentPeriod = 'weekly';
 let activePreset = 'mtd';
 
 // DATE HELPERS
@@ -669,7 +671,7 @@ async function fetchData() {
   const from = document.getElementById('dateFrom').dataset.current || document.getElementById('dateFrom').value;
   const to = document.getElementById('dateTo').dataset.current || document.getElementById('dateTo').value;
 
-  const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.${from}&report_date=lte.${to}&order=report_date.asc&select=report_date,total_sales,total_ad_spend,meta_spend,google_spend,total_orders,aov,new_customer_orders,returning_customer_orders,blended_cac`;
+  const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.${from}&report_date=lte.${to}&order=report_date.asc&select=report_date,total_sales,total_ad_spend,meta_spend,google_spend,total_orders,aov,new_customer_orders,returning_customer_orders,blended_cac,ga4_sessions`;
 
   const resp = await fetch(url, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
@@ -693,7 +695,7 @@ function aggregateData(data, period) {
       const q = Math.floor(d.getMonth() / 3);
       key = d.getFullYear() + '-' + String(q * 3 + 1).padStart(2, '0') + '-01';
     }
-    if (!buckets[key]) buckets[key] = { date: key, revenue: 0, adSpend: 0, metaSpend: 0, googleSpend: 0, orders: 0, newCustomers: 0, returning: 0, days: 0 };
+    if (!buckets[key]) buckets[key] = { date: key, revenue: 0, adSpend: 0, metaSpend: 0, googleSpend: 0, orders: 0, newCustomers: 0, returning: 0, sessions: 0, days: 0 };
     const b = buckets[key];
     b.revenue += parseFloat(row.total_sales || 0);
     b.adSpend += parseFloat(row.total_ad_spend || 0);
@@ -702,6 +704,7 @@ function aggregateData(data, period) {
     b.orders += parseInt(row.total_orders || 0);
     b.newCustomers += parseInt(row.new_customer_orders || 0);
     b.returning += parseInt(row.returning_customer_orders || 0);
+    b.sessions += parseInt(row.ga4_sessions || 0);
     b.days++;
   }
   return Object.values(buckets).map(b => ({
@@ -711,6 +714,8 @@ function aggregateData(data, period) {
     orders: b.orders, newCustomers: b.newCustomers,
     repeatPct: b.orders > 0 ? (b.returning / b.orders) * 100 : 0,
     cac: b.orders > 0 ? b.adSpend / b.orders : 0,
+    sessions: b.sessions,
+    cvr: b.sessions > 0 ? (b.orders / b.sessions) * 100 : 0,
   })).sort((a, b) => a.date.localeCompare(b.date));
 }
 
@@ -743,8 +748,9 @@ function updateKPIs(data) {
   const t = data.reduce((a, d) => {
     a.revenue += d.revenue; a.adSpend += d.adSpend; a.orders += d.orders;
     a.newCustomers += d.newCustomers; a.returning += (d.orders - d.newCustomers);
+    a.sessions += d.sessions;
     return a;
-  }, { revenue: 0, adSpend: 0, orders: 0, newCustomers: 0, returning: 0 });
+  }, { revenue: 0, adSpend: 0, orders: 0, newCustomers: 0, returning: 0, sessions: 0 });
 
   document.getElementById('kpi-revenue').textContent = '\u00A3' + Math.round(t.revenue).toLocaleString();
   document.getElementById('kpi-adspend').textContent = '\u00A3' + Math.round(t.adSpend).toLocaleString();
@@ -754,6 +760,8 @@ function updateKPIs(data) {
   document.getElementById('kpi-new').textContent = t.newCustomers.toLocaleString();
   document.getElementById('kpi-repeat').textContent = t.orders > 0 ? ((t.returning / t.orders) * 100).toFixed(1) + '%' : '--';
   document.getElementById('kpi-cac').textContent = '\u00A3' + (t.orders > 0 ? (t.adSpend / t.orders).toFixed(1) : '--');
+  document.getElementById('kpi-sessions').textContent = t.sessions.toLocaleString();
+  document.getElementById('kpi-cvr').textContent = t.sessions > 0 ? ((t.orders / t.sessions) * 100).toFixed(2) + '%' : '--';
 }
 
 function getActiveMetrics() {
@@ -869,7 +877,7 @@ let tablePeriod = 'monthly';
 const VISIBLE_ROWS = 12;
 
 async function fetchTableData() {
-  const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.2024-01-01&report_date=lt.${fmtDate(new Date())}&order=report_date.asc&select=report_date,total_sales,total_ad_spend,meta_spend,google_spend,total_orders,new_customer_orders,returning_customer_orders`;
+  const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.2024-01-01&report_date=lt.${fmtDate(new Date())}&order=report_date.asc&select=report_date,total_sales,total_ad_spend,meta_spend,google_spend,total_orders,new_customer_orders,returning_customer_orders,ga4_sessions`;
   const resp = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } });
   allDailyData = await resp.json();
 
@@ -1033,10 +1041,10 @@ function renderTable() {
       <td>${r.repeatPct.toFixed(1)}%</td>
       <td${isTopNewCust ? ' class="highlight-best"' : ''}>${r.newCust.toLocaleString()}</td>
       <td${isTopRepeat ? ' class="highlight-best"' : ''}>${r.repeat.toLocaleString()}</td>
-      <td>${r.ltv > 0 ? '\u00A3' + r.ltv.toFixed(0) : '-'}</td>
-      <td>${r.ltv6m > 0 ? '\u00A3' + r.ltv6m.toFixed(0) : '-'}</td>
       <td>\u00A3${Math.round(r.meta).toLocaleString()}</td>
       <td>\u00A3${Math.round(r.google).toLocaleString()}</td>
+      <td>${r.ltv > 0 ? '\u00A3' + r.ltv.toFixed(0) : '-'}</td>
+      <td>${r.ltv6m > 0 ? '\u00A3' + r.ltv6m.toFixed(0) : '-'}</td>
     </tr>`;
   }
 

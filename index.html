@@ -249,12 +249,6 @@
         </div>
       </div>
     </div>
-    <div class="period-pills">
-      <button class="period-pill active" data-period="daily">Daily</button>
-      <button class="period-pill" data-period="weekly">Weekly</button>
-      <button class="period-pill" data-period="monthly">Monthly</button>
-      <button class="period-pill" data-period="quarterly">Quarterly</button>
-    </div>
   </div>
 </div>
 
@@ -271,7 +265,7 @@
 
 <div class="dashboard-body">
   <div class="chart-area">
-    <h3>Trends</h3>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><h3 style="margin-bottom:0">Trends</h3><div class="period-pills"><button class="period-pill active" data-period="daily">Daily</button><button class="period-pill" data-period="weekly">Weekly</button><button class="period-pill" data-period="monthly">Monthly</button><button class="period-pill" data-period="quarterly">Quarterly</button></div></div>
     <div class="chart-wrap">
       <canvas id="mainChart"></canvas>
     </div>

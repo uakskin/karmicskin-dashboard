@@ -405,10 +405,32 @@
             <th class="sortable" data-pcol="revenue">Revenue <span class="sort-arrow">▼</span></th>
             <th class="sortable" data-pcol="units">Units <span class="sort-arrow">▼</span></th>
             <th class="sortable" data-pcol="orders">Orders <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-pcol="aov" title="Revenue ÷ Orders for this product">AOV <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-pcol="aov" title="Revenue ÷ Units sold">ASP <span class="sort-arrow">▼</span></th>
           </tr>
         </thead>
         <tbody id="productPerfBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Category Performance -->
+<div class="product-analytics-row">
+  <div class="analytics-card">
+    <div class="analytics-card-header" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><h3>Category Performance</h3><span style="font-size:11px;color:var(--text-muted);font-weight:400" id="categoryPerfDateRange"></span></div>
+    <div class="analytics-table-scroll">
+      <table class="analytics-table" id="categoryPerfTable">
+        <thead>
+          <tr>
+            <th class="sortable" data-ccol="category">Category <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-ccol="pct_of_total">% of Rev <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-ccol="revenue">Revenue <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-ccol="units">Units <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-ccol="orders">Orders <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-ccol="asp" title="Revenue ÷ Units sold">ASP <span class="sort-arrow">▼</span></th>
+          </tr>
+        </thead>
+        <tbody id="categoryPerfBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -1130,7 +1152,7 @@ function renderProductPerformance() {
     revenue: parseFloat(r.revenue || 0),
     units: parseInt(r.units || 0),
     orders: parseInt(r.orders || 0),
-    aov: parseInt(r.orders || 0) > 0 ? parseFloat(r.revenue || 0) / parseInt(r.orders) : 0,
+    aov: parseInt(r.units || 0) > 0 ? parseFloat(r.revenue || 0) / parseInt(r.units) : 0,
     pct_total: parseFloat(r.pct_of_total || r.pct_total || 0),
   }));
 
@@ -1273,11 +1295,78 @@ document.querySelectorAll('#discountPerfTable th[data-dcol]').forEach(th => {
   });
 });
 
+// --- Category Performance ---
+let categoryData = [];
+let categorySortCol = 'revenue';
+let categorySortDir = 'desc';
+
+async function fetchCategoryPerformance() {
+  const dates = getProductAnalyticsDates();
+  try {
+    const data = await rpcCall('get_category_performance', dates);
+    categoryData = Array.isArray(data) ? data : [];
+    const el = document.getElementById('categoryPerfDateRange');
+    if (el) el.textContent = fmtDisplay(dates.from_date) + ' – ' + fmtDisplay(dates.to_date);
+    renderCategoryPerformance();
+  } catch(e) { console.error('Category performance error:', e); }
+}
+
+function renderCategoryPerformance() {
+  const rows = categoryData.map(r => ({
+    category: r.category || '',
+    revenue: parseFloat(r.revenue || 0),
+    units: parseInt(r.units || 0),
+    orders: parseInt(r.orders || 0),
+    asp: parseFloat(r.asp || 0),
+    pct_of_total: parseFloat(r.pct_of_total || 0),
+  }));
+
+  rows.sort((a, b) => {
+    let va = a[categorySortCol], vb = b[categorySortCol];
+    if (typeof va === 'string') return categorySortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    return categorySortDir === 'asc' ? (va - vb) : (vb - va);
+  });
+
+  let bestRev = -Infinity;
+  for (const r of rows) { if (r.revenue > bestRev) bestRev = r.revenue; }
+
+  document.querySelectorAll('#categoryPerfTable th[data-ccol]').forEach(th => {
+    const col = th.dataset.ccol;
+    th.classList.toggle('sorted', col === categorySortCol);
+    const arrow = th.querySelector('.sort-arrow');
+    if (arrow) arrow.textContent = (col === categorySortCol && categorySortDir === 'asc') ? '▲' : '▼';
+  });
+
+  let html = '';
+  for (const r of rows) {
+    const isTop = r.revenue === bestRev && bestRev > 0;
+    html += `<tr>
+      <td>${r.category}</td>
+      <td>${r.pct_of_total.toFixed(1)}%</td>
+      <td${isTop ? ' class="highlight-best"' : ''}>\u00A3${Math.round(r.revenue).toLocaleString()}</td>
+      <td>${r.units.toLocaleString()}</td>
+      <td>${r.orders.toLocaleString()}</td>
+      <td>\u00A3${r.asp.toFixed(1)}</td>
+    </tr>`;
+  }
+  document.getElementById('categoryPerfBody').innerHTML = html || '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">No data</td></tr>';
+}
+
+document.querySelectorAll('#categoryPerfTable th[data-ccol]').forEach(th => {
+  th.addEventListener('click', () => {
+    const col = th.dataset.ccol;
+    if (categorySortCol === col) { categorySortDir = categorySortDir === 'desc' ? 'asc' : 'desc'; }
+    else { categorySortCol = col; categorySortDir = 'desc'; }
+    renderCategoryPerformance();
+  });
+});
+
 // --- Fetch all product analytics ---
 async function fetchProductAnalytics() {
   await Promise.all([
     fetchCustomerFrequency(),
     fetchProductPerformance(),
+    fetchCategoryPerformance(),
   ]);
 }
 

@@ -443,9 +443,9 @@
           <tr>
             <th>Day</th>
             <th>Avg Revenue</th>
+            <th>ROAS</th>
             <th>Avg Orders</th>
             <th>Avg Ad Spend</th>
-            <th>ROAS</th>
           </tr>
         </thead>
         <tbody id="dowBody"><tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
@@ -457,22 +457,23 @@
 <!-- 4. Cohort Retention -->
 <div class="product-analytics-row">
   <div class="analytics-card" style="flex:1">
-    <div class="analytics-card-header"><h3>Cohort Retention</h3><span style="font-size:10px;color:var(--text-muted);margin-left:8px">% of customers who return within N months</span></div>
-    <div class="analytics-table-scroll" style="overflow-x:auto">
+    <div class="analytics-card-header"><h3>Cohort Retention</h3><span style="font-size:10px;color:var(--text-muted);margin-left:8px">Customers who return within N months</span></div>
+    <div class="analytics-table-scroll" style="overflow-x:auto;max-height:340px;overflow-y:auto">
       <table class="analytics-table" id="cohortTable">
         <thead>
           <tr>
             <th>Cohort</th>
             <th>Size</th>
-            <th>Month 1</th>
-            <th>Month 2</th>
-            <th>Month 3</th>
-            <th>Month 4</th>
-            <th>Month 5</th>
-            <th>Month 6</th>
+            <th>1 Month</th>
+            <th>2 Month</th>
+            <th>3 Month</th>
+            <th>6 Month</th>
+            <th>12 Month</th>
+            <th>18 Month</th>
+            <th>24 Month</th>
           </tr>
         </thead>
-        <tbody id="cohortBody"><tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
+        <tbody id="cohortBody"><tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -1186,9 +1187,9 @@ async function fetchDayOfWeek() {
       html += `<tr>
         <td style="font-weight:600">${r.day_name}</td>
         <td${rev === bestRev ? ' class="highlight-best"' : ''}>\u00A3${Math.round(rev).toLocaleString()}</td>
+        <td>${parseFloat(r.avg_roas).toFixed(2)}</td>
         <td${ord === bestOrd ? ' class="highlight-best"' : ''}>${Math.round(ord)}</td>
         <td>\u00A3${Math.round(parseFloat(r.avg_ad_spend)).toLocaleString()}</td>
-        <td>${parseFloat(r.avg_roas).toFixed(2)}</td>
       </tr>`;
     }
     document.getElementById('dowBody').innerHTML = html || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">No data</td></tr>';
@@ -1201,10 +1202,12 @@ async function fetchCohortRetention() {
     const data = await rpcCall('get_cohort_retention', {});
     if (!Array.isArray(data)) return;
     const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    // Color scale: 0% = no color, 30%+ = strongest
-    function retColor(pct) {
-      if (pct <= 0) return '';
-      const intensity = Math.min(pct / 25, 1);
+    // Data comes sorted DESC from RPC already
+    // Color scale based on absolute count relative to cohort size
+    function retColor(val, size) {
+      if (val <= 0) return '';
+      const pct = val / size;
+      const intensity = Math.min(pct / 0.25, 1);
       return `background: rgba(13, 148, 136, ${intensity * 0.35})`;
     }
     let html = '';
@@ -1212,20 +1215,15 @@ async function fetchCohortRetention() {
       const yr = parseInt(r.cohort.substring(0, 4));
       const mo = parseInt(r.cohort.substring(5, 7));
       const label = monthNames[mo - 1] + ' ' + String(yr).slice(2);
-      const m1 = parseFloat(r.m1), m2 = parseFloat(r.m2), m3 = parseFloat(r.m3);
-      const m4 = parseFloat(r.m4), m5 = parseFloat(r.m5), m6 = parseFloat(r.m6);
+      const size = parseInt(r.cohort_size);
+      const vals = [parseInt(r.m1), parseInt(r.m2), parseInt(r.m3), parseInt(r.m6), parseInt(r.m12), parseInt(r.m18), parseInt(r.m24)];
       html += `<tr>
         <td style="font-weight:600">${label}</td>
-        <td>${parseInt(r.cohort_size).toLocaleString()}</td>
-        <td style="${retColor(m1)}">${m1 > 0 ? m1.toFixed(1) + '%' : '-'}</td>
-        <td style="${retColor(m2)}">${m2 > 0 ? m2.toFixed(1) + '%' : '-'}</td>
-        <td style="${retColor(m3)}">${m3 > 0 ? m3.toFixed(1) + '%' : '-'}</td>
-        <td style="${retColor(m4)}">${m4 > 0 ? m4.toFixed(1) + '%' : '-'}</td>
-        <td style="${retColor(m5)}">${m5 > 0 ? m5.toFixed(1) + '%' : '-'}</td>
-        <td style="${retColor(m6)}">${m6 > 0 ? m6.toFixed(1) + '%' : '-'}</td>
+        <td>${size.toLocaleString()}</td>
+        ${vals.map(v => `<td style="${retColor(v, size)}">${v > 0 ? v.toLocaleString() : '-'}</td>`).join('')}
       </tr>`;
     }
-    document.getElementById('cohortBody').innerHTML = html || '<tr><td colspan="8" style="text-align:center;color:var(--text-muted)">No data</td></tr>';
+    document.getElementById('cohortBody').innerHTML = html || '<tr><td colspan="9" style="text-align:center;color:var(--text-muted)">No data</td></tr>';
   } catch(e) { console.error('Cohort retention error:', e); }
 }
 

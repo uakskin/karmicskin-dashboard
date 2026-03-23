@@ -313,6 +313,8 @@
             <th data-col="repeat" title="Customers who have ordered before">Repeat <span class="sort-arrow">▼</span></th>
             <th data-col="ltv" title="Trailing 12-month Revenue ÷ Unique Customers in that period">LTV 12m <span class="sort-arrow">▼</span></th>
             <th data-col="ltv6m" title="Trailing 6-month Revenue ÷ Unique Customers in that period">LTV 6m <span class="sort-arrow">▼</span></th>
+            <th data-col="amzRev" title="Amazon Ordered Product Sales">Amazon Rev <span class="sort-arrow">▼</span></th>
+            <th data-col="amzAds" title="Amazon Advertising spend">Amazon Ad Spend <span class="sort-arrow">▼</span></th>
             <th data-col="meta" title="Total Meta (Facebook/Instagram) advertising spend">Meta Ad Spend <span class="sort-arrow">▼</span></th>
             <th data-col="google" title="Total Google Ads (Search/PMax) advertising spend">Google Ad Spend <span class="sort-arrow">▼</span></th>
           </tr>
@@ -490,7 +492,7 @@ async function fetchData() {
   const from = document.getElementById('dateFrom').dataset.current || document.getElementById('dateFrom').value;
   const to = document.getElementById('dateTo').dataset.current || document.getElementById('dateTo').value;
 
-  const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.${from}&report_date=lte.${to}&order=report_date.asc&select=report_date,total_sales,total_ad_spend,meta_spend,google_spend,total_orders,aov,new_customer_orders,returning_customer_orders,blended_cac`;
+  const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.${from}&report_date=lte.${to}&order=report_date.asc&select=report_date,total_sales,total_ad_spend,meta_spend,google_spend,total_orders,aov,new_customer_orders,returning_customer_orders,blended_cac,amazon_revenue,amazon_ad_spend,amazon_orders`;
 
   const resp = await fetch(url, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
@@ -665,7 +667,7 @@ let tablePeriod = 'monthly';
 const VISIBLE_ROWS = 12;
 
 async function fetchTableData() {
-  const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.2024-01-01&report_date=lt.${fmtDate(new Date())}&order=report_date.asc&select=report_date,total_sales,total_ad_spend,meta_spend,google_spend,total_orders,new_customer_orders,returning_customer_orders`;
+  const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.2024-01-01&report_date=lt.${fmtDate(new Date())}&order=report_date.asc&select=report_date,total_sales,total_ad_spend,meta_spend,google_spend,total_orders,new_customer_orders,returning_customer_orders,amazon_revenue,amazon_ad_spend,amazon_orders`;
   const resp = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } });
   allDailyData = await resp.json();
 
@@ -713,7 +715,7 @@ function aggregateTableData(period) {
     } else {
       key = row.report_date.substring(0, 7);
     }
-    if (!buckets[key]) buckets[key] = { revenue: 0, adSpend: 0, meta: 0, google: 0, orders: 0, newCust: 0, repeat: 0 };
+    if (!buckets[key]) buckets[key] = { revenue: 0, adSpend: 0, meta: 0, google: 0, orders: 0, newCust: 0, repeat: 0, amzRev: 0, amzAds: 0, amzOrders: 0 };
     const b = buckets[key];
     b.revenue += parseFloat(row.total_sales || 0);
     b.adSpend += parseFloat(row.total_ad_spend || 0);
@@ -722,6 +724,9 @@ function aggregateTableData(period) {
     b.orders += parseInt(row.total_orders || 0);
     b.newCust += parseInt(row.new_customer_orders || 0);
     b.repeat += parseInt(row.returning_customer_orders || 0);
+    b.amzRev += parseFloat(row.amazon_revenue || 0);
+    b.amzAds += parseFloat(row.amazon_ad_spend || 0);
+    b.amzOrders += parseInt(row.amazon_orders || 0);
   }
   return buckets;
 }
@@ -766,6 +771,7 @@ function buildTableRows() {
     return {
       key: k, label, roas, revenue: d.revenue, adSpend: d.adSpend, meta: d.meta, google: d.google,
       orders: d.orders, aov, newCust: d.newCust, repeat: d.repeat, repeatPct, cac, ltv, ltv6m,
+      amzRev: d.amzRev, amzAds: d.amzAds,
       growthPct: growthMap[k].revGrowth, spendGrowth: growthMap[k].spendGrowth,
     };
   });
@@ -819,6 +825,8 @@ function renderTable() {
       <td>${r.repeat.toLocaleString()}</td>
       <td>${r.ltv > 0 ? '\u00A3' + r.ltv.toFixed(0) : '-'}</td>
       <td>${r.ltv6m > 0 ? '\u00A3' + r.ltv6m.toFixed(0) : '-'}</td>
+      <td>${r.amzRev > 0 ? '\u00A3' + Math.round(r.amzRev).toLocaleString() : '-'}</td>
+      <td>${r.amzAds > 0 ? '\u00A3' + Math.round(r.amzAds).toLocaleString() : '-'}</td>
       <td>\u00A3${Math.round(r.meta).toLocaleString()}</td>
       <td>\u00A3${Math.round(r.google).toLocaleString()}</td>
     </tr>`;

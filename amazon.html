@@ -85,7 +85,7 @@
   .period-pill.active { background: var(--pill-active-bg); color: var(--pill-active-text); }
 
   /* KPI STRIP */
-  .kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 16px 24px; }
+  .kpi-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; padding: 16px 24px; }
   .kpi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
   .kpi-card .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
   .kpi-card .value { font-size: 20px; font-weight: 700; color: var(--text-primary); }
@@ -134,8 +134,36 @@
   .perf-table .subtle { color: var(--text-muted); }
   .perf-table .highlight-best { background: var(--highlight-bg); color: var(--highlight-text); font-weight: 700; }
 
+  /* ANALYTICS SECTIONS */
+  .analytics-row { display: flex; gap: 16px; padding: 0 24px 16px; }
+  .analytics-card { flex: 1; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; min-width: 0; }
+  .analytics-card-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px 10px; flex-wrap: wrap; gap: 8px; }
+  .analytics-card-header h3 { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 0; }
+  .analytics-table-scroll { overflow-x: auto; }
+  .analytics-table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+  .analytics-table th { background: var(--table-header-bg); color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10px; padding: 8px 12px; text-align: center; border-bottom: 1px solid var(--border); }
+  .analytics-table th:first-child { text-align: left; }
+  .analytics-table td { padding: 7px 12px; text-align: center; border-bottom: 1px solid var(--table-border); color: var(--text-secondary); }
+  .analytics-table td:first-child { text-align: left; font-weight: 600; color: var(--text-primary); }
+  .analytics-table tbody tr:hover td { background: var(--table-hover); }
+  .analytics-table .highlight-best { background: var(--highlight-bg); color: var(--highlight-text); font-weight: 700; }
+  .analytics-table .positive { color: var(--positive); }
+  .analytics-table .negative { color: var(--negative); }
+  .analytics-chart-wrap { position: relative; height: 260px; padding: 0 20px 16px; }
+
+  /* FUNNEL */
+  .funnel-wrap { padding: 20px; }
+  .funnel-step { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+  .funnel-label { font-size: 12px; color: var(--text-secondary); min-width: 90px; text-align: right; font-weight: 600; }
+  .funnel-bar { height: 40px; border-radius: 6px; display: flex; align-items: center; padding: 0 14px; color: #fff; font-size: 13px; font-weight: 700; min-width: 60px; transition: width 0.4s ease; }
+  .funnel-dropoff { font-size: 11px; color: var(--negative); padding: 2px 0 8px 106px; font-weight: 500; }
+
+  /* EFFICIENCY DELTA */
+  .eff-positive { color: var(--positive); font-weight: 600; }
+  .eff-negative { color: var(--negative); font-weight: 600; }
+
   /* PAGE NAV */
-  .page-nav { display: flex; border-bottom: 1px solid var(--border); background: var(--bg-card); }
+  .page-nav { display: flex; border-bottom: 1px solid var(--border); background: var(--bg-card); position: sticky; top: 0; z-index: 102; }
   .page-nav a { padding: 10px 20px; font-size: 13px; font-weight: 600; color: var(--text-muted); text-decoration: none; border-bottom: 2px solid transparent; transition: all 0.15s; }
   .page-nav a:hover { color: var(--text-primary); }
   .page-nav a.active { color: var(--accent); border-bottom-color: var(--accent); }
@@ -146,7 +174,7 @@
 
   /* RESPONSIVE */
   @media (max-width: 1024px) {
-    .kpi-strip { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .kpi-strip { grid-template-columns: repeat(5, 1fr); gap: 6px; }
     .kpi-card .value { font-size: 17px; }
   }
   @media (max-width: 768px) {
@@ -161,6 +189,9 @@
     .chart-wrap { height: 280px; }
     .date-dropdown { right: auto; left: 0; min-width: 280px; }
     .header { padding: 12px 16px; }
+    .analytics-row { flex-direction: column; padding: 0 16px 16px; }
+    .analytics-chart-wrap { height: 220px; }
+    .funnel-label { min-width: 70px; font-size: 11px; }
   }
   @media (max-width: 480px) {
     .kpi-strip { grid-template-columns: repeat(2, 1fr); }
@@ -246,6 +277,7 @@
   <div class="kpi-card" title="Total number of orders placed"><div class="label">Orders</div><div class="value" id="kpi-orders">--</div></div>
   <div class="kpi-card" title="Total units ordered"><div class="label">Units</div><div class="value" id="kpi-units">--</div></div>
   <div class="kpi-card" title="Total number of sessions"><div class="label">Sessions</div><div class="value" id="kpi-sessions">--</div></div>
+  <div class="kpi-card" title="Revenue / Orders"><div class="label">AOV</div><div class="value" id="kpi-aov">--</div></div>
   <div class="kpi-card" title="Units Ordered / Sessions x 100 (Unit Session %)"><div class="label">Conversion Rate</div><div class="value" id="kpi-convrate">--</div></div>
   <div class="kpi-card" title="Total page views"><div class="label">Page Views</div><div class="value" id="kpi-pageviews">--</div></div>
 </div>
@@ -330,6 +362,7 @@
             <th data-col="adSpend" title="Monthly ad spend spread evenly across days">Ad Spend <span class="sort-arrow">&#9660;</span></th>
             <th data-col="roas" title="Revenue / Ad Spend">ROAS <span class="sort-arrow">&#9660;</span></th>
             <th data-col="orders" title="Total number of orders">Orders <span class="sort-arrow">&#9660;</span></th>
+            <th data-col="aov" title="Revenue / Orders">AOV <span class="sort-arrow">&#9660;</span></th>
             <th data-col="units" title="Total units ordered">Units <span class="sort-arrow">&#9660;</span></th>
             <th data-col="sessions" title="Total number of sessions">Sessions <span class="sort-arrow">&#9660;</span></th>
             <th data-col="convRate" title="Units Ordered / Sessions x 100 (Unit Session %)">Conv Rate <span class="sort-arrow">&#9660;</span></th>
@@ -337,8 +370,90 @@
           </tr>
         </thead>
         <tbody id="perfTableBody">
-          <tr><td colspan="10" style="text-align:center;color:#52525b;padding:20px">Loading...</td></tr>
+          <tr><td colspan="11" style="text-align:center;color:#52525b;padding:20px">Loading...</td></tr>
         </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- CVR vs Sessions + ASIN Performance -->
+<div class="analytics-row">
+  <div class="analytics-card">
+    <div class="analytics-card-header"><h3>Conversion Rate vs Sessions</h3></div>
+    <div class="analytics-chart-wrap"><canvas id="cvrChart"></canvas></div>
+  </div>
+  <div class="analytics-card">
+    <div class="analytics-card-header"><h3>ASIN Performance</h3><span style="font-size:11px;color:var(--text-muted)">Coming soon -- SP API pending</span></div>
+    <div class="analytics-table-scroll">
+      <table class="analytics-table">
+        <thead><tr><th>Product</th><th>Revenue</th><th>Units</th><th>Sessions</th><th>CVR %</th><th>% of Total</th></tr></thead>
+        <tbody id="asinBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:40px">ASIN-level data will be available once the SP API identity verification is complete.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Day-of-Week + Weekday vs Weekend -->
+<div class="analytics-row">
+  <div class="analytics-card">
+    <div class="analytics-card-header"><h3>Day-of-Week Performance</h3></div>
+    <div class="analytics-table-scroll">
+      <table class="analytics-table" id="dowTable">
+        <thead><tr><th>Day</th><th>Avg Revenue</th><th>Avg Orders</th><th>Avg Sessions</th><th>Avg CVR %</th><th>Avg Page Views</th></tr></thead>
+        <tbody id="dowBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="analytics-card">
+    <div class="analytics-card-header"><h3>Weekday vs Weekend</h3></div>
+    <div class="analytics-table-scroll">
+      <table class="analytics-table" id="wdweTable">
+        <thead><tr><th>Period</th><th>Avg Revenue</th><th>Avg Orders</th><th>Avg Sessions</th><th>Avg CVR %</th><th>Avg Page Views</th></tr></thead>
+        <tbody id="wdweBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Traffic & Conversion Funnel -->
+<div class="analytics-row">
+  <div class="analytics-card" style="flex:1">
+    <div class="analytics-card-header"><h3>Traffic & Conversion Funnel</h3></div>
+    <div class="funnel-wrap" id="funnelWrap">Loading...</div>
+  </div>
+</div>
+
+<!-- Year-over-Year Comparison -->
+<div class="analytics-row">
+  <div class="analytics-card" style="flex:1">
+    <div class="analytics-card-header">
+      <h3>Monthly Revenue -- Year over Year</h3>
+      <div class="period-pills" id="yoyPills">
+        <button class="period-pill active" data-yoy="revenue">Revenue</button>
+        <button class="period-pill" data-yoy="orders">Orders</button>
+        <button class="period-pill" data-yoy="sessions">Sessions</button>
+      </div>
+    </div>
+    <div class="analytics-chart-wrap" style="height:300px"><canvas id="yoyChart"></canvas></div>
+  </div>
+</div>
+
+<!-- Efficiency Metrics -->
+<div class="analytics-row" style="padding-bottom:24px">
+  <div class="analytics-card" style="flex:1">
+    <div class="analytics-card-header">
+      <h3>Efficiency Metrics</h3>
+      <div class="period-pills" id="effPills">
+        <button class="period-pill" data-eff="7">7 Days</button>
+        <button class="period-pill active" data-eff="30">30 Days</button>
+        <button class="period-pill" data-eff="90">90 Days</button>
+      </div>
+    </div>
+    <div class="analytics-table-scroll">
+      <table class="analytics-table" id="effTable">
+        <thead><tr><th>Metric</th><th>Current Period</th><th>Previous Period</th><th>Change</th></tr></thead>
+        <tbody id="effBody"><tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -614,6 +729,7 @@ function updateKPIs(data) {
   document.getElementById('kpi-adspend').textContent = '\u00A3' + Math.round(t.adSpend).toLocaleString();
   document.getElementById('kpi-roas').textContent = t.adSpend > 0 ? (t.revenue / t.adSpend).toFixed(2) + 'x' : '--';
   document.getElementById('kpi-orders').textContent = t.orders.toLocaleString();
+  document.getElementById('kpi-aov').textContent = t.orders > 0 ? '\u00A3' + (t.revenue / t.orders).toFixed(2) : '--';
   document.getElementById('kpi-units').textContent = t.units.toLocaleString();
   document.getElementById('kpi-sessions').textContent = t.sessions.toLocaleString();
   document.getElementById('kpi-convrate').textContent = t.sessions > 0 ? ((t.units / t.sessions) * 100).toFixed(2) + '%' : '--';
@@ -704,6 +820,10 @@ let currentFilteredData = [];
 function updateDashboardWithData(filtered) {
   currentFilteredData = filtered;
   updateDashboard();
+  renderCvrChart();
+  renderDayOfWeek();
+  renderWeekdayWeekend();
+  renderFunnel();
 }
 
 function updateDashboard() {
@@ -787,9 +907,10 @@ function buildTableRows() {
     } else {
       label = new Date(k + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' });
     }
+    const aov = d.orders > 0 ? d.revenue / d.orders : 0;
     return {
       key: k, label, revenue: d.revenue, adSpend: d.adSpend, roas, orders: d.orders,
-      units: d.units, sessions: d.sessions, convRate, pageViews: d.pageViews,
+      aov, units: d.units, sessions: d.sessions, convRate, pageViews: d.pageViews,
       growthPct: growthMap[k].revGrowth,
     };
   });
@@ -834,6 +955,7 @@ function renderTable() {
       <td>\u00A3${Math.round(r.adSpend).toLocaleString()}</td>
       <td${isTopRoas ? ' class="highlight-best"' : ''}>${r.roas.toFixed(2)}x</td>
       <td>${r.orders.toLocaleString()}</td>
+      <td>\u00A3${r.aov.toFixed(2)}</td>
       <td>${r.units.toLocaleString()}</td>
       <td>${r.sessions.toLocaleString()}</td>
       <td>${r.convRate.toFixed(2)}%</td>
@@ -866,6 +988,264 @@ document.querySelectorAll('.perf-table-tab').forEach(btn => {
     renderTable();
   });
 });
+
+// ==========================================
+// NEW ANALYTICAL SECTIONS
+// ==========================================
+
+// --- CVR vs Sessions Chart ---
+let cvrChart = null;
+function renderCvrChart() {
+  const weekly = aggregateData(currentFilteredData, 'weekly');
+  if (cvrChart) cvrChart.destroy();
+  const cs = getComputedStyle(document.documentElement);
+  const gridColor = cs.getPropertyValue('--chart-grid').trim();
+  const tickColor = cs.getPropertyValue('--chart-tick').trim();
+  const ttBg = cs.getPropertyValue('--tooltip-bg').trim();
+  const ttTitle = cs.getPropertyValue('--tooltip-title').trim();
+  const ttBody = cs.getPropertyValue('--tooltip-body').trim();
+  const ttBorder = cs.getPropertyValue('--tooltip-border').trim();
+
+  cvrChart = new Chart(document.getElementById('cvrChart'), {
+    data: {
+      labels: weekly.map(d => d.date),
+      datasets: [
+        { type: 'bar', label: 'Sessions', data: weekly.map(d => d.sessions), backgroundColor: '#0d9488CC', borderColor: '#0d9488', borderWidth: 1, borderRadius: 3, yAxisID: 'y', order: 2 },
+        { type: 'line', label: 'CVR %', data: weekly.map(d => d.convRate), borderColor: '#9333ea', backgroundColor: 'transparent', borderWidth: 2.5, pointRadius: 3, pointBackgroundColor: '#9333ea', tension: 0.35, yAxisID: 'y1', order: 1 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: true, position: 'bottom', labels: { font: { size: 11 }, usePointStyle: true, padding: 12 } },
+        tooltip: { backgroundColor: ttBg, titleColor: ttTitle, bodyColor: ttBody, borderColor: ttBorder, borderWidth: 1, padding: 10 } },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: tickColor, maxTicksLimit: 8, font: { size: 10 } } },
+        y: { display: true, position: 'left', beginAtZero: true, grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 10 } }, title: { display: true, text: 'Sessions', font: { size: 10 }, color: tickColor } },
+        y1: { display: true, position: 'right', beginAtZero: true, grid: { drawOnChartArea: false }, ticks: { color: tickColor, font: { size: 10 }, callback: v => v.toFixed(1) + '%' }, title: { display: true, text: 'CVR %', font: { size: 10 }, color: tickColor } }
+      }
+    }
+  });
+}
+
+// --- Day-of-Week Performance ---
+function renderDayOfWeek() {
+  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const buckets = Array.from({length: 7}, () => ({ revenue: 0, orders: 0, sessions: 0, units: 0, pageViews: 0, days: 0 }));
+  for (const row of currentFilteredData) {
+    const dow = new Date(row.report_date + 'T00:00:00').getDay();
+    buckets[dow].revenue += row.revenue;
+    buckets[dow].orders += row.orders;
+    buckets[dow].sessions += row.sessions;
+    buckets[dow].units += row.units;
+    buckets[dow].pageViews += row.pageViews;
+    buckets[dow].days++;
+  }
+  const rows = buckets.map((b, i) => ({
+    day: dayNames[i], avgRev: b.days ? b.revenue / b.days : 0, avgOrd: b.days ? b.orders / b.days : 0,
+    avgSess: b.days ? b.sessions / b.days : 0, avgCvr: b.sessions > 0 ? (b.units / b.sessions) * 100 : 0,
+    avgPv: b.days ? b.pageViews / b.days : 0,
+  }));
+  let bestRev = Math.max(...rows.map(r => r.avgRev));
+  let bestOrd = Math.max(...rows.map(r => r.avgOrd));
+  let html = '';
+  for (const r of rows) {
+    html += `<tr>
+      <td>${r.day}</td>
+      <td${r.avgRev === bestRev && bestRev > 0 ? ' class="highlight-best"' : ''}>\u00A3${Math.round(r.avgRev).toLocaleString()}</td>
+      <td${r.avgOrd === bestOrd && bestOrd > 0 ? ' class="highlight-best"' : ''}>${r.avgOrd.toFixed(1)}</td>
+      <td>${Math.round(r.avgSess).toLocaleString()}</td>
+      <td>${r.avgCvr.toFixed(2)}%</td>
+      <td>${Math.round(r.avgPv).toLocaleString()}</td>
+    </tr>`;
+  }
+  document.getElementById('dowBody').innerHTML = html || '<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">No data</td></tr>';
+}
+
+// --- Weekday vs Weekend ---
+function renderWeekdayWeekend() {
+  const wd = { revenue: 0, orders: 0, sessions: 0, units: 0, pageViews: 0, days: 0 };
+  const we = { revenue: 0, orders: 0, sessions: 0, units: 0, pageViews: 0, days: 0 };
+  for (const row of currentFilteredData) {
+    const dow = new Date(row.report_date + 'T00:00:00').getDay();
+    const target = (dow === 0 || dow === 6) ? we : wd;
+    target.revenue += row.revenue; target.orders += row.orders; target.sessions += row.sessions;
+    target.units += row.units; target.pageViews += row.pageViews; target.days++;
+  }
+  function avg(bucket) {
+    return {
+      rev: bucket.days ? bucket.revenue / bucket.days : 0,
+      ord: bucket.days ? bucket.orders / bucket.days : 0,
+      sess: bucket.days ? bucket.sessions / bucket.days : 0,
+      cvr: bucket.sessions > 0 ? (bucket.units / bucket.sessions) * 100 : 0,
+      pv: bucket.days ? bucket.pageViews / bucket.days : 0,
+    };
+  }
+  const wdA = avg(wd), weA = avg(we);
+  function delta(a, b) { return b > 0 ? ((a - b) / b * 100) : 0; }
+  function fmtDelta(v) { const cls = v >= 0 ? 'positive' : 'negative'; return `<span class="${cls}">${v >= 0 ? '+' : ''}${v.toFixed(1)}%</span>`; }
+
+  const html = `<tr>
+    <td>Weekday</td><td>\u00A3${Math.round(wdA.rev).toLocaleString()}</td><td>${wdA.ord.toFixed(1)}</td>
+    <td>${Math.round(wdA.sess).toLocaleString()}</td><td>${wdA.cvr.toFixed(2)}%</td><td>${Math.round(wdA.pv).toLocaleString()}</td>
+  </tr><tr>
+    <td>Weekend</td><td>\u00A3${Math.round(weA.rev).toLocaleString()}</td><td>${weA.ord.toFixed(1)}</td>
+    <td>${Math.round(weA.sess).toLocaleString()}</td><td>${weA.cvr.toFixed(2)}%</td><td>${Math.round(weA.pv).toLocaleString()}</td>
+  </tr><tr style="border-top:2px solid var(--border)">
+    <td style="font-weight:700">Delta</td>
+    <td>${fmtDelta(delta(weA.rev, wdA.rev))}</td><td>${fmtDelta(delta(weA.ord, wdA.ord))}</td>
+    <td>${fmtDelta(delta(weA.sess, wdA.sess))}</td><td>${fmtDelta(delta(weA.cvr, wdA.cvr))}</td><td>${fmtDelta(delta(weA.pv, wdA.pv))}</td>
+  </tr>`;
+  document.getElementById('wdweBody').innerHTML = html;
+}
+
+// --- Traffic & Conversion Funnel ---
+function renderFunnel() {
+  const t = currentFilteredData.reduce((a, d) => {
+    a.pageViews += d.pageViews; a.sessions += d.sessions; a.orders += d.orders; a.units += d.units;
+    return a;
+  }, { pageViews: 0, sessions: 0, orders: 0, units: 0 });
+
+  const steps = [
+    { label: 'Page Views', value: t.pageViews, color: '#0d9488' },
+    { label: 'Sessions', value: t.sessions, color: '#2563eb' },
+    { label: 'Orders', value: t.orders, color: '#7c3aed' },
+    { label: 'Units', value: t.units, color: '#9333ea' },
+  ];
+  const maxVal = steps[0].value || 1;
+
+  let html = '';
+  for (let i = 0; i < steps.length; i++) {
+    const s = steps[i];
+    const pct = Math.max((s.value / maxVal) * 100, 8);
+    html += `<div class="funnel-step">
+      <div class="funnel-label">${s.label}</div>
+      <div class="funnel-bar" style="width:${pct}%;background:${s.color}">${s.value.toLocaleString()}</div>
+    </div>`;
+    if (i < steps.length - 1) {
+      const dropoff = steps[i].value > 0 ? ((1 - steps[i+1].value / steps[i].value) * 100) : 0;
+      html += `<div class="funnel-dropoff">\u2193 ${dropoff.toFixed(1)}% drop-off</div>`;
+    }
+  }
+  document.getElementById('funnelWrap').innerHTML = html || '<div style="padding:20px;color:var(--text-muted);text-align:center">No data</div>';
+}
+
+// --- Year-over-Year Comparison ---
+let yoyChart = null;
+let yoyMetric = 'revenue';
+
+function renderYoYChart() {
+  if (yoyChart) yoyChart.destroy();
+  const yearBuckets = {};
+  for (const row of dailyDataWithAds) {
+    const y = row.report_date.substring(0, 4);
+    const m = parseInt(row.report_date.substring(5, 7));
+    if (!yearBuckets[y]) yearBuckets[y] = {};
+    if (!yearBuckets[y][m]) yearBuckets[y][m] = { revenue: 0, orders: 0, sessions: 0 };
+    yearBuckets[y][m].revenue += row.revenue;
+    yearBuckets[y][m].orders += row.orders;
+    yearBuckets[y][m].sessions += row.sessions;
+  }
+
+  const monthLabels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const years = Object.keys(yearBuckets).sort();
+  const colors = { '2024': '#94a3b8', '2025': '#0d9488', '2026': '#7c3aed' };
+  const datasets = years.map(y => ({
+    label: y, data: monthLabels.map((_, i) => yearBuckets[y]?.[i + 1]?.[yoyMetric] || 0),
+    backgroundColor: (colors[y] || '#6b7280') + 'CC', borderColor: colors[y] || '#6b7280',
+    borderWidth: 1, borderRadius: 3,
+  }));
+
+  const cs = getComputedStyle(document.documentElement);
+  const gridColor = cs.getPropertyValue('--chart-grid').trim();
+  const tickColor = cs.getPropertyValue('--chart-tick').trim();
+  const ttBg = cs.getPropertyValue('--tooltip-bg').trim();
+  const ttTitle = cs.getPropertyValue('--tooltip-title').trim();
+  const ttBody = cs.getPropertyValue('--tooltip-body').trim();
+  const ttBorder = cs.getPropertyValue('--tooltip-border').trim();
+
+  yoyChart = new Chart(document.getElementById('yoyChart'), {
+    type: 'bar',
+    data: { labels: monthLabels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: true, position: 'bottom', labels: { font: { size: 11 }, usePointStyle: true, padding: 12 } },
+        tooltip: { backgroundColor: ttBg, titleColor: ttTitle, bodyColor: ttBody, borderColor: ttBorder, borderWidth: 1, padding: 10,
+          callbacks: { label: ctx => ` ${ctx.dataset.label}: ${yoyMetric === 'revenue' ? '\u00A3' : ''}${Math.round(ctx.parsed.y).toLocaleString()}` } } },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 } } },
+        y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 },
+          callback: v => yoyMetric === 'revenue' ? '\u00A3' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v) : v.toLocaleString() } }
+      }
+    }
+  });
+}
+
+document.querySelectorAll('#yoyPills .period-pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#yoyPills .period-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    yoyMetric = btn.dataset.yoy;
+    renderYoYChart();
+  });
+});
+
+// --- Efficiency Metrics ---
+let effDays = 30;
+function renderEfficiency() {
+  const sorted = [...dailyDataWithAds].sort((a, b) => b.report_date.localeCompare(a.report_date));
+  const current = sorted.slice(0, effDays);
+  const previous = sorted.slice(effDays, effDays * 2);
+
+  function totals(arr) {
+    return arr.reduce((a, d) => {
+      a.revenue += d.revenue; a.sessions += d.sessions; a.pageViews += d.pageViews;
+      a.units += d.units; a.orders += d.orders; a.adSpend += d.adSpend;
+      return a;
+    }, { revenue: 0, sessions: 0, pageViews: 0, units: 0, orders: 0, adSpend: 0 });
+  }
+  const c = totals(current), p = totals(previous);
+
+  const metrics = [
+    { name: 'Revenue / Session', curr: c.sessions ? c.revenue / c.sessions : 0, prev: p.sessions ? p.revenue / p.sessions : 0, prefix: '\u00A3', dec: 2 },
+    { name: 'Revenue / Page View', curr: c.pageViews ? c.revenue / c.pageViews : 0, prev: p.pageViews ? p.revenue / p.pageViews : 0, prefix: '\u00A3', dec: 2 },
+    { name: 'Units / Session', curr: c.sessions ? c.units / c.sessions : 0, prev: p.sessions ? p.units / p.sessions : 0, prefix: '', dec: 3 },
+    { name: 'Pages / Session', curr: c.sessions ? c.pageViews / c.sessions : 0, prev: p.sessions ? p.pageViews / p.sessions : 0, prefix: '', dec: 2 },
+    { name: 'AOV', curr: c.orders ? c.revenue / c.orders : 0, prev: p.orders ? p.revenue / p.orders : 0, prefix: '\u00A3', dec: 2 },
+    { name: 'Ad Spend / Unit', curr: c.units ? c.adSpend / c.units : 0, prev: p.units ? p.adSpend / p.units : 0, prefix: '\u00A3', dec: 2 },
+  ];
+
+  let html = '';
+  for (const m of metrics) {
+    const change = m.prev > 0 ? ((m.curr - m.prev) / m.prev * 100) : 0;
+    const cls = change >= 0 ? 'eff-positive' : 'eff-negative';
+    html += `<tr>
+      <td>${m.name}</td>
+      <td>${m.prefix}${m.curr.toFixed(m.dec)}</td>
+      <td>${m.prefix}${m.prev.toFixed(m.dec)}</td>
+      <td class="${cls}">${change >= 0 ? '+' : ''}${change.toFixed(1)}%</td>
+    </tr>`;
+  }
+  document.getElementById('effBody').innerHTML = html || '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">No data</td></tr>';
+}
+
+document.querySelectorAll('#effPills .period-pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#effPills .period-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    effDays = parseInt(btn.dataset.eff);
+    renderEfficiency();
+  });
+});
+
+// Wire YoY and Efficiency into data load (they use all data, not filtered)
+const origFetchAllData = fetchAllData;
+fetchAllData = async function() {
+  await origFetchAllData();
+  renderYoYChart();
+  renderEfficiency();
+};
 
 fetchAllData();
 

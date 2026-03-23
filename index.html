@@ -369,7 +369,15 @@
 <!-- Product Analytics: Row 1 - Customer Purchase Frequency + Product Performance -->
 <div class="product-analytics-row">
   <div class="analytics-card">
-    <div class="analytics-card-header"><h3>Customer Purchase Frequency</h3></div>
+    <div class="analytics-card-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <h3>Customer Purchase Frequency</h3>
+      <div class="period-pills" id="custFreqPills">
+        <button class="period-pill active" data-cpf="all">All Time</button>
+        <button class="period-pill" data-cpf="12m">Last 12m</button>
+        <button class="period-pill" data-cpf="6m">Last 6m</button>
+        <button class="period-pill" data-cpf="3m">Last 3m</button>
+      </div>
+    </div>
     <div class="analytics-table-scroll">
       <table class="analytics-table" id="custFreqTable">
         <thead>
@@ -937,13 +945,36 @@ fetchData();
 // ========== PRODUCT ANALYTICS ==========
 
 // ---- Section 1: Customer Purchase Frequency ----
+let custFreqPeriod = 'all';
+
+function getCustFreqDates() {
+  const now = new Date();
+  const today = fmtDate(new Date(now.getFullYear(), now.getMonth(), now.getDate()));
+  switch (custFreqPeriod) {
+    case '12m': { const d = new Date(now); d.setMonth(d.getMonth() - 12); return { from_date: fmtDate(d), to_date: today }; }
+    case '6m': { const d = new Date(now); d.setMonth(d.getMonth() - 6); return { from_date: fmtDate(d), to_date: today }; }
+    case '3m': { const d = new Date(now); d.setMonth(d.getMonth() - 3); return { from_date: fmtDate(d), to_date: today }; }
+    default: return { from_date: '2023-01-01', to_date: today };
+  }
+}
+
 async function fetchCustomerFrequency() {
-  const dates = getProductAnalyticsDates();
+  const dates = getCustFreqDates();
   try {
     const data = await rpcCall('get_customer_purchase_frequency', dates);
     renderCustomerFrequency(Array.isArray(data) ? data : []);
   } catch(e) { console.error('Customer frequency error:', e); }
 }
+
+// Pill click handlers
+document.querySelectorAll('#custFreqPills .period-pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#custFreqPills .period-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    custFreqPeriod = btn.dataset.cpf;
+    fetchCustomerFrequency();
+  });
+});
 
 function renderCustomerFrequency(data) {
   const totalRev = data.reduce((s, r) => s + parseFloat(r.revenue || 0), 0);

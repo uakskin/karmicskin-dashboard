@@ -413,7 +413,7 @@
   </div>
 </div>
 
-<!-- Category Performance -->
+<!-- Category + Discount Performance side by side -->
 <div class="product-analytics-row">
   <div class="analytics-card">
     <div class="analytics-card-header" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><h3>Category Performance</h3><span style="font-size:11px;color:var(--text-muted);font-weight:400" id="categoryPerfDateRange"></span></div>
@@ -430,6 +430,24 @@
           </tr>
         </thead>
         <tbody id="categoryPerfBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="analytics-card">
+    <div class="analytics-card-header" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><h3>Discount Code Performance</h3><span style="font-size:11px;color:var(--text-muted);font-weight:400" id="discountPerfDateRange"></span></div>
+    <div class="analytics-table-scroll">
+      <table class="analytics-table" id="discountPerfTable">
+        <thead>
+          <tr>
+            <th class="sortable" data-dcol="discount">Discount Code <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-dcol="orders">Orders <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-dcol="revenue">Revenue <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-dcol="avg_aov">AOV <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-dcol="total_discounted">Disc. Given <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-dcol="eff_pct">Eff. Disc % <span class="info-tip" data-tip="Discount Given ÷ (Revenue + Discount) × 100">?</span> <span class="sort-arrow">▼</span></th>
+          </tr>
+        </thead>
+        <tbody id="discountPerfBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -752,10 +770,10 @@ function updateDashboard() {
   updateChart(aggregated);
 }
 
-// PERIOD PILLS
-document.querySelectorAll('.period-pill').forEach(btn => {
+// PERIOD PILLS (scoped to chart area only)
+document.querySelectorAll('.chart-area .period-pill').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.period-pill').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.chart-area .period-pill').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     currentPeriod = btn.dataset.period;
     updateDashboard();
@@ -1029,15 +1047,13 @@ function renderCustomerFrequency(data) {
   document.getElementById('custFreqBody').innerHTML = html || '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">No data</td></tr>';
 }
 
-const PRODUCT_COLORS_UNUSED = {
+const PRODUCT_COLORS = {
   'Age Confidence': '#059669',
   'Richie Rich Rich': '#9333ea',
   'Top of the Morning': '#ea580c',
   'Bright Future': '#0891b2',
   'Other': '#6b7280',
 };
-
-let productRevenueChart = null;
 
 async function rpcCall(fnName, params) {
   const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fnName}`, {
@@ -1053,78 +1069,6 @@ function getProductAnalyticsDates() {
     from_date: document.getElementById('dateFrom').dataset.current || document.getElementById('dateFrom').value,
     to_date: document.getElementById('dateTo').dataset.current || document.getElementById('dateTo').value,
   };
-}
-
-// --- Section 1: Product Revenue Mix Chart ---
-async function fetchProductRevenueMix() {
-  const dates = getProductAnalyticsDates();
-  try {
-    const data = await rpcCall('get_product_revenue_mix', dates);
-    renderProductRevenueMix(data);
-  } catch(e) {
-    console.error('Product revenue mix error:', e);
-  }
-}
-
-function renderProductRevenueMix(data) {
-  if (!Array.isArray(data) || data.length === 0) return;
-
-  // Collect all unique months and products
-  const months = [...new Set(data.map(r => r.month))].sort();
-  const products = [...new Set(data.map(r => r.product))];
-
-  // Build lookup
-  const lookup = {};
-  for (const r of data) {
-    if (!lookup[r.month]) lookup[r.month] = {};
-    lookup[r.month][r.product] = parseFloat(r.revenue || 0);
-  }
-
-  const datasets = products.map(product => ({
-    label: product,
-    data: months.map(m => lookup[m]?.[product] || 0),
-    backgroundColor: PRODUCT_COLORS[product] || PRODUCT_COLORS['Other'],
-    borderWidth: 0,
-    borderRadius: 2,
-  }));
-
-  const cs = getComputedStyle(document.documentElement);
-  const gridColor = cs.getPropertyValue('--chart-grid').trim();
-  const tickColor = cs.getPropertyValue('--chart-tick').trim();
-  const ttBg = cs.getPropertyValue('--tooltip-bg').trim();
-  const ttTitle = cs.getPropertyValue('--tooltip-title').trim();
-  const ttBody = cs.getPropertyValue('--tooltip-body').trim();
-  const ttBorder = cs.getPropertyValue('--tooltip-border').trim();
-
-  if (productRevenueChart) productRevenueChart.destroy();
-  productRevenueChart = new Chart(document.getElementById('productRevenueChart'), {
-    type: 'bar',
-    data: { labels: months, datasets },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: ttBg, titleColor: ttTitle, bodyColor: ttBody,
-          borderColor: ttBorder, borderWidth: 1, padding: 12,
-          callbacks: {
-            label: ctx => ` ${ctx.dataset.label}: \u00A3${Math.round(ctx.parsed.y).toLocaleString()}`
-          }
-        }
-      },
-      scales: {
-        x: { stacked: true, grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 }, maxTicksLimit: 12 } },
-        y: { stacked: true, beginAtZero: true, grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 }, callback: v => '\u00A3' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v.toFixed(0)) } }
-      }
-    }
-  });
-
-  // Legend
-  const legendEl = document.getElementById('productRevenueLegend');
-  legendEl.innerHTML = products.map(p =>
-    `<span class="analytics-legend-item"><span class="analytics-legend-dot" style="background:${PRODUCT_COLORS[p] || PRODUCT_COLORS['Other']}"></span>${p}</span>`
-  ).join('');
 }
 
 // --- Section 2: Product Performance Table ---
@@ -1199,30 +1143,6 @@ document.querySelectorAll('#productPerfTable th[data-pcol]').forEach(th => {
     renderProductPerformance();
   });
 });
-
-// --- Section 3: Top Product Pairs ---
-async function fetchProductPairs() {
-  const dates = getProductAnalyticsDates();
-  try {
-    const data = await rpcCall('get_product_pairs', dates);
-    renderProductPairs(Array.isArray(data) ? data : []);
-  } catch(e) {
-    console.error('Product pairs error:', e);
-  }
-}
-
-function renderProductPairs(data) {
-  const rows = data.slice(0, 10);
-  let html = '';
-  for (const r of rows) {
-    html += `<tr>
-      <td>${r.product_combination || ''}</td>
-      <td>${parseInt(r.orders || 0).toLocaleString()}</td>
-      <td>\u00A3${parseFloat(r.aov || 0).toFixed(1)}</td>
-    </tr>`;
-  }
-  document.getElementById('productPairsBody').innerHTML = html || '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:20px">No data</td></tr>';
-}
 
 // --- Section 4: Discount Performance ---
 let discountPerfData = [];
@@ -1366,6 +1286,7 @@ async function fetchProductAnalytics() {
     fetchCustomerFrequency(),
     fetchProductPerformance(),
     fetchCategoryPerformance(),
+    fetchDiscountPerformance(),
   ]);
 }
 

@@ -874,9 +874,17 @@ function renderTable() {
 
   // Best values
   let bestRevVal = -Infinity, bestRevKey = null, bestRoasVal = -Infinity, bestRoasKey = null;
+  let bestOrdersVal = -Infinity, bestOrdersKey = null;
+  let bestNewCustVal = -Infinity, bestNewCustKey = null;
+  let bestRepeatVal = -Infinity, bestRepeatKey = null;
+  let bestCacVal = Infinity, bestCacKey = null;
   for (const r of rows) {
     if (r.revenue > bestRevVal) { bestRevVal = r.revenue; bestRevKey = r.key; }
     if (r.roas > bestRoasVal && r.adSpend > 100) { bestRoasVal = r.roas; bestRoasKey = r.key; }
+    if (r.orders > bestOrdersVal) { bestOrdersVal = r.orders; bestOrdersKey = r.key; }
+    if (r.newCust > bestNewCustVal) { bestNewCustVal = r.newCust; bestNewCustKey = r.key; }
+    if (r.repeat > bestRepeatVal) { bestRepeatVal = r.repeat; bestRepeatKey = r.key; }
+    if (r.cac > 0 && r.cac < bestCacVal) { bestCacVal = r.cac; bestCacKey = r.key; }
   }
 
   // Update header arrows
@@ -893,6 +901,10 @@ function renderTable() {
     const sC = r.spendGrowth === null ? 'subtle' : (r.spendGrowth >= 0 ? 'negative' : 'positive');
     const isTopRev = r.key === bestRevKey;
     const isTopRoas = r.key === bestRoasKey;
+    const isTopOrders = r.key === bestOrdersKey;
+    const isTopNewCust = r.key === bestNewCustKey;
+    const isTopRepeat = r.key === bestRepeatKey;
+    const isBestCac = r.key === bestCacKey;
 
     html += `<tr>
       <td>${r.label}</td>
@@ -900,12 +912,12 @@ function renderTable() {
       <td${isTopRev ? ' class="highlight-best"' : ''}>\u00A3${Math.round(r.revenue).toLocaleString()}</td>
       <td>\u00A3${Math.round(r.adSpend).toLocaleString()}</td>
       <td${isTopRoas ? ' class="highlight-best"' : ''}>${r.roas.toFixed(2)}</td>
-      <td>${r.orders.toLocaleString()}</td>
+      <td${isTopOrders ? ' class="highlight-best"' : ''}>${r.orders.toLocaleString()}</td>
       <td>\u00A3${Math.round(r.aov)}</td>
-      <td>\u00A3${Math.round(r.cac)}</td>
+      <td${isBestCac ? ' class="highlight-best"' : ''}>\u00A3${Math.round(r.cac)}</td>
       <td>${r.repeatPct.toFixed(1)}%</td>
-      <td>${r.newCust.toLocaleString()}</td>
-      <td>${r.repeat.toLocaleString()}</td>
+      <td${isTopNewCust ? ' class="highlight-best"' : ''}>${r.newCust.toLocaleString()}</td>
+      <td${isTopRepeat ? ' class="highlight-best"' : ''}>${r.repeat.toLocaleString()}</td>
       <td>${r.ltv > 0 ? '\u00A3' + r.ltv.toFixed(0) : '-'}</td>
       <td>${r.ltv6m > 0 ? '\u00A3' + r.ltv6m.toFixed(0) : '-'}</td>
       <td>\u00A3${Math.round(r.meta).toLocaleString()}</td>

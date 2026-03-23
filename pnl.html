@@ -148,6 +148,8 @@
   <a href="index.html">Shopify</a>
   <a href="amazon.html">Amazon</a>
   <a href="pnl.html" class="active">P&L</a>
+  <a href="email.html">Email</a>
+  <a href="meta.html">Meta</a>
 </nav>
 
 <div class="header">
@@ -157,8 +159,8 @@
   </div>
   <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
     <div class="fy-pills">
-      <button class="fy-pill active" data-fy="fy2025" onclick="switchFY('fy2025')">FY2025 (Jun 24 - May 25)</button>
-      <button class="fy-pill" data-fy="fy2026" onclick="switchFY('fy2026')">FY2026 (Jun 25 - May 26)</button>
+      <button class="fy-pill" data-fy="fy2025" onclick="switchFY('fy2025')">FY2025 (Jun 24 - May 25)</button>
+      <button class="fy-pill active" data-fy="fy2026" onclick="switchFY('fy2026')">FY2026 (Jun 25 - May 26)</button>
     </div>
     <div style="text-align:right"><span style="font-size:10px;color:var(--text-muted);display:block">All figures exclude VAT</span></div>
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Switch theme">&#9728;&#65039;</button>
@@ -281,7 +283,7 @@ const DATA = {
   }
 };
 
-let currentFY = 'fy2025';
+let currentFY = 'fy2026';
 let revTrendChart, costBreakdownChart, marginTrendChart;
 
 // ─── UTILITY ────────────────────────────────────────────────────────────────
@@ -431,7 +433,7 @@ function buildTable(d, n) {
   const ytdAmzTotalGP = ytdAmzRev - ytdAmzTotalCoS;
 
   const rows = [
-    { label: 'Revenue', ytd: ytdRev, ytdShop: ytdShopRev, ytdAmz: ytdAmzRev, monthFn: i => d.revenue[i], cls: '' },
+    { label: 'Revenue (exc. VAT)', ytd: ytdRev, ytdShop: ytdShopRev, ytdAmz: ytdAmzRev, monthFn: i => d.revenue[i], cls: '' },
     { label: 'Product Cost', ytd: ytdProdCost, ytdShop: ytdShopProdC, ytdAmz: ytdAmzProdC, monthFn: i => d.prodCost[i], cls: '', negate: true },
     { label: 'Product Gross Profit', ytd: ytdProductGP, ytdShop: ytdShopProductGP, ytdAmz: ytdAmzProductGP, monthFn: getMonthProductGP, cls: 'subtotal-row', marginBase: [ytdRev, ytdShopRev, ytdAmzRev], monthMarginBase: i => d.revenue[i] },
     { label: 'Fulfilment Cost', ytd: ytdFulf, ytdShop: ytdShopFulf, ytdAmz: ytdAmzFulf, monthFn: i => d.fulfilment[i], cls: '', negate: true },

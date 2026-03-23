@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Karmic Skin — Email Marketing Dashboard</title>
+<link rel="icon" type="image/svg+xml" href="favicon-k.svg">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  /* THEME VARIABLES */
+  :root {
+    --bg-page: #f8f9fa; --bg-card: #ffffff; --bg-card-alt: #f3f4f6; --bg-input: #ffffff;
+    --border: #e5e7eb; --border-hover: #d1d5db;
+    --text-primary: #111827; --text-secondary: #6b7280; --text-muted: #9ca3af; --text-heading: #374151;
+    --pill-bg: #f3f4f6; --pill-border: #e5e7eb; --pill-active-bg: #e5e7eb; --pill-text: #6b7280; --pill-active-text: #111827;
+    --table-header-bg: #f9fafb; --table-border: #f3f4f6; --table-hover: #f9fafb;
+    --dropdown-shadow: 0 12px 40px rgba(0,0,0,0.1);
+    --accent: #0d9488; --accent-hover: #0f766e;
+    --positive: #16a34a; --negative: #dc2626;
+    --highlight-bg: rgba(168, 85, 247, 0.08); --highlight-text: #7c3aed;
+    --sort-active: #7c3aed;
+    --chart-grid: #f3f4f6; --chart-tick: #9ca3af;
+    --tooltip-bg: #1f2937; --tooltip-title: #f3f4f6; --tooltip-body: #d1d5db; --tooltip-border: #374151;
+    --toggle-border: #d1d5db;
+  }
+  [data-theme="dark"] {
+    --bg-page: #0f1117; --bg-card: #18181b; --bg-card-alt: #1e1e22; --bg-input: #0f1117;
+    --border: #27272a; --border-hover: #3f3f46;
+    --text-primary: #f4f4f5; --text-secondary: #a1a1aa; --text-muted: #71717a; --text-heading: #e4e4e7;
+    --pill-bg: #18181b; --pill-border: #3f3f46; --pill-active-bg: #3f3f46; --pill-text: #a1a1aa; --pill-active-text: #fff;
+    --table-header-bg: #1e1e22; --table-border: #1f1f23; --table-hover: #1e1e22;
+    --dropdown-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    --accent: #34d399; --accent-hover: #6ee7b7;
+    --positive: #22c55e; --negative: #ef4444;
+    --highlight-bg: rgba(228, 193, 249, 0.15); --highlight-text: #E4C1F9;
+    --sort-active: #E4C1F9;
+    --chart-grid: #27272a; --chart-tick: #52525b;
+    --tooltip-bg: #27272a; --tooltip-title: #e4e4e7; --tooltip-body: #a1a1aa; --tooltip-border: #3f3f46;
+    --toggle-border: #3f3f46;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg-page); color: var(--text-primary); min-height: 100vh; transition: background 0.2s, color 0.2s; }
+
+  /* PAGE NAV */
+  .page-nav { display: flex; border-bottom: 1px solid var(--border); background: var(--bg-card); position: sticky; top: 0; z-index: 102; }
+  .page-nav a { padding: 10px 20px; font-size: 13px; font-weight: 600; color: var(--text-muted); text-decoration: none; border-bottom: 2px solid transparent; transition: all 0.15s; }
+  .page-nav a:hover { color: var(--text-primary); }
+  .page-nav a.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* HEADER */
+  .header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; position: sticky; top: 38px; z-index: 101; background: var(--bg-page); }
+  .header-left h1 { font-size: 18px; font-weight: 600; color: var(--text-primary); display: inline; }
+  .header-left .brand { font-size: 11px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; }
+  .last-updated { font-size: 10px; color: var(--text-muted); font-weight: 400; }
+
+  /* THEME TOGGLE */
+  .theme-toggle { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; cursor: pointer; font-size: 16px; line-height: 1; transition: all 0.15s; }
+  .theme-toggle:hover { border-color: var(--border-hover); }
+
+  /* PERIOD PILLS */
+  .period-pills { display: flex; gap: 2px; background: var(--pill-bg); border: 1px solid var(--pill-border); border-radius: 8px; padding: 2px; }
+  .period-pill { padding: 5px 12px; border-radius: 6px; border: none; background: transparent; color: var(--pill-text); font-size: 12px; cursor: pointer; transition: all 0.15s; }
+  .period-pill:hover { color: var(--text-primary); }
+  .period-pill.active { background: var(--pill-active-bg); color: var(--pill-active-text); }
+
+  .header-right { display: flex; align-items: center; gap: 12px; }
+
+  /* KPI STRIP */
+  .kpi-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; padding: 16px 24px; }
+  .kpi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .kpi-card .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .kpi-card .value { font-size: 20px; font-weight: 700; color: var(--text-primary); }
+  .kpi-card .sub { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+
+  /* CHART SECTIONS */
+  .dashboard-body { display: flex; padding: 0 24px 16px; gap: 16px; }
+  .chart-area { flex: 1; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; min-height: 400px; min-width: 0; }
+  .chart-area h3 { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+  .chart-wrap { position: relative; height: 360px; }
+
+  .charts-row { display: flex; gap: 16px; padding: 0 24px 16px; }
+  .chart-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; min-width: 0; }
+  .chart-card h3 { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+  .chart-card-wrap { position: relative; }
+
+  /* PERFORMANCE TABLE */
+  .perf-table-section { padding: 0 24px 16px; }
+  .perf-table-wrap { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .perf-table-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px 10px; }
+  .perf-table-header h3 { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 0; }
+  .perf-table-scroll { overflow-x: auto; }
+  .perf-table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+  .perf-table thead { position: sticky; top: 0; z-index: 1; }
+  .perf-table th { background: var(--table-header-bg); color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10px; padding: 8px 12px; text-align: center; border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; position: relative; }
+  .perf-table th:hover { color: var(--text-secondary); }
+  .perf-table th:first-child { text-align: left; position: sticky; left: 0; background: var(--table-header-bg); z-index: 2; min-width: 280px; }
+  .perf-table th .sort-arrow { font-size: 9px; margin-left: 3px; opacity: 0.3; }
+  .perf-table th.sorted .sort-arrow { opacity: 1; color: var(--sort-active); }
+  .perf-table td { padding: 7px 12px; text-align: center; border-bottom: 1px solid var(--table-border); color: var(--text-secondary); }
+  .perf-table td:first-child { text-align: left; font-weight: 600; color: var(--text-primary); position: sticky; left: 0; background: var(--bg-card); z-index: 1; max-width: 320px; overflow: hidden; text-overflow: ellipsis; }
+  .perf-table tbody tr:hover td { background: var(--table-hover); }
+  .perf-table tbody tr:hover td:first-child { background: var(--table-hover); }
+  .perf-table .positive { color: var(--positive); }
+  .perf-table .negative { color: var(--negative); }
+  .perf-table .subtle { color: var(--text-muted); }
+  .perf-table .highlight-best { background: var(--highlight-bg); color: var(--highlight-text); font-weight: 700; }
+  .perf-table .high-performer { background: var(--highlight-bg); }
+  .perf-table .high-performer td:first-child { background: var(--highlight-bg); }
+
+  .status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .status-live { background: rgba(22, 163, 74, 0.12); color: var(--positive); }
+  .status-draft { background: rgba(156, 163, 175, 0.15); color: var(--text-muted); }
+
+  /* INSIGHTS */
+  .insights-section { padding: 0 24px 24px; }
+  .insights-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+  .insight-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; display: flex; gap: 12px; align-items: flex-start; }
+  .insight-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .insight-icon.green { background: rgba(22, 163, 74, 0.1); }
+  .insight-icon.purple { background: rgba(124, 58, 237, 0.1); }
+  .insight-icon.amber { background: rgba(245, 158, 11, 0.1); }
+  .insight-icon.blue { background: rgba(59, 130, 246, 0.1); }
+  .insight-text { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+  .insight-text strong { color: var(--text-primary); }
+
+  .section-title { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+
+  /* DATA SOURCE */
+  .data-source { text-align: center; padding: 16px 24px 24px; font-size: 11px; color: var(--text-muted); }
+
+  /* RESPONSIVE */
+  @media (max-width: 1100px) {
+    .kpi-strip { grid-template-columns: repeat(3, 1fr); }
+    .charts-row { flex-direction: column; }
+    .dashboard-body { flex-direction: column; }
+  }
+  @media (max-width: 700px) {
+    .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+    .header { flex-direction: column; align-items: flex-start; }
+    .insights-grid { grid-template-columns: 1fr; }
+    .page-nav { overflow-x: auto; }
+  }
+</style>
+</head>
+<body>
+
+<!-- PAGE NAV -->
+<nav class="page-nav">
+  <a href="index.html">Shopify</a>
+  <a href="amazon.html">Amazon</a>
+  <a href="pnl.html">P&L</a>
+  <a href="email.html" class="active">Email</a>
+  <a href="meta.html">Meta</a>
+</nav>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-left">
+    <div class="brand">KARMIC SKIN</div>
+    <h1>Email Marketing Dashboard</h1>
+    <div class="last-updated">Last 12 months &middot; Apr 2025 - Mar 2026</div>
+  </div>
+  <div class="header-right">
+    <div class="period-pills">
+      <button class="period-pill" data-period="30d">Last 30d</button>
+      <button class="period-pill" data-period="90d">Last 90d</button>
+      <button class="period-pill active" data-period="12m">Last 12m</button>
+      <button class="period-pill" data-period="all">All Time</button>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+  </div>
+</header>
+
+<!-- KPI CARDS -->
+<section class="kpi-strip">
+  <div class="kpi-card">
+    <div class="label">Total Email Revenue</div>
+    <div class="value">&pound;142,555</div>
+    <div class="sub">Campaigns + Flows (12m)</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">Flow Revenue</div>
+    <div class="value">&pound;31,325</div>
+    <div class="sub">4 active flows</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">Campaign Revenue</div>
+    <div class="value">&pound;111,230</div>
+    <div class="sub">50 campaigns sent</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">Avg Open Rate</div>
+    <div class="value">36.1%</div>
+    <div class="sub">Industry avg: ~40%</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">Avg Click Rate</div>
+    <div class="value">1.2%</div>
+    <div class="sub">Industry avg: ~1.5%</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">Revenue Per Recipient</div>
+    <div class="value">&pound;0.12</div>
+    <div class="sub">Across all campaigns</div>
+  </div>
+</section>
+
+<!-- MONTHLY REVENUE TREND -->
+<section class="dashboard-body">
+  <div class="chart-area" style="flex:1;">
+    <h3>Monthly Email-Attributed Revenue</h3>
+    <div class="chart-wrap">
+      <canvas id="monthlyRevenueChart"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- REVENUE SPLIT + ENGAGEMENT BENCHMARKS -->
+<section class="charts-row">
+  <div class="chart-card" style="flex: 1;">
+    <h3>Revenue Split: Flows vs Campaigns</h3>
+    <div class="chart-card-wrap" style="height: 300px; display: flex; align-items: center; justify-content: center;">
+      <canvas id="revenueSplitChart"></canvas>
+    </div>
+  </div>
+  <div class="chart-card" style="flex: 1;">
+    <h3>Engagement Benchmarks vs Industry</h3>
+    <div class="chart-card-wrap" style="height: 300px;">
+      <canvas id="benchmarkChart"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- FLOW PERFORMANCE TABLE -->
+<section class="perf-table-section">
+  <div class="perf-table-wrap">
+    <div class="perf-table-header">
+      <h3>Flow Performance</h3>
+      <span style="font-size:11px; color:var(--text-muted);">Total flow revenue: &pound;31,325 &middot; 576 conversions</span>
+    </div>
+    <div class="perf-table-scroll">
+      <table class="perf-table" id="flowTable">
+        <thead>
+          <tr>
+            <th>Flow Name</th>
+            <th>Status</th>
+            <th>Recipients</th>
+            <th>Open Rate</th>
+            <th>Click Rate</th>
+            <th>CTOR</th>
+            <th>Conv Rate</th>
+            <th>Conversions</th>
+            <th>Revenue</th>
+            <th>RPR</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Welcome - Newsletter</td>
+            <td><span class="status-badge status-live">Live</span></td>
+            <td>3,709</td>
+            <td>39.6%</td>
+            <td>4.1%</td>
+            <td>10.4%</td>
+            <td>2.77%</td>
+            <td>104</td>
+            <td class="highlight-best">&pound;5,832</td>
+            <td class="highlight-best">&pound;1.58</td>
+          </tr>
+          <tr>
+            <td>Checkout Started</td>
+            <td><span class="status-badge status-live">Live</span></td>
+            <td>2,073</td>
+            <td>30.2%</td>
+            <td>5.6%</td>
+            <td>18.7%</td>
+            <td class="highlight-best">3.40%</td>
+            <td>71</td>
+            <td>&pound;3,235</td>
+            <td class="highlight-best">&pound;1.57</td>
+          </tr>
+          <tr>
+            <td>Welcome - Skin Quiz (Aug 2025)</td>
+            <td><span class="status-badge status-live">Live</span></td>
+            <td>25,430</td>
+            <td>34.8%</td>
+            <td>2.4%</td>
+            <td>6.8%</td>
+            <td>0.75%</td>
+            <td>189</td>
+            <td class="highlight-best">&pound;11,287</td>
+            <td>&pound;0.45</td>
+          </tr>
+          <tr>
+            <td>Welcome - Skin Quiz (Jun 2024)</td>
+            <td><span class="status-badge status-draft">Draft</span></td>
+            <td>20,466</td>
+            <td>33.9%</td>
+            <td>2.7%</td>
+            <td>7.8%</td>
+            <td>1.02%</td>
+            <td>212</td>
+            <td>&pound;10,971</td>
+            <td>&pound;0.54</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- CAMPAIGN PERFORMANCE TABLE -->
+<section class="perf-table-section">
+  <div class="perf-table-wrap">
+    <div class="perf-table-header">
+      <h3>Campaign Performance (Top 50)</h3>
+      <span style="font-size:11px; color:var(--text-muted);">Sorted by revenue &middot; Highlighted = RPR &gt; &pound;0.50</span>
+    </div>
+    <div class="perf-table-scroll" style="max-height: 600px; overflow-y: auto;">
+      <table class="perf-table" id="campaignTable">
+        <thead>
+          <tr>
+            <th onclick="sortTable('campaignTable', 0, 'string')">Campaign Name <span class="sort-arrow">&#9650;</span></th>
+            <th onclick="sortTable('campaignTable', 1, 'date')">Send Date <span class="sort-arrow">&#9650;</span></th>
+            <th onclick="sortTable('campaignTable', 2, 'number')">Recipients <span class="sort-arrow">&#9650;</span></th>
+            <th onclick="sortTable('campaignTable', 3, 'number')">Open Rate <span class="sort-arrow">&#9650;</span></th>
+            <th onclick="sortTable('campaignTable', 4, 'number')">Click Rate <span class="sort-arrow">&#9650;</span></th>
+            <th onclick="sortTable('campaignTable', 5, 'number')">CTOR <span class="sort-arrow">&#9650;</span></th>
+            <th onclick="sortTable('campaignTable', 6, 'number')">Conv Rate <span class="sort-arrow">&#9650;</span></th>
+            <th onclick="sortTable('campaignTable', 7, 'number')">Conversions <span class="sort-arrow">&#9650;</span></th>
+            <th onclick="sortTable('campaignTable', 8, 'number')">Revenue <span class="sort-arrow">&#9650;</span></th>
+            <th onclick="sortTable('campaignTable', 9, 'number')">RPR <span class="sort-arrow">&#9650;</span></th>
+          </tr>
+        </thead>
+        <tbody id="campaignTableBody">
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- KEY INSIGHTS -->
+<section class="insights-section">
+  <div class="section-title">Key Insights</div>
+  <div class="insights-grid">
+    <div class="insight-card">
+      <div class="insight-icon green">&#9733;</div>
+      <div class="insight-text"><strong>Welcome Newsletter flow has the highest RPR</strong> at &pound;1.58 per recipient, making it the most efficient revenue driver per contact.</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-icon purple">&#9889;</div>
+      <div class="insight-text"><strong>Checkout Started flow converts at 3.4%</strong> -- 4.5x higher than campaigns. Abandoned checkout recovery is a critical revenue lever.</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-icon amber">&#9888;</div>
+      <div class="insight-text"><strong>Only 3 flows are live.</strong> Adding Post-Purchase, Winback, and Browse Abandonment flows could significantly increase flow revenue beyond &pound;31k.</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-icon blue">&#128176;</div>
+      <div class="insight-text"><strong>Top performing campaign type: Offer/Sale campaigns</strong> drive highest revenue per send, especially when targeted to purchaser segments.</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-icon green">&#128200;</div>
+      <div class="insight-text"><strong>2x Purchasers segment shows 4.12% conversion rate</strong> -- the highest of any campaign. Repeat buyers respond strongly to targeted offers.</div>
+    </div>
+  </div>
+</section>
+
+<!-- DATA SOURCE -->
+<div class="data-source">Data source: Klaviyo Reporting API &middot; Last updated March 2026</div>
+
+<script>
+// ── Theme Toggle ──
+function toggleTheme() {
+  const html = document.documentElement;
+  const btn = document.querySelector('.theme-toggle');
+  if (html.getAttribute('data-theme') === 'dark') {
+    html.removeAttribute('data-theme');
+    btn.textContent = '🌙';
+    localStorage.setItem('ks-theme', 'light');
+  } else {
+    html.setAttribute('data-theme', 'dark');
+    btn.textContent = '☀️';
+    localStorage.setItem('ks-theme', 'dark');
+  }
+  updateChartThemes();
+}
+(function initTheme() {
+  const saved = localStorage.getItem('ks-theme');
+  if (saved === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.querySelector('.theme-toggle').textContent = '☀️';
+  }
+})();
+
+function getThemeColors() {
+  const s = getComputedStyle(document.documentElement);
+  return {
+    grid: s.getPropertyValue('--chart-grid').trim(),
+    tick: s.getPropertyValue('--chart-tick').trim(),
+    tooltipBg: s.getPropertyValue('--tooltip-bg').trim(),
+    tooltipTitle: s.getPropertyValue('--tooltip-title').trim(),
+    tooltipBody: s.getPropertyValue('--tooltip-body').trim(),
+    tooltipBorder: s.getPropertyValue('--tooltip-border').trim(),
+    textPrimary: s.getPropertyValue('--text-primary').trim(),
+    textSecondary: s.getPropertyValue('--text-secondary').trim(),
+    accent: s.getPropertyValue('--accent').trim(),
+  };
+}
+
+// ── Period pills (visual only for now) ──
+document.querySelectorAll('.period-pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.period-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+// ── Chart.js defaults ──
+function applyChartDefaults() {
+  const c = getThemeColors();
+  Chart.defaults.color = c.tick;
+  Chart.defaults.borderColor = c.grid;
+  Chart.defaults.plugins.tooltip.backgroundColor = c.tooltipBg;
+  Chart.defaults.plugins.tooltip.titleColor = c.tooltipTitle;
+  Chart.defaults.plugins.tooltip.bodyColor = c.tooltipBody;
+  Chart.defaults.plugins.tooltip.borderColor = c.tooltipBorder;
+  Chart.defaults.plugins.tooltip.borderWidth = 1;
+  Chart.defaults.plugins.tooltip.padding = 10;
+  Chart.defaults.plugins.tooltip.cornerRadius = 8;
+  Chart.defaults.plugins.tooltip.displayColors = true;
+  Chart.defaults.plugins.tooltip.boxPadding = 4;
+}
+applyChartDefaults();
+
+// ── Monthly Revenue Chart ──
+const monthLabels = ['Apr 25','May 25','Jun 25','Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26'];
+const revenueData = [7525.95, 9702.20, 7913.80, 8446.47, 11662.31, 15211.14, 22000.29, 11809.65, 12198.68, 14266.35, 9591.34, 11883.56];
+const ordersData = [168, 208, 162, 161, 230, 282, 416, 219, 216, 256, 173, 238];
+
+const monthlyCtx = document.getElementById('monthlyRevenueChart').getContext('2d');
+const monthlyChart = new Chart(monthlyCtx, {
+  type: 'bar',
+  data: {
+    labels: monthLabels,
+    datasets: [{
+      label: 'Revenue',
+      data: revenueData,
+      backgroundColor: 'rgba(13, 148, 136, 0.7)',
+      borderColor: 'rgba(13, 148, 136, 1)',
+      borderWidth: 1,
+      borderRadius: 4,
+      yAxisID: 'y',
+    }, {
+      label: 'Orders',
+      data: ordersData,
+      type: 'line',
+      borderColor: '#7c3aed',
+      backgroundColor: 'rgba(124, 58, 237, 0.1)',
+      pointBackgroundColor: '#7c3aed',
+      pointRadius: 4,
+      pointHoverRadius: 6,
+      borderWidth: 2,
+      tension: 0.3,
+      fill: false,
+      yAxisID: 'y1',
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { position: 'top', labels: { usePointStyle: true, padding: 16, font: { size: 11 } } },
+      tooltip: {
+        callbacks: {
+          label: function(ctx) {
+            if (ctx.dataset.label === 'Revenue') return ' Revenue: \u00a3' + ctx.raw.toLocaleString('en-GB', {minimumFractionDigits:2});
+            return ' Orders: ' + ctx.raw;
+          }
+        }
+      }
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+      y: {
+        position: 'left',
+        grid: { color: getThemeColors().grid },
+        ticks: { font: { size: 11 }, callback: v => '\u00a3' + (v/1000).toFixed(0) + 'k' },
+        title: { display: true, text: 'Revenue (\u00a3)', font: { size: 11 } }
+      },
+      y1: {
+        position: 'right',
+        grid: { drawOnChartArea: false },
+        ticks: { font: { size: 11 } },
+        title: { display: true, text: 'Orders', font: { size: 11 } }
+      }
+    }
+  }
+});
+
+// ── Revenue Split Doughnut ──
+const splitCtx = document.getElementById('revenueSplitChart').getContext('2d');
+const splitChart = new Chart(splitCtx, {
+  type: 'doughnut',
+  data: {
+    labels: ['Campaign Revenue', 'Flow Revenue'],
+    datasets: [{
+      data: [111230, 31325],
+      backgroundColor: ['rgba(13, 148, 136, 0.8)', 'rgba(124, 58, 237, 0.8)'],
+      borderColor: ['rgba(13, 148, 136, 1)', 'rgba(124, 58, 237, 1)'],
+      borderWidth: 2,
+      hoverOffset: 8,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '60%',
+    plugins: {
+      legend: { position: 'bottom', labels: { usePointStyle: true, padding: 16, font: { size: 12 } } },
+      tooltip: {
+        callbacks: {
+          label: function(ctx) {
+            const total = 142555;
+            const pct = ((ctx.raw / total) * 100).toFixed(1);
+            return ' ' + ctx.label + ': \u00a3' + ctx.raw.toLocaleString('en-GB') + ' (' + pct + '%)';
+          }
+        }
+      }
+    }
+  },
+  plugins: [{
+    id: 'centerText',
+    afterDraw(chart) {
+      const { ctx, chartArea: { top, bottom, left, right } } = chart;
+      const cx = (left + right) / 2;
+      const cy = (top + bottom) / 2;
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = getThemeColors().textPrimary;
+      ctx.font = 'bold 18px -apple-system, sans-serif';
+      ctx.fillText('\u00a3142,555', cx, cy - 8);
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.fillStyle = getThemeColors().tick;
+      ctx.fillText('Total Attributed', cx, cy + 12);
+      ctx.restore();
+    }
+  }]
+});
+
+// ── Benchmark Chart ──
+const benchCtx = document.getElementById('benchmarkChart').getContext('2d');
+const benchmarkChart = new Chart(benchCtx, {
+  type: 'bar',
+  data: {
+    labels: ['Open Rate', 'Click Rate'],
+    datasets: [{
+      label: 'Karmic Skin',
+      data: [36.1, 1.2],
+      backgroundColor: 'rgba(13, 148, 136, 0.8)',
+      borderColor: 'rgba(13, 148, 136, 1)',
+      borderWidth: 1,
+      borderRadius: 4,
+      barPercentage: 0.5,
+    }, {
+      label: 'Industry Average',
+      data: [40.0, 1.5],
+      backgroundColor: 'rgba(156, 163, 175, 0.5)',
+      borderColor: 'rgba(156, 163, 175, 0.8)',
+      borderWidth: 1,
+      borderRadius: 4,
+      barPercentage: 0.5,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top', labels: { usePointStyle: true, padding: 16, font: { size: 11 } } },
+      tooltip: {
+        callbacks: {
+          label: function(ctx) { return ' ' + ctx.dataset.label + ': ' + ctx.raw + '%'; }
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: getThemeColors().grid },
+        ticks: { font: { size: 11 }, callback: v => v + '%' }
+      },
+      y: { grid: { display: false }, ticks: { font: { size: 12, weight: '600' } } }
+    }
+  }
+});
+
+// ── Campaign Data ──
+const campaigns = [
+  {"name":"Whole List | BF - Selling Out Fast","send_time":"2025-11-21T10:49:06.075Z","recipients":16134,"open_rate":30.1,"click_rate":1.2,"ctor":3.9,"conv_rate":0.31,"conversions":51,"revenue":3105.82,"rpr":0.19},
+  {"name":"Purchased | Offer | Birthday Sale","send_time":"2026-02-26T10:35:00.000Z","recipients":6862,"open_rate":38.8,"click_rate":3.0,"ctor":7.8,"conv_rate":0.72,"conversions":51,"revenue":2535.62,"rpr":0.37},
+  {"name":"Whole List | Offer | Birthday Sale Reminder","send_time":"2026-02-27T08:53:49.481Z","recipients":6414,"open_rate":54.5,"click_rate":2.2,"ctor":4.1,"conv_rate":0.61,"conversions":39,"revenue":2318.19,"rpr":0.36},
+  {"name":"2x Purchasers - Aug Payday 30% Off Sale","send_time":"2025-08-29T09:53:57.000Z","recipients":1217,"open_rate":48.3,"click_rate":9.5,"ctor":19.6,"conv_rate":4.12,"conversions":51,"revenue":2295.65,"rpr":1.89},
+  {"name":"Whole List | Offer | New Year Sale","send_time":"2025-12-26T10:15:00.000Z","recipients":17375,"open_rate":29.3,"click_rate":0.9,"ctor":3.1,"conv_rate":0.23,"conversions":40,"revenue":2242.15,"rpr":0.13},
+  {"name":"Spring Sale - Plain Text from Team Karmic","send_time":"2025-04-25T09:15:00.000Z","recipients":3414,"open_rate":41.5,"click_rate":4.5,"ctor":10.8,"conv_rate":1.41,"conversions":48,"revenue":2177.59,"rpr":0.64},
+  {"name":"Whole List | BF - Black Friday Day","send_time":"2025-11-28T10:05:00.000Z","recipients":16255,"open_rate":27.9,"click_rate":1.1,"ctor":4.1,"conv_rate":0.25,"conversions":41,"revenue":2038.3,"rpr":0.13},
+  {"name":"Whole List | Offer | Vday Sale","send_time":"2026-01-30T10:11:04.218Z","recipients":18003,"open_rate":31.4,"click_rate":1.3,"ctor":4.0,"conv_rate":0.22,"conversions":33,"revenue":1921.58,"rpr":0.13},
+  {"name":"1x and 2x Purchasers - 30% Off Reminder 2","send_time":"2025-09-05T09:28:34.000Z","recipients":4843,"open_rate":39.1,"click_rate":2.4,"ctor":6.2,"conv_rate":0.91,"conversions":44,"revenue":1818.06,"rpr":0.38},
+  {"name":"Whole List | Education | Night-Time Recovery","send_time":"2025-12-31T10:15:00.000Z","recipients":17453,"open_rate":31.2,"click_rate":0.7,"ctor":2.2,"conv_rate":0.2,"conversions":35,"revenue":1813.88,"rpr":0.1},
+  {"name":"Whole List | Offer | New Year Sale (Last Day)","send_time":"2026-01-06T10:32:00.000Z","recipients":17599,"open_rate":32.0,"click_rate":0.8,"ctor":2.6,"conv_rate":0.19,"conversions":33,"revenue":1800.86,"rpr":0.1},
+  {"name":"All Subscribers - Restock Alert - TOTM","send_time":"2025-05-29T09:03:00.000Z","recipients":10467,"open_rate":32.0,"click_rate":1.4,"ctor":4.3,"conv_rate":0.42,"conversions":44,"revenue":1789.48,"rpr":0.17},
+  {"name":"2x or More Purchasers | BF Now On","send_time":"2025-11-19T11:18:21.036Z","recipients":1589,"open_rate":45.1,"click_rate":9.2,"ctor":20.3,"conv_rate":1.96,"conversions":32,"revenue":1747.08,"rpr":1.1},
+  {"name":"Engaged | Offer | Vday Sale Ends Monday","send_time":"2026-02-12T10:45:00.000Z","recipients":7279,"open_rate":51.6,"click_rate":1.9,"ctor":3.7,"conv_rate":0.4,"conversions":29,"revenue":1722.44,"rpr":0.24},
+  {"name":"Whole List | Offer | Vday Sale Last Day","send_time":"2026-02-16T09:56:32.767Z","recipients":18107,"open_rate":31.1,"click_rate":0.7,"ctor":2.2,"conv_rate":0.14,"conversions":26,"revenue":1704.3,"rpr":0.09},
+  {"name":"Whole List | BF - Final Reminder","send_time":"2025-12-05T10:15:00.000Z","recipients":16278,"open_rate":30.9,"click_rate":0.9,"ctor":3.0,"conv_rate":0.2,"conversions":33,"revenue":1614.3,"rpr":0.1},
+  {"name":"Whole List | BF - Cyber Monday","send_time":"2025-12-01T10:35:00.000Z","recipients":16189,"open_rate":29.2,"click_rate":0.9,"ctor":3.1,"conv_rate":0.19,"conversions":30,"revenue":1579.91,"rpr":0.1},
+  {"name":"1x Purchasers - Aug Payday 30% Off Sale","send_time":"2025-08-29T09:46:43.000Z","recipients":3733,"open_rate":39.5,"click_rate":3.1,"ctor":7.8,"conv_rate":0.91,"conversions":34,"revenue":1508.5,"rpr":0.4},
+  {"name":"Whole List | BF Sale Ends Soon (Last 2 days)","send_time":"2025-12-03T10:49:09.633Z","recipients":16211,"open_rate":30.3,"click_rate":0.8,"ctor":2.8,"conv_rate":0.17,"conversions":30,"revenue":1477.54,"rpr":0.09},
+  {"name":"Not purchased in last 7d - POG Restock Alert","send_time":"2025-07-16T09:53:45.000Z","recipients":11992,"open_rate":31.7,"click_rate":1.4,"ctor":4.3,"conv_rate":0.26,"conversions":31,"revenue":1475.04,"rpr":0.12},
+  {"name":"Spring Sale Reminder - Plain Text 2nd email","send_time":"2025-04-30T09:12:32.000Z","recipients":3443,"open_rate":40.1,"click_rate":2.4,"ctor":6.1,"conv_rate":0.7,"conversions":24,"revenue":1455.68,"rpr":0.42},
+  {"name":"Engaged | Offer | A gift for 'us'","send_time":"2026-02-06T10:35:00.000Z","recipients":5536,"open_rate":56.4,"click_rate":1.6,"ctor":2.9,"conv_rate":0.38,"conversions":21,"revenue":1426.79,"rpr":0.26},
+  {"name":"Not purchased in 30d - Yoga Day 3","send_time":"2025-06-23T09:27:01.000Z","recipients":10470,"open_rate":31.4,"click_rate":0.6,"ctor":2.0,"conv_rate":0.3,"conversions":31,"revenue":1423.59,"rpr":0.14},
+  {"name":"2x Purchasers - Diwali 35% Off Sale","send_time":"2025-09-26T09:53:00.000Z","recipients":1307,"open_rate":47.6,"click_rate":6.4,"ctor":13.4,"conv_rate":1.92,"conversions":25,"revenue":1387.28,"rpr":1.07},
+  {"name":"2x Purchasers - Reminder 1 Diwali 35% Off","send_time":"2025-09-30T10:15:00.000Z","recipients":1287,"open_rate":45.8,"click_rate":4.2,"ctor":9.2,"conv_rate":2.03,"conversions":27,"revenue":1373.55,"rpr":1.07},
+  {"name":"Whole List | BF - Showcase Bundles","send_time":"2025-11-27T10:45:00.000Z","recipients":16265,"open_rate":28.8,"click_rate":0.7,"ctor":2.4,"conv_rate":0.14,"conversions":23,"revenue":1348.67,"rpr":0.08},
+  {"name":"Whole List | BF - Why Choose Karmic","send_time":"2025-11-25T10:15:00.000Z","recipients":16248,"open_rate":29.6,"click_rate":0.7,"ctor":2.4,"conv_rate":0.17,"conversions":28,"revenue":1322.03,"rpr":0.08},
+  {"name":"All Subscribers | Hair Launch Teaser","send_time":"2025-10-15T10:23:35.685Z","recipients":14260,"open_rate":31.9,"click_rate":0.9,"ctor":2.8,"conv_rate":0.14,"conversions":20,"revenue":1220.02,"rpr":0.09},
+  {"name":"Whole List | Education | January Cleanse","send_time":"2025-12-29T10:32:00.000Z","recipients":4516,"open_rate":59.3,"click_rate":2.4,"ctor":4.1,"conv_rate":0.47,"conversions":21,"revenue":1215.77,"rpr":0.27},
+  {"name":"Engaged + Past Purchasers | Skincare Layering","send_time":"2025-11-14T10:36:41.297Z","recipients":9681,"open_rate":47.1,"click_rate":1.0,"ctor":2.1,"conv_rate":0.21,"conversions":20,"revenue":1186.12,"rpr":0.12},
+  {"name":"Engaged | RRR - Water vs Oil Moisturiser","send_time":"2026-01-15T10:15:00.000Z","recipients":6714,"open_rate":55.0,"click_rate":1.1,"ctor":1.9,"conv_rate":0.3,"conversions":20,"revenue":1132.51,"rpr":0.17},
+  {"name":"1x Purchasers - Reminder 1 Diwali 35% Off","send_time":"2025-09-30T10:30:00.000Z","recipients":3874,"open_rate":37.0,"click_rate":1.8,"ctor":4.8,"conv_rate":0.41,"conversions":16,"revenue":1117.57,"rpr":0.29},
+  {"name":"Not purchased in 10d - Summer Sale 1","send_time":"2025-07-29T09:10:00.000Z","recipients":4740,"open_rate":39.2,"click_rate":3.1,"ctor":7.8,"conv_rate":0.46,"conversions":22,"revenue":1117.03,"rpr":0.24},
+  {"name":"Whole List | Education | Featherweight","send_time":"2026-01-02T10:15:00.000Z","recipients":4444,"open_rate":59.5,"click_rate":1.3,"ctor":2.1,"conv_rate":0.41,"conversions":18,"revenue":1114.62,"rpr":0.25},
+  {"name":"1x Purchasers | BF Now On","send_time":"2025-11-19T11:16:34.148Z","recipients":4571,"open_rate":36.7,"click_rate":3.2,"ctor":8.7,"conv_rate":0.42,"conversions":19,"revenue":1109.77,"rpr":0.24},
+  {"name":"1x Purchasers - Diwali 35% Off Sale","send_time":"2025-09-26T09:53:00.000Z","recipients":3862,"open_rate":39.2,"click_rate":2.9,"ctor":7.3,"conv_rate":0.44,"conversions":18,"revenue":1099.08,"rpr":0.29},
+  {"name":"Not purchased in 30d - Yoga Day","send_time":"2025-06-18T09:28:40.000Z","recipients":10360,"open_rate":30.9,"click_rate":0.7,"ctor":2.2,"conv_rate":0.18,"conversions":18,"revenue":1059.61,"rpr":0.1},
+  {"name":"2x Purchasers | 25% Off - 1st Reminder","send_time":"2025-10-31T10:08:00.000Z","recipients":1509,"open_rate":44.8,"click_rate":5.2,"ctor":11.7,"conv_rate":1.66,"conversions":25,"revenue":1042.55,"rpr":0.69},
+  {"name":"Not purchased in 30d - Yoga Day 2","send_time":"2025-06-20T09:26:47.000Z","recipients":10384,"open_rate":31.0,"click_rate":0.7,"ctor":2.2,"conv_rate":0.18,"conversions":19,"revenue":1041.37,"rpr":0.1},
+  {"name":"Not purchased in 10d - Summer Sale 4","send_time":"2025-08-06T09:45:00.000Z","recipients":4780,"open_rate":40.0,"click_rate":2.0,"ctor":4.9,"conv_rate":0.42,"conversions":20,"revenue":1021.04,"rpr":0.21},
+  {"name":"Serum Purchasers - Try a different product","send_time":"2025-05-09T09:28:12.000Z","recipients":3153,"open_rate":42.3,"click_rate":2.7,"ctor":6.3,"conv_rate":0.73,"conversions":23,"revenue":1002.44,"rpr":0.32},
+  {"name":"2x Purchasers - 30% Off Reminder 1","send_time":"2025-09-03T09:45:57.000Z","recipients":1177,"open_rate":45.6,"click_rate":4.6,"ctor":10.1,"conv_rate":1.79,"conversions":21,"revenue":987.77,"rpr":0.84},
+  {"name":"2x Purchasers | 25% Off - Final Reminder","send_time":"2025-11-03T11:15:00.000Z","recipients":1513,"open_rate":42.9,"click_rate":3.4,"ctor":7.9,"conv_rate":1.66,"conversions":25,"revenue":982.36,"rpr":0.65},
+  {"name":"Whole List | Offer+Edu | Vday + Night Layering","send_time":"2026-01-23T10:06:05.099Z","recipients":17933,"open_rate":31.3,"click_rate":1.0,"ctor":3.1,"conv_rate":0.12,"conversions":21,"revenue":970.26,"rpr":0.05},
+  {"name":"0x Purchasers | BF Now On","send_time":"2025-11-19T11:14:56.419Z","recipients":10111,"open_rate":25.1,"click_rate":1.3,"ctor":5.0,"conv_rate":0.14,"conversions":14,"revenue":962.76,"rpr":0.1},
+  {"name":"2x or More Purchasers | Hair Launch Day","send_time":"2025-10-23T09:30:00.000Z","recipients":1542,"open_rate":44.0,"click_rate":5.9,"ctor":13.3,"conv_rate":1.1,"conversions":17,"revenue":926.37,"rpr":0.6},
+  {"name":"Purchased 1x - We miss you 15% off","send_time":"2025-06-05T09:25:00.000Z","recipients":2474,"open_rate":38.4,"click_rate":2.1,"ctor":5.5,"conv_rate":0.73,"conversions":18,"revenue":900.14,"rpr":0.36},
+  {"name":"Mother's Day - Founder Plain Text FollowUp","send_time":"2025-03-31T09:34:56.000Z","recipients":8726,"open_rate":31.1,"click_rate":1.0,"ctor":3.1,"conv_rate":0.21,"conversions":18,"revenue":883.14,"rpr":0.1},
+  {"name":"1x Purchasers | 25% Off - Final Reminder","send_time":"2025-11-03T11:00:00.000Z","recipients":4309,"open_rate":38.3,"click_rate":1.4,"ctor":3.5,"conv_rate":0.49,"conversions":21,"revenue":874.36,"rpr":0.2},
+  {"name":"2x Purchasers - Reminder 2 Diwali 35% Off","send_time":"2025-10-03T09:15:00.000Z","recipients":1263,"open_rate":45.4,"click_rate":2.9,"ctor":6.3,"conv_rate":1.59,"conversions":20,"revenue":870.13,"rpr":0.69}
+];
+
+// Sort by revenue desc initially
+campaigns.sort((a, b) => b.revenue - a.revenue);
+
+function formatDate(iso) {
+  const d = new Date(iso);
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+function renderCampaignTable() {
+  const tbody = document.getElementById('campaignTableBody');
+  tbody.innerHTML = '';
+  campaigns.forEach(c => {
+    const isHigh = c.rpr >= 0.50;
+    const tr = document.createElement('tr');
+    if (isHigh) tr.classList.add('high-performer');
+    tr.innerHTML = `
+      <td>${c.name}</td>
+      <td>${formatDate(c.send_time)}</td>
+      <td>${c.recipients.toLocaleString('en-GB')}</td>
+      <td>${c.open_rate.toFixed(1)}%</td>
+      <td>${c.click_rate.toFixed(1)}%</td>
+      <td>${c.ctor.toFixed(1)}%</td>
+      <td>${c.conv_rate.toFixed(2)}%</td>
+      <td>${c.conversions}</td>
+      <td style="font-weight:600;">\u00a3${c.revenue.toLocaleString('en-GB', {minimumFractionDigits:2})}</td>
+      <td class="${isHigh ? 'highlight-best' : ''}">\u00a3${c.rpr.toFixed(2)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+renderCampaignTable();
+
+// ── Sortable Tables ──
+let sortState = {};
+function sortTable(tableId, colIdx, type) {
+  const table = document.getElementById(tableId);
+  const tbody = table.querySelector('tbody');
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  const key = tableId + '-' + colIdx;
+  const asc = sortState[key] === 'asc' ? 'desc' : 'asc';
+  sortState[key] = asc;
+
+  // Clear sorted class from all th
+  table.querySelectorAll('th').forEach(th => th.classList.remove('sorted'));
+  table.querySelectorAll('th')[colIdx].classList.add('sorted');
+
+  rows.sort((a, b) => {
+    let va = a.cells[colIdx].textContent.trim();
+    let vb = b.cells[colIdx].textContent.trim();
+    if (type === 'number') {
+      va = parseFloat(va.replace(/[^0-9.\-]/g, '')) || 0;
+      vb = parseFloat(vb.replace(/[^0-9.\-]/g, '')) || 0;
+    } else if (type === 'date') {
+      va = new Date(va).getTime() || 0;
+      vb = new Date(vb).getTime() || 0;
+    } else {
+      va = va.toLowerCase();
+      vb = vb.toLowerCase();
+    }
+    if (va < vb) return asc === 'asc' ? -1 : 1;
+    if (va > vb) return asc === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  rows.forEach(r => tbody.appendChild(r));
+
+  // Update arrow
+  const arrow = table.querySelectorAll('th')[colIdx].querySelector('.sort-arrow');
+  if (arrow) arrow.innerHTML = asc === 'asc' ? '&#9650;' : '&#9660;';
+}
+
+// ── Update charts on theme change ──
+function updateChartThemes() {
+  applyChartDefaults();
+  const c = getThemeColors();
+
+  // Monthly chart
+  monthlyChart.options.scales.y.grid.color = c.grid;
+  monthlyChart.options.scales.x.ticks.color = c.tick;
+  monthlyChart.options.scales.y.ticks.color = c.tick;
+  monthlyChart.options.scales.y1.ticks.color = c.tick;
+  monthlyChart.update();
+
+  // Split chart
+  splitChart.update();
+
+  // Benchmark chart
+  benchmarkChart.options.scales.x.grid.color = c.grid;
+  benchmarkChart.options.scales.x.ticks.color = c.tick;
+  benchmarkChart.options.scales.y.ticks.color = c.tick;
+  benchmarkChart.update();
+}
+</script>
+</body>
+</html>

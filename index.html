@@ -326,6 +326,47 @@
   </div>
 </div>
 
+<!-- 1. Product Performance + Category Performance side by side -->
+<div class="product-analytics-row">
+  <div class="analytics-card">
+    <div class="analytics-card-header" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><h3>Product Performance</h3><span style="font-size:11px;color:var(--text-muted);font-weight:400" id="productPerfDateRange"></span></div>
+    <div class="analytics-table-scroll" id="productPerfScroll">
+      <table class="analytics-table" id="productPerfTable">
+        <thead>
+          <tr>
+            <th class="sortable" data-pcol="product">Product <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-pcol="pct_total">% of Rev <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-pcol="revenue">Revenue <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-pcol="units">Units <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-pcol="orders">Orders <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-pcol="aov">ASP <span class="info-tip" data-tip="(Revenue after discounts) ÷ Units sold">?</span> <span class="sort-arrow">▼</span></th>
+          </tr>
+        </thead>
+        <tbody id="productPerfBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="analytics-card">
+    <div class="analytics-card-header" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><h3>Category Performance</h3><span style="font-size:11px;color:var(--text-muted);font-weight:400" id="categoryPerfDateRange"></span></div>
+    <div class="analytics-table-scroll">
+      <table class="analytics-table" id="categoryPerfTable">
+        <thead>
+          <tr>
+            <th class="sortable" data-ccol="category">Category <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-ccol="pct_of_total">% of Rev <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-ccol="revenue">Revenue <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-ccol="units">Units <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-ccol="orders">Orders <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-ccol="asp">ASP <span class="info-tip" data-tip="(Revenue after discounts) ÷ Units sold">?</span> <span class="sort-arrow">▼</span></th>
+          </tr>
+        </thead>
+        <tbody id="categoryPerfBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Performance Table -->
 <div class="perf-table-section">
   <div class="perf-table-wrap">
     <div class="perf-table-header">
@@ -365,7 +406,7 @@
   </div>
 </div>
 
-<!-- Product Analytics: Row 1 - Customer Purchase Frequency + Product Performance -->
+<!-- 3. Customer Purchase Frequency + Discount Performance side by side -->
 <div class="product-analytics-row">
   <div class="analytics-card">
     <div class="analytics-card-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
@@ -390,46 +431,6 @@
           </tr>
         </thead>
         <tbody id="custFreqBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-  <div class="analytics-card">
-    <div class="analytics-card-header" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><h3>Product Performance</h3><span style="font-size:11px;color:var(--text-muted);font-weight:400" id="productPerfDateRange"></span></div>
-    <div class="analytics-table-scroll" id="productPerfScroll">
-      <table class="analytics-table" id="productPerfTable">
-        <thead>
-          <tr>
-            <th class="sortable" data-pcol="product">Product <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-pcol="pct_total">% of Rev <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-pcol="revenue">Revenue <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-pcol="units">Units <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-pcol="orders">Orders <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-pcol="aov">ASP <span class="info-tip" data-tip="(Revenue after discounts) ÷ Units sold">?</span> <span class="sort-arrow">▼</span></th>
-          </tr>
-        </thead>
-        <tbody id="productPerfBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- Category + Discount Performance side by side -->
-<div class="product-analytics-row">
-  <div class="analytics-card">
-    <div class="analytics-card-header" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><h3>Category Performance</h3><span style="font-size:11px;color:var(--text-muted);font-weight:400" id="categoryPerfDateRange"></span></div>
-    <div class="analytics-table-scroll">
-      <table class="analytics-table" id="categoryPerfTable">
-        <thead>
-          <tr>
-            <th class="sortable" data-ccol="category">Category <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-ccol="pct_of_total">% of Rev <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-ccol="revenue">Revenue <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-ccol="units">Units <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-ccol="orders">Orders <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-ccol="asp">ASP <span class="info-tip" data-tip="(Revenue after discounts) ÷ Units sold">?</span> <span class="sort-arrow">▼</span></th>
-          </tr>
-        </thead>
-        <tbody id="categoryPerfBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
       </table>
     </div>
   </div>

@@ -145,6 +145,10 @@
   @media (max-width: 768px) {
     .perf-table-section { padding: 0 16px 16px; }
     .header { flex-direction: column; align-items: flex-start; }
+    .avg-rev-strip { flex-wrap: wrap; gap: 6px; }
+    .avg-rev-chip { padding: 4px 10px; }
+    .avg-rev-label { font-size: 9px; }
+    .avg-rev-value { font-size: 13px; }
     .kpi-strip { grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 12px 16px; }
     .dashboard-body { flex-direction: column; padding: 0 16px 16px; }
     .metric-toggles { width: 100%; display: flex; flex-wrap: wrap; gap: 4px; padding: 12px; }
@@ -179,11 +183,12 @@
   .analytics-table-scroll { overflow-x: auto; }
   #productPerfScroll { max-height: 240px; overflow-y: auto; }
 
-  /* AVG MONTHLY REVENUE CHIPS */
-  .avg-rev-strip { display: flex; gap: 8px; padding: 0 24px 12px; }
-  .avg-rev-chip { flex: 1; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; }
-  .avg-rev-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-  .avg-rev-value { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+  /* AVG MONTHLY REVENUE (in header) */
+  .avg-rev-strip { display: flex; gap: 4px; align-items: center; }
+  .avg-rev-chip { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; padding: 4px 10px; }
+  .avg-rev-chip + .avg-rev-chip { border-left: 1px solid var(--border); }
+  .avg-rev-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; }
+  .avg-rev-value { font-size: 14px; font-weight: 700; color: var(--text-primary); }
   .analytics-table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
   .analytics-table thead { position: sticky; top: 0; z-index: 1; }
   .analytics-table th { background: var(--table-header-bg); color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10px; padding: 8px 12px; text-align: center; border-bottom: 1px solid var(--border); user-select: none; }
@@ -200,7 +205,7 @@
   .analytics-table .highlight-best { background: var(--highlight-bg); color: var(--highlight-text); font-weight: 700; }
   .analytics-table-scroll { max-height: 432px; }
   .info-tip { display: inline-block; font-size: 10px; opacity: 0.5; cursor: help; margin-left: 2px; }
-  .tooltip-popup { position: fixed; background: #111; color: #fff; font-size: 11px; padding: 5px 10px; border-radius: 6px; white-space: nowrap; pointer-events: none; font-weight: 400; text-transform: none; letter-spacing: 0; z-index: 9999; box-shadow: 0 2px 8px rgba(0,0,0,0.4); display: none; border: 1px solid #333; }
+  .tooltip-popup { position: fixed; background: #111; color: #fff; font-size: 11px; padding: 5px 10px; border-radius: 6px; white-space: nowrap; pointer-events: none; font-weight: 400; text-transform: none; letter-spacing: 0; z-index: 9999; box-shadow: 0 2px 8px rgba(0,0,0,0.4); display: none; border: 1px solid #333; max-width: 90vw; white-space: normal; }
   [data-theme="light"] .tooltip-popup { background: #1a1a1a; color: #fff; border-color: #333; }
 
   @media (max-width: 768px) {
@@ -222,6 +227,20 @@
   <div class="header-left">
     <div class="brand">Karmic Skin</div>
     <h1>Business Dashboard</h1>
+  </div>
+  <div class="avg-rev-strip">
+    <div class="avg-rev-chip" title="Total revenue last 90 days ÷ ~3 months">
+      <span class="avg-rev-label">90d avg/mo</span>
+      <span class="avg-rev-value" id="avgRev3m">--</span>
+    </div>
+    <div class="avg-rev-chip" title="Total revenue last 180 days ÷ ~6 months">
+      <span class="avg-rev-label">180d avg/mo</span>
+      <span class="avg-rev-value" id="avgRev6m">--</span>
+    </div>
+    <div class="avg-rev-chip" title="Total revenue last 365 days ÷ 12 months">
+      <span class="avg-rev-label">365d avg/mo</span>
+      <span class="avg-rev-value" id="avgRev12m">--</span>
+    </div>
   </div>
   <div class="date-controls">
     <div style="text-align:right;margin-right:8px"><span style="font-size:10px;color:var(--text-muted);display:block">All figures include VAT</span><span class="last-updated" id="lastUpdated"></span></div>
@@ -268,21 +287,6 @@
   <div class="kpi-card" title="Customers placing their first-ever order"><div class="label">New Customers</div><div class="value" id="kpi-new">--</div></div>
   <div class="kpi-card" title="Repeat Orders ÷ Total Orders × 100"><div class="label">Repeat %</div><div class="value" id="kpi-repeat">--</div></div>
   <div class="kpi-card" title="Ad Spend ÷ Orders"><div class="label">Blended CAC</div><div class="value" id="kpi-cac">--</div></div>
-</div>
-
-<div class="avg-rev-strip">
-  <div class="avg-rev-chip" title="Total revenue last 3 months ÷ 3">
-    <span class="avg-rev-label">Avg Monthly Rev (3m)</span>
-    <span class="avg-rev-value" id="avgRev3m">--</span>
-  </div>
-  <div class="avg-rev-chip" title="Total revenue last 6 months ÷ 6">
-    <span class="avg-rev-label">Avg Monthly Rev (6m)</span>
-    <span class="avg-rev-value" id="avgRev6m">--</span>
-  </div>
-  <div class="avg-rev-chip" title="Total revenue last 12 months ÷ 12">
-    <span class="avg-rev-label">Avg Monthly Rev (12m)</span>
-    <span class="avg-rev-value" id="avgRev12m">--</span>
-  </div>
 </div>
 
 <div class="dashboard-body">
@@ -710,28 +714,27 @@ function aggregateData(data, period) {
   })).sort((a, b) => a.date.localeCompare(b.date));
 }
 
-// AVG MONTHLY REVENUE - runs once on load, independent of date range
+// AVG MONTHLY REVENUE - trailing days, runs once on load
 async function fetchAvgMonthlyRevenue() {
   const now = new Date();
   const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
 
-  async function getAvgRev(months) {
+  async function getAvgRev(days) {
     const from = new Date(yesterday);
-    from.setMonth(from.getMonth() - months);
-    from.setDate(1); // start of that month
-    const to = new Date(yesterday.getFullYear(), yesterday.getMonth(), 0); // end of last complete month
-    const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.${fmtDate(from)}&report_date=lte.${fmtDate(to)}&select=total_sales`;
+    from.setDate(from.getDate() - days + 1);
+    const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.${fmtDate(from)}&report_date=lte.${fmtDate(yesterday)}&select=total_sales`;
     const resp = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } });
     const data = await resp.json();
     const total = data.reduce((s, r) => s + parseFloat(r.total_sales || 0), 0);
+    const months = days / 30.44;
     return Math.round(total / months);
   }
 
   try {
-    const [avg3, avg6, avg12] = await Promise.all([getAvgRev(3), getAvgRev(6), getAvgRev(12)]);
-    document.getElementById('avgRev3m').textContent = '\u00A3' + avg3.toLocaleString();
-    document.getElementById('avgRev6m').textContent = '\u00A3' + avg6.toLocaleString();
-    document.getElementById('avgRev12m').textContent = '\u00A3' + avg12.toLocaleString();
+    const [avg90, avg180, avg365] = await Promise.all([getAvgRev(90), getAvgRev(180), getAvgRev(365)]);
+    document.getElementById('avgRev3m').textContent = '\u00A3' + avg90.toLocaleString();
+    document.getElementById('avgRev6m').textContent = '\u00A3' + avg180.toLocaleString();
+    document.getElementById('avgRev12m').textContent = '\u00A3' + avg365.toLocaleString();
   } catch(e) { console.error('Avg monthly revenue error:', e); }
 }
 fetchAvgMonthlyRevenue();
@@ -1263,11 +1266,16 @@ async function fetchCohortRetention() {
       const mo = parseInt(r.cohort.substring(5, 7));
       const label = monthNames[mo - 1] + ' ' + String(yr).slice(2);
       const size = parseInt(r.cohort_size);
-      const vals = [parseInt(r.m1), parseInt(r.m2), parseInt(r.m3), parseInt(r.m6), parseInt(r.m12), parseInt(r.m18), parseInt(r.m24)];
+      const elapsed = parseInt(r.months_elapsed) || 0;
+      const thresholds = [1, 2, 3, 6, 12, 18, 24];
+      const rawVals = [parseInt(r.m1), parseInt(r.m2), parseInt(r.m3), parseInt(r.m6), parseInt(r.m12), parseInt(r.m18), parseInt(r.m24)];
       html += `<tr>
         <td style="font-weight:600">${label}</td>
         <td>${size.toLocaleString()}</td>
-        ${vals.map(v => `<td style="${retColor(v, size)}">${v > 0 ? v.toLocaleString() : '-'}</td>`).join('')}
+        ${rawVals.map((v, i) => {
+          if (elapsed < thresholds[i]) return '<td>-</td>';
+          return `<td style="${retColor(v, size)}">${v > 0 ? v.toLocaleString() : '-'}</td>`;
+        }).join('')}
       </tr>`;
     }
     document.getElementById('cohortBody').innerHTML = html || '<tr><td colspan="9" style="text-align:center;color:var(--text-muted)">No data</td></tr>';
@@ -1369,8 +1377,14 @@ document.addEventListener('mouseover', e => {
     const rect = tip.getBoundingClientRect();
     tooltipEl.textContent = tip.dataset.tip;
     tooltipEl.style.display = 'block';
-    tooltipEl.style.left = (rect.left + rect.width / 2 - tooltipEl.offsetWidth / 2) + 'px';
-    tooltipEl.style.top = (rect.top - tooltipEl.offsetHeight - 6) + 'px';
+    let left = rect.left + rect.width / 2 - tooltipEl.offsetWidth / 2;
+    let top = rect.top - tooltipEl.offsetHeight - 6;
+    // Clamp to viewport
+    left = Math.max(8, Math.min(left, window.innerWidth - tooltipEl.offsetWidth - 8));
+    if (top < 4) top = rect.bottom + 6;
+    top = Math.max(4, Math.min(top, window.innerHeight - tooltipEl.offsetHeight - 4));
+    tooltipEl.style.left = left + 'px';
+    tooltipEl.style.top = top + 'px';
   }
 });
 document.addEventListener('mouseout', e => {

@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Karmic Skin — P&L Dashboard</title>
+<link rel="icon" type="image/svg+xml" href="favicon-k.svg">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  /* THEME VARIABLES */
+  :root {
+    --bg-page: #f8f9fa; --bg-card: #ffffff; --bg-card-alt: #f3f4f6; --bg-input: #ffffff;
+    --border: #e5e7eb; --border-hover: #d1d5db;
+    --text-primary: #111827; --text-secondary: #6b7280; --text-muted: #9ca3af; --text-heading: #374151;
+    --pill-bg: #f3f4f6; --pill-border: #e5e7eb; --pill-active-bg: #e5e7eb; --pill-text: #6b7280; --pill-active-text: #111827;
+    --table-header-bg: #f9fafb; --table-border: #f3f4f6; --table-hover: #f9fafb;
+    --dropdown-shadow: 0 12px 40px rgba(0,0,0,0.1);
+    --accent: #0d9488; --accent-hover: #0f766e;
+    --positive: #16a34a; --negative: #dc2626;
+    --highlight-bg: rgba(168, 85, 247, 0.08); --highlight-text: #7c3aed;
+    --sort-active: #7c3aed;
+    --chart-grid: #f3f4f6; --chart-tick: #9ca3af;
+    --tooltip-bg: #1f2937; --tooltip-title: #f3f4f6; --tooltip-body: #d1d5db; --tooltip-border: #374151;
+    --toggle-border: #d1d5db;
+    --subtotal-bg: rgba(13, 148, 136, 0.06);
+    --margin-text: #9ca3af;
+  }
+  [data-theme="dark"] {
+    --bg-page: #0f1117; --bg-card: #18181b; --bg-card-alt: #1e1e22; --bg-input: #0f1117;
+    --border: #27272a; --border-hover: #3f3f46;
+    --text-primary: #f4f4f5; --text-secondary: #a1a1aa; --text-muted: #71717a; --text-heading: #e4e4e7;
+    --pill-bg: #18181b; --pill-border: #3f3f46; --pill-active-bg: #3f3f46; --pill-text: #a1a1aa; --pill-active-text: #fff;
+    --table-header-bg: #1e1e22; --table-border: #1f1f23; --table-hover: #1e1e22;
+    --dropdown-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    --accent: #34d399; --accent-hover: #6ee7b7;
+    --positive: #22c55e; --negative: #ef4444;
+    --highlight-bg: rgba(228, 193, 249, 0.15); --highlight-text: #E4C1F9;
+    --sort-active: #E4C1F9;
+    --chart-grid: #27272a; --chart-tick: #52525b;
+    --tooltip-bg: #27272a; --tooltip-title: #e4e4e7; --tooltip-body: #a1a1aa; --tooltip-border: #3f3f46;
+    --toggle-border: #3f3f46;
+    --subtotal-bg: rgba(52, 211, 153, 0.08);
+    --margin-text: #71717a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg-page); color: var(--text-primary); min-height: 100vh; transition: background 0.2s, color 0.2s; }
+
+  /* PAGE NAV */
+  .page-nav { display: flex; border-bottom: 1px solid var(--border); background: var(--bg-card); position: sticky; top: 0; z-index: 102; }
+  .page-nav a { padding: 10px 20px; font-size: 13px; font-weight: 600; color: var(--text-muted); text-decoration: none; border-bottom: 2px solid transparent; transition: all 0.15s; }
+  .page-nav a:hover { color: var(--text-primary); }
+  .page-nav a.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* HEADER */
+  .header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; position: sticky; top: 38px; z-index: 101; background: var(--bg-page); }
+  .header-left h1 { font-size: 18px; font-weight: 600; color: var(--text-primary); display: inline; }
+  .header-left .brand { font-size: 11px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; }
+
+  /* THEME TOGGLE */
+  .theme-toggle { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; cursor: pointer; font-size: 16px; line-height: 1; transition: all 0.15s; }
+  .theme-toggle:hover { border-color: var(--border-hover); }
+
+  /* FY PILLS */
+  .fy-pills { display: flex; gap: 2px; background: var(--pill-bg); border: 1px solid var(--pill-border); border-radius: 8px; padding: 2px; }
+  .fy-pill { padding: 5px 12px; border-radius: 6px; border: none; background: transparent; color: var(--pill-text); font-size: 12px; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .fy-pill:hover { color: var(--text-primary); }
+  .fy-pill.active { background: var(--pill-active-bg); color: var(--pill-active-text); }
+
+  /* KPI STRIP */
+  .kpi-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; padding: 16px 24px; }
+  .kpi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .kpi-card .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .kpi-card .value { font-size: 20px; font-weight: 700; color: var(--text-primary); }
+  .kpi-card .value.pos { color: var(--positive); }
+  .kpi-card .value.neg { color: var(--negative); }
+
+  /* P&L TABLE */
+  .pnl-section { padding: 0 24px 24px; }
+  .pnl-wrap { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .pnl-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px 10px; flex-wrap: wrap; gap: 8px; }
+  .pnl-header h3 { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 0; }
+  .pnl-scroll { overflow-x: auto; }
+  .pnl-table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+  .pnl-table thead { position: sticky; top: 0; z-index: 3; }
+  .pnl-table th { background: var(--table-header-bg); color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10px; padding: 8px 14px; text-align: right; border-bottom: 1px solid var(--border); }
+  .pnl-table th.row-label-header { text-align: left; position: sticky; left: 0; z-index: 5; background: var(--table-header-bg); min-width: 200px; }
+  .pnl-table th.channel-sub { font-size: 9px; font-weight: 500; color: var(--text-muted); opacity: 0.7; padding: 4px 14px; }
+  .pnl-table td { padding: 7px 14px; text-align: right; border-bottom: 1px solid var(--table-border); color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+  .pnl-table td.row-label { text-align: left; font-weight: 600; color: var(--text-primary); position: sticky; left: 0; background: var(--bg-card); z-index: 2; min-width: 200px; }
+  .pnl-table td.row-label.indent { padding-left: 28px; font-weight: 400; color: var(--text-secondary); }
+  .pnl-table tbody tr:nth-child(even) td { background: var(--bg-card-alt); }
+  .pnl-table tbody tr:nth-child(even) td.row-label { background: var(--bg-card-alt); }
+  .pnl-table tbody tr:hover td { background: var(--table-hover); }
+  .pnl-table tbody tr:hover td.row-label { background: var(--table-hover); }
+  .pnl-table tbody tr.subtotal-row td { background: var(--subtotal-bg); font-weight: 700; color: var(--text-primary); }
+  .pnl-table tbody tr.subtotal-row td.row-label { background: var(--subtotal-bg); font-weight: 700; }
+  .pnl-table tbody tr.ebitda-row td { background: var(--highlight-bg); font-weight: 700; color: var(--highlight-text); }
+  .pnl-table tbody tr.ebitda-row td.row-label { background: var(--highlight-bg); font-weight: 700; color: var(--highlight-text); }
+  .pnl-table .neg { color: var(--negative); }
+  .pnl-table .margin { font-size: 10px; color: var(--margin-text); margin-left: 4px; }
+
+  /* CHARTS */
+  .charts-row { display: flex; gap: 16px; padding: 0 24px 16px; }
+  .chart-card { flex: 1; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; min-width: 0; }
+  .chart-card h3 { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+  .chart-wrap { position: relative; height: 320px; }
+  .chart-wrap-sm { position: relative; height: 280px; }
+
+  /* CHANNEL COMPARISON */
+  .channel-section { padding: 0 24px 24px; }
+  .channel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .channel-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .channel-card h3 { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+  .channel-metric { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--table-border); }
+  .channel-metric:last-child { border-bottom: none; }
+  .channel-metric .cm-label { font-size: 12px; color: var(--text-secondary); }
+  .channel-metric .cm-value { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+  .channel-metric .cm-margin { font-size: 11px; color: var(--margin-text); margin-left: 6px; }
+
+  /* FOOTER */
+  .footer-note { padding: 16px 24px 24px; text-align: center; }
+  .footer-note span { font-size: 10px; color: var(--text-muted); }
+
+  /* RESPONSIVE */
+  @media (max-width: 1024px) {
+    .kpi-strip { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .charts-row { flex-direction: column; }
+    .channel-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 768px) {
+    .header { flex-direction: column; align-items: flex-start; padding: 12px 16px; }
+    .kpi-strip { grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 12px 16px; }
+    .pnl-section, .charts-row, .channel-section { padding-left: 16px; padding-right: 16px; }
+    .kpi-card .value { font-size: 17px; }
+  }
+  @media (max-width: 480px) {
+    .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+    .kpi-card { padding: 10px 12px; }
+    .kpi-card .value { font-size: 16px; }
+    .fy-pill { padding: 4px 8px; font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="page-nav">
+  <a href="index.html">Shopify</a>
+  <a href="amazon.html">Amazon</a>
+  <a href="pnl.html" class="active">P&L</a>
+</nav>
+
+<div class="header">
+  <div class="header-left">
+    <div class="brand">Karmic Skin</div>
+    <h1>P&L Dashboard</h1>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <div class="fy-pills">
+      <button class="fy-pill active" data-fy="fy2025" onclick="switchFY('fy2025')">FY2025 (Jun 24 - May 25)</button>
+      <button class="fy-pill" data-fy="fy2026" onclick="switchFY('fy2026')">FY2026 (Jun 25 - May 26)</button>
+    </div>
+    <div style="text-align:right"><span style="font-size:10px;color:var(--text-muted);display:block">All figures exclude VAT</span></div>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Switch theme">&#9728;&#65039;</button>
+  </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="kpi-strip">
+  <div class="kpi-card"><div class="label">Total Revenue</div><div class="value" id="kpiRevenue">--</div></div>
+  <div class="kpi-card"><div class="label">COGS (Product Cost)</div><div class="value" id="kpiCOGS">--</div></div>
+  <div class="kpi-card"><div class="label">Gross Margin %</div><div class="value" id="kpiGrossMargin">--</div></div>
+  <div class="kpi-card"><div class="label">Ad Spend</div><div class="value" id="kpiAdSpend">--</div></div>
+  <div class="kpi-card"><div class="label">EBITDA</div><div class="value" id="kpiEBITDA">--</div></div>
+  <div class="kpi-card"><div class="label">EBITDA Margin %</div><div class="value" id="kpiEBITDAMargin">--</div></div>
+</div>
+
+<!-- P&L Summary Table -->
+<div class="pnl-section">
+  <div class="pnl-wrap">
+    <div class="pnl-header">
+      <h3>Profit & Loss Summary</h3>
+    </div>
+    <div class="pnl-scroll">
+      <table class="pnl-table" id="pnlTable">
+        <thead id="pnlThead"></thead>
+        <tbody id="pnlTbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Row 1: Revenue Trend + Cost Breakdown -->
+<div class="charts-row">
+  <div class="chart-card" style="flex:2">
+    <h3>Revenue Trend & EBITDA</h3>
+    <div class="chart-wrap"><canvas id="revTrendChart"></canvas></div>
+  </div>
+  <div class="chart-card" style="flex:1">
+    <h3>Cost Breakdown (YTD)</h3>
+    <div class="chart-wrap"><canvas id="costBreakdownChart"></canvas></div>
+  </div>
+</div>
+
+<!-- Charts Row 2: Margin Trends -->
+<div class="charts-row">
+  <div class="chart-card">
+    <h3>Margin Trends</h3>
+    <div class="chart-wrap"><canvas id="marginTrendChart"></canvas></div>
+  </div>
+</div>
+
+<!-- Channel Comparison -->
+<div class="channel-section">
+  <div class="channel-grid">
+    <div class="channel-card">
+      <h3>Shopify (YTD)</h3>
+      <div id="shopifyMetrics"></div>
+    </div>
+    <div class="channel-card">
+      <h3>Amazon (YTD)</h3>
+      <div id="amazonMetrics"></div>
+    </div>
+  </div>
+</div>
+
+<div class="footer-note">
+  <span>Data source: Monthly P&L reports (Google Sheets)</span>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+const DATA = {
+  fy2025: {
+    labels: ['Jun 24','Jul 24','Aug 24','Sep 24','Oct 24','Nov 24','Dec 24','Jan 25','Feb 25','Mar 25','Apr 25','May 25'],
+    revenue:    [6570.34, 5521.25, 6483.83, 8865.81, 15384.43, 26240.02, 20990.98, 22634.94, 29331.87, 38467.23, 35296.89, 31684.26],
+    shopRev:    [6570.34, 5521.25, 5559.81, 7733.63, 13054.46, 23242.99, 18181.79, 20571.26, 26321.84, 34835.05, 30952.34, 27787.61],
+    amzRev:     [0, 0, 924.02, 1132.18, 2329.97, 2997.03, 2809.19, 2063.68, 3010.03, 3632.18, 4344.55, 3896.65],
+    prodCost:   [865.23, 755.19, 883.27, 1194.88, 2146.34, 3646.56, 2977.04, 3298.8, 4267.67, 5652.43, 4968.83, 4627.7],
+    shopProdC:  [865.23, 755.19, 767.73, 1055.8, 1731.63, 3280.21, 2656.38, 3065.87, 3919.15, 5248.48, 4356.8, 4087.29],
+    amzProdC:   [0, 0, 115.54, 139.08, 414.71, 366.35, 320.66, 232.93, 348.52, 403.95, 612.03, 540.41],
+    fulfilment: [918.52, 1398.58, 1127.8, 1431.56, 2602.89, 3603.53, 3337.48, 3121.95, 4324.14, 6196.525, 5610.615, 5621.44],
+    shopFulf:   [918.52, 1398.58, 823.08, 1211.75, 1794.92, 2933.59, 2816.67, 2656.06, 3748.4, 5296.815, 4536.045, 4607.13],
+    amzFulf:    [0, 0, 304.72, 219.81, 807.97, 669.94, 520.81, 465.89, 575.74, 899.71, 1074.57, 1014.31],
+    adSpend:    [4956.91, 4560.55, 4939.41, 6384.98, 10883.52, 17587.8, 16099.87, 14106.6, 18493.66, 24463.795, 22632.855, 21932.52],
+    shopAds:    [4956.91, 4560.55, 3792.61, 5147.26, 9000.8, 15748.36, 14239.05, 12489.49, 16984.11, 22738.545, 20697.435, 20163.12],
+    amzAds:     [0, 0, 1146.8, 1237.72, 1882.72, 1839.44, 1860.82, 1617.11, 1509.55, 1725.25, 1935.42, 1769.4],
+    fixedSubs:  [380.19, 559.56, 590.6, 569.4, 500.75, 564.11, 563.17, 570.63, 660.8641667, 419.825, 422.9975, 589.56],
+    shopFixed:  [380.19, 559.56, 560.6, 539.4, 470.75, 534.11, 533.17, 540.63, 462.8641667, 389.825, 392.9975, 391.56],
+    amzFixed:   [0, 0, 30, 30, 30, 30, 30, 30, 198, 30, 30, 198],
+    otherExp:   [310.38, 289.13, 52.3, 106.03, 1175.23, 1174.11, 108.97, 0.94, 680.43, 1309.72, 973.12, 1084.2],
+    otherInc:   [44.59, 32.73, 20.82, 18.72, 17.59, 42.95, 152.13, 79.3, 35.72, 81.61, 94.79, 96.61],
+    ebitda:     [102.22, -610.45, 39.07, 629.24, 696.18, 3310.39, 1394.06, 4737.27, 5264.97, 6703.07, 6393.88, 2158.05],
+    shopEBITDA: [102.22, -610.45, 407.39, 903.86, 693.64, 2549.15, 796.35, 4553.63, 4311.01, 5230.09, 4626.78, 2158.05],
+    amzEBITDA:  [0, 0, -368.32, -274.62, 2.54, 761.24, 597.71, 183.64, 953.96, 1472.98, 1767.1, 0],
+    activeMonths: 12
+  },
+  fy2026: {
+    labels: ['Jun 25','Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26','Apr 26','May 26'],
+    revenue:    [32921.49, 28786.23, 25559.02, 33908.54, 47790.82, 59076.03, 37829.54, 32861.48, 35033.09, 0, 0, 0],
+    shopRev:    [29820.39, 26172.88, 22663.51, 30703.01, 43542.18, 54611.3, 33861.53, 28322.01, 30876.74, 0, 0, 0],
+    amzRev:     [3101.1, 2613.35, 2895.51, 3205.53, 4248.64, 4464.73, 3968.01, 4539.47, 4156.35, 0, 0, 0],
+    prodCost:   [5427.13, 4183.57, 3763.12, 5039.06, 6855.857376, 8770.573395, 5586.756147, 4301.48879, 4793.985942, 0, 0, 0],
+    shopProdC:  [4948.37, 3800.63, 3383.09, 4623.78, 6330.567376, 8237.623395, 5105.166147, 3782.09879, 4289.065942, 0, 0, 0],
+    amzProdC:   [478.76, 382.94, 380.03, 415.28, 525.29, 532.95, 481.59, 519.39, 504.92, 0, 0, 0],
+    fulfilment: [6434.195, 5602.035, 5560.479167, 6440.344167, 8563.809567, 10108.10417, 8164.284167, 6343.224167, 6440.214167, 0, 0, 0],
+    shopFulf:   [5776.455, 4649.745, 4362.079167, 5264.484167, 7175.239567, 8582.044167, 6517.834167, 4830.964167, 5121.024167, 0, 0, 0],
+    amzFulf:    [657.74, 952.29, 1198.4, 1175.86, 1388.57, 1526.06, 1646.45, 1512.26, 1319.19, 0, 0, 0],
+    adSpend:    [23863.035, 21846.245, 17866.19917, 26136.79417, 38945.89957, 37394.29417, 27680.38417, 23267.67417, 23052.31417, 0, 0, 0],
+    shopAds:    [22445.155, 20237.945, 16160.40917, 24353.48417, 36778.23957, 35043.04417, 25154.83417, 20866.96417, 20930.02417, 0, 0, 0],
+    amzAds:     [1417.88, 1608.3, 1705.79, 1783.31, 2167.66, 2351.25, 2525.55, 2400.71, 2122.29, 0, 0, 0],
+    fixedSubs:  [699.21, 548.14, 673.83, 657.7, 647.08, 744.49, 732.42, 666.8283333, 653.55, 0, 0, 0],
+    shopFixed:  [501.21, 518.14, 643.83, 627.7, 617.08, 714.49, 702.42, 636.8283333, 623.55, 0, 0, 0],
+    amzFixed:   [198, 30, 30, 30, 30, 30, 30, 30, 30, 0, 0, 0],
+    otherExp:   [225.0166667, 268.9866667, 261.7966667, 755.7666667, 358.4266667, 969.9866667, 226.2066667, 210.6166667, 595.46, 0, 0, 0],
+    otherInc:   [83.49, 100.4, 83.5, 74.26, 103.29, 155.05, 151.95, 119.57, 90.62, 0, 0, 0],
+    ebitda:     [2790.59, 2039.69, 3077.57, 1393.48, 1086.85, 11351.74, 3755.72, 4534.44, 6028.4, 0, 0, 0],
+    shopEBITDA: [1784.13, 1447.58, 2297.88, 416.54, -438.84, 9801.21, 2824.85, 2945.07, 4529.26, 0, 0, 0],
+    amzEBITDA:  [1006.46, 592.11, 779.69, 976.94, 1525.69, 1550.53, 930.87, 1589.37, 1499.14, 0, 0, 0],
+    activeMonths: 9
+  }
+};
+
+let currentFY = 'fy2025';
+let revTrendChart, costBreakdownChart, marginTrendChart;
+
+// ─── UTILITY ────────────────────────────────────────────────────────────────
+function fmt(v, decimals=0) {
+  if (v == null || isNaN(v)) return '-';
+  const neg = v < 0;
+  const abs = Math.abs(v);
+  const str = abs.toLocaleString('en-GB', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  return (neg ? '-' : '') + '\u00a3' + str;
+}
+function fmtPct(v, decimals=1) {
+  if (v == null || isNaN(v)) return '-';
+  return v.toFixed(decimals) + '%';
+}
+function sum(arr, n) { return arr.slice(0, n).reduce((a, b) => a + b, 0); }
+function pct(num, den) { return den !== 0 ? (num / den) * 100 : 0; }
+
+// ─── THEME ──────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  const d = document.documentElement;
+  const next = d.getAttribute('data-theme') === 'dark' ? null : 'dark';
+  if (next) { d.setAttribute('data-theme', 'dark'); } else { d.removeAttribute('data-theme'); }
+  document.getElementById('themeToggle').textContent = next ? '\u{1F319}' : '\u2600\uFE0F';
+  localStorage.setItem('ks-theme', next || 'light');
+  rebuildCharts();
+}
+(function initTheme() {
+  const saved = localStorage.getItem('ks-theme');
+  if (saved === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); document.getElementById('themeToggle').textContent = '\u{1F319}'; }
+})();
+
+// ─── FY SWITCH ──────────────────────────────────────────────────────────────
+function switchFY(fy) {
+  currentFY = fy;
+  document.querySelectorAll('.fy-pill').forEach(p => p.classList.toggle('active', p.dataset.fy === fy));
+  render();
+}
+
+// ─── RENDER ─────────────────────────────────────────────────────────────────
+function render() {
+  const d = DATA[currentFY];
+  const n = d.activeMonths;
+
+  // Derived YTD totals
+  const ytdRev = sum(d.revenue, n);
+  const ytdShopRev = sum(d.shopRev, n);
+  const ytdAmzRev = sum(d.amzRev, n);
+  const ytdProdCost = sum(d.prodCost, n);
+  const ytdShopProdC = sum(d.shopProdC, n);
+  const ytdAmzProdC = sum(d.amzProdC, n);
+  const ytdFulf = sum(d.fulfilment, n);
+  const ytdShopFulf = sum(d.shopFulf, n);
+  const ytdAmzFulf = sum(d.amzFulf, n);
+  const ytdAds = sum(d.adSpend, n);
+  const ytdShopAds = sum(d.shopAds, n);
+  const ytdAmzAds = sum(d.amzAds, n);
+  const ytdFixed = sum(d.fixedSubs, n);
+  const ytdShopFixed = sum(d.shopFixed, n);
+  const ytdAmzFixed = sum(d.amzFixed, n);
+  const ytdOtherExp = sum(d.otherExp, n);
+  const ytdOtherInc = sum(d.otherInc, n);
+  const ytdEBITDA = sum(d.ebitda, n);
+  const ytdShopEBITDA = sum(d.shopEBITDA, n);
+  const ytdAmzEBITDA = sum(d.amzEBITDA, n);
+
+  const ytdProductGP = ytdRev - ytdProdCost;
+  const ytdFulfilledGP = ytdProductGP - ytdFulf;
+  const ytdTotalCoS = ytdProdCost + ytdFulf + ytdAds;
+  const ytdTotalGP = ytdRev - ytdTotalCoS;
+
+  // KPI Cards
+  document.getElementById('kpiRevenue').textContent = fmt(ytdRev);
+  document.getElementById('kpiCOGS').textContent = fmt(ytdProdCost);
+  const grossMargin = pct(ytdProductGP, ytdRev);
+  document.getElementById('kpiGrossMargin').textContent = fmtPct(grossMargin);
+  document.getElementById('kpiGrossMargin').className = 'value ' + (grossMargin >= 0 ? 'pos' : 'neg');
+  document.getElementById('kpiAdSpend').textContent = fmt(ytdAds);
+  document.getElementById('kpiEBITDA').textContent = fmt(ytdEBITDA);
+  document.getElementById('kpiEBITDA').className = 'value ' + (ytdEBITDA >= 0 ? 'pos' : 'neg');
+  const ebitdaMargin = pct(ytdEBITDA, ytdRev);
+  document.getElementById('kpiEBITDAMargin').textContent = fmtPct(ebitdaMargin);
+  document.getElementById('kpiEBITDAMargin').className = 'value ' + (ebitdaMargin >= 0 ? 'pos' : 'neg');
+
+  buildTable(d, n);
+  rebuildCharts();
+  buildChannelComparison(d, n);
+}
+
+// ─── P&L TABLE ──────────────────────────────────────────────────────────────
+function buildTable(d, n) {
+  const thead = document.getElementById('pnlThead');
+  const tbody = document.getElementById('pnlTbody');
+
+  // Active month labels (newest first for monthly columns)
+  const activeLabels = d.labels.slice(0, n);
+  const reversedLabels = [...activeLabels].reverse();
+  const reversedIdx = [];
+  for (let i = n - 1; i >= 0; i--) reversedIdx.push(i);
+
+  // Build header
+  let hdr = '<tr><th class="row-label-header"></th><th>YTD Total</th><th>YTD Shopify</th><th>YTD Amazon</th>';
+  reversedLabels.forEach(l => { hdr += `<th>${l}</th>`; });
+  hdr += '</tr>';
+  thead.innerHTML = hdr;
+
+  // Row definitions
+  function monthVal(arr, idx) { return arr[idx]; }
+  function monthShop(totalArr, shopArr, idx) { return shopArr[idx]; }
+  function monthAmz(totalArr, amzArr, idx) { return amzArr[idx]; }
+
+  // Helper: compute derived monthly values
+  function getMonthProductGP(i) { return d.revenue[i] - d.prodCost[i]; }
+  function getMonthFulfilledGP(i) { return d.revenue[i] - d.prodCost[i] - d.fulfilment[i]; }
+  function getMonthTotalCoS(i) { return d.prodCost[i] + d.fulfilment[i] + d.adSpend[i]; }
+  function getMonthTotalGP(i) { return d.revenue[i] - d.prodCost[i] - d.fulfilment[i] - d.adSpend[i]; }
+
+  // Shop/Amz derived
+  function getShopProductGP(i) { return d.shopRev[i] - d.shopProdC[i]; }
+  function getAmzProductGP(i) { return d.amzRev[i] - d.amzProdC[i]; }
+  function getShopFulfilledGP(i) { return d.shopRev[i] - d.shopProdC[i] - d.shopFulf[i]; }
+  function getAmzFulfilledGP(i) { return d.amzRev[i] - d.amzProdC[i] - d.amzFulf[i]; }
+  function getShopTotalCoS(i) { return d.shopProdC[i] + d.shopFulf[i] + d.shopAds[i]; }
+  function getAmzTotalCoS(i) { return d.amzProdC[i] + d.amzFulf[i] + d.amzAds[i]; }
+  function getShopTotalGP(i) { return d.shopRev[i] - d.shopProdC[i] - d.shopFulf[i] - d.shopAds[i]; }
+  function getAmzTotalGP(i) { return d.amzRev[i] - d.amzProdC[i] - d.amzFulf[i] - d.amzAds[i]; }
+
+  // YTD computed
+  const ytdRev = sum(d.revenue, n), ytdShopRev = sum(d.shopRev, n), ytdAmzRev = sum(d.amzRev, n);
+  const ytdProdCost = sum(d.prodCost, n), ytdShopProdC = sum(d.shopProdC, n), ytdAmzProdC = sum(d.amzProdC, n);
+  const ytdFulf = sum(d.fulfilment, n), ytdShopFulf = sum(d.shopFulf, n), ytdAmzFulf = sum(d.amzFulf, n);
+  const ytdAds = sum(d.adSpend, n), ytdShopAds = sum(d.shopAds, n), ytdAmzAds = sum(d.amzAds, n);
+  const ytdFixed = sum(d.fixedSubs, n), ytdShopFixed = sum(d.shopFixed, n), ytdAmzFixed = sum(d.amzFixed, n);
+  const ytdOtherExp = sum(d.otherExp, n), ytdOtherInc = sum(d.otherInc, n);
+  const ytdEBITDA = sum(d.ebitda, n), ytdShopEBITDA = sum(d.shopEBITDA, n), ytdAmzEBITDA = sum(d.amzEBITDA, n);
+
+  const ytdProductGP = ytdRev - ytdProdCost;
+  const ytdShopProductGP = ytdShopRev - ytdShopProdC;
+  const ytdAmzProductGP = ytdAmzRev - ytdAmzProdC;
+  const ytdFulfilledGP = ytdProductGP - ytdFulf;
+  const ytdShopFulfilledGP = ytdShopProductGP - ytdShopFulf;
+  const ytdAmzFulfilledGP = ytdAmzProductGP - ytdAmzFulf;
+  const ytdTotalCoS = ytdProdCost + ytdFulf + ytdAds;
+  const ytdShopTotalCoS = ytdShopProdC + ytdShopFulf + ytdShopAds;
+  const ytdAmzTotalCoS = ytdAmzProdC + ytdAmzFulf + ytdAmzAds;
+  const ytdTotalGP = ytdRev - ytdTotalCoS;
+  const ytdShopTotalGP = ytdShopRev - ytdShopTotalCoS;
+  const ytdAmzTotalGP = ytdAmzRev - ytdAmzTotalCoS;
+
+  const rows = [
+    { label: 'Revenue', ytd: ytdRev, ytdShop: ytdShopRev, ytdAmz: ytdAmzRev, monthFn: i => d.revenue[i], cls: '' },
+    { label: 'Product Cost', ytd: ytdProdCost, ytdShop: ytdShopProdC, ytdAmz: ytdAmzProdC, monthFn: i => d.prodCost[i], cls: '', negate: true },
+    { label: 'Product Gross Profit', ytd: ytdProductGP, ytdShop: ytdShopProductGP, ytdAmz: ytdAmzProductGP, monthFn: getMonthProductGP, cls: 'subtotal-row', marginBase: [ytdRev, ytdShopRev, ytdAmzRev], monthMarginBase: i => d.revenue[i] },
+    { label: 'Fulfilment Cost', ytd: ytdFulf, ytdShop: ytdShopFulf, ytdAmz: ytdAmzFulf, monthFn: i => d.fulfilment[i], cls: '', negate: true },
+    { label: 'Fulfilled Gross Profit', ytd: ytdFulfilledGP, ytdShop: ytdShopFulfilledGP, ytdAmz: ytdAmzFulfilledGP, monthFn: getMonthFulfilledGP, cls: 'subtotal-row', marginBase: [ytdRev, ytdShopRev, ytdAmzRev], monthMarginBase: i => d.revenue[i] },
+    { label: 'Ad Spend', ytd: ytdAds, ytdShop: ytdShopAds, ytdAmz: ytdAmzAds, monthFn: i => d.adSpend[i], cls: '', negate: true },
+    { label: 'Total Cost of Sales', ytd: ytdTotalCoS, ytdShop: ytdShopTotalCoS, ytdAmz: ytdAmzTotalCoS, monthFn: getMonthTotalCoS, cls: '', negate: true },
+    { label: 'Total Gross Profit', ytd: ytdTotalGP, ytdShop: ytdShopTotalGP, ytdAmz: ytdAmzTotalGP, monthFn: getMonthTotalGP, cls: 'subtotal-row', marginBase: [ytdRev, ytdShopRev, ytdAmzRev], monthMarginBase: i => d.revenue[i] },
+    { label: 'Fixed Costs / Subscriptions', ytd: ytdFixed, ytdShop: ytdShopFixed, ytdAmz: ytdAmzFixed, monthFn: i => d.fixedSubs[i], cls: '', negate: true },
+    { label: 'Other Expenses', ytd: ytdOtherExp, ytdShop: null, ytdAmz: null, monthFn: i => d.otherExp[i], cls: '', negate: true },
+    { label: 'Other Income', ytd: ytdOtherInc, ytdShop: null, ytdAmz: null, monthFn: i => d.otherInc[i], cls: '' },
+    { label: 'EBITDA', ytd: ytdEBITDA, ytdShop: ytdShopEBITDA, ytdAmz: ytdAmzEBITDA, monthFn: i => d.ebitda[i], cls: 'ebitda-row', marginBase: [ytdRev, ytdShopRev, ytdAmzRev], monthMarginBase: i => d.revenue[i] },
+  ];
+
+  let html = '';
+  rows.forEach(row => {
+    html += `<tr class="${row.cls}">`;
+    html += `<td class="row-label">${row.label}</td>`;
+
+    // YTD Total
+    html += cell(row.ytd, row.marginBase ? row.marginBase[0] : null);
+    // YTD Shopify
+    html += cell(row.ytdShop, row.marginBase ? row.marginBase[1] : null);
+    // YTD Amazon
+    html += cell(row.ytdAmz, row.marginBase ? row.marginBase[2] : null);
+
+    // Monthly (newest first)
+    reversedIdx.forEach(i => {
+      const v = row.monthFn(i);
+      const revI = d.revenue[i];
+      const mb = row.monthMarginBase ? row.monthMarginBase(i) : null;
+      html += cell(v, mb);
+    });
+
+    html += '</tr>';
+  });
+
+  tbody.innerHTML = html;
+}
+
+function cell(value, marginBase) {
+  if (value == null) return '<td>-</td>';
+  const negCls = value < 0 ? ' neg' : '';
+  let marginHtml = '';
+  if (marginBase != null && marginBase !== 0) {
+    const m = (value / marginBase) * 100;
+    marginHtml = `<span class="margin">${fmtPct(m)}</span>`;
+  }
+  return `<td class="${negCls}">${fmt(value)}${marginHtml}</td>`;
+}
+
+// ─── CHARTS ─────────────────────────────────────────────────────────────────
+function getChartColors() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  return {
+    grid: isDark ? '#27272a' : '#f3f4f6',
+    tick: isDark ? '#52525b' : '#9ca3af',
+    shopify: isDark ? '#34d399' : '#0d9488',
+    amazon: isDark ? '#fbbf24' : '#f59e0b',
+    ebitda: isDark ? '#E4C1F9' : '#7c3aed',
+    productCost: isDark ? '#f87171' : '#ef4444',
+    fulfilment: isDark ? '#60a5fa' : '#3b82f6',
+    adSpend: isDark ? '#fbbf24' : '#f59e0b',
+    overheads: isDark ? '#a78bfa' : '#8b5cf6',
+    productGM: '#0d9488',
+    fulfilledGM: '#3b82f6',
+    totalGM: '#f59e0b',
+    ebitdaM: '#7c3aed',
+    tooltipBg: isDark ? '#27272a' : '#1f2937',
+    tooltipTitle: isDark ? '#e4e4e7' : '#f3f4f6',
+    tooltipBody: isDark ? '#a1a1aa' : '#d1d5db',
+    tooltipBorder: isDark ? '#3f3f46' : '#374151',
+  };
+}
+
+function chartDefaults(c) {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: c.tick, font: { size: 11 }, boxWidth: 12, padding: 12 } },
+      tooltip: {
+        backgroundColor: c.tooltipBg, titleColor: c.tooltipTitle, bodyColor: c.tooltipBody,
+        borderColor: c.tooltipBorder, borderWidth: 1, padding: 10,
+        callbacks: { label: ctx => { const v = ctx.parsed.y != null ? ctx.parsed.y : ctx.parsed; return ctx.dataset.label + ': ' + fmt(v); } }
+      }
+    },
+    scales: {
+      x: { grid: { color: c.grid }, ticks: { color: c.tick, font: { size: 10 } } },
+      y: { grid: { color: c.grid }, ticks: { color: c.tick, font: { size: 10 }, callback: v => fmt(v) } }
+    }
+  };
+}
+
+function rebuildCharts() {
+  if (revTrendChart) revTrendChart.destroy();
+  if (costBreakdownChart) costBreakdownChart.destroy();
+  if (marginTrendChart) marginTrendChart.destroy();
+
+  const d = DATA[currentFY];
+  const n = d.activeMonths;
+  const labels = d.labels.slice(0, n);
+  const c = getChartColors();
+
+  // Revenue Trend + EBITDA
+  const defs = chartDefaults(c);
+  revTrendChart = new Chart(document.getElementById('revTrendChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Shopify Revenue', data: d.shopRev.slice(0, n), backgroundColor: c.shopify + '99', borderColor: c.shopify, borderWidth: 1, stack: 'rev', order: 2 },
+        { label: 'Amazon Revenue', data: d.amzRev.slice(0, n), backgroundColor: c.amazon + '99', borderColor: c.amazon, borderWidth: 1, stack: 'rev', order: 2 },
+        { label: 'EBITDA', data: d.ebitda.slice(0, n), type: 'line', borderColor: c.ebitda, backgroundColor: c.ebitda + '22', borderWidth: 2, pointRadius: 3, tension: 0.3, yAxisID: 'y', order: 1, fill: false }
+      ]
+    },
+    options: {
+      ...defs,
+      scales: {
+        ...defs.scales,
+        x: { ...defs.scales.x, stacked: true },
+        y: { ...defs.scales.y, stacked: true, position: 'left' }
+      },
+      plugins: {
+        ...defs.plugins,
+        tooltip: {
+          ...defs.plugins.tooltip,
+          callbacks: { label: ctx => ctx.dataset.label + ': ' + fmt(ctx.parsed.y) }
+        }
+      }
+    }
+  });
+
+  // Cost Breakdown (Doughnut)
+  const ytdProdCost = sum(d.prodCost, n);
+  const ytdFulf = sum(d.fulfilment, n);
+  const ytdAds = sum(d.adSpend, n);
+  const ytdOverheads = sum(d.fixedSubs, n) + sum(d.otherExp, n);
+  costBreakdownChart = new Chart(document.getElementById('costBreakdownChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Product Cost', 'Fulfilment', 'Ad Spend', 'Overheads'],
+      datasets: [{
+        data: [ytdProdCost, ytdFulf, ytdAds, ytdOverheads],
+        backgroundColor: [c.productCost + 'cc', c.fulfilment + 'cc', c.adSpend + 'cc', c.overheads + 'cc'],
+        borderColor: [c.productCost, c.fulfilment, c.adSpend, c.overheads],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: c.tick, font: { size: 11 }, boxWidth: 12, padding: 12 } },
+        tooltip: {
+          backgroundColor: c.tooltipBg, titleColor: c.tooltipTitle, bodyColor: c.tooltipBody,
+          borderColor: c.tooltipBorder, borderWidth: 1, padding: 10,
+          callbacks: {
+            label: ctx => {
+              const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+              return ctx.label + ': ' + fmt(ctx.parsed) + ' (' + fmtPct(pct(ctx.parsed, total)) + ')';
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Margin Trends
+  const productGMs = [], fulfilledGMs = [], totalGMs = [], ebitdaMs = [];
+  for (let i = 0; i < n; i++) {
+    const rev = d.revenue[i];
+    productGMs.push(rev ? pct(rev - d.prodCost[i], rev) : 0);
+    fulfilledGMs.push(rev ? pct(rev - d.prodCost[i] - d.fulfilment[i], rev) : 0);
+    totalGMs.push(rev ? pct(rev - d.prodCost[i] - d.fulfilment[i] - d.adSpend[i], rev) : 0);
+    ebitdaMs.push(rev ? pct(d.ebitda[i], rev) : 0);
+  }
+  const marginDefs = chartDefaults(c);
+  marginTrendChart = new Chart(document.getElementById('marginTrendChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Product Gross Margin %', data: productGMs, borderColor: c.productGM, backgroundColor: c.productGM + '22', borderWidth: 2, pointRadius: 3, tension: 0.3 },
+        { label: 'Fulfilled Gross Margin %', data: fulfilledGMs, borderColor: c.fulfilledGM, backgroundColor: c.fulfilledGM + '22', borderWidth: 2, pointRadius: 3, tension: 0.3 },
+        { label: 'Total Gross Margin %', data: totalGMs, borderColor: c.totalGM, backgroundColor: c.totalGM + '22', borderWidth: 2, pointRadius: 3, tension: 0.3 },
+        { label: 'EBITDA Margin %', data: ebitdaMs, borderColor: c.ebitdaM, backgroundColor: c.ebitdaM + '22', borderWidth: 2, pointRadius: 3, tension: 0.3 }
+      ]
+    },
+    options: {
+      ...marginDefs,
+      scales: {
+        ...marginDefs.scales,
+        y: { ...marginDefs.scales.y, ticks: { ...marginDefs.scales.y.ticks, callback: v => v.toFixed(0) + '%' } }
+      },
+      plugins: {
+        ...marginDefs.plugins,
+        tooltip: {
+          ...marginDefs.plugins.tooltip,
+          callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtPct(ctx.parsed.y) }
+        }
+      }
+    }
+  });
+}
+
+// ─── CHANNEL COMPARISON ─────────────────────────────────────────────────────
+function buildChannelComparison(d, n) {
+  const ytdShopRev = sum(d.shopRev, n), ytdAmzRev = sum(d.amzRev, n);
+  const ytdShopProdC = sum(d.shopProdC, n), ytdAmzProdC = sum(d.amzProdC, n);
+  const ytdShopFulf = sum(d.shopFulf, n), ytdAmzFulf = sum(d.amzFulf, n);
+  const ytdShopAds = sum(d.shopAds, n), ytdAmzAds = sum(d.amzAds, n);
+  const ytdShopEBITDA = sum(d.shopEBITDA, n), ytdAmzEBITDA = sum(d.amzEBITDA, n);
+
+  const shopProductGM = pct(ytdShopRev - ytdShopProdC, ytdShopRev);
+  const amzProductGM = pct(ytdAmzRev - ytdAmzProdC, ytdAmzRev);
+  const shopFulfilledGM = pct(ytdShopRev - ytdShopProdC - ytdShopFulf, ytdShopRev);
+  const amzFulfilledGM = pct(ytdAmzRev - ytdAmzProdC - ytdAmzFulf, ytdAmzRev);
+  const shopEBITDAM = pct(ytdShopEBITDA, ytdShopRev);
+  const amzEBITDAM = pct(ytdAmzEBITDA, ytdAmzRev);
+  const shopAdPct = pct(ytdShopAds, ytdShopRev);
+  const amzAdPct = pct(ytdAmzAds, ytdAmzRev);
+
+  function channelHtml(rev, prodGM, fulfGM, adPct, ebitda, ebitdaM) {
+    return `
+      <div class="channel-metric"><span class="cm-label">Revenue</span><span class="cm-value">${fmt(rev)}</span></div>
+      <div class="channel-metric"><span class="cm-label">Product Gross Margin</span><span class="cm-value">${fmtPct(prodGM)}</span></div>
+      <div class="channel-metric"><span class="cm-label">Fulfilled Gross Margin</span><span class="cm-value">${fmtPct(fulfGM)}</span></div>
+      <div class="channel-metric"><span class="cm-label">Ad Spend (% of Rev)</span><span class="cm-value">${fmtPct(adPct)}</span></div>
+      <div class="channel-metric"><span class="cm-label">EBITDA</span><span class="cm-value" style="color:${ebitda >= 0 ? 'var(--positive)' : 'var(--negative)'}">${fmt(ebitda)}<span class="cm-margin">${fmtPct(ebitdaM)}</span></span></div>
+    `;
+  }
+
+  document.getElementById('shopifyMetrics').innerHTML = channelHtml(ytdShopRev, shopProductGM, shopFulfilledGM, shopAdPct, ytdShopEBITDA, shopEBITDAM);
+  document.getElementById('amazonMetrics').innerHTML = channelHtml(ytdAmzRev, amzProductGM, amzFulfilledGM, amzAdPct, ytdAmzEBITDA, amzEBITDAM);
+}
+
+// ─── INIT ───────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>

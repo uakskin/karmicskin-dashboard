@@ -210,7 +210,7 @@
 <div class="header">
   <div class="header-left">
     <div class="brand">Karmic Skin</div>
-    <h1>Business Dashboard</h1><span class="last-updated" id="lastUpdated"></span>
+    <h1>Business Dashboard</h1><div><span style="font-size:11px;color:var(--text-muted);display:block">All figures include VAT</span><span class="last-updated" id="lastUpdated"></span></div>
   </div>
   <div class="date-controls">
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Switch theme">☀️</button>
@@ -405,7 +405,7 @@
             <th class="sortable" data-pcol="revenue">Revenue <span class="sort-arrow">▼</span></th>
             <th class="sortable" data-pcol="units">Units <span class="sort-arrow">▼</span></th>
             <th class="sortable" data-pcol="orders">Orders <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-pcol="aov" title="Revenue ÷ Units sold">ASP <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-pcol="aov" title="(Revenue after discounts) ÷ Units sold">ASP <span style="font-size:9px;opacity:0.5;cursor:help" title="(Revenue after discounts) ÷ Units sold">ⓘ</span> <span class="sort-arrow">▼</span></th>
           </tr>
         </thead>
         <tbody id="productPerfBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
@@ -427,7 +427,7 @@
             <th class="sortable" data-ccol="revenue">Revenue <span class="sort-arrow">▼</span></th>
             <th class="sortable" data-ccol="units">Units <span class="sort-arrow">▼</span></th>
             <th class="sortable" data-ccol="orders">Orders <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-ccol="asp" title="Revenue ÷ Units sold">ASP <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-ccol="asp" title="(Revenue after discounts) ÷ Units sold">ASP <span style="font-size:9px;opacity:0.5;cursor:help" title="(Revenue after discounts) ÷ Units sold">ⓘ</span> <span class="sort-arrow">▼</span></th>
           </tr>
         </thead>
         <tbody id="categoryPerfBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>

@@ -436,20 +436,43 @@
     </div>
   </div>
   <div class="analytics-card">
-    <div class="analytics-card-header" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><h3>Discount Code Performance</h3><span style="font-size:11px;color:var(--text-muted);font-weight:400" id="discountPerfDateRange"></span></div>
+    <div class="analytics-card-header"><h3>Day-of-Week Performance</h3></div>
     <div class="analytics-table-scroll">
-      <table class="analytics-table" id="discountPerfTable">
+      <table class="analytics-table" id="dowTable">
         <thead>
           <tr>
-            <th class="sortable" data-dcol="discount">Discount Code <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-dcol="orders">Orders <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-dcol="revenue">Revenue <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-dcol="avg_aov">AOV <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-dcol="total_discounted">Disc. Given <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-dcol="eff_pct">Eff. Disc % <span class="info-tip" data-tip="Discount Given ÷ (Revenue + Discount) × 100">?</span> <span class="sort-arrow">▼</span></th>
+            <th>Day</th>
+            <th>Avg Revenue</th>
+            <th>Avg Orders</th>
+            <th>Avg Ad Spend</th>
+            <th>ROAS</th>
           </tr>
         </thead>
-        <tbody id="discountPerfBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
+        <tbody id="dowBody"><tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Cohort Retention -->
+<div class="product-analytics-row">
+  <div class="analytics-card" style="flex:1">
+    <div class="analytics-card-header"><h3>Cohort Retention</h3><span style="font-size:10px;color:var(--text-muted);margin-left:8px">% of customers who return within N months</span></div>
+    <div class="analytics-table-scroll" style="overflow-x:auto">
+      <table class="analytics-table" id="cohortTable">
+        <thead>
+          <tr>
+            <th>Cohort</th>
+            <th>Size</th>
+            <th>Month 1</th>
+            <th>Month 2</th>
+            <th>Month 3</th>
+            <th>Month 4</th>
+            <th>Month 5</th>
+            <th>Month 6</th>
+          </tr>
+        </thead>
+        <tbody id="cohortBody"><tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -1146,75 +1169,65 @@ document.querySelectorAll('#productPerfTable th[data-pcol]').forEach(th => {
   });
 });
 
-// --- Section 4: Discount Performance ---
-let discountPerfData = [];
-let discountSortCol = 'revenue';
-let discountSortDir = 'desc';
-
-async function fetchDiscountPerformance() {
+// --- Day-of-Week Performance ---
+async function fetchDayOfWeek() {
   const dates = getProductAnalyticsDates();
   try {
-    const data = await rpcCall('get_discount_performance', dates);
-    discountPerfData = Array.isArray(data) ? data : [];
-    renderDiscountPerformance();
-  } catch(e) {
-    console.error('Discount performance error:', e);
-  }
+    const data = await rpcCall('get_day_of_week_performance', dates);
+    if (!Array.isArray(data)) return;
+    // Reorder: Sun=0 first
+    const ordered = [0,1,2,3,4,5,6].map(d => data.find(r => r.day_num === d)).filter(Boolean);
+    let bestRev = Math.max(...ordered.map(r => parseFloat(r.avg_revenue)));
+    let bestOrd = Math.max(...ordered.map(r => parseFloat(r.avg_orders)));
+    let html = '';
+    for (const r of ordered) {
+      const rev = parseFloat(r.avg_revenue);
+      const ord = parseFloat(r.avg_orders);
+      html += `<tr>
+        <td style="font-weight:600">${r.day_name}</td>
+        <td${rev === bestRev ? ' class="highlight-best"' : ''}>\u00A3${Math.round(rev).toLocaleString()}</td>
+        <td${ord === bestOrd ? ' class="highlight-best"' : ''}>${Math.round(ord)}</td>
+        <td>\u00A3${Math.round(parseFloat(r.avg_ad_spend)).toLocaleString()}</td>
+        <td>${parseFloat(r.avg_roas).toFixed(2)}</td>
+      </tr>`;
+    }
+    document.getElementById('dowBody').innerHTML = html || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">No data</td></tr>';
+  } catch(e) { console.error('Day of week error:', e); }
 }
 
-function renderDiscountPerformance() {
-  const rows = discountPerfData.map(r => {
-    const revenue = parseFloat(r.revenue || 0);
-    const orders = parseInt(r.orders || 0);
-    const discountGiven = parseFloat(r.discount_given || 0);
-    const gross = revenue + discountGiven;
-    return {
-      discount_code: r.discount_code || '',
-      orders,
-      revenue,
-      aov: orders > 0 ? revenue / orders : 0,
-      discount_given: discountGiven,
-      effective_discount_pct: gross > 0 ? (discountGiven / gross) * 100 : 0,
-    };
-  });
-
-  rows.sort((a, b) => {
-    let va = a[discountSortCol], vb = b[discountSortCol];
-    if (typeof va === 'string') return discountSortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
-    return discountSortDir === 'asc' ? (va - vb) : (vb - va);
-  });
-
-  // Update header arrows
-  document.querySelectorAll('#discountPerfTable th[data-dcol]').forEach(th => {
-    const col = th.dataset.dcol;
-    th.classList.toggle('sorted', col === discountSortCol);
-    const arrow = th.querySelector('.sort-arrow');
-    if (arrow) arrow.textContent = (col === discountSortCol && discountSortDir === 'asc') ? '▲' : '▼';
-  });
-
-  let html = '';
-  for (const r of rows) {
-    html += `<tr>
-      <td>${r.discount_code}</td>
-      <td>${r.orders.toLocaleString()}</td>
-      <td>\u00A3${Math.round(r.revenue).toLocaleString()}</td>
-      <td>\u00A3${r.aov.toFixed(1)}</td>
-      <td>\u00A3${Math.round(r.discount_given).toLocaleString()}</td>
-      <td>${r.effective_discount_pct.toFixed(1)}%</td>
-    </tr>`;
-  }
-  document.getElementById('discountPerfBody').innerHTML = html || '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">No data</td></tr>';
+// --- Cohort Retention ---
+async function fetchCohortRetention() {
+  try {
+    const data = await rpcCall('get_cohort_retention', {});
+    if (!Array.isArray(data)) return;
+    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    // Color scale: 0% = no color, 30%+ = strongest
+    function retColor(pct) {
+      if (pct <= 0) return '';
+      const intensity = Math.min(pct / 25, 1);
+      return `background: rgba(13, 148, 136, ${intensity * 0.35})`;
+    }
+    let html = '';
+    for (const r of data) {
+      const yr = parseInt(r.cohort.substring(0, 4));
+      const mo = parseInt(r.cohort.substring(5, 7));
+      const label = monthNames[mo - 1] + ' ' + String(yr).slice(2);
+      const m1 = parseFloat(r.m1), m2 = parseFloat(r.m2), m3 = parseFloat(r.m3);
+      const m4 = parseFloat(r.m4), m5 = parseFloat(r.m5), m6 = parseFloat(r.m6);
+      html += `<tr>
+        <td style="font-weight:600">${label}</td>
+        <td>${parseInt(r.cohort_size).toLocaleString()}</td>
+        <td style="${retColor(m1)}">${m1 > 0 ? m1.toFixed(1) + '%' : '-'}</td>
+        <td style="${retColor(m2)}">${m2 > 0 ? m2.toFixed(1) + '%' : '-'}</td>
+        <td style="${retColor(m3)}">${m3 > 0 ? m3.toFixed(1) + '%' : '-'}</td>
+        <td style="${retColor(m4)}">${m4 > 0 ? m4.toFixed(1) + '%' : '-'}</td>
+        <td style="${retColor(m5)}">${m5 > 0 ? m5.toFixed(1) + '%' : '-'}</td>
+        <td style="${retColor(m6)}">${m6 > 0 ? m6.toFixed(1) + '%' : '-'}</td>
+      </tr>`;
+    }
+    document.getElementById('cohortBody').innerHTML = html || '<tr><td colspan="8" style="text-align:center;color:var(--text-muted)">No data</td></tr>';
+  } catch(e) { console.error('Cohort retention error:', e); }
 }
-
-// Sort handlers for discount performance
-document.querySelectorAll('#discountPerfTable th[data-dcol]').forEach(th => {
-  th.addEventListener('click', () => {
-    const col = th.dataset.dcol;
-    if (discountSortCol === col) { discountSortDir = discountSortDir === 'desc' ? 'asc' : 'desc'; }
-    else { discountSortCol = col; discountSortDir = 'desc'; }
-    renderDiscountPerformance();
-  });
-});
 
 // --- Category Performance ---
 let categoryData = [];
@@ -1288,7 +1301,8 @@ async function fetchProductAnalytics() {
     fetchCustomerFrequency(),
     fetchProductPerformance(),
     fetchCategoryPerformance(),
-    fetchDiscountPerformance(),
+    fetchDayOfWeek(),
+    fetchCohortRetention(),
   ]);
 }
 

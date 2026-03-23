@@ -176,8 +176,8 @@
 <section class="kpi-strip">
   <div class="kpi-card">
     <div class="label">Total Email Revenue</div>
-    <div class="value">&pound;142,555</div>
-    <div class="sub">Campaigns + Flows (12m)</div>
+    <div class="value" id="kpiTotalRev">&pound;142,555</div>
+    <div class="sub">Campaigns + Flows</div>
   </div>
   <div class="kpi-card">
     <div class="label">Flow Revenue</div>
@@ -187,7 +187,7 @@
   <div class="kpi-card">
     <div class="label">Campaign Revenue</div>
     <div class="value">&pound;111,230</div>
-    <div class="sub">50 campaigns sent</div>
+    <div class="sub">150 campaigns sent</div>
   </div>
   <div class="kpi-card">
     <div class="label">Avg Open Rate</div>
@@ -201,7 +201,7 @@
   </div>
   <div class="kpi-card">
     <div class="label">Revenue Per Recipient</div>
-    <div class="value">&pound;0.12</div>
+    <div class="value" id="kpiRPR">&pound;0.12</div>
     <div class="sub">Across all campaigns</div>
   </div>
 </section>
@@ -409,11 +409,35 @@ function getThemeColors() {
   };
 }
 
-// ── Period pills (visual only for now) ──
+// ── Period pills ──
+let activePeriod = '12m';
+function getSliceCount(period) {
+  if (period === '30d') return 1;
+  if (period === '90d') return 3;
+  if (period === '12m') return 12;
+  return monthLabels.length; // all
+}
+function applyPeriod(period) {
+  activePeriod = period;
+  const n = getSliceCount(period);
+  const labels = monthLabels.slice(-n);
+  const rev = revenueData.slice(-n);
+  const ord = ordersData.slice(-n);
+  monthlyChart.data.labels = labels;
+  monthlyChart.data.datasets[0].data = rev;
+  monthlyChart.data.datasets[1].data = ord;
+  monthlyChart.update();
+  // Update KPI cards with filtered totals
+  const totalRev = rev.reduce((a,b) => a+b, 0);
+  const totalOrd = ord.reduce((a,b) => a+b, 0);
+  document.getElementById('kpiTotalRev').textContent = '\u00a3' + Math.round(totalRev).toLocaleString();
+  document.getElementById('kpiRPR').textContent = '\u00a3' + (totalRev > 0 ? (totalRev / (period === 'all' ? 901654 : Math.round(901654 * n / 12))).toFixed(2) : '--');
+}
 document.querySelectorAll('.period-pill').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.period-pill').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+    applyPeriod(btn.dataset.period);
   });
 });
 

@@ -291,8 +291,8 @@
   <div class="kpi-card" title="Customers placing their first-ever order"><div class="label">New Customers</div><div class="value" id="kpi-new">--</div></div>
   <div class="kpi-card" title="Repeat Orders ÷ Total Orders × 100"><div class="label">Repeat %</div><div class="value" id="kpi-repeat">--</div></div>
   <div class="kpi-card" title="Ad Spend ÷ Orders"><div class="label">Blended CAC</div><div class="value" id="kpi-cac">--</div></div>
-  <div class="kpi-card" title="GA4 sessions (online store visits)"><div class="label">Sessions</div><div class="value" id="kpi-sessions">--</div></div>
-  <div class="kpi-card" title="Orders ÷ Sessions × 100"><div class="label">CVR %</div><div class="value" id="kpi-cvr">--</div></div>
+  <div class="kpi-card" title="GA4 unique visitors"><div class="label">Visitors</div><div class="value" id="kpi-sessions">--</div></div>
+  <div class="kpi-card" title="Orders ÷ Visitors × 100"><div class="label">CVR %</div><div class="value" id="kpi-cvr">--</div></div>
 </div>
 
 <div class="dashboard-body">
@@ -675,7 +675,7 @@ async function fetchData() {
   const from = document.getElementById('dateFrom').dataset.current || document.getElementById('dateFrom').value;
   const to = document.getElementById('dateTo').dataset.current || document.getElementById('dateTo').value;
 
-  const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.${from}&report_date=lte.${to}&order=report_date.asc&select=report_date,total_sales,total_ad_spend,meta_spend,google_spend,total_orders,aov,new_customer_orders,returning_customer_orders,blended_cac,ga4_sessions`;
+  const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.${from}&report_date=lte.${to}&order=report_date.asc&select=report_date,total_sales,total_ad_spend,meta_spend,google_spend,total_orders,aov,new_customer_orders,returning_customer_orders,blended_cac,ga4_active_users`;
 
   const resp = await fetch(url, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
@@ -708,7 +708,7 @@ function aggregateData(data, period) {
     b.orders += parseInt(row.total_orders || 0);
     b.newCustomers += parseInt(row.new_customer_orders || 0);
     b.returning += parseInt(row.returning_customer_orders || 0);
-    b.sessions += parseInt(row.ga4_sessions || 0);
+    b.sessions += parseInt(row.ga4_active_users || 0);
     b.days++;
   }
   return Object.values(buckets).map(b => ({
@@ -881,7 +881,7 @@ let tablePeriod = 'monthly';
 const VISIBLE_ROWS = 12;
 
 async function fetchTableData() {
-  const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.2024-01-01&report_date=lt.${fmtDate(new Date())}&order=report_date.asc&select=report_date,total_sales,total_ad_spend,meta_spend,google_spend,total_orders,new_customer_orders,returning_customer_orders,ga4_sessions`;
+  const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.2024-01-01&report_date=lt.${fmtDate(new Date())}&order=report_date.asc&select=report_date,total_sales,total_ad_spend,meta_spend,google_spend,total_orders,new_customer_orders,returning_customer_orders,ga4_active_users`;
   const resp = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } });
   allDailyData = await resp.json();
 

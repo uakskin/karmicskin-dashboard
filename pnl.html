@@ -169,12 +169,13 @@
 
 <!-- KPI Cards -->
 <div class="kpi-strip">
-  <div class="kpi-card"><div class="label">Total Revenue</div><div class="value" id="kpiRevenue">--</div></div>
-  <div class="kpi-card"><div class="label">COGS (Product Cost)</div><div class="value" id="kpiCOGS">--</div></div>
-  <div class="kpi-card"><div class="label">Gross Margin %</div><div class="value" id="kpiGrossMargin">--</div></div>
-  <div class="kpi-card"><div class="label">Ad Spend</div><div class="value" id="kpiAdSpend">--</div></div>
   <div class="kpi-card"><div class="label">EBITDA</div><div class="value" id="kpiEBITDA">--</div></div>
-  <div class="kpi-card"><div class="label">EBITDA Margin %</div><div class="value" id="kpiEBITDAMargin">--</div></div>
+  <div class="kpi-card"><div class="label">Total Revenue (exc. VAT)</div><div class="value" id="kpiRevenue">--</div></div>
+  <div class="kpi-card"><div class="label">Ad Spend</div><div class="value" id="kpiAdSpend">--</div></div>
+  <div class="kpi-card"><div class="label">COGS</div><div class="value" id="kpiCOGS">--</div></div>
+  <div class="kpi-card"><div class="label">Fulfilment</div><div class="value" id="kpiFulfilment">--</div></div>
+  <div class="kpi-card"><div class="label">Gross Margin</div><div class="value" id="kpiGrossMargin">--</div></div>
+  <div class="kpi-card"><div class="label">EBITDA Margin</div><div class="value" id="kpiEBITDAMargin">--</div></div>
 </div>
 
 <!-- P&L Summary Table -->
@@ -355,14 +356,15 @@ function render() {
   const ytdTotalGP = ytdRev - ytdTotalCoS;
 
   // KPI Cards
+  document.getElementById('kpiEBITDA').textContent = fmt(ytdEBITDA);
+  document.getElementById('kpiEBITDA').className = 'value ' + (ytdEBITDA >= 0 ? 'pos' : 'neg');
   document.getElementById('kpiRevenue').textContent = fmt(ytdRev);
+  document.getElementById('kpiAdSpend').textContent = fmt(ytdAds);
   document.getElementById('kpiCOGS').textContent = fmt(ytdProdCost);
+  document.getElementById('kpiFulfilment').textContent = fmt(ytdFulf);
   const grossMargin = pct(ytdProductGP, ytdRev);
   document.getElementById('kpiGrossMargin').textContent = fmtPct(grossMargin);
   document.getElementById('kpiGrossMargin').className = 'value ' + (grossMargin >= 0 ? 'pos' : 'neg');
-  document.getElementById('kpiAdSpend').textContent = fmt(ytdAds);
-  document.getElementById('kpiEBITDA').textContent = fmt(ytdEBITDA);
-  document.getElementById('kpiEBITDA').className = 'value ' + (ytdEBITDA >= 0 ? 'pos' : 'neg');
   const ebitdaMargin = pct(ytdEBITDA, ytdRev);
   document.getElementById('kpiEBITDAMargin').textContent = fmtPct(ebitdaMargin);
   document.getElementById('kpiEBITDAMargin').className = 'value ' + (ebitdaMargin >= 0 ? 'pos' : 'neg');

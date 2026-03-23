@@ -395,7 +395,7 @@
     </div>
   </div>
   <div class="analytics-card">
-    <div class="analytics-card-header"><h3>Product Performance</h3></div>
+    <div class="analytics-card-header" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><h3>Product Performance</h3><span style="font-size:11px;color:var(--text-muted);font-weight:400" id="productPerfDateRange"></span></div>
     <div class="analytics-table-scroll" id="productPerfScroll">
       <table class="analytics-table" id="productPerfTable">
         <thead>
@@ -1104,6 +1104,8 @@ async function fetchProductPerformance() {
   try {
     const data = await rpcCall('get_product_performance', dates);
     productPerfData = Array.isArray(data) ? data : [];
+    const el = document.getElementById('productPerfDateRange');
+    if (el) el.textContent = fmtDisplay(dates.from_date) + ' – ' + fmtDisplay(dates.to_date);
     renderProductPerformance();
   } catch(e) {
     console.error('Product performance error:', e);

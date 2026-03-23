@@ -366,12 +366,25 @@
   </div>
 </div>
 
-<!-- Product Analytics: Row 1 - Revenue Mix + Product Performance -->
+<!-- Product Analytics: Row 1 - Customer Purchase Frequency + Product Performance -->
 <div class="product-analytics-row">
   <div class="analytics-card">
-    <div class="analytics-card-header"><h3>Product Revenue Mix</h3></div>
-    <div class="analytics-chart-wrap"><canvas id="productRevenueChart"></canvas></div>
-    <div class="analytics-legend" id="productRevenueLegend"></div>
+    <div class="analytics-card-header"><h3>Customer Purchase Frequency</h3></div>
+    <div class="analytics-table-scroll">
+      <table class="analytics-table" id="custFreqTable">
+        <thead>
+          <tr>
+            <th>Purchases</th>
+            <th>Customers</th>
+            <th>% of Total</th>
+            <th>Revenue</th>
+            <th>% of Rev</th>
+            <th>Rev / Customer</th>
+          </tr>
+        </thead>
+        <tbody id="custFreqBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
+      </table>
+    </div>
   </div>
   <div class="analytics-card">
     <div class="analytics-card-header"><h3>Product Performance</h3></div>
@@ -380,51 +393,14 @@
         <thead>
           <tr>
             <th class="sortable" data-pcol="product">Product <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-pcol="pct_total">% of Rev <span class="sort-arrow">▼</span></th>
             <th class="sortable" data-pcol="revenue">Revenue <span class="sort-arrow">▼</span></th>
             <th class="sortable" data-pcol="units">Units <span class="sort-arrow">▼</span></th>
             <th class="sortable" data-pcol="orders">Orders <span class="sort-arrow">▼</span></th>
             <th class="sortable" data-pcol="aov" title="Revenue ÷ Orders for this product">AOV <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-pcol="pct_total">% of Rev <span class="sort-arrow">▼</span></th>
           </tr>
         </thead>
         <tbody id="productPerfBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- Product Analytics: Row 2 - Product Pairs + Discount Performance -->
-<div class="product-analytics-row">
-  <div class="analytics-card">
-    <div class="analytics-card-header"><h3>Frequently Bought Together</h3></div>
-    <div class="analytics-table-scroll" id="productPairsScroll">
-      <table class="analytics-table" id="productPairsTable">
-        <thead>
-          <tr>
-            <th>Product Combination</th>
-            <th>Orders</th>
-            <th>AOV</th>
-          </tr>
-        </thead>
-        <tbody id="productPairsBody"><tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-  <div class="analytics-card">
-    <div class="analytics-card-header"><h3>Discount Code Performance</h3></div>
-    <div class="analytics-table-scroll" id="discountPerfScroll">
-      <table class="analytics-table" id="discountPerfTable">
-        <thead>
-          <tr>
-            <th class="sortable" data-dcol="discount_code">Discount Code <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-dcol="orders">Orders <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-dcol="revenue">Revenue <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-dcol="aov">AOV <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-dcol="discount_given">Discount Given <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-dcol="effective_discount_pct" title="Discount Given ÷ Gross Revenue × 100">Effective Discount % <span class="sort-arrow">▼</span></th>
-          </tr>
-        </thead>
-        <tbody id="discountPerfBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -960,12 +936,36 @@ fetchData();
 
 // ========== PRODUCT ANALYTICS ==========
 
-const PRODUCT_COLORS = {
-  'Sunlight Serum': '#0d9488',
-  'Moonlight Serum': '#2563eb',
-  'Sleepytime Gelly': '#7c3aed',
-  'Pot of Gold': '#d97706',
-  'The Heroes Kit': '#e11d48',
+// ---- Section 1: Customer Purchase Frequency ----
+async function fetchCustomerFrequency() {
+  const dates = getProductAnalyticsDates();
+  try {
+    const data = await rpcCall('get_customer_purchase_frequency', dates);
+    renderCustomerFrequency(Array.isArray(data) ? data : []);
+  } catch(e) { console.error('Customer frequency error:', e); }
+}
+
+function renderCustomerFrequency(data) {
+  const totalRev = data.reduce((s, r) => s + parseFloat(r.revenue || 0), 0);
+  let html = '';
+  for (const r of data) {
+    const rev = parseFloat(r.revenue || 0);
+    const cust = parseInt(r.customers || 0);
+    const revPct = totalRev > 0 ? (rev / totalRev * 100) : 0;
+    const revPerCust = cust > 0 ? rev / cust : 0;
+    html += `<tr>
+      <td style="font-weight:600">${r.purchase_count}</td>
+      <td>${cust.toLocaleString()}</td>
+      <td>${parseFloat(r.pct_of_total || 0).toFixed(1)}%</td>
+      <td>\u00A3${Math.round(rev).toLocaleString()}</td>
+      <td>${revPct.toFixed(1)}%</td>
+      <td>\u00A3${revPerCust.toFixed(0)}</td>
+    </tr>`;
+  }
+  document.getElementById('custFreqBody').innerHTML = html || '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">No data</td></tr>';
+}
+
+const PRODUCT_COLORS_UNUSED = {
   'Age Confidence': '#059669',
   'Richie Rich Rich': '#9333ea',
   'Top of the Morning': '#ea580c',
@@ -1086,8 +1086,7 @@ function renderProductPerformance() {
     units: parseInt(r.units || 0),
     orders: parseInt(r.orders || 0),
     aov: parseInt(r.orders || 0) > 0 ? parseFloat(r.revenue || 0) / parseInt(r.orders) : 0,
-    pct_total: parseFloat(r.pct_total || 0),
-    growth_pct: r.growth_pct != null ? parseFloat(r.growth_pct) : null,
+    pct_total: parseFloat(r.pct_of_total || r.pct_total || 0),
   }));
 
   rows.sort((a, b) => {
@@ -1115,11 +1114,11 @@ function renderProductPerformance() {
     const isTopRev = r.revenue === bestRev && bestRev > 0;
     html += `<tr>
       <td>${r.product}</td>
+      <td>${r.pct_total.toFixed(1)}%</td>
       <td${isTopRev ? ' class="highlight-best"' : ''}>\u00A3${Math.round(r.revenue).toLocaleString()}</td>
       <td>${r.units.toLocaleString()}</td>
       <td>${r.orders.toLocaleString()}</td>
       <td>\u00A3${r.aov.toFixed(1)}</td>
-      <td>${r.pct_total.toFixed(1)}%</td>
     </tr>`;
   }
   document.getElementById('productPerfBody').innerHTML = html || '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">No data</td></tr>';
@@ -1232,10 +1231,8 @@ document.querySelectorAll('#discountPerfTable th[data-dcol]').forEach(th => {
 // --- Fetch all product analytics ---
 async function fetchProductAnalytics() {
   await Promise.all([
-    fetchProductRevenueMix(),
+    fetchCustomerFrequency(),
     fetchProductPerformance(),
-    fetchProductPairs(),
-    fetchDiscountPerformance(),
   ]);
 }
 

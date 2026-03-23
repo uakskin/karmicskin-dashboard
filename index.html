@@ -193,7 +193,8 @@
   .analytics-table .highlight-best { background: var(--highlight-bg); color: var(--highlight-text); font-weight: 700; }
   .analytics-table-scroll { max-height: 432px; }
   .info-tip { display: inline-block; font-size: 10px; opacity: 0.5; cursor: help; margin-left: 2px; }
-  .tooltip-popup { position: fixed; background: var(--text-primary); color: var(--bg-body); font-size: 11px; padding: 5px 10px; border-radius: 6px; white-space: nowrap; pointer-events: none; font-weight: 400; text-transform: none; letter-spacing: 0; z-index: 9999; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: none; }
+  .tooltip-popup { position: fixed; background: #111; color: #fff; font-size: 11px; padding: 5px 10px; border-radius: 6px; white-space: nowrap; pointer-events: none; font-weight: 400; text-transform: none; letter-spacing: 0; z-index: 9999; box-shadow: 0 2px 8px rgba(0,0,0,0.4); display: none; border: 1px solid #333; }
+  [data-theme="light"] .tooltip-popup { background: #1a1a1a; color: #fff; border-color: #333; }
 
   @media (max-width: 768px) {
     .product-analytics-row { flex-direction: column; padding: 0 16px 16px; }

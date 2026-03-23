@@ -166,6 +166,36 @@
     .date-picker-wrap { flex: 1; }
     .date-picker-btn { width: 100%; justify-content: center; }
   }
+
+  /* PRODUCT ANALYTICS SECTIONS */
+  .product-analytics-row { display: flex; gap: 16px; padding: 0 24px 16px; }
+  .product-analytics-row .analytics-card { flex: 1; min-width: 0; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .analytics-card-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px 10px; }
+  .analytics-card-header h3 { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 0; }
+  .analytics-chart-wrap { position: relative; height: 300px; padding: 0 20px; }
+  .analytics-legend { display: flex; flex-wrap: wrap; gap: 10px; padding: 12px 20px 16px; }
+  .analytics-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-secondary); }
+  .analytics-legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+  .analytics-table-scroll { overflow-x: auto; }
+  .analytics-table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+  .analytics-table thead { position: sticky; top: 0; z-index: 1; }
+  .analytics-table th { background: var(--table-header-bg); color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10px; padding: 8px 12px; text-align: center; border-bottom: 1px solid var(--border); user-select: none; }
+  .analytics-table th.sortable { cursor: pointer; position: relative; }
+  .analytics-table th.sortable:hover { color: var(--text-secondary); }
+  .analytics-table th .sort-arrow { font-size: 9px; margin-left: 3px; opacity: 0.3; }
+  .analytics-table th.sorted .sort-arrow { opacity: 1; color: var(--sort-active); }
+  .analytics-table td { padding: 7px 12px; text-align: center; border-bottom: 1px solid var(--table-border); color: var(--text-secondary); }
+  .analytics-table td:first-child { text-align: left; font-weight: 600; color: var(--text-primary); }
+  .analytics-table tbody tr:hover td { background: var(--table-hover); }
+  .analytics-table .positive { color: var(--positive); }
+  .analytics-table .negative { color: var(--negative); }
+  .analytics-table .subtle { color: var(--text-muted); }
+  .analytics-table .highlight-best { background: var(--highlight-bg); color: var(--highlight-text); font-weight: 700; }
+  .analytics-table-scroll { max-height: 432px; }
+
+  @media (max-width: 768px) {
+    .product-analytics-row { flex-direction: column; padding: 0 16px 16px; }
+  }
 </style>
 </head>
 <body>
@@ -331,6 +361,71 @@
         <tbody id="perfTableBody">
           <tr><td colspan="15" style="text-align:center;color:#52525b;padding:20px">Loading...</td></tr>
         </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Product Analytics: Row 1 - Revenue Mix + Product Performance -->
+<div class="product-analytics-row">
+  <div class="analytics-card">
+    <div class="analytics-card-header"><h3>Product Revenue Mix</h3></div>
+    <div class="analytics-chart-wrap"><canvas id="productRevenueChart"></canvas></div>
+    <div class="analytics-legend" id="productRevenueLegend"></div>
+  </div>
+  <div class="analytics-card">
+    <div class="analytics-card-header"><h3>Product Performance</h3></div>
+    <div class="analytics-table-scroll" id="productPerfScroll">
+      <table class="analytics-table" id="productPerfTable">
+        <thead>
+          <tr>
+            <th class="sortable" data-pcol="product">Product <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-pcol="revenue">Revenue <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-pcol="units">Units <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-pcol="orders">Orders <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-pcol="aov" title="Revenue ÷ Orders for this product">AOV <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-pcol="pct_total">% of Total <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-pcol="growth_pct" title="vs previous period of same length">Growth % <span class="sort-arrow">▼</span></th>
+          </tr>
+        </thead>
+        <tbody id="productPerfBody"><tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Product Analytics: Row 2 - Product Pairs + Discount Performance -->
+<div class="product-analytics-row">
+  <div class="analytics-card">
+    <div class="analytics-card-header"><h3>Frequently Bought Together</h3></div>
+    <div class="analytics-table-scroll" id="productPairsScroll">
+      <table class="analytics-table" id="productPairsTable">
+        <thead>
+          <tr>
+            <th>Product Combination</th>
+            <th>Orders</th>
+            <th>AOV</th>
+          </tr>
+        </thead>
+        <tbody id="productPairsBody"><tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="analytics-card">
+    <div class="analytics-card-header"><h3>Discount Code Performance</h3></div>
+    <div class="analytics-table-scroll" id="discountPerfScroll">
+      <table class="analytics-table" id="discountPerfTable">
+        <thead>
+          <tr>
+            <th class="sortable" data-dcol="discount_code">Discount Code <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-dcol="orders">Orders <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-dcol="revenue">Revenue <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-dcol="aov">AOV <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-dcol="discount_given">Discount Given <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-dcol="effective_discount_pct" title="Discount Given ÷ Gross Revenue × 100">Effective Discount % <span class="sort-arrow">▼</span></th>
+          </tr>
+        </thead>
+        <tbody id="discountPerfBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -863,6 +958,299 @@ document.querySelectorAll('.perf-table-tab').forEach(btn => {
 
 fetchTableData();
 fetchData();
+
+// ========== PRODUCT ANALYTICS ==========
+
+const PRODUCT_COLORS = {
+  'Sunlight Serum': '#0d9488',
+  'Moonlight Serum': '#2563eb',
+  'Sleepytime Gelly': '#7c3aed',
+  'Pot of Gold': '#d97706',
+  'The Heroes Kit': '#e11d48',
+  'Age Confidence': '#059669',
+  'Richie Rich Rich': '#9333ea',
+  'Top of the Morning': '#ea580c',
+  'Bright Future': '#0891b2',
+  'Other': '#6b7280',
+};
+
+let productRevenueChart = null;
+
+async function rpcCall(fnName, params) {
+  const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fnName}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+    body: JSON.stringify(params)
+  });
+  return resp.json();
+}
+
+function getProductAnalyticsDates() {
+  return {
+    from_date: document.getElementById('dateFrom').dataset.current || document.getElementById('dateFrom').value,
+    to_date: document.getElementById('dateTo').dataset.current || document.getElementById('dateTo').value,
+  };
+}
+
+// --- Section 1: Product Revenue Mix Chart ---
+async function fetchProductRevenueMix() {
+  const dates = getProductAnalyticsDates();
+  try {
+    const data = await rpcCall('get_product_revenue_mix', dates);
+    renderProductRevenueMix(data);
+  } catch(e) {
+    console.error('Product revenue mix error:', e);
+  }
+}
+
+function renderProductRevenueMix(data) {
+  if (!Array.isArray(data) || data.length === 0) return;
+
+  // Collect all unique months and products
+  const months = [...new Set(data.map(r => r.month))].sort();
+  const products = [...new Set(data.map(r => r.product))];
+
+  // Build lookup
+  const lookup = {};
+  for (const r of data) {
+    if (!lookup[r.month]) lookup[r.month] = {};
+    lookup[r.month][r.product] = parseFloat(r.revenue || 0);
+  }
+
+  const datasets = products.map(product => ({
+    label: product,
+    data: months.map(m => lookup[m]?.[product] || 0),
+    backgroundColor: PRODUCT_COLORS[product] || PRODUCT_COLORS['Other'],
+    borderWidth: 0,
+    borderRadius: 2,
+  }));
+
+  const cs = getComputedStyle(document.documentElement);
+  const gridColor = cs.getPropertyValue('--chart-grid').trim();
+  const tickColor = cs.getPropertyValue('--chart-tick').trim();
+  const ttBg = cs.getPropertyValue('--tooltip-bg').trim();
+  const ttTitle = cs.getPropertyValue('--tooltip-title').trim();
+  const ttBody = cs.getPropertyValue('--tooltip-body').trim();
+  const ttBorder = cs.getPropertyValue('--tooltip-border').trim();
+
+  if (productRevenueChart) productRevenueChart.destroy();
+  productRevenueChart = new Chart(document.getElementById('productRevenueChart'), {
+    type: 'bar',
+    data: { labels: months, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: ttBg, titleColor: ttTitle, bodyColor: ttBody,
+          borderColor: ttBorder, borderWidth: 1, padding: 12,
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: \u00A3${Math.round(ctx.parsed.y).toLocaleString()}`
+          }
+        }
+      },
+      scales: {
+        x: { stacked: true, grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 }, maxTicksLimit: 12 } },
+        y: { stacked: true, beginAtZero: true, grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 }, callback: v => '\u00A3' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v.toFixed(0)) } }
+      }
+    }
+  });
+
+  // Legend
+  const legendEl = document.getElementById('productRevenueLegend');
+  legendEl.innerHTML = products.map(p =>
+    `<span class="analytics-legend-item"><span class="analytics-legend-dot" style="background:${PRODUCT_COLORS[p] || PRODUCT_COLORS['Other']}"></span>${p}</span>`
+  ).join('');
+}
+
+// --- Section 2: Product Performance Table ---
+let productPerfData = [];
+let productPerfSortCol = 'revenue';
+let productPerfSortDir = 'desc';
+
+async function fetchProductPerformance() {
+  const dates = getProductAnalyticsDates();
+  try {
+    const data = await rpcCall('get_product_performance', dates);
+    productPerfData = Array.isArray(data) ? data : [];
+    renderProductPerformance();
+  } catch(e) {
+    console.error('Product performance error:', e);
+  }
+}
+
+function renderProductPerformance() {
+  const rows = productPerfData.map(r => ({
+    product: r.product || '',
+    revenue: parseFloat(r.revenue || 0),
+    units: parseInt(r.units || 0),
+    orders: parseInt(r.orders || 0),
+    aov: parseInt(r.orders || 0) > 0 ? parseFloat(r.revenue || 0) / parseInt(r.orders) : 0,
+    pct_total: parseFloat(r.pct_total || 0),
+    growth_pct: r.growth_pct != null ? parseFloat(r.growth_pct) : null,
+  }));
+
+  rows.sort((a, b) => {
+    let va = a[productPerfSortCol], vb = b[productPerfSortCol];
+    if (va === null) va = -Infinity;
+    if (vb === null) vb = -Infinity;
+    if (typeof va === 'string') return productPerfSortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    return productPerfSortDir === 'asc' ? (va - vb) : (vb - va);
+  });
+
+  // Find best revenue
+  let bestRev = -Infinity;
+  for (const r of rows) { if (r.revenue > bestRev) bestRev = r.revenue; }
+
+  // Update header arrows
+  document.querySelectorAll('#productPerfTable th[data-pcol]').forEach(th => {
+    const col = th.dataset.pcol;
+    th.classList.toggle('sorted', col === productPerfSortCol);
+    const arrow = th.querySelector('.sort-arrow');
+    if (arrow) arrow.textContent = (col === productPerfSortCol && productPerfSortDir === 'asc') ? '▲' : '▼';
+  });
+
+  let html = '';
+  for (const r of rows) {
+    const gC = r.growth_pct === null ? 'subtle' : (r.growth_pct >= 0 ? 'positive' : 'negative');
+    const isTopRev = r.revenue === bestRev && bestRev > 0;
+    html += `<tr>
+      <td>${r.product}</td>
+      <td${isTopRev ? ' class="highlight-best"' : ''}>\u00A3${Math.round(r.revenue).toLocaleString()}</td>
+      <td>${r.units.toLocaleString()}</td>
+      <td>${r.orders.toLocaleString()}</td>
+      <td>\u00A3${r.aov.toFixed(1)}</td>
+      <td>${r.pct_total.toFixed(1)}%</td>
+      <td class="${gC}">${r.growth_pct === null ? '-' : (r.growth_pct >= 0 ? '+' : '') + r.growth_pct.toFixed(1) + '%'}</td>
+    </tr>`;
+  }
+  document.getElementById('productPerfBody').innerHTML = html || '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px">No data</td></tr>';
+}
+
+// Sort handlers for product performance
+document.querySelectorAll('#productPerfTable th[data-pcol]').forEach(th => {
+  th.addEventListener('click', () => {
+    const col = th.dataset.pcol;
+    if (productPerfSortCol === col) { productPerfSortDir = productPerfSortDir === 'desc' ? 'asc' : 'desc'; }
+    else { productPerfSortCol = col; productPerfSortDir = 'desc'; }
+    renderProductPerformance();
+  });
+});
+
+// --- Section 3: Top Product Pairs ---
+async function fetchProductPairs() {
+  const dates = getProductAnalyticsDates();
+  try {
+    const data = await rpcCall('get_product_pairs', dates);
+    renderProductPairs(Array.isArray(data) ? data : []);
+  } catch(e) {
+    console.error('Product pairs error:', e);
+  }
+}
+
+function renderProductPairs(data) {
+  const rows = data.slice(0, 10);
+  let html = '';
+  for (const r of rows) {
+    html += `<tr>
+      <td>${r.product_combination || ''}</td>
+      <td>${parseInt(r.orders || 0).toLocaleString()}</td>
+      <td>\u00A3${parseFloat(r.aov || 0).toFixed(1)}</td>
+    </tr>`;
+  }
+  document.getElementById('productPairsBody').innerHTML = html || '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:20px">No data</td></tr>';
+}
+
+// --- Section 4: Discount Performance ---
+let discountPerfData = [];
+let discountSortCol = 'revenue';
+let discountSortDir = 'desc';
+
+async function fetchDiscountPerformance() {
+  const dates = getProductAnalyticsDates();
+  try {
+    const data = await rpcCall('get_discount_performance', dates);
+    discountPerfData = Array.isArray(data) ? data : [];
+    renderDiscountPerformance();
+  } catch(e) {
+    console.error('Discount performance error:', e);
+  }
+}
+
+function renderDiscountPerformance() {
+  const rows = discountPerfData.map(r => {
+    const revenue = parseFloat(r.revenue || 0);
+    const orders = parseInt(r.orders || 0);
+    const discountGiven = parseFloat(r.discount_given || 0);
+    const gross = revenue + discountGiven;
+    return {
+      discount_code: r.discount_code || '',
+      orders,
+      revenue,
+      aov: orders > 0 ? revenue / orders : 0,
+      discount_given: discountGiven,
+      effective_discount_pct: gross > 0 ? (discountGiven / gross) * 100 : 0,
+    };
+  });
+
+  rows.sort((a, b) => {
+    let va = a[discountSortCol], vb = b[discountSortCol];
+    if (typeof va === 'string') return discountSortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    return discountSortDir === 'asc' ? (va - vb) : (vb - va);
+  });
+
+  // Update header arrows
+  document.querySelectorAll('#discountPerfTable th[data-dcol]').forEach(th => {
+    const col = th.dataset.dcol;
+    th.classList.toggle('sorted', col === discountSortCol);
+    const arrow = th.querySelector('.sort-arrow');
+    if (arrow) arrow.textContent = (col === discountSortCol && discountSortDir === 'asc') ? '▲' : '▼';
+  });
+
+  let html = '';
+  for (const r of rows) {
+    html += `<tr>
+      <td>${r.discount_code}</td>
+      <td>${r.orders.toLocaleString()}</td>
+      <td>\u00A3${Math.round(r.revenue).toLocaleString()}</td>
+      <td>\u00A3${r.aov.toFixed(1)}</td>
+      <td>\u00A3${Math.round(r.discount_given).toLocaleString()}</td>
+      <td>${r.effective_discount_pct.toFixed(1)}%</td>
+    </tr>`;
+  }
+  document.getElementById('discountPerfBody').innerHTML = html || '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">No data</td></tr>';
+}
+
+// Sort handlers for discount performance
+document.querySelectorAll('#discountPerfTable th[data-dcol]').forEach(th => {
+  th.addEventListener('click', () => {
+    const col = th.dataset.dcol;
+    if (discountSortCol === col) { discountSortDir = discountSortDir === 'desc' ? 'asc' : 'desc'; }
+    else { discountSortCol = col; discountSortDir = 'desc'; }
+    renderDiscountPerformance();
+  });
+});
+
+// --- Fetch all product analytics ---
+async function fetchProductAnalytics() {
+  await Promise.all([
+    fetchProductRevenueMix(),
+    fetchProductPerformance(),
+    fetchProductPairs(),
+    fetchDiscountPerformance(),
+  ]);
+}
+
+// Hook into existing fetchData so product analytics refresh on date change
+const _origFetchData = fetchData;
+fetchData = async function() {
+  await _origFetchData();
+  fetchProductAnalytics();
+};
+
+// Initial load
+fetchProductAnalytics();
 </script>
 </body>
 </html>

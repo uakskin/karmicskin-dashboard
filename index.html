@@ -384,11 +384,10 @@
             <th class="sortable" data-pcol="units">Units <span class="sort-arrow">▼</span></th>
             <th class="sortable" data-pcol="orders">Orders <span class="sort-arrow">▼</span></th>
             <th class="sortable" data-pcol="aov" title="Revenue ÷ Orders for this product">AOV <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-pcol="pct_total">% of Total <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-pcol="growth_pct" title="vs previous period of same length">Growth % <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-pcol="pct_total">% of Rev <span class="sort-arrow">▼</span></th>
           </tr>
         </thead>
-        <tbody id="productPerfBody"><tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
+        <tbody id="productPerfBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -1113,7 +1112,6 @@ function renderProductPerformance() {
 
   let html = '';
   for (const r of rows) {
-    const gC = r.growth_pct === null ? 'subtle' : (r.growth_pct >= 0 ? 'positive' : 'negative');
     const isTopRev = r.revenue === bestRev && bestRev > 0;
     html += `<tr>
       <td>${r.product}</td>
@@ -1122,10 +1120,9 @@ function renderProductPerformance() {
       <td>${r.orders.toLocaleString()}</td>
       <td>\u00A3${r.aov.toFixed(1)}</td>
       <td>${r.pct_total.toFixed(1)}%</td>
-      <td class="${gC}">${r.growth_pct === null ? '-' : (r.growth_pct >= 0 ? '+' : '') + r.growth_pct.toFixed(1) + '%'}</td>
     </tr>`;
   }
-  document.getElementById('productPerfBody').innerHTML = html || '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px">No data</td></tr>';
+  document.getElementById('productPerfBody').innerHTML = html || '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">No data</td></tr>';
 }
 
 // Sort handlers for product performance

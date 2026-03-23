@@ -178,6 +178,12 @@
   .analytics-legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
   .analytics-table-scroll { overflow-x: auto; }
   #productPerfScroll { max-height: 240px; overflow-y: auto; }
+
+  /* AVG MONTHLY REVENUE CHIPS */
+  .avg-rev-strip { display: flex; gap: 8px; padding: 0 24px 12px; }
+  .avg-rev-chip { flex: 1; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; }
+  .avg-rev-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .avg-rev-value { font-size: 18px; font-weight: 700; color: var(--text-primary); }
   .analytics-table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
   .analytics-table thead { position: sticky; top: 0; z-index: 1; }
   .analytics-table th { background: var(--table-header-bg); color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10px; padding: 8px 12px; text-align: center; border-bottom: 1px solid var(--border); user-select: none; }
@@ -262,6 +268,21 @@
   <div class="kpi-card" title="Customers placing their first-ever order"><div class="label">New Customers</div><div class="value" id="kpi-new">--</div></div>
   <div class="kpi-card" title="Repeat Orders ÷ Total Orders × 100"><div class="label">Repeat %</div><div class="value" id="kpi-repeat">--</div></div>
   <div class="kpi-card" title="Ad Spend ÷ Orders"><div class="label">Blended CAC</div><div class="value" id="kpi-cac">--</div></div>
+</div>
+
+<div class="avg-rev-strip">
+  <div class="avg-rev-chip" title="Total revenue last 3 months ÷ 3">
+    <span class="avg-rev-label">Avg Monthly Rev (3m)</span>
+    <span class="avg-rev-value" id="avgRev3m">--</span>
+  </div>
+  <div class="avg-rev-chip" title="Total revenue last 6 months ÷ 6">
+    <span class="avg-rev-label">Avg Monthly Rev (6m)</span>
+    <span class="avg-rev-value" id="avgRev6m">--</span>
+  </div>
+  <div class="avg-rev-chip" title="Total revenue last 12 months ÷ 12">
+    <span class="avg-rev-label">Avg Monthly Rev (12m)</span>
+    <span class="avg-rev-value" id="avgRev12m">--</span>
+  </div>
 </div>
 
 <div class="dashboard-body">
@@ -688,6 +709,32 @@ function aggregateData(data, period) {
     cac: b.orders > 0 ? b.adSpend / b.orders : 0,
   })).sort((a, b) => a.date.localeCompare(b.date));
 }
+
+// AVG MONTHLY REVENUE - runs once on load, independent of date range
+async function fetchAvgMonthlyRevenue() {
+  const now = new Date();
+  const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
+
+  async function getAvgRev(months) {
+    const from = new Date(yesterday);
+    from.setMonth(from.getMonth() - months);
+    from.setDate(1); // start of that month
+    const to = new Date(yesterday.getFullYear(), yesterday.getMonth(), 0); // end of last complete month
+    const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.${fmtDate(from)}&report_date=lte.${fmtDate(to)}&select=total_sales`;
+    const resp = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } });
+    const data = await resp.json();
+    const total = data.reduce((s, r) => s + parseFloat(r.total_sales || 0), 0);
+    return Math.round(total / months);
+  }
+
+  try {
+    const [avg3, avg6, avg12] = await Promise.all([getAvgRev(3), getAvgRev(6), getAvgRev(12)]);
+    document.getElementById('avgRev3m').textContent = '\u00A3' + avg3.toLocaleString();
+    document.getElementById('avgRev6m').textContent = '\u00A3' + avg6.toLocaleString();
+    document.getElementById('avgRev12m').textContent = '\u00A3' + avg12.toLocaleString();
+  } catch(e) { console.error('Avg monthly revenue error:', e); }
+}
+fetchAvgMonthlyRevenue();
 
 function updateKPIs(data) {
   const t = data.reduce((a, d) => {

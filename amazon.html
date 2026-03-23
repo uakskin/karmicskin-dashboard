@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Karmic Skin | Business Dashboard</title>
+<title>Karmic Skin — Amazon Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 <style>
@@ -171,8 +171,8 @@
 <body>
 
 <nav class="page-nav">
-  <a href="index.html" class="active">Shopify</a>
-  <a href="amazon.html">Amazon</a>
+  <a href="index.html">Shopify</a>
+  <a href="amazon.html" class="active">Amazon</a>
 </nav>
 
 <div class="overlay" id="overlay"></div>
@@ -180,10 +180,10 @@
 <div class="header">
   <div class="header-left">
     <div class="brand">Karmic Skin</div>
-    <h1>Business Dashboard</h1><span class="last-updated" id="lastUpdated"></span>
+    <h1>Amazon Dashboard</h1><span class="last-updated" id="lastUpdated"></span>
   </div>
   <div class="date-controls">
-    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Switch theme">☀️</button>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Switch theme">&#9728;&#65039;</button>
     <div class="date-picker-wrap">
       <button class="date-picker-btn" id="datePickerBtn" onclick="toggleDatePicker()">
         <svg viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 1h10a1 1 0 011 1v1H4V5a1 1 0 011-1zm-1 4h12v7a1 1 0 01-1 1H5a1 1 0 01-1-1V8z"/></svg>
@@ -218,20 +218,19 @@
       <button class="period-pill active" data-period="daily">Daily</button>
       <button class="period-pill" data-period="weekly">Weekly</button>
       <button class="period-pill" data-period="monthly">Monthly</button>
-      <button class="period-pill" data-period="quarterly">Quarterly</button>
     </div>
   </div>
 </div>
 
 <div class="kpi-strip">
-  <div class="kpi-card" title="Total sales including VAT, net of refunds"><div class="label">Revenue</div><div class="value" id="kpi-revenue">--</div></div>
-  <div class="kpi-card" title="Meta Ad Spend + Google Ad Spend"><div class="label">Ad Spend</div><div class="value" id="kpi-adspend">--</div></div>
-  <div class="kpi-card" title="Revenue ÷ Ad Spend"><div class="label">Blended ROAS</div><div class="value" id="kpi-roas">--</div></div>
-  <div class="kpi-card" title="Revenue ÷ Orders"><div class="label">AOV</div><div class="value" id="kpi-aov">--</div></div>
+  <div class="kpi-card" title="Total ordered product sales"><div class="label">Revenue</div><div class="value" id="kpi-revenue">--</div></div>
+  <div class="kpi-card" title="Total advertising spend (monthly spread evenly across days)"><div class="label">Ad Spend</div><div class="value" id="kpi-adspend">--</div></div>
+  <div class="kpi-card" title="Ad Spend / Revenue x 100"><div class="label">ACOS</div><div class="value" id="kpi-acos">--</div></div>
   <div class="kpi-card" title="Total number of orders placed"><div class="label">Orders</div><div class="value" id="kpi-orders">--</div></div>
-  <div class="kpi-card" title="Customers placing their first-ever order"><div class="label">New Customers</div><div class="value" id="kpi-new">--</div></div>
-  <div class="kpi-card" title="Repeat Orders ÷ Total Orders × 100"><div class="label">Repeat %</div><div class="value" id="kpi-repeat">--</div></div>
-  <div class="kpi-card" title="Ad Spend ÷ Orders"><div class="label">Blended CAC</div><div class="value" id="kpi-cac">--</div></div>
+  <div class="kpi-card" title="Total units ordered"><div class="label">Units</div><div class="value" id="kpi-units">--</div></div>
+  <div class="kpi-card" title="Total number of sessions"><div class="label">Sessions</div><div class="value" id="kpi-sessions">--</div></div>
+  <div class="kpi-card" title="Units Ordered / Sessions x 100 (Unit Session %)"><div class="label">Conversion Rate</div><div class="value" id="kpi-convrate">--</div></div>
+  <div class="kpi-card" title="Total page views"><div class="label">Page Views</div><div class="value" id="kpi-pageviews">--</div></div>
 </div>
 
 <div class="dashboard-body">
@@ -255,14 +254,9 @@
       <span class="toggle-label">Ad Spend</span>
     </div>
     <div class="toggle-item" onclick="this.querySelector('input').click()">
-      <input type="checkbox" data-metric="roas">
+      <input type="checkbox" data-metric="acos">
       <div class="toggle-dot" style="--dot-color: #d97706"></div>
-      <span class="toggle-label">ROAS</span>
-    </div>
-    <div class="toggle-item" onclick="this.querySelector('input').click()">
-      <input type="checkbox" data-metric="aov">
-      <div class="toggle-dot" style="--dot-color: #7c3aed"></div>
-      <span class="toggle-label">AOV</span>
+      <span class="toggle-label">ACOS</span>
     </div>
     <div class="toggle-item" onclick="this.querySelector('input').click()">
       <input type="checkbox" data-metric="orders">
@@ -270,29 +264,24 @@
       <span class="toggle-label">Orders</span>
     </div>
     <div class="toggle-item" onclick="this.querySelector('input').click()">
-      <input type="checkbox" data-metric="newCustomers">
+      <input type="checkbox" data-metric="units">
+      <div class="toggle-dot" style="--dot-color: #7c3aed"></div>
+      <span class="toggle-label">Units</span>
+    </div>
+    <div class="toggle-item" onclick="this.querySelector('input').click()">
+      <input type="checkbox" data-metric="sessions">
       <div class="toggle-dot" style="--dot-color: #059669"></div>
-      <span class="toggle-label">New Customers</span>
+      <span class="toggle-label">Sessions</span>
     </div>
     <div class="toggle-item" onclick="this.querySelector('input').click()">
-      <input type="checkbox" data-metric="repeatPct">
+      <input type="checkbox" data-metric="convRate">
       <div class="toggle-dot" style="--dot-color: #9333ea"></div>
-      <span class="toggle-label">Repeat %</span>
+      <span class="toggle-label">Conversion Rate</span>
     </div>
     <div class="toggle-item" onclick="this.querySelector('input').click()">
-      <input type="checkbox" data-metric="cac">
-      <div class="toggle-dot" style="--dot-color: #ea580c"></div>
-      <span class="toggle-label">Blended CAC</span>
-    </div>
-    <div class="toggle-item" onclick="this.querySelector('input').click()">
-      <input type="checkbox" data-metric="metaSpend">
-      <div class="toggle-dot" style="--dot-color: #6366f1"></div>
-      <span class="toggle-label">Meta Ad Spend</span>
-    </div>
-    <div class="toggle-item" onclick="this.querySelector('input').click()">
-      <input type="checkbox" data-metric="googleSpend">
+      <input type="checkbox" data-metric="pageViews">
       <div class="toggle-dot" style="--dot-color: #0891b2"></div>
-      <span class="toggle-label">Google Ad Spend</span>
+      <span class="toggle-label">Page Views</span>
     </div>
   </div>
 </div>
@@ -302,34 +291,29 @@
     <div class="perf-table-header">
       <h3>Performance Table</h3>
       <div class="perf-table-tabs">
-        <button class="perf-table-tab" data-table-period="daily">Daily</button>
+        <button class="perf-table-tab active" data-table-period="daily">Daily</button>
         <button class="perf-table-tab" data-table-period="weekly">Weekly</button>
-        <button class="perf-table-tab active" data-table-period="monthly">Monthly</button>
+        <button class="perf-table-tab" data-table-period="monthly">Monthly</button>
       </div>
     </div>
     <div class="perf-table-scroll" id="perfTableScroll">
       <table class="perf-table" id="perfTable">
         <thead>
           <tr>
-            <th data-col="key">Period <span class="sort-arrow">▼</span></th>
-            <th data-col="growthPct" title="(Current Revenue − Previous Revenue) ÷ Previous Revenue × 100">Rev Growth % <span class="sort-arrow">▼</span></th>
-            <th data-col="revenue" title="Total sales including VAT, net of refunds">Revenue <span class="sort-arrow">▼</span></th>
-            <th data-col="adSpend" title="Meta Ad Spend + Google Ad Spend">Ad Spend <span class="sort-arrow">▼</span></th>
-            <th data-col="roas" title="Revenue ÷ Ad Spend">ROAS <span class="sort-arrow">▼</span></th>
-            <th data-col="orders" title="Total number of orders placed">Orders <span class="sort-arrow">▼</span></th>
-            <th data-col="aov" title="Revenue ÷ Orders">AOV <span class="sort-arrow">▼</span></th>
-            <th data-col="cac" title="Ad Spend ÷ Orders">CAC <span class="sort-arrow">▼</span></th>
-            <th data-col="repeatPct" title="Repeat Orders ÷ Total Orders × 100">Repeat % <span class="sort-arrow">▼</span></th>
-            <th data-col="newCust" title="Customers placing their first-ever order">New Cust. <span class="sort-arrow">▼</span></th>
-            <th data-col="repeat" title="Customers who have ordered before">Repeat <span class="sort-arrow">▼</span></th>
-            <th data-col="ltv" title="Trailing 12-month Revenue ÷ Unique Customers in that period">LTV 12m <span class="sort-arrow">▼</span></th>
-            <th data-col="ltv6m" title="Trailing 6-month Revenue ÷ Unique Customers in that period">LTV 6m <span class="sort-arrow">▼</span></th>
-            <th data-col="meta" title="Total Meta (Facebook/Instagram) advertising spend">Meta Ad Spend <span class="sort-arrow">▼</span></th>
-            <th data-col="google" title="Total Google Ads (Search/PMax) advertising spend">Google Ad Spend <span class="sort-arrow">▼</span></th>
+            <th data-col="key">Period <span class="sort-arrow">&#9660;</span></th>
+            <th data-col="growthPct" title="(Current Revenue - Previous Revenue) / Previous Revenue x 100">Rev Growth % <span class="sort-arrow">&#9660;</span></th>
+            <th data-col="revenue" title="Total ordered product sales">Revenue <span class="sort-arrow">&#9660;</span></th>
+            <th data-col="adSpend" title="Monthly ad spend spread evenly across days">Ad Spend <span class="sort-arrow">&#9660;</span></th>
+            <th data-col="acos" title="Ad Spend / Revenue x 100">ACOS <span class="sort-arrow">&#9660;</span></th>
+            <th data-col="orders" title="Total number of orders">Orders <span class="sort-arrow">&#9660;</span></th>
+            <th data-col="units" title="Total units ordered">Units <span class="sort-arrow">&#9660;</span></th>
+            <th data-col="sessions" title="Total number of sessions">Sessions <span class="sort-arrow">&#9660;</span></th>
+            <th data-col="convRate" title="Units Ordered / Sessions x 100 (Unit Session %)">Conv Rate <span class="sort-arrow">&#9660;</span></th>
+            <th data-col="pageViews" title="Total page views">Page Views <span class="sort-arrow">&#9660;</span></th>
           </tr>
         </thead>
         <tbody id="perfTableBody">
-          <tr><td colspan="15" style="text-align:center;color:#52525b;padding:20px">Loading...</td></tr>
+          <tr><td colspan="10" style="text-align:center;color:#52525b;padding:20px">Loading...</td></tr>
         </tbody>
       </table>
     </div>
@@ -341,49 +325,49 @@ const SUPABASE_URL = 'https://unmkzatppwftnasafhlb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVubWt6YXRwcHdmdG5hc2FmaGxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDQ5OTIsImV4cCI6MjA4NjU4MDk5Mn0.SYQm1km08xwlJSIf9jq8DXH3Ijxbxqk_LpTRh0PZhD4';
 
 const METRIC_CONFIG = {
-  revenue:      { label: 'Revenue',         color: '#0d9488', prefix: '\u00A3', yAxis: 'y',  decimals: 0 },
-  adSpend:      { label: 'Ad Spend',        color: '#e11d48', prefix: '\u00A3', yAxis: 'y',  decimals: 0 },
-  roas:         { label: 'ROAS',            color: '#d97706', prefix: '',       yAxis: 'y1', decimals: 2 },
-  aov:          { label: 'AOV',             color: '#7c3aed', prefix: '\u00A3', yAxis: 'y1', decimals: 1 },
-  orders:       { label: 'Orders',          color: '#2563eb', prefix: '',       yAxis: 'y1', decimals: 0 },
-  newCustomers: { label: 'New Customers',   color: '#059669', prefix: '',       yAxis: 'y1', decimals: 0 },
-  repeatPct:    { label: 'Repeat %',        color: '#9333ea', prefix: '',       yAxis: 'y1', decimals: 1, suffix: '%' },
-  cac:          { label: 'Blended CAC',     color: '#ea580c', prefix: '\u00A3', yAxis: 'y1', decimals: 1 },
-  metaSpend:    { label: 'Meta Ad Spend',   color: '#6366f1', prefix: '\u00A3', yAxis: 'y',  decimals: 0 },
-  googleSpend:  { label: 'Google Ad Spend', color: '#0891b2', prefix: '\u00A3', yAxis: 'y',  decimals: 0 },
+  revenue:   { label: 'Revenue',         color: '#0d9488', prefix: '\u00A3', yAxis: 'y',  decimals: 0, type: 'bar' },
+  adSpend:   { label: 'Ad Spend',        color: '#e11d48', prefix: '\u00A3', yAxis: 'y',  decimals: 0, type: 'bar' },
+  acos:      { label: 'ACOS',            color: '#d97706', prefix: '',       yAxis: 'y1', decimals: 1, suffix: '%', type: 'line' },
+  orders:    { label: 'Orders',          color: '#2563eb', prefix: '',       yAxis: 'y1', decimals: 0, type: 'bar' },
+  units:     { label: 'Units',           color: '#7c3aed', prefix: '',       yAxis: 'y1', decimals: 0, type: 'bar' },
+  sessions:  { label: 'Sessions',        color: '#059669', prefix: '',       yAxis: 'y1', decimals: 0, type: 'bar' },
+  convRate:  { label: 'Conv Rate',       color: '#9333ea', prefix: '',       yAxis: 'y1', decimals: 2, suffix: '%', type: 'line' },
+  pageViews: { label: 'Page Views',      color: '#0891b2', prefix: '',       yAxis: 'y1', decimals: 0, type: 'bar' },
 };
+
+const BAR_METRICS = new Set(['revenue', 'adSpend', 'orders', 'units', 'sessions', 'pageViews']);
 
 // THEME
 function toggleTheme() {
   const html = document.documentElement;
   const isDark = html.getAttribute('data-theme') === 'dark';
   html.setAttribute('data-theme', isDark ? '' : 'dark');
-  document.getElementById('themeToggle').textContent = isDark ? '🌙' : '☀️';
+  document.getElementById('themeToggle').textContent = isDark ? '\uD83C\uDF19' : '\u2600\uFE0F';
   localStorage.setItem('ks-theme', isDark ? 'light' : 'dark');
-  updateDashboard(); // re-render chart with correct grid colours
+  updateDashboard();
 }
-// Load theme: saved preference > OS preference
 (function() {
   const saved = localStorage.getItem('ks-theme');
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   const isDark = saved ? saved === 'dark' : prefersDark;
   if (isDark) {
     document.documentElement.setAttribute('data-theme', 'dark');
-    document.getElementById('themeToggle').textContent = '☀️';
+    document.getElementById('themeToggle').textContent = '\u2600\uFE0F';
   } else {
-    document.getElementById('themeToggle').textContent = '🌙';
+    document.getElementById('themeToggle').textContent = '\uD83C\uDF19';
   }
-  // Listen for OS theme changes (if no manual override)
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
     if (!localStorage.getItem('ks-theme')) {
       document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : '');
-      document.getElementById('themeToggle').textContent = e.matches ? '☀️' : '🌙';
+      document.getElementById('themeToggle').textContent = e.matches ? '\u2600\uFE0F' : '\uD83C\uDF19';
       updateDashboard();
     }
   });
 })();
 
-let rawData = [];
+let rawSalesData = [];
+let rawAdsMonthly = [];
+let dailyDataWithAds = [];
 let chart = null;
 let currentPeriod = 'daily';
 let activePreset = 'mtd';
@@ -468,7 +452,7 @@ function applyPreset(preset) {
   document.getElementById('dateTo').dataset.current = dates.to;
   document.getElementById('dateLabel').textContent = dates.label;
   closeDatePicker();
-  fetchData();
+  applyFilters();
 }
 
 function applyCustomDates() {
@@ -481,10 +465,9 @@ function applyCustomDates() {
   document.getElementById('dateTo').dataset.current = to;
   document.getElementById('dateLabel').textContent = fmtDisplay(from) + ' - ' + fmtDisplay(to);
   closeDatePicker();
-  fetchData();
+  applyFilters();
 }
 
-// Preset click handlers
 document.querySelectorAll('.date-preset').forEach(btn => {
   btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
 });
@@ -496,18 +479,75 @@ document.getElementById('dateTo').value = initDates.to;
 document.getElementById('dateFrom').dataset.current = initDates.from;
 document.getElementById('dateTo').dataset.current = initDates.to;
 
+// Spread monthly ad spend evenly across days
+function buildDailyWithAds(salesData, adsMonthly) {
+  // Build a map of month -> daily spend
+  const monthlySpendMap = {};
+  for (const row of adsMonthly) {
+    // month could be "2025-01" or "2025-01-01"
+    const monthKey = (row.month || '').substring(0, 7);
+    monthlySpendMap[monthKey] = parseFloat(row.spend || 0);
+  }
+
+  // Count days per month in sales data
+  const daysPerMonth = {};
+  for (const row of salesData) {
+    const mk = row.report_date.substring(0, 7);
+    if (!daysPerMonth[mk]) daysPerMonth[mk] = 0;
+    daysPerMonth[mk]++;
+  }
+
+  return salesData.map(row => {
+    const mk = row.report_date.substring(0, 7);
+    const monthSpend = monthlySpendMap[mk] || 0;
+    const numDays = daysPerMonth[mk] || 1;
+    const dailySpend = monthSpend / numDays;
+    return {
+      report_date: row.report_date,
+      revenue: parseFloat(row.ordered_product_sales || 0),
+      units: parseInt(row.units_ordered || 0),
+      orders: parseInt(row.total_order_items || 0),
+      pageViews: parseInt(row.page_views || 0),
+      sessions: parseInt(row.sessions || 0),
+      buyBoxPct: parseFloat(row.buy_box_pct || 0),
+      convRate: parseFloat(row.unit_session_pct || 0),
+      adSpend: dailySpend,
+    };
+  });
+}
+
 // FETCH DATA
-async function fetchData() {
+async function fetchAllData() {
+  const [salesResp, adsResp] = await Promise.all([
+    fetch(`${SUPABASE_URL}/rest/v1/raw_amazon_sales_daily?order=report_date.asc&select=report_date,ordered_product_sales,units_ordered,total_order_items,page_views,sessions,buy_box_pct,unit_session_pct`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    }),
+    fetch(`${SUPABASE_URL}/rest/v1/raw_amazon_ads_monthly?order=month.asc&select=month,spend`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    })
+  ]);
+
+  rawSalesData = await salesResp.json();
+  rawAdsMonthly = await adsResp.json();
+  dailyDataWithAds = buildDailyWithAds(rawSalesData, rawAdsMonthly);
+
+  // Set last updated
+  if (dailyDataWithAds.length > 0) {
+    const lastDate = dailyDataWithAds[dailyDataWithAds.length - 1].report_date;
+    const d = new Date(lastDate + 'T04:00:00');
+    const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    document.getElementById('lastUpdated').textContent = `Data refreshed last at: ${dateStr}, 4:00 am`;
+  }
+
+  applyFilters();
+  renderTable();
+}
+
+function applyFilters() {
   const from = document.getElementById('dateFrom').dataset.current || document.getElementById('dateFrom').value;
   const to = document.getElementById('dateTo').dataset.current || document.getElementById('dateTo').value;
-
-  const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.${from}&report_date=lte.${to}&order=report_date.asc&select=report_date,total_sales,total_ad_spend,meta_spend,google_spend,total_orders,aov,new_customer_orders,returning_customer_orders,blended_cac`;
-
-  const resp = await fetch(url, {
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-  });
-  rawData = await resp.json();
-  updateDashboard();
+  const filtered = dailyDataWithAds.filter(d => d.report_date >= from && d.report_date <= to);
+  updateDashboardWithData(filtered);
 }
 
 function aggregateData(data, period) {
@@ -521,56 +561,44 @@ function aggregateData(data, period) {
       const sun = new Date(d); sun.setDate(d.getDate() - day);
       key = fmtDate(sun);
     } else if (period === 'monthly') key = row.report_date.substring(0, 7) + '-01';
-    else if (period === 'quarterly') {
-      const q = Math.floor(d.getMonth() / 3);
-      key = d.getFullYear() + '-' + String(q * 3 + 1).padStart(2, '0') + '-01';
-    }
-    if (!buckets[key]) buckets[key] = { date: key, revenue: 0, adSpend: 0, metaSpend: 0, googleSpend: 0, orders: 0, newCustomers: 0, returning: 0, days: 0 };
+    if (!buckets[key]) buckets[key] = { date: key, revenue: 0, adSpend: 0, orders: 0, units: 0, sessions: 0, pageViews: 0, days: 0, convRateSum: 0 };
     const b = buckets[key];
-    b.revenue += parseFloat(row.total_sales || 0);
-    b.adSpend += parseFloat(row.total_ad_spend || 0);
-    b.metaSpend += parseFloat(row.meta_spend || 0);
-    b.googleSpend += parseFloat(row.google_spend || 0);
-    b.orders += parseInt(row.total_orders || 0);
-    b.newCustomers += parseInt(row.new_customer_orders || 0);
-    b.returning += parseInt(row.returning_customer_orders || 0);
+    b.revenue += row.revenue;
+    b.adSpend += row.adSpend;
+    b.orders += row.orders;
+    b.units += row.units;
+    b.sessions += row.sessions;
+    b.pageViews += row.pageViews;
     b.days++;
   }
   return Object.values(buckets).map(b => ({
-    date: b.date, revenue: b.revenue, adSpend: b.adSpend, metaSpend: b.metaSpend, googleSpend: b.googleSpend,
-    roas: b.adSpend > 0 ? b.revenue / b.adSpend : 0,
-    aov: b.orders > 0 ? b.revenue / b.orders : 0,
-    orders: b.orders, newCustomers: b.newCustomers,
-    repeatPct: b.orders > 0 ? (b.returning / b.orders) * 100 : 0,
-    cac: b.orders > 0 ? b.adSpend / b.orders : 0,
+    date: b.date, revenue: b.revenue, adSpend: b.adSpend,
+    acos: b.revenue > 0 ? (b.adSpend / b.revenue) * 100 : 0,
+    orders: b.orders, units: b.units, sessions: b.sessions, pageViews: b.pageViews,
+    convRate: b.sessions > 0 ? (b.units / b.sessions) * 100 : 0,
   })).sort((a, b) => a.date.localeCompare(b.date));
 }
 
 function updateKPIs(data) {
   const t = data.reduce((a, d) => {
     a.revenue += d.revenue; a.adSpend += d.adSpend; a.orders += d.orders;
-    a.newCustomers += d.newCustomers; a.returning += (d.orders - d.newCustomers);
+    a.units += d.units; a.sessions += d.sessions; a.pageViews += d.pageViews;
     return a;
-  }, { revenue: 0, adSpend: 0, orders: 0, newCustomers: 0, returning: 0 });
+  }, { revenue: 0, adSpend: 0, orders: 0, units: 0, sessions: 0, pageViews: 0 });
 
   document.getElementById('kpi-revenue').textContent = '\u00A3' + Math.round(t.revenue).toLocaleString();
   document.getElementById('kpi-adspend').textContent = '\u00A3' + Math.round(t.adSpend).toLocaleString();
-  document.getElementById('kpi-roas').textContent = t.adSpend > 0 ? (t.revenue / t.adSpend).toFixed(2) : '--';
-  document.getElementById('kpi-aov').textContent = '\u00A3' + (t.orders > 0 ? (t.revenue / t.orders).toFixed(1) : '--');
+  document.getElementById('kpi-acos').textContent = t.revenue > 0 ? ((t.adSpend / t.revenue) * 100).toFixed(1) + '%' : '--';
   document.getElementById('kpi-orders').textContent = t.orders.toLocaleString();
-  document.getElementById('kpi-new').textContent = t.newCustomers.toLocaleString();
-  document.getElementById('kpi-repeat').textContent = t.orders > 0 ? ((t.returning / t.orders) * 100).toFixed(1) + '%' : '--';
-  document.getElementById('kpi-cac').textContent = '\u00A3' + (t.orders > 0 ? (t.adSpend / t.orders).toFixed(1) : '--');
+  document.getElementById('kpi-units').textContent = t.units.toLocaleString();
+  document.getElementById('kpi-sessions').textContent = t.sessions.toLocaleString();
+  document.getElementById('kpi-convrate').textContent = t.sessions > 0 ? ((t.units / t.sessions) * 100).toFixed(2) + '%' : '--';
+  document.getElementById('kpi-pageviews').textContent = t.pageViews.toLocaleString();
 }
 
 function getActiveMetrics() {
   return Array.from(document.querySelectorAll('.toggle-item input:checked')).map(el => el.dataset.metric);
 }
-
-// Metrics that render as bars (volume/magnitude)
-const BAR_METRICS = new Set(['revenue', 'adSpend', 'orders', 'newCustomers', 'metaSpend', 'googleSpend']);
-// Metrics that render as lines (rates/efficiency)
-// roas, aov, repeatPct, cac
 
 function updateChart(aggregated) {
   const activeMetrics = getActiveMetrics();
@@ -647,8 +675,15 @@ function updateChart(aggregated) {
   });
 }
 
+let currentFilteredData = [];
+
+function updateDashboardWithData(filtered) {
+  currentFilteredData = filtered;
+  updateDashboard();
+}
+
 function updateDashboard() {
-  const aggregated = aggregateData(rawData, currentPeriod);
+  const aggregated = aggregateData(currentFilteredData, currentPeriod);
   updateKPIs(aggregated);
   updateChart(aggregated);
 }
@@ -669,51 +704,12 @@ document.querySelectorAll('.toggle-item input').forEach(cb => {
 });
 
 // PERFORMANCE TABLE
-let allDailyData = [];
-let ltvData = {};
-let ltv6mData = {};
-let tablePeriod = 'monthly';
+let tablePeriod = 'daily';
 const VISIBLE_ROWS = 12;
-
-async function fetchTableData() {
-  const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.2024-01-01&report_date=lt.${fmtDate(new Date())}&order=report_date.asc&select=report_date,total_sales,total_ad_spend,meta_spend,google_spend,total_orders,new_customer_orders,returning_customer_orders`;
-  const resp = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } });
-  allDailyData = await resp.json();
-
-  // Fetch LTV
-  try {
-    const ltvResp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_trailing_ltv_12m`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
-      body: '{}'
-    });
-    const ltvRows = await ltvResp.json();
-    if (Array.isArray(ltvRows)) { for (const r of ltvRows) ltvData[r.month] = parseFloat(r.ltv_12m); }
-  } catch(e) {}
-
-  // Fetch LTV 6m
-  try {
-    const ltv6Resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_trailing_ltv_6m`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
-      body: '{}'
-    });
-    const ltv6Rows = await ltv6Resp.json();
-    if (Array.isArray(ltv6Rows)) { for (const r of ltv6Rows) ltv6mData[r.month] = parseFloat(r.ltv_6m); }
-  } catch(e) {}
-
-  // Set last updated from actual data
-  if (allDailyData.length > 0) {
-    const lastDate = allDailyData[allDailyData.length - 1].report_date;
-    const d = new Date(lastDate + 'T04:00:00');
-    const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-    document.getElementById('lastUpdated').textContent = `Data refreshed last at: ${dateStr}, 4:00 am`;
-  }
-
-  renderTable();
-}
 
 function aggregateTableData(period) {
   const buckets = {};
-  for (const row of allDailyData) {
+  for (const row of dailyDataWithAds) {
     const d = new Date(row.report_date + 'T00:00:00');
     let key;
     if (period === 'daily') key = row.report_date;
@@ -724,29 +720,27 @@ function aggregateTableData(period) {
     } else {
       key = row.report_date.substring(0, 7);
     }
-    if (!buckets[key]) buckets[key] = { revenue: 0, adSpend: 0, meta: 0, google: 0, orders: 0, newCust: 0, repeat: 0 };
+    if (!buckets[key]) buckets[key] = { revenue: 0, adSpend: 0, orders: 0, units: 0, sessions: 0, pageViews: 0 };
     const b = buckets[key];
-    b.revenue += parseFloat(row.total_sales || 0);
-    b.adSpend += parseFloat(row.total_ad_spend || 0);
-    b.meta += parseFloat(row.meta_spend || 0);
-    b.google += parseFloat(row.google_spend || 0);
-    b.orders += parseInt(row.total_orders || 0);
-    b.newCust += parseInt(row.new_customer_orders || 0);
-    b.repeat += parseInt(row.returning_customer_orders || 0);
+    b.revenue += row.revenue;
+    b.adSpend += row.adSpend;
+    b.orders += row.orders;
+    b.units += row.units;
+    b.sessions += row.sessions;
+    b.pageViews += row.pageViews;
   }
   return buckets;
 }
 
 let tableRows = [];
 let sortCol = 'key';
-let sortDir = 'desc'; // desc = most recent / highest first
+let sortDir = 'desc';
 
 function buildTableRows() {
   const buckets = aggregateTableData(tablePeriod);
   const chronoKeys = Object.keys(buckets).sort();
   const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-  // Growth map
   const growthMap = {};
   for (let i = 0; i < chronoKeys.length; i++) {
     const k = chronoKeys[i];
@@ -754,18 +748,13 @@ function buildTableRows() {
     const prev = i > 0 ? buckets[chronoKeys[i-1]] : null;
     growthMap[k] = {
       revGrowth: prev && prev.revenue > 0 ? ((d.revenue - prev.revenue) / prev.revenue * 100) : null,
-      spendGrowth: prev && prev.adSpend > 0 ? ((d.adSpend - prev.adSpend) / prev.adSpend * 100) : null,
     };
   }
 
   tableRows = chronoKeys.map(k => {
     const d = buckets[k];
-    const roas = d.adSpend > 0 ? d.revenue / d.adSpend : 0;
-    const aov = d.orders > 0 ? d.revenue / d.orders : 0;
-    const repeatPct = d.orders > 0 ? (d.repeat / d.orders * 100) : 0;
-    const cac = d.orders > 0 ? d.adSpend / d.orders : 0;
-    const ltv = tablePeriod === 'monthly' ? (ltvData[k] || 0) : 0;
-    const ltv6m = tablePeriod === 'monthly' ? (ltv6mData[k] || 0) : 0;
+    const acos = d.revenue > 0 ? (d.adSpend / d.revenue) * 100 : 0;
+    const convRate = d.sessions > 0 ? (d.units / d.sessions) * 100 : 0;
     let label;
     if (tablePeriod === 'monthly') {
       label = monthNames[parseInt(k.substring(5, 7)) - 1] + ' ' + String(parseInt(k.substring(0, 4))).slice(2);
@@ -775,9 +764,9 @@ function buildTableRows() {
       label = new Date(k + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' });
     }
     return {
-      key: k, label, roas, revenue: d.revenue, adSpend: d.adSpend, meta: d.meta, google: d.google,
-      orders: d.orders, aov, newCust: d.newCust, repeat: d.repeat, repeatPct, cac, ltv, ltv6m,
-      growthPct: growthMap[k].revGrowth, spendGrowth: growthMap[k].spendGrowth,
+      key: k, label, revenue: d.revenue, adSpend: d.adSpend, acos, orders: d.orders,
+      units: d.units, sessions: d.sessions, convRate, pageViews: d.pageViews,
+      growthPct: growthMap[k].revGrowth,
     };
   });
 }
@@ -785,7 +774,6 @@ function buildTableRows() {
 function renderTable() {
   buildTableRows();
 
-  // Sort
   const rows = [...tableRows];
   rows.sort((a, b) => {
     let va = a[sortCol], vb = b[sortCol];
@@ -794,11 +782,11 @@ function renderTable() {
     return sortDir === 'asc' ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
   });
 
-  // Best values
-  let bestRevVal = -Infinity, bestRevKey = null, bestRoasVal = -Infinity, bestRoasKey = null;
+  // Best revenue and best ACOS (lowest ACOS with meaningful spend)
+  let bestRevVal = -Infinity, bestRevKey = null, bestAcosVal = Infinity, bestAcosKey = null;
   for (const r of rows) {
     if (r.revenue > bestRevVal) { bestRevVal = r.revenue; bestRevKey = r.key; }
-    if (r.roas > bestRoasVal && r.adSpend > 100) { bestRoasVal = r.roas; bestRoasKey = r.key; }
+    if (r.acos > 0 && r.acos < bestAcosVal && r.adSpend > 10) { bestAcosVal = r.acos; bestAcosKey = r.key; }
   }
 
   // Update header arrows
@@ -806,32 +794,26 @@ function renderTable() {
     const col = th.dataset.col;
     th.classList.toggle('sorted', col === sortCol);
     const arrow = th.querySelector('.sort-arrow');
-    if (arrow) arrow.textContent = (col === sortCol && sortDir === 'asc') ? '▲' : '▼';
+    if (arrow) arrow.textContent = (col === sortCol && sortDir === 'asc') ? '\u25B2' : '\u25BC';
   });
 
   let html = '';
   for (const r of rows) {
     const gC = r.growthPct === null ? 'subtle' : (r.growthPct >= 0 ? 'positive' : 'negative');
-    const sC = r.spendGrowth === null ? 'subtle' : (r.spendGrowth >= 0 ? 'negative' : 'positive');
     const isTopRev = r.key === bestRevKey;
-    const isTopRoas = r.key === bestRoasKey;
+    const isTopAcos = r.key === bestAcosKey;
 
     html += `<tr>
       <td>${r.label}</td>
       <td class="${gC}">${r.growthPct === null ? '-' : (r.growthPct >= 0 ? '+' : '') + r.growthPct.toFixed(1) + '%'}</td>
       <td${isTopRev ? ' class="highlight-best"' : ''}>\u00A3${Math.round(r.revenue).toLocaleString()}</td>
       <td>\u00A3${Math.round(r.adSpend).toLocaleString()}</td>
-      <td${isTopRoas ? ' class="highlight-best"' : ''}>${r.roas.toFixed(2)}</td>
+      <td${isTopAcos ? ' class="highlight-best"' : ''}>${r.acos.toFixed(1)}%</td>
       <td>${r.orders.toLocaleString()}</td>
-      <td>\u00A3${Math.round(r.aov)}</td>
-      <td>\u00A3${Math.round(r.cac)}</td>
-      <td>${r.repeatPct.toFixed(1)}%</td>
-      <td>${r.newCust.toLocaleString()}</td>
-      <td>${r.repeat.toLocaleString()}</td>
-      <td>${r.ltv > 0 ? '\u00A3' + r.ltv.toFixed(0) : '-'}</td>
-      <td>${r.ltv6m > 0 ? '\u00A3' + r.ltv6m.toFixed(0) : '-'}</td>
-      <td>\u00A3${Math.round(r.meta).toLocaleString()}</td>
-      <td>\u00A3${Math.round(r.google).toLocaleString()}</td>
+      <td>${r.units.toLocaleString()}</td>
+      <td>${r.sessions.toLocaleString()}</td>
+      <td>${r.convRate.toFixed(2)}%</td>
+      <td>${r.pageViews.toLocaleString()}</td>
     </tr>`;
   }
 
@@ -861,8 +843,7 @@ document.querySelectorAll('.perf-table-tab').forEach(btn => {
   });
 });
 
-fetchTableData();
-fetchData();
+fetchAllData();
 </script>
 </body>
 </html>

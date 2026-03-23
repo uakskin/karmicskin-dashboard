@@ -213,14 +213,14 @@
 </div>
 
 <div class="kpi-strip">
-  <div class="kpi-card"><div class="label">Revenue</div><div class="value" id="kpi-revenue">--</div></div>
-  <div class="kpi-card"><div class="label">Ad Spend</div><div class="value" id="kpi-adspend">--</div></div>
-  <div class="kpi-card"><div class="label">Blended ROAS</div><div class="value" id="kpi-roas">--</div></div>
-  <div class="kpi-card"><div class="label">AOV</div><div class="value" id="kpi-aov">--</div></div>
-  <div class="kpi-card"><div class="label">Orders</div><div class="value" id="kpi-orders">--</div></div>
-  <div class="kpi-card"><div class="label">New Customers</div><div class="value" id="kpi-new">--</div></div>
-  <div class="kpi-card"><div class="label">Repeat %</div><div class="value" id="kpi-repeat">--</div></div>
-  <div class="kpi-card"><div class="label">Blended CAC</div><div class="value" id="kpi-cac">--</div></div>
+  <div class="kpi-card" title="Total sales including VAT, net of refunds"><div class="label">Revenue</div><div class="value" id="kpi-revenue">--</div></div>
+  <div class="kpi-card" title="Meta Ad Spend + Google Ad Spend"><div class="label">Ad Spend</div><div class="value" id="kpi-adspend">--</div></div>
+  <div class="kpi-card" title="Revenue ÷ Ad Spend"><div class="label">Blended ROAS</div><div class="value" id="kpi-roas">--</div></div>
+  <div class="kpi-card" title="Revenue ÷ Orders"><div class="label">AOV</div><div class="value" id="kpi-aov">--</div></div>
+  <div class="kpi-card" title="Total number of orders placed"><div class="label">Orders</div><div class="value" id="kpi-orders">--</div></div>
+  <div class="kpi-card" title="Customers placing their first-ever order"><div class="label">New Customers</div><div class="value" id="kpi-new">--</div></div>
+  <div class="kpi-card" title="Repeat Orders ÷ Total Orders × 100"><div class="label">Repeat %</div><div class="value" id="kpi-repeat">--</div></div>
+  <div class="kpi-card" title="Ad Spend ÷ Orders"><div class="label">Blended CAC</div><div class="value" id="kpi-cac">--</div></div>
 </div>
 
 <div class="dashboard-body">
@@ -301,20 +301,20 @@
         <thead>
           <tr>
             <th data-col="key">Period <span class="sort-arrow">▼</span></th>
-            <th data-col="growthPct">Rev Growth % <span class="sort-arrow">▼</span></th>
-            <th data-col="revenue">Revenue <span class="sort-arrow">▼</span></th>
-            <th data-col="adSpend">Ad Spend <span class="sort-arrow">▼</span></th>
-            <th data-col="roas">ROAS <span class="sort-arrow">▼</span></th>
-            <th data-col="orders">Orders <span class="sort-arrow">▼</span></th>
-            <th data-col="aov">AOV <span class="sort-arrow">▼</span></th>
-            <th data-col="cac">CAC <span class="sort-arrow">▼</span></th>
-            <th data-col="repeatPct">Repeat % <span class="sort-arrow">▼</span></th>
-            <th data-col="newCust">New Cust. <span class="sort-arrow">▼</span></th>
-            <th data-col="repeat">Repeat <span class="sort-arrow">▼</span></th>
-            <th data-col="ltv">LTV 12m <span class="sort-arrow">▼</span></th>
-            <th data-col="ltv6m">LTV 6m <span class="sort-arrow">▼</span></th>
-            <th data-col="meta">Meta Ad Spend <span class="sort-arrow">▼</span></th>
-            <th data-col="google">Google Ad Spend <span class="sort-arrow">▼</span></th>
+            <th data-col="growthPct" title="(Current Revenue − Previous Revenue) ÷ Previous Revenue × 100">Rev Growth % <span class="sort-arrow">▼</span></th>
+            <th data-col="revenue" title="Total sales including VAT, net of refunds">Revenue <span class="sort-arrow">▼</span></th>
+            <th data-col="adSpend" title="Meta Ad Spend + Google Ad Spend">Ad Spend <span class="sort-arrow">▼</span></th>
+            <th data-col="roas" title="Revenue ÷ Ad Spend">ROAS <span class="sort-arrow">▼</span></th>
+            <th data-col="orders" title="Total number of orders placed">Orders <span class="sort-arrow">▼</span></th>
+            <th data-col="aov" title="Revenue ÷ Orders">AOV <span class="sort-arrow">▼</span></th>
+            <th data-col="cac" title="Ad Spend ÷ Orders">CAC <span class="sort-arrow">▼</span></th>
+            <th data-col="repeatPct" title="Repeat Orders ÷ Total Orders × 100">Repeat % <span class="sort-arrow">▼</span></th>
+            <th data-col="newCust" title="Customers placing their first-ever order">New Cust. <span class="sort-arrow">▼</span></th>
+            <th data-col="repeat" title="Customers who have ordered before">Repeat <span class="sort-arrow">▼</span></th>
+            <th data-col="ltv" title="Trailing 12-month Revenue ÷ Unique Customers in that period">LTV 12m <span class="sort-arrow">▼</span></th>
+            <th data-col="ltv6m" title="Trailing 6-month Revenue ÷ Unique Customers in that period">LTV 6m <span class="sort-arrow">▼</span></th>
+            <th data-col="meta" title="Total Meta (Facebook/Instagram) advertising spend">Meta Ad Spend <span class="sort-arrow">▼</span></th>
+            <th data-col="google" title="Total Google Ads (Search/PMax) advertising spend">Google Ad Spend <span class="sort-arrow">▼</span></th>
           </tr>
         </thead>
         <tbody id="perfTableBody">
@@ -531,7 +531,7 @@ function aggregateData(data, period) {
     aov: b.orders > 0 ? b.revenue / b.orders : 0,
     orders: b.orders, newCustomers: b.newCustomers,
     repeatPct: b.orders > 0 ? (b.returning / b.orders) * 100 : 0,
-    cac: b.newCustomers > 0 ? b.adSpend / b.newCustomers : 0,
+    cac: b.orders > 0 ? b.adSpend / b.orders : 0,
   })).sort((a, b) => a.date.localeCompare(b.date));
 }
 
@@ -549,7 +549,7 @@ function updateKPIs(data) {
   document.getElementById('kpi-orders').textContent = t.orders.toLocaleString();
   document.getElementById('kpi-new').textContent = t.newCustomers.toLocaleString();
   document.getElementById('kpi-repeat').textContent = t.orders > 0 ? ((t.returning / t.orders) * 100).toFixed(1) + '%' : '--';
-  document.getElementById('kpi-cac').textContent = '\u00A3' + (t.newCustomers > 0 ? (t.adSpend / t.newCustomers).toFixed(1) : '--');
+  document.getElementById('kpi-cac').textContent = '\u00A3' + (t.orders > 0 ? (t.adSpend / t.orders).toFixed(1) : '--');
 }
 
 function getActiveMetrics() {
@@ -752,7 +752,7 @@ function buildTableRows() {
     const roas = d.adSpend > 0 ? d.revenue / d.adSpend : 0;
     const aov = d.orders > 0 ? d.revenue / d.orders : 0;
     const repeatPct = d.orders > 0 ? (d.repeat / d.orders * 100) : 0;
-    const cac = d.newCust > 0 ? d.adSpend / d.newCust : 0;
+    const cac = d.orders > 0 ? d.adSpend / d.orders : 0;
     const ltv = tablePeriod === 'monthly' ? (ltvData[k] || 0) : 0;
     const ltv6m = tablePeriod === 'monthly' ? (ltv6mData[k] || 0) : 0;
     let label;

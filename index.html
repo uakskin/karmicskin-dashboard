@@ -192,6 +192,9 @@
   .analytics-table .subtle { color: var(--text-muted); }
   .analytics-table .highlight-best { background: var(--highlight-bg); color: var(--highlight-text); font-weight: 700; }
   .analytics-table-scroll { max-height: 432px; }
+  .info-tip { position: relative; display: inline-block; font-size: 10px; opacity: 0.5; cursor: help; margin-left: 2px; }
+  .info-tip::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: var(--text-primary); color: var(--bg-body); font-size: 11px; padding: 4px 8px; border-radius: 4px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.1s; font-weight: 400; text-transform: none; letter-spacing: 0; z-index: 10; }
+  .info-tip:hover::after { opacity: 1; }
 
   @media (max-width: 768px) {
     .product-analytics-row { flex-direction: column; padding: 0 16px 16px; }
@@ -405,7 +408,7 @@
             <th class="sortable" data-pcol="revenue">Revenue <span class="sort-arrow">▼</span></th>
             <th class="sortable" data-pcol="units">Units <span class="sort-arrow">▼</span></th>
             <th class="sortable" data-pcol="orders">Orders <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-pcol="aov" title="(Revenue after discounts) ÷ Units sold">ASP <span style="font-size:9px;opacity:0.5;cursor:help" title="(Revenue after discounts) ÷ Units sold">ⓘ</span> <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-pcol="aov" ">ASP <span class="info-tip" data-tip="(Revenue after discounts) ÷ Units sold">?</span> <span class="sort-arrow">▼</span></th>
           </tr>
         </thead>
         <tbody id="productPerfBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
@@ -427,7 +430,7 @@
             <th class="sortable" data-ccol="revenue">Revenue <span class="sort-arrow">▼</span></th>
             <th class="sortable" data-ccol="units">Units <span class="sort-arrow">▼</span></th>
             <th class="sortable" data-ccol="orders">Orders <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-ccol="asp" title="(Revenue after discounts) ÷ Units sold">ASP <span style="font-size:9px;opacity:0.5;cursor:help" title="(Revenue after discounts) ÷ Units sold">ⓘ</span> <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-ccol="asp" ">ASP <span class="info-tip" data-tip="(Revenue after discounts) ÷ Units sold">?</span> <span class="sort-arrow">▼</span></th>
           </tr>
         </thead>
         <tbody id="categoryPerfBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>

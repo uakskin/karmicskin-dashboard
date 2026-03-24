@@ -488,20 +488,20 @@
 <!-- 4. Cohort Retention -->
 <div class="product-analytics-row">
   <div class="analytics-card" style="flex:1">
-    <div class="analytics-card-header"><h3>Cohort Retention <span class="info-tip" data-tip="Each row shows customers acquired in that month. Columns show how many returned within 1, 2, 3, 6, 12, 18 or 24 months. Higher numbers = better retention. Compare rows to see if newer cohorts retain better than older ones.">?</span></h3></div>
+    <div class="analytics-card-header"><h3>Cohort Retention <span class="info-tip" data-tip="Each row shows customers acquired in that month. Columns show the % who returned within 1, 2, 3, 6, 12, 18 or 24 months. Higher % = better retention. Compare rows to see if newer cohorts retain better than older ones.">?</span></h3></div>
     <div class="analytics-table-scroll" style="overflow-x:auto;max-height:340px;overflow-y:auto">
       <table class="analytics-table" id="cohortTable">
         <thead>
           <tr>
             <th>Cohort</th>
-            <th>Size</th>
-            <th>1 Month</th>
-            <th>2 Month</th>
-            <th>3 Month</th>
-            <th>6 Month</th>
-            <th>12 Month</th>
-            <th>18 Month</th>
-            <th>24 Month</th>
+            <th># Orders</th>
+            <th>1 Mo %</th>
+            <th>2 Mo %</th>
+            <th>3 Mo %</th>
+            <th>6 Mo %</th>
+            <th>12 Mo %</th>
+            <th>18 Mo %</th>
+            <th>24 Mo %</th>
           </tr>
         </thead>
         <tbody id="cohortBody"><tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
@@ -1286,7 +1286,8 @@ async function fetchCohortRetention() {
         <td>${size.toLocaleString()}</td>
         ${rawVals.map((v, i) => {
           if (elapsed < thresholds[i]) return '<td>-</td>';
-          return `<td style="${retColor(v, size)}">${v > 0 ? v.toLocaleString() : '-'}</td>`;
+          const pct = size > 0 ? (v / size * 100) : 0;
+          return `<td style="${retColor(v, size)}">${v > 0 ? pct.toFixed(1) + '%' : '-'}</td>`;
         }).join('')}
       </tr>`;
     }

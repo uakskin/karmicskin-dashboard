@@ -68,7 +68,7 @@
   .fy-pill.active { background: var(--pill-active-bg); color: var(--pill-active-text); }
 
   /* KPI STRIP */
-  .kpi-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; padding: 16px 24px; }
+  .kpi-strip { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; padding: 16px 24px; }
   .kpi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
   .kpi-card .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
   .kpi-card .value { font-size: 20px; font-weight: 700; color: var(--text-primary); }
@@ -175,6 +175,7 @@
 <!-- KPI Cards -->
 <div class="kpi-strip">
   <div class="kpi-card"><div class="label">Gross Margin</div><div class="value pos" id="kpiGrossMargin">--</div></div>
+  <div class="kpi-card"><div class="label">Fulfilled Margin</div><div class="value pos" id="kpiFulfilledMargin">--</div></div>
   <div class="kpi-card"><div class="label">EBITDA Margin</div><div class="value pos" id="kpiEBITDAMargin">--</div></div>
   <div class="kpi-card"><div class="label">EBITDA</div><div class="value pos" id="kpiEBITDA">--</div></div>
   <div class="kpi-card"><div class="label">Total Revenue (exc. VAT)</div><div class="value pos" id="kpiRevenue">--</div></div>
@@ -370,6 +371,9 @@ function render() {
   const grossMargin = pct(ytdProductGP, ytdRev);
   document.getElementById('kpiGrossMargin').textContent = fmtPct(grossMargin);
   document.getElementById('kpiGrossMargin').className = 'value ' + (grossMargin >= 0 ? 'pos' : 'neg');
+  const fulfilledMargin = pct(ytdFulfilledGP, ytdRev);
+  document.getElementById('kpiFulfilledMargin').textContent = fmtPct(fulfilledMargin);
+  document.getElementById('kpiFulfilledMargin').className = 'value ' + (fulfilledMargin >= 0 ? 'pos' : 'neg');
   const ebitdaMargin = pct(ytdEBITDA, ytdRev);
   document.getElementById('kpiEBITDAMargin').textContent = fmtPct(ebitdaMargin);
   document.getElementById('kpiEBITDAMargin').className = 'value ' + (ebitdaMargin >= 0 ? 'pos' : 'neg');

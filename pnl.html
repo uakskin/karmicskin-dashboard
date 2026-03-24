@@ -99,6 +99,11 @@
   .pnl-table tbody tr.ebitda-row td.row-label { background: var(--highlight-bg); font-weight: 700; color: var(--highlight-text); }
   .pnl-table .neg { color: var(--negative); }
   .pnl-table .margin { font-size: 10px; color: var(--margin-text); margin-left: 4px; }
+  .pnl-table td.ytd-cell { background: rgba(255,255,255,0.04); font-weight: 600; color: var(--text-primary); border-right: 2px solid var(--border); }
+  .pnl-table th.ytd-header { border-right: 2px solid var(--border); }
+  [data-theme="light"] .pnl-table td.ytd-cell { background: rgba(0,0,0,0.03); }
+  .pnl-table tbody tr.subtotal-row td.ytd-cell { background: rgba(13,148,136,0.12); }
+  .pnl-table tbody tr.ebitda-row td.ytd-cell { background: rgba(124,58,237,0.18); }
 
   /* CHARTS */
   .charts-row { display: flex; gap: 16px; padding: 0 24px 16px; }
@@ -169,9 +174,9 @@
 
 <!-- KPI Cards -->
 <div class="kpi-strip">
-  <div class="kpi-card"><div class="label">EBITDA</div><div class="value pos" id="kpiEBITDA">--</div></div>
-  <div class="kpi-card"><div class="label">EBITDA Margin</div><div class="value pos" id="kpiEBITDAMargin">--</div></div>
   <div class="kpi-card"><div class="label">Gross Margin</div><div class="value pos" id="kpiGrossMargin">--</div></div>
+  <div class="kpi-card"><div class="label">EBITDA Margin</div><div class="value pos" id="kpiEBITDAMargin">--</div></div>
+  <div class="kpi-card"><div class="label">EBITDA</div><div class="value pos" id="kpiEBITDA">--</div></div>
   <div class="kpi-card"><div class="label">Total Revenue (exc. VAT)</div><div class="value pos" id="kpiRevenue">--</div></div>
   <div class="kpi-card"><div class="label">Ad Spend</div><div class="value neg" id="kpiAdSpend">--</div></div>
   <div class="kpi-card"><div class="label">COGS</div><div class="value neg" id="kpiCOGS">--</div></div>
@@ -386,7 +391,7 @@ function buildTable(d, n) {
   for (let i = n - 1; i >= 0; i--) reversedIdx.push(i);
 
   // Build header
-  let hdr = '<tr><th class="row-label-header"></th><th>YTD Total</th><th>YTD Shopify</th><th>YTD Amazon</th>';
+  let hdr = '<tr><th class="row-label-header"></th><th class="ytd-header">YTD Total</th><th class="ytd-header">YTD Shopify</th><th class="ytd-header">YTD Amazon</th>';
   reversedLabels.forEach(l => { hdr += `<th>${l}</th>`; });
   hdr += '</tr>';
   thead.innerHTML = hdr;
@@ -443,8 +448,8 @@ function buildTable(d, n) {
     { label: 'Ad Spend', ytd: ytdAds, ytdShop: ytdShopAds, ytdAmz: ytdAmzAds, monthFn: i => d.adSpend[i], cls: '', negate: true },
     { label: 'Total Cost of Sales', ytd: ytdTotalCoS, ytdShop: ytdShopTotalCoS, ytdAmz: ytdAmzTotalCoS, monthFn: getMonthTotalCoS, cls: '', negate: true },
     { label: 'Total Gross Profit', ytd: ytdTotalGP, ytdShop: ytdShopTotalGP, ytdAmz: ytdAmzTotalGP, monthFn: getMonthTotalGP, cls: 'subtotal-row', marginBase: [ytdRev, ytdShopRev, ytdAmzRev], monthMarginBase: i => d.revenue[i] },
-    { label: 'Fixed Costs / Subscriptions', ytd: ytdFixed, ytdShop: ytdShopFixed, ytdAmz: ytdAmzFixed, monthFn: i => d.fixedSubs[i], cls: '', negate: true },
-    { label: 'Other Expenses', ytd: ytdOtherExp, ytdShop: null, ytdAmz: null, monthFn: i => d.otherExp[i], cls: '', negate: true },
+    { label: 'Overheads - Subscriptions', ytd: ytdFixed, ytdShop: ytdShopFixed, ytdAmz: ytdAmzFixed, monthFn: i => d.fixedSubs[i], cls: '', negate: true },
+    { label: 'Overheads - Other Expenses', ytd: ytdOtherExp, ytdShop: null, ytdAmz: null, monthFn: i => d.otherExp[i], cls: '', negate: true },
     { label: 'Other Income', ytd: ytdOtherInc, ytdShop: null, ytdAmz: null, monthFn: i => d.otherInc[i], cls: '' },
     { label: 'EBITDA', ytd: ytdEBITDA, ytdShop: ytdShopEBITDA, ytdAmz: ytdAmzEBITDA, monthFn: i => d.ebitda[i], cls: 'ebitda-row', marginBase: [ytdRev, ytdShopRev, ytdAmzRev], monthMarginBase: i => d.revenue[i] },
   ];
@@ -455,11 +460,11 @@ function buildTable(d, n) {
     html += `<td class="row-label">${row.label}</td>`;
 
     // YTD Total
-    html += cell(row.ytd, row.marginBase ? row.marginBase[0] : null);
+    html += cell(row.ytd, row.marginBase ? row.marginBase[0] : null, true);
     // YTD Shopify
-    html += cell(row.ytdShop, row.marginBase ? row.marginBase[1] : null);
+    html += cell(row.ytdShop, row.marginBase ? row.marginBase[1] : null, true);
     // YTD Amazon
-    html += cell(row.ytdAmz, row.marginBase ? row.marginBase[2] : null);
+    html += cell(row.ytdAmz, row.marginBase ? row.marginBase[2] : null, true);
 
     // Monthly (newest first)
     reversedIdx.forEach(i => {
@@ -475,15 +480,16 @@ function buildTable(d, n) {
   tbody.innerHTML = html;
 }
 
-function cell(value, marginBase) {
-  if (value == null) return '<td>-</td>';
+function cell(value, marginBase, isYtd) {
+  if (value == null) return isYtd ? '<td class="ytd-cell">-</td>' : '<td>-</td>';
   const negCls = value < 0 ? ' neg' : '';
+  const ytdCls = isYtd ? ' ytd-cell' : '';
   let marginHtml = '';
   if (marginBase != null && marginBase !== 0) {
     const m = (value / marginBase) * 100;
     marginHtml = `<span class="margin">${fmtPct(m)}</span>`;
   }
-  return `<td class="${negCls}">${fmt(value)}${marginHtml}</td>`;
+  return `<td class="${negCls}${ytdCls}">${fmt(value)}${marginHtml}</td>`;
 }
 
 // ─── CHARTS ─────────────────────────────────────────────────────────────────

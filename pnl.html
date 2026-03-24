@@ -450,7 +450,7 @@ function buildTable(d, n) {
     { label: 'Fulfilment Cost', ytd: ytdFulf, ytdShop: ytdShopFulf, ytdAmz: ytdAmzFulf, monthFn: i => d.fulfilment[i], cls: '', negate: true },
     { label: 'Fulfilled Gross Profit', ytd: ytdFulfilledGP, ytdShop: ytdShopFulfilledGP, ytdAmz: ytdAmzFulfilledGP, monthFn: getMonthFulfilledGP, cls: 'subtotal-row', marginBase: [ytdRev, ytdShopRev, ytdAmzRev], monthMarginBase: i => d.revenue[i] },
     { label: 'Ad Spend', ytd: ytdAds, ytdShop: ytdShopAds, ytdAmz: ytdAmzAds, monthFn: i => d.adSpend[i], cls: '', negate: true },
-    { label: 'Total Cost of Sales', ytd: ytdTotalCoS, ytdShop: ytdShopTotalCoS, ytdAmz: ytdAmzTotalCoS, monthFn: getMonthTotalCoS, cls: '', negate: true },
+
     { label: 'Total Gross Profit', ytd: ytdTotalGP, ytdShop: ytdShopTotalGP, ytdAmz: ytdAmzTotalGP, monthFn: getMonthTotalGP, cls: 'subtotal-row', marginBase: [ytdRev, ytdShopRev, ytdAmzRev], monthMarginBase: i => d.revenue[i] },
     { label: 'Overheads - Subscriptions', ytd: ytdFixed, ytdShop: ytdShopFixed, ytdAmz: ytdAmzFixed, monthFn: i => d.fixedSubs[i], cls: '', negate: true },
     { label: 'Overheads - Other Expenses', ytd: ytdOtherExp, ytdShop: null, ytdAmz: null, monthFn: i => d.otherExp[i], cls: '', negate: true },

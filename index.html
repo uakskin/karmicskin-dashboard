@@ -498,13 +498,15 @@
             <th>1 Mo %</th>
             <th>2 Mo %</th>
             <th>3 Mo %</th>
+            <th>4 Mo %</th>
+            <th>5 Mo %</th>
             <th>6 Mo %</th>
             <th>12 Mo %</th>
             <th>18 Mo %</th>
             <th>24 Mo %</th>
           </tr>
         </thead>
-        <tbody id="cohortBody"><tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
+        <tbody id="cohortBody"><tr><td colspan="11" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -1279,8 +1281,8 @@ async function fetchCohortRetention() {
       const label = monthNames[mo - 1] + ' ' + String(yr).slice(2);
       const size = parseInt(r.cohort_size);
       const elapsed = parseInt(r.months_elapsed) || 0;
-      const thresholds = [1, 2, 3, 6, 12, 18, 24];
-      const rawVals = [parseInt(r.m1), parseInt(r.m2), parseInt(r.m3), parseInt(r.m6), parseInt(r.m12), parseInt(r.m18), parseInt(r.m24)];
+      const thresholds = [1, 2, 3, 4, 5, 6, 12, 18, 24];
+      const rawVals = [parseInt(r.m1), parseInt(r.m2), parseInt(r.m3), parseInt(r.m4), parseInt(r.m5), parseInt(r.m6), parseInt(r.m12), parseInt(r.m18), parseInt(r.m24)];
       html += `<tr>
         <td style="font-weight:600">${label}</td>
         <td>${size.toLocaleString()}</td>
@@ -1291,7 +1293,7 @@ async function fetchCohortRetention() {
         }).join('')}
       </tr>`;
     }
-    document.getElementById('cohortBody').innerHTML = html || '<tr><td colspan="9" style="text-align:center;color:var(--text-muted)">No data</td></tr>';
+    document.getElementById('cohortBody').innerHTML = html || '<tr><td colspan="11" style="text-align:center;color:var(--text-muted)">No data</td></tr>';
   } catch(e) { console.error('Cohort retention error:', e); }
 }
 

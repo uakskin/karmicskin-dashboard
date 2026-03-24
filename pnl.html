@@ -17,7 +17,8 @@
     --dropdown-shadow: 0 12px 40px rgba(0,0,0,0.1);
     --accent: #0d9488; --accent-hover: #0f766e;
     --positive: #16a34a; --negative: #dc2626;
-    --highlight-bg: rgba(168, 85, 247, 0.08); --highlight-text: #7c3aed;
+    --highlight-bg: rgba(22, 163, 74, 0.08); --highlight-text: #16a34a;
+    --best-bg: rgba(168, 85, 247, 0.15); --best-text: #7c3aed;
     --sort-active: #7c3aed;
     --chart-grid: #f3f4f6; --chart-tick: #9ca3af;
     --tooltip-bg: #1f2937; --tooltip-title: #f3f4f6; --tooltip-body: #d1d5db; --tooltip-border: #374151;
@@ -34,7 +35,8 @@
     --dropdown-shadow: 0 12px 40px rgba(0,0,0,0.5);
     --accent: #34d399; --accent-hover: #6ee7b7;
     --positive: #22c55e; --negative: #ef4444;
-    --highlight-bg: rgba(228, 193, 249, 0.15); --highlight-text: #E4C1F9;
+    --highlight-bg: rgba(34, 197, 94, 0.12); --highlight-text: #22c55e;
+    --best-bg: rgba(228, 193, 249, 0.2); --best-text: #E4C1F9;
     --sort-active: #E4C1F9;
     --chart-grid: #27272a; --chart-tick: #52525b;
     --tooltip-bg: #27272a; --tooltip-title: #e4e4e7; --tooltip-body: #a1a1aa; --tooltip-border: #3f3f46;
@@ -104,7 +106,8 @@
   [data-theme="light"] .pnl-table td.ytd-cell { background: rgba(0,0,0,0.06); color: #111; border-right: 2px solid rgba(0,0,0,0.12); border-left: 2px solid rgba(0,0,0,0.12); }
   [data-theme="light"] .pnl-table th.ytd-header { border-right: 2px solid rgba(0,0,0,0.12); border-left: 2px solid rgba(0,0,0,0.12); background: rgba(0,0,0,0.04); }
   .pnl-table tbody tr.subtotal-row td.ytd-cell { background: rgba(13,148,136,0.18); }
-  .pnl-table tbody tr.ebitda-row td.ytd-cell { background: rgba(124,58,237,0.25); }
+  .pnl-table tbody tr.ebitda-row td.ytd-cell { background: rgba(22,163,74,0.2); }
+  .pnl-table td.best-month { background: var(--best-bg) !important; color: var(--best-text) !important; font-weight: 700; }
 
   /* CHARTS */
   .charts-row { display: flex; gap: 16px; padding: 0 24px 16px; }
@@ -164,12 +167,12 @@
     <h1>P&L Dashboard</h1>
   </div>
   <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <div style="text-align:right;margin-right:8px"><span style="font-size:10px;color:var(--text-muted);display:block">All figures exclude VAT</span></div>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Switch theme">&#9728;&#65039;</button>
     <div class="fy-pills">
       <button class="fy-pill" data-fy="fy2025" onclick="switchFY('fy2025')">FY2025 (Jun 24 - May 25)</button>
       <button class="fy-pill active" data-fy="fy2026" onclick="switchFY('fy2026')">FY2026 (Jun 25 - May 26)</button>
     </div>
-    <div style="text-align:right"><span style="font-size:10px;color:var(--text-muted);display:block">All figures exclude VAT</span></div>
-    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Switch theme">&#9728;&#65039;</button>
   </div>
 </div>
 
@@ -459,6 +462,13 @@ function buildTable(d, n) {
     { label: 'EBITDA', ytd: ytdEBITDA, ytdShop: ytdShopEBITDA, ytdAmz: ytdAmzEBITDA, monthFn: i => d.ebitda[i], cls: 'ebitda-row', marginBase: [ytdRev, ytdShopRev, ytdAmzRev], monthMarginBase: i => d.revenue[i] },
   ];
 
+  // Find best EBITDA month index (highest value among active months)
+  let bestEbitdaIdx = -1, bestEbitdaVal = -Infinity;
+  reversedIdx.forEach(i => {
+    const v = d.ebitda[i];
+    if (v != null && v > bestEbitdaVal) { bestEbitdaVal = v; bestEbitdaIdx = i; }
+  });
+
   let html = '';
   rows.forEach(row => {
     html += `<tr class="${row.cls}">`;
@@ -474,9 +484,9 @@ function buildTable(d, n) {
     // Monthly (newest first)
     reversedIdx.forEach(i => {
       const v = row.monthFn(i);
-      const revI = d.revenue[i];
       const mb = row.monthMarginBase ? row.monthMarginBase(i) : null;
-      html += cell(v, mb);
+      const isBest = row.cls === 'ebitda-row' && i === bestEbitdaIdx;
+      html += cell(v, mb, false, isBest);
     });
 
     html += '</tr>';
@@ -485,16 +495,17 @@ function buildTable(d, n) {
   tbody.innerHTML = html;
 }
 
-function cell(value, marginBase, isYtd) {
+function cell(value, marginBase, isYtd, isBest) {
   if (value == null) return isYtd ? '<td class="ytd-cell">-</td>' : '<td>-</td>';
   const negCls = value < 0 ? ' neg' : '';
   const ytdCls = isYtd ? ' ytd-cell' : '';
+  const bestCls = isBest ? ' best-month' : '';
   let marginHtml = '';
   if (marginBase != null && marginBase !== 0) {
     const m = (value / marginBase) * 100;
     marginHtml = `<span class="margin">${fmtPct(m)}</span>`;
   }
-  return `<td class="${negCls}${ytdCls}">${fmt(value)}${marginHtml}</td>`;
+  return `<td class="${negCls}${ytdCls}${bestCls}">${fmt(value)}${marginHtml}</td>`;
 }
 
 // ─── CHARTS ─────────────────────────────────────────────────────────────────

@@ -211,34 +211,34 @@
 <!-- KPI CARDS -->
 <section class="kpi-strip">
   <div class="kpi-card">
-    <div class="label">Total Email Revenue <span class="info-tip" data-tip="Revenue attributed to email marketing">ⓘ</span></div>
-    <div class="value" id="kpiTotalRev">&pound;142,555</div>
-    <div class="sub">Campaigns + Flows</div>
+    <div class="label">Total Email Revenue <span class="info-tip" data-tip="Sum of placed_order_value across all months">ⓘ</span></div>
+    <div class="value" id="kpiTotalRev">--</div>
+    <div class="sub" id="kpiTotalRevSub">Loading...</div>
   </div>
   <div class="kpi-card">
-    <div class="label">Flow Revenue <span class="info-tip" data-tip="Revenue from automated email flows">ⓘ</span></div>
-    <div class="value">&pound;31,325</div>
-    <div class="sub">4 active flows</div>
+    <div class="label">Emails Sent <span class="info-tip" data-tip="Total emails sent in selected period">ⓘ</span></div>
+    <div class="value" id="kpiEmailsSent">--</div>
+    <div class="sub" id="kpiEmailsSentSub">Loading...</div>
   </div>
   <div class="kpi-card">
-    <div class="label">Campaign Revenue <span class="info-tip" data-tip="Revenue from manual email campaigns">ⓘ</span></div>
-    <div class="value">&pound;111,230</div>
-    <div class="sub">150 campaigns sent</div>
+    <div class="label">Total Orders <span class="info-tip" data-tip="Orders attributed to email marketing">ⓘ</span></div>
+    <div class="value" id="kpiOrders">--</div>
+    <div class="sub" id="kpiOrdersSub">Loading...</div>
   </div>
   <div class="kpi-card">
-    <div class="label">Avg Open Rate <span class="info-tip" data-tip="Unique opens &divide; Delivered emails &times; 100">ⓘ</span></div>
-    <div class="value">36.1%</div>
+    <div class="label">Avg Open Rate <span class="info-tip" data-tip="Weighted average: total unique opens &divide; total unique recipients">ⓘ</span></div>
+    <div class="value" id="kpiOpenRate">--</div>
     <div class="sub">Industry avg: ~40%</div>
   </div>
   <div class="kpi-card">
-    <div class="label">Avg Click Rate <span class="info-tip" data-tip="Unique clicks &divide; Delivered emails &times; 100">ⓘ</span></div>
-    <div class="value">1.2%</div>
+    <div class="label">Avg Click Rate <span class="info-tip" data-tip="Weighted average: total unique clicks &divide; total unique recipients">ⓘ</span></div>
+    <div class="value" id="kpiClickRate">--</div>
     <div class="sub">Industry avg: ~1.5%</div>
   </div>
   <div class="kpi-card">
-    <div class="label">Revenue Per Recipient <span class="info-tip" data-tip="Total email revenue &divide; Total recipients">ⓘ</span></div>
-    <div class="value" id="kpiRPR">&pound;0.12</div>
-    <div class="sub">Across all campaigns</div>
+    <div class="label">Revenue Per Recipient <span class="info-tip" data-tip="Total email revenue &divide; Total unique recipients">ⓘ</span></div>
+    <div class="value" id="kpiRPR">--</div>
+    <div class="sub" id="kpiRPRSub">Loading...</div>
   </div>
 </section>
 
@@ -252,12 +252,12 @@
   </div>
 </section>
 
-<!-- REVENUE SPLIT + ENGAGEMENT BENCHMARKS -->
+<!-- ENGAGEMENT TRENDS + BENCHMARKS -->
 <section class="charts-row">
   <div class="chart-card" style="flex: 1;">
-    <h3>Revenue Split: Flows vs Campaigns</h3>
-    <div class="chart-card-wrap" style="height: 300px; display: flex; align-items: center; justify-content: center;">
-      <canvas id="revenueSplitChart"></canvas>
+    <h3>Monthly Engagement Trends</h3>
+    <div class="chart-card-wrap" style="height: 300px;">
+      <canvas id="engagementTrendChart"></canvas>
     </div>
   </div>
   <div class="chart-card" style="flex: 1;">
@@ -268,156 +268,90 @@
   </div>
 </section>
 
-<!-- FLOW PERFORMANCE TABLE -->
+<!-- MONTHLY PERFORMANCE TABLE -->
 <section class="perf-table-section">
   <div class="perf-table-wrap">
     <div class="perf-table-header">
-      <h3>Flow Performance</h3>
-      <span style="font-size:11px; color:var(--text-muted);">Total flow revenue: &pound;31,325 &middot; 576 conversions</span>
+      <h3>Monthly Performance</h3>
+      <span style="font-size:11px; color:var(--text-muted);" id="monthlyTableSummary">Loading...</span>
     </div>
     <div class="perf-table-scroll">
-      <table class="perf-table" id="flowTable">
+      <table class="perf-table" id="monthlyTable">
         <thead>
           <tr>
-            <th>Flow Name</th>
-            <th>Status</th>
-            <th>Recipients</th>
-            <th>Open Rate</th>
-            <th>Click Rate</th>
-            <th>CTOR</th>
-            <th>Conv Rate</th>
-            <th>Conversions</th>
-            <th>Revenue</th>
-            <th>RPR</th>
+            <th onclick="sortTable('monthlyTable', 0, 'date')">Month <span class="sort-arrow">&#9650;</span></th>
+            <th onclick="sortTable('monthlyTable', 1, 'number')">Emails Sent <span class="sort-arrow">&#9650;</span></th>
+            <th onclick="sortTable('monthlyTable', 2, 'number')">Recipients <span class="sort-arrow">&#9650;</span></th>
+            <th onclick="sortTable('monthlyTable', 3, 'number')">Open Rate <span class="sort-arrow">&#9650;</span></th>
+            <th onclick="sortTable('monthlyTable', 4, 'number')">Click Rate <span class="sort-arrow">&#9650;</span></th>
+            <th onclick="sortTable('monthlyTable', 5, 'number')">Bounced <span class="sort-arrow">&#9650;</span></th>
+            <th onclick="sortTable('monthlyTable', 6, 'number')">Unsubscribes <span class="sort-arrow">&#9650;</span></th>
+            <th onclick="sortTable('monthlyTable', 7, 'number')">Orders <span class="sort-arrow">&#9650;</span></th>
+            <th onclick="sortTable('monthlyTable', 8, 'number')">Revenue <span class="sort-arrow">&#9650;</span></th>
+            <th onclick="sortTable('monthlyTable', 9, 'number')">RPR <span class="sort-arrow">&#9650;</span></th>
           </tr>
         </thead>
-        <tbody>
-          <tr>
-            <td>Welcome - Newsletter</td>
-            <td><span class="status-badge status-live">Live</span></td>
-            <td>3,709</td>
-            <td>39.6%</td>
-            <td>4.1%</td>
-            <td>10.4%</td>
-            <td>2.77%</td>
-            <td>104</td>
-            <td class="highlight-best">&pound;5,832</td>
-            <td class="highlight-best">&pound;1.58</td>
-          </tr>
-          <tr>
-            <td>Checkout Started</td>
-            <td><span class="status-badge status-live">Live</span></td>
-            <td>2,073</td>
-            <td>30.2%</td>
-            <td>5.6%</td>
-            <td>18.7%</td>
-            <td class="highlight-best">3.40%</td>
-            <td>71</td>
-            <td>&pound;3,235</td>
-            <td class="highlight-best">&pound;1.57</td>
-          </tr>
-          <tr>
-            <td>Welcome - Skin Quiz (Aug 2025)</td>
-            <td><span class="status-badge status-live">Live</span></td>
-            <td>25,430</td>
-            <td>34.8%</td>
-            <td>2.4%</td>
-            <td>6.8%</td>
-            <td>0.75%</td>
-            <td>189</td>
-            <td class="highlight-best">&pound;11,287</td>
-            <td>&pound;0.45</td>
-          </tr>
-          <tr>
-            <td>Welcome - Skin Quiz (Jun 2024)</td>
-            <td><span class="status-badge status-draft">Draft</span></td>
-            <td>20,466</td>
-            <td>33.9%</td>
-            <td>2.7%</td>
-            <td>7.8%</td>
-            <td>1.02%</td>
-            <td>212</td>
-            <td>&pound;10,971</td>
-            <td>&pound;0.54</td>
-          </tr>
+        <tbody id="monthlyTableBody">
         </tbody>
       </table>
     </div>
   </div>
 </section>
 
-<!-- CAMPAIGN PERFORMANCE TABLE -->
+<!-- CAMPAIGN & FLOW PERFORMANCE -->
 <section class="perf-table-section">
   <div class="perf-table-wrap">
     <div class="perf-table-header">
-      <h3>Campaign Performance (Top 50)</h3>
-      <span style="font-size:11px; color:var(--text-muted);">Sorted by revenue &middot; Highlighted = RPR &gt; &pound;0.50</span>
+      <h3>Campaign &amp; Flow Performance</h3>
     </div>
-    <div class="perf-table-scroll" style="max-height: 600px; overflow-y: auto;">
-      <table class="perf-table" id="campaignTable">
-        <thead>
-          <tr>
-            <th onclick="sortTable('campaignTable', 0, 'string')">Campaign Name <span class="sort-arrow">&#9650;</span></th>
-            <th onclick="sortTable('campaignTable', 1, 'date')">Send Date <span class="sort-arrow">&#9650;</span></th>
-            <th onclick="sortTable('campaignTable', 2, 'number')">Recipients <span class="sort-arrow">&#9650;</span></th>
-            <th onclick="sortTable('campaignTable', 3, 'number')">Open Rate <span class="sort-arrow">&#9650;</span></th>
-            <th onclick="sortTable('campaignTable', 4, 'number')">Click Rate <span class="sort-arrow">&#9650;</span></th>
-            <th onclick="sortTable('campaignTable', 5, 'number')">CTOR <span class="sort-arrow">&#9650;</span></th>
-            <th onclick="sortTable('campaignTable', 6, 'number')">Conv Rate <span class="sort-arrow">&#9650;</span></th>
-            <th onclick="sortTable('campaignTable', 7, 'number')">Conversions <span class="sort-arrow">&#9650;</span></th>
-            <th onclick="sortTable('campaignTable', 8, 'number')">Revenue <span class="sort-arrow">&#9650;</span></th>
-            <th onclick="sortTable('campaignTable', 9, 'number')">RPR <span class="sort-arrow">&#9650;</span></th>
-          </tr>
-        </thead>
-        <tbody id="campaignTableBody">
-        </tbody>
-      </table>
+    <div style="padding: 32px 20px; text-align: center;">
+      <div style="font-size: 32px; margin-bottom: 8px; opacity: 0.5;">&#128268;</div>
+      <div style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">Data sync in progress</div>
+      <div style="font-size: 12px; color: var(--text-muted);">Per-campaign and per-flow breakdowns will appear here once the Klaviyo campaign-level API sync is connected.</div>
     </div>
   </div>
 </section>
 
-<!-- KEY INSIGHTS -->
+<!-- KEY INSIGHTS (auto-generated from data) -->
 <section class="insights-section">
   <div class="section-title">Key Insights</div>
-  <div class="insights-grid">
-    <div class="insight-card">
-      <div class="insight-icon green">&#9733;</div>
-      <div class="insight-text"><strong>Welcome Newsletter flow has the highest RPR</strong> at &pound;1.58 per recipient, making it the most efficient revenue driver per contact.</div>
-    </div>
-    <div class="insight-card">
-      <div class="insight-icon purple">&#9889;</div>
-      <div class="insight-text"><strong>Checkout Started flow converts at 3.4%</strong> -- 4.5x higher than campaigns. Abandoned checkout recovery is a critical revenue lever.</div>
-    </div>
-    <div class="insight-card">
-      <div class="insight-icon amber">&#9888;</div>
-      <div class="insight-text"><strong>Only 3 flows are live.</strong> Adding Post-Purchase, Winback, and Browse Abandonment flows could significantly increase flow revenue beyond &pound;31k.</div>
-    </div>
-    <div class="insight-card">
-      <div class="insight-icon blue">&#128176;</div>
-      <div class="insight-text"><strong>Top performing campaign type: Offer/Sale campaigns</strong> drive highest revenue per send, especially when targeted to purchaser segments.</div>
-    </div>
-    <div class="insight-card">
-      <div class="insight-icon green">&#128200;</div>
-      <div class="insight-text"><strong>2x Purchasers segment shows 4.12% conversion rate</strong> -- the highest of any campaign. Repeat buyers respond strongly to targeted offers.</div>
-    </div>
+  <div class="insights-grid" id="insightsGrid">
+    <!-- Populated dynamically from Supabase data -->
   </div>
 </section>
 
 <!-- DATA SOURCE -->
-<div class="data-source">Data source: Klaviyo Reporting API &middot; Last updated March 2026</div>
+<div class="data-source" id="dataSource">Data source: Klaviyo via Supabase &middot; Loading...</div>
 
 <script>
-// ── Theme Toggle ──
+// ══════════════════════════════════════════════════════
+// SUPABASE CONFIG
+// ══════════════════════════════════════════════════════
+const SUPABASE_URL = 'https://unmkzatppwftnasafhlb.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVubWt6YXRwcHdmdG5hc2FmaGxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDQ5OTIsImV4cCI6MjA4NjU4MDk5Mn0.SYQm1km08xwlJSIf9jq8DXH3Ijxbxqk_LpTRh0PZhD4';
+
+// All fetched data lives here
+let allData = [];
+let filteredData = [];
+
+// Chart instances
+let monthlyChart = null;
+let engagementChart = null;
+let benchmarkChart = null;
+
+// ══════════════════════════════════════════════════════
+// THEME TOGGLE (preserved)
+// ══════════════════════════════════════════════════════
 function toggleTheme() {
   const html = document.documentElement;
   const btn = document.querySelector('.theme-toggle');
   if (html.getAttribute('data-theme') === 'dark') {
     html.removeAttribute('data-theme');
-    btn.textContent = '🌙';
+    btn.textContent = '\u{1F319}';
     localStorage.setItem('ks-theme', 'light');
   } else {
     html.setAttribute('data-theme', 'dark');
-    btn.textContent = '☀️';
+    btn.textContent = '\u2600\uFE0F';
     localStorage.setItem('ks-theme', 'dark');
   }
   updateChartThemes();
@@ -426,7 +360,7 @@ function toggleTheme() {
   const saved = localStorage.getItem('ks-theme');
   if (saved === 'dark') {
     document.documentElement.setAttribute('data-theme', 'dark');
-    document.querySelector('.theme-toggle').textContent = '☀️';
+    document.querySelector('.theme-toggle').textContent = '\u2600\uFE0F';
   }
 })();
 
@@ -445,55 +379,50 @@ function getThemeColors() {
   };
 }
 
-// ── Date Picker ──
+// ══════════════════════════════════════════════════════
+// DATE PICKER (preserved, now filters Supabase data)
+// ══════════════════════════════════════════════════════
 let activePeriod = '12m';
 
 function toggleDatePicker() {
-  const dd = document.getElementById('dateDropdown');
-  const ov = document.getElementById('overlay');
-  dd.classList.toggle('open');
-  ov.classList.toggle('open');
+  document.getElementById('dateDropdown').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
 }
-
 function closeDatePicker() {
   document.getElementById('dateDropdown').classList.remove('open');
   document.getElementById('overlay').classList.remove('open');
 }
-
 document.getElementById('overlay').addEventListener('click', closeDatePicker);
-
-function applyCustomDates() {
-  // Custom date range not applicable for static monthly data — just close the picker
-  closeDatePicker();
-}
 
 const presetLabels = { '30d': 'Last 30 days', '90d': 'Last 90 days', '12m': 'Last 12 months', 'all': 'All Time' };
 
-function getSliceCount(period) {
-  if (period === '30d') return 1;
-  if (period === '90d') return 3;
-  if (period === '12m') return 12;
-  return monthLabels.length; // all
+function getFilteredData(period) {
+  if (!allData.length) return [];
+  if (period === 'all') return [...allData];
+  const monthsBack = period === '30d' ? 1 : period === '90d' ? 3 : 12;
+  return allData.slice(-monthsBack);
 }
 
 function applyPeriod(period) {
   activePeriod = period;
-  const n = getSliceCount(period);
-  const labels = monthLabels.slice(-n);
-  const rev = revenueData.slice(-n);
-  const ord = ordersData.slice(-n);
-  monthlyChart.data.labels = labels;
-  monthlyChart.data.datasets[0].data = rev;
-  monthlyChart.data.datasets[1].data = ord;
-  monthlyChart.update();
-  // Update KPI cards with filtered totals
-  const totalRev = rev.reduce((a,b) => a+b, 0);
-  const totalOrd = ord.reduce((a,b) => a+b, 0);
-  document.getElementById('kpiTotalRev').textContent = '\u00a3' + Math.round(totalRev).toLocaleString();
-  document.getElementById('kpiRPR').textContent = '\u00a3' + (totalRev > 0 ? (totalRev / (period === 'all' ? 901654 : Math.round(901654 * n / 12))).toFixed(2) : '--');
-  // Update label
+  filteredData = getFilteredData(period);
   document.getElementById('dateLabel').textContent = presetLabels[period] || period;
   document.getElementById('lastUpdated').textContent = presetLabels[period] || period;
+  renderAll(filteredData);
+}
+
+function applyCustomDates() {
+  const from = document.getElementById('dateFrom').value;
+  const to = document.getElementById('dateTo').value;
+  if (!from || !to) { closeDatePicker(); return; }
+  filteredData = allData.filter(r => r.report_month >= from && r.report_month <= to);
+  document.querySelectorAll('.date-preset').forEach(b => b.classList.remove('active'));
+  const label = formatMonthShort(from) + ' – ' + formatMonthShort(to);
+  document.getElementById('dateLabel').textContent = label;
+  document.getElementById('lastUpdated').textContent = label;
+  activePeriod = 'custom';
+  renderAll(filteredData);
+  closeDatePicker();
 }
 
 document.querySelectorAll('.date-preset').forEach(btn => {
@@ -505,7 +434,9 @@ document.querySelectorAll('.date-preset').forEach(btn => {
   });
 });
 
-// ── Chart.js defaults ──
+// ══════════════════════════════════════════════════════
+// CHART.JS DEFAULTS (preserved)
+// ══════════════════════════════════════════════════════
 function applyChartDefaults() {
   const c = getThemeColors();
   Chart.defaults.color = c.tick;
@@ -522,257 +453,327 @@ function applyChartDefaults() {
 }
 applyChartDefaults();
 
-// ── Monthly Revenue Chart ──
-const monthLabels = ['Apr 25','May 25','Jun 25','Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26'];
-const revenueData = [7525.95, 9702.20, 7913.80, 8446.47, 11662.31, 15211.14, 22000.29, 11809.65, 12198.68, 14266.35, 9591.34, 11883.56];
-const ordersData = [168, 208, 162, 161, 230, 282, 416, 219, 216, 256, 173, 238];
-
-const monthlyCtx = document.getElementById('monthlyRevenueChart').getContext('2d');
-const monthlyChart = new Chart(monthlyCtx, {
-  type: 'bar',
-  data: {
-    labels: monthLabels,
-    datasets: [{
-      label: 'Revenue',
-      data: revenueData,
-      backgroundColor: 'rgba(13, 148, 136, 0.7)',
-      borderColor: 'rgba(13, 148, 136, 1)',
-      borderWidth: 1,
-      borderRadius: 4,
-      yAxisID: 'y',
-    }, {
-      label: 'Orders',
-      data: ordersData,
-      type: 'line',
-      borderColor: '#7c3aed',
-      backgroundColor: 'rgba(124, 58, 237, 0.1)',
-      pointBackgroundColor: '#7c3aed',
-      pointRadius: 4,
-      pointHoverRadius: 6,
-      borderWidth: 2,
-      tension: 0.3,
-      fill: false,
-      yAxisID: 'y1',
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: { mode: 'index', intersect: false },
-    plugins: {
-      legend: { position: 'top', labels: { usePointStyle: true, padding: 16, font: { size: 11 } } },
-      tooltip: {
-        callbacks: {
-          label: function(ctx) {
-            if (ctx.dataset.label === 'Revenue') return ' Revenue: \u00a3' + ctx.raw.toLocaleString('en-GB', {minimumFractionDigits:2});
-            return ' Orders: ' + ctx.raw;
-          }
-        }
-      }
-    },
-    scales: {
-      x: { grid: { display: false }, ticks: { font: { size: 11 } } },
-      y: {
-        position: 'left',
-        grid: { color: getThemeColors().grid },
-        ticks: { font: { size: 11 }, callback: v => '\u00a3' + (v/1000).toFixed(0) + 'k' },
-        title: { display: true, text: 'Revenue (\u00a3)', font: { size: 11 } }
-      },
-      y1: {
-        position: 'right',
-        grid: { drawOnChartArea: false },
-        ticks: { font: { size: 11 } },
-        title: { display: true, text: 'Orders', font: { size: 11 } }
-      }
-    }
-  }
-});
-
-// ── Revenue Split Doughnut ──
-const splitCtx = document.getElementById('revenueSplitChart').getContext('2d');
-const splitChart = new Chart(splitCtx, {
-  type: 'doughnut',
-  data: {
-    labels: ['Campaign Revenue', 'Flow Revenue'],
-    datasets: [{
-      data: [111230, 31325],
-      backgroundColor: ['rgba(13, 148, 136, 0.8)', 'rgba(124, 58, 237, 0.8)'],
-      borderColor: ['rgba(13, 148, 136, 1)', 'rgba(124, 58, 237, 1)'],
-      borderWidth: 2,
-      hoverOffset: 8,
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    cutout: '60%',
-    plugins: {
-      legend: { position: 'bottom', labels: { usePointStyle: true, padding: 16, font: { size: 12 } } },
-      tooltip: {
-        callbacks: {
-          label: function(ctx) {
-            const total = 142555;
-            const pct = ((ctx.raw / total) * 100).toFixed(1);
-            return ' ' + ctx.label + ': \u00a3' + ctx.raw.toLocaleString('en-GB') + ' (' + pct + '%)';
-          }
-        }
-      }
-    }
-  },
-  plugins: [{
-    id: 'centerText',
-    afterDraw(chart) {
-      const { ctx, chartArea: { top, bottom, left, right } } = chart;
-      const cx = (left + right) / 2;
-      const cy = (top + bottom) / 2;
-      ctx.save();
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = getThemeColors().textPrimary;
-      ctx.font = 'bold 18px -apple-system, sans-serif';
-      ctx.fillText('\u00a3142,555', cx, cy - 8);
-      ctx.font = '11px -apple-system, sans-serif';
-      ctx.fillStyle = getThemeColors().tick;
-      ctx.fillText('Total Attributed', cx, cy + 12);
-      ctx.restore();
-    }
-  }]
-});
-
-// ── Benchmark Chart ──
-const benchCtx = document.getElementById('benchmarkChart').getContext('2d');
-const benchmarkChart = new Chart(benchCtx, {
-  type: 'bar',
-  data: {
-    labels: ['Open Rate', 'Click Rate'],
-    datasets: [{
-      label: 'Karmic Skin',
-      data: [36.1, 1.2],
-      backgroundColor: 'rgba(13, 148, 136, 0.8)',
-      borderColor: 'rgba(13, 148, 136, 1)',
-      borderWidth: 1,
-      borderRadius: 4,
-      barPercentage: 0.5,
-    }, {
-      label: 'Industry Average',
-      data: [40.0, 1.5],
-      backgroundColor: 'rgba(156, 163, 175, 0.5)',
-      borderColor: 'rgba(156, 163, 175, 0.8)',
-      borderWidth: 1,
-      borderRadius: 4,
-      barPercentage: 0.5,
-    }]
-  },
-  options: {
-    indexAxis: 'y',
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { position: 'top', labels: { usePointStyle: true, padding: 16, font: { size: 11 } } },
-      tooltip: {
-        callbacks: {
-          label: function(ctx) { return ' ' + ctx.dataset.label + ': ' + ctx.raw + '%'; }
-        }
-      }
-    },
-    scales: {
-      x: {
-        grid: { color: getThemeColors().grid },
-        ticks: { font: { size: 11 }, callback: v => v + '%' }
-      },
-      y: { grid: { display: false }, ticks: { font: { size: 12, weight: '600' } } }
-    }
-  }
-});
-
-// ── Campaign Data ──
-const campaigns = [
-  {"name":"Whole List | BF - Selling Out Fast","send_time":"2025-11-21T10:49:06.075Z","recipients":16134,"open_rate":30.1,"click_rate":1.2,"ctor":3.9,"conv_rate":0.31,"conversions":51,"revenue":3105.82,"rpr":0.19},
-  {"name":"Purchased | Offer | Birthday Sale","send_time":"2026-02-26T10:35:00.000Z","recipients":6862,"open_rate":38.8,"click_rate":3.0,"ctor":7.8,"conv_rate":0.72,"conversions":51,"revenue":2535.62,"rpr":0.37},
-  {"name":"Whole List | Offer | Birthday Sale Reminder","send_time":"2026-02-27T08:53:49.481Z","recipients":6414,"open_rate":54.5,"click_rate":2.2,"ctor":4.1,"conv_rate":0.61,"conversions":39,"revenue":2318.19,"rpr":0.36},
-  {"name":"2x Purchasers - Aug Payday 30% Off Sale","send_time":"2025-08-29T09:53:57.000Z","recipients":1217,"open_rate":48.3,"click_rate":9.5,"ctor":19.6,"conv_rate":4.12,"conversions":51,"revenue":2295.65,"rpr":1.89},
-  {"name":"Whole List | Offer | New Year Sale","send_time":"2025-12-26T10:15:00.000Z","recipients":17375,"open_rate":29.3,"click_rate":0.9,"ctor":3.1,"conv_rate":0.23,"conversions":40,"revenue":2242.15,"rpr":0.13},
-  {"name":"Spring Sale - Plain Text from Team Karmic","send_time":"2025-04-25T09:15:00.000Z","recipients":3414,"open_rate":41.5,"click_rate":4.5,"ctor":10.8,"conv_rate":1.41,"conversions":48,"revenue":2177.59,"rpr":0.64},
-  {"name":"Whole List | BF - Black Friday Day","send_time":"2025-11-28T10:05:00.000Z","recipients":16255,"open_rate":27.9,"click_rate":1.1,"ctor":4.1,"conv_rate":0.25,"conversions":41,"revenue":2038.3,"rpr":0.13},
-  {"name":"Whole List | Offer | Vday Sale","send_time":"2026-01-30T10:11:04.218Z","recipients":18003,"open_rate":31.4,"click_rate":1.3,"ctor":4.0,"conv_rate":0.22,"conversions":33,"revenue":1921.58,"rpr":0.13},
-  {"name":"1x and 2x Purchasers - 30% Off Reminder 2","send_time":"2025-09-05T09:28:34.000Z","recipients":4843,"open_rate":39.1,"click_rate":2.4,"ctor":6.2,"conv_rate":0.91,"conversions":44,"revenue":1818.06,"rpr":0.38},
-  {"name":"Whole List | Education | Night-Time Recovery","send_time":"2025-12-31T10:15:00.000Z","recipients":17453,"open_rate":31.2,"click_rate":0.7,"ctor":2.2,"conv_rate":0.2,"conversions":35,"revenue":1813.88,"rpr":0.1},
-  {"name":"Whole List | Offer | New Year Sale (Last Day)","send_time":"2026-01-06T10:32:00.000Z","recipients":17599,"open_rate":32.0,"click_rate":0.8,"ctor":2.6,"conv_rate":0.19,"conversions":33,"revenue":1800.86,"rpr":0.1},
-  {"name":"All Subscribers - Restock Alert - TOTM","send_time":"2025-05-29T09:03:00.000Z","recipients":10467,"open_rate":32.0,"click_rate":1.4,"ctor":4.3,"conv_rate":0.42,"conversions":44,"revenue":1789.48,"rpr":0.17},
-  {"name":"2x or More Purchasers | BF Now On","send_time":"2025-11-19T11:18:21.036Z","recipients":1589,"open_rate":45.1,"click_rate":9.2,"ctor":20.3,"conv_rate":1.96,"conversions":32,"revenue":1747.08,"rpr":1.1},
-  {"name":"Engaged | Offer | Vday Sale Ends Monday","send_time":"2026-02-12T10:45:00.000Z","recipients":7279,"open_rate":51.6,"click_rate":1.9,"ctor":3.7,"conv_rate":0.4,"conversions":29,"revenue":1722.44,"rpr":0.24},
-  {"name":"Whole List | Offer | Vday Sale Last Day","send_time":"2026-02-16T09:56:32.767Z","recipients":18107,"open_rate":31.1,"click_rate":0.7,"ctor":2.2,"conv_rate":0.14,"conversions":26,"revenue":1704.3,"rpr":0.09},
-  {"name":"Whole List | BF - Final Reminder","send_time":"2025-12-05T10:15:00.000Z","recipients":16278,"open_rate":30.9,"click_rate":0.9,"ctor":3.0,"conv_rate":0.2,"conversions":33,"revenue":1614.3,"rpr":0.1},
-  {"name":"Whole List | BF - Cyber Monday","send_time":"2025-12-01T10:35:00.000Z","recipients":16189,"open_rate":29.2,"click_rate":0.9,"ctor":3.1,"conv_rate":0.19,"conversions":30,"revenue":1579.91,"rpr":0.1},
-  {"name":"1x Purchasers - Aug Payday 30% Off Sale","send_time":"2025-08-29T09:46:43.000Z","recipients":3733,"open_rate":39.5,"click_rate":3.1,"ctor":7.8,"conv_rate":0.91,"conversions":34,"revenue":1508.5,"rpr":0.4},
-  {"name":"Whole List | BF Sale Ends Soon (Last 2 days)","send_time":"2025-12-03T10:49:09.633Z","recipients":16211,"open_rate":30.3,"click_rate":0.8,"ctor":2.8,"conv_rate":0.17,"conversions":30,"revenue":1477.54,"rpr":0.09},
-  {"name":"Not purchased in last 7d - POG Restock Alert","send_time":"2025-07-16T09:53:45.000Z","recipients":11992,"open_rate":31.7,"click_rate":1.4,"ctor":4.3,"conv_rate":0.26,"conversions":31,"revenue":1475.04,"rpr":0.12},
-  {"name":"Spring Sale Reminder - Plain Text 2nd email","send_time":"2025-04-30T09:12:32.000Z","recipients":3443,"open_rate":40.1,"click_rate":2.4,"ctor":6.1,"conv_rate":0.7,"conversions":24,"revenue":1455.68,"rpr":0.42},
-  {"name":"Engaged | Offer | A gift for 'us'","send_time":"2026-02-06T10:35:00.000Z","recipients":5536,"open_rate":56.4,"click_rate":1.6,"ctor":2.9,"conv_rate":0.38,"conversions":21,"revenue":1426.79,"rpr":0.26},
-  {"name":"Not purchased in 30d - Yoga Day 3","send_time":"2025-06-23T09:27:01.000Z","recipients":10470,"open_rate":31.4,"click_rate":0.6,"ctor":2.0,"conv_rate":0.3,"conversions":31,"revenue":1423.59,"rpr":0.14},
-  {"name":"2x Purchasers - Diwali 35% Off Sale","send_time":"2025-09-26T09:53:00.000Z","recipients":1307,"open_rate":47.6,"click_rate":6.4,"ctor":13.4,"conv_rate":1.92,"conversions":25,"revenue":1387.28,"rpr":1.07},
-  {"name":"2x Purchasers - Reminder 1 Diwali 35% Off","send_time":"2025-09-30T10:15:00.000Z","recipients":1287,"open_rate":45.8,"click_rate":4.2,"ctor":9.2,"conv_rate":2.03,"conversions":27,"revenue":1373.55,"rpr":1.07},
-  {"name":"Whole List | BF - Showcase Bundles","send_time":"2025-11-27T10:45:00.000Z","recipients":16265,"open_rate":28.8,"click_rate":0.7,"ctor":2.4,"conv_rate":0.14,"conversions":23,"revenue":1348.67,"rpr":0.08},
-  {"name":"Whole List | BF - Why Choose Karmic","send_time":"2025-11-25T10:15:00.000Z","recipients":16248,"open_rate":29.6,"click_rate":0.7,"ctor":2.4,"conv_rate":0.17,"conversions":28,"revenue":1322.03,"rpr":0.08},
-  {"name":"All Subscribers | Hair Launch Teaser","send_time":"2025-10-15T10:23:35.685Z","recipients":14260,"open_rate":31.9,"click_rate":0.9,"ctor":2.8,"conv_rate":0.14,"conversions":20,"revenue":1220.02,"rpr":0.09},
-  {"name":"Whole List | Education | January Cleanse","send_time":"2025-12-29T10:32:00.000Z","recipients":4516,"open_rate":59.3,"click_rate":2.4,"ctor":4.1,"conv_rate":0.47,"conversions":21,"revenue":1215.77,"rpr":0.27},
-  {"name":"Engaged + Past Purchasers | Skincare Layering","send_time":"2025-11-14T10:36:41.297Z","recipients":9681,"open_rate":47.1,"click_rate":1.0,"ctor":2.1,"conv_rate":0.21,"conversions":20,"revenue":1186.12,"rpr":0.12},
-  {"name":"Engaged | RRR - Water vs Oil Moisturiser","send_time":"2026-01-15T10:15:00.000Z","recipients":6714,"open_rate":55.0,"click_rate":1.1,"ctor":1.9,"conv_rate":0.3,"conversions":20,"revenue":1132.51,"rpr":0.17},
-  {"name":"1x Purchasers - Reminder 1 Diwali 35% Off","send_time":"2025-09-30T10:30:00.000Z","recipients":3874,"open_rate":37.0,"click_rate":1.8,"ctor":4.8,"conv_rate":0.41,"conversions":16,"revenue":1117.57,"rpr":0.29},
-  {"name":"Not purchased in 10d - Summer Sale 1","send_time":"2025-07-29T09:10:00.000Z","recipients":4740,"open_rate":39.2,"click_rate":3.1,"ctor":7.8,"conv_rate":0.46,"conversions":22,"revenue":1117.03,"rpr":0.24},
-  {"name":"Whole List | Education | Featherweight","send_time":"2026-01-02T10:15:00.000Z","recipients":4444,"open_rate":59.5,"click_rate":1.3,"ctor":2.1,"conv_rate":0.41,"conversions":18,"revenue":1114.62,"rpr":0.25},
-  {"name":"1x Purchasers | BF Now On","send_time":"2025-11-19T11:16:34.148Z","recipients":4571,"open_rate":36.7,"click_rate":3.2,"ctor":8.7,"conv_rate":0.42,"conversions":19,"revenue":1109.77,"rpr":0.24},
-  {"name":"1x Purchasers - Diwali 35% Off Sale","send_time":"2025-09-26T09:53:00.000Z","recipients":3862,"open_rate":39.2,"click_rate":2.9,"ctor":7.3,"conv_rate":0.44,"conversions":18,"revenue":1099.08,"rpr":0.29},
-  {"name":"Not purchased in 30d - Yoga Day","send_time":"2025-06-18T09:28:40.000Z","recipients":10360,"open_rate":30.9,"click_rate":0.7,"ctor":2.2,"conv_rate":0.18,"conversions":18,"revenue":1059.61,"rpr":0.1},
-  {"name":"2x Purchasers | 25% Off - 1st Reminder","send_time":"2025-10-31T10:08:00.000Z","recipients":1509,"open_rate":44.8,"click_rate":5.2,"ctor":11.7,"conv_rate":1.66,"conversions":25,"revenue":1042.55,"rpr":0.69},
-  {"name":"Not purchased in 30d - Yoga Day 2","send_time":"2025-06-20T09:26:47.000Z","recipients":10384,"open_rate":31.0,"click_rate":0.7,"ctor":2.2,"conv_rate":0.18,"conversions":19,"revenue":1041.37,"rpr":0.1},
-  {"name":"Not purchased in 10d - Summer Sale 4","send_time":"2025-08-06T09:45:00.000Z","recipients":4780,"open_rate":40.0,"click_rate":2.0,"ctor":4.9,"conv_rate":0.42,"conversions":20,"revenue":1021.04,"rpr":0.21},
-  {"name":"Serum Purchasers - Try a different product","send_time":"2025-05-09T09:28:12.000Z","recipients":3153,"open_rate":42.3,"click_rate":2.7,"ctor":6.3,"conv_rate":0.73,"conversions":23,"revenue":1002.44,"rpr":0.32},
-  {"name":"2x Purchasers - 30% Off Reminder 1","send_time":"2025-09-03T09:45:57.000Z","recipients":1177,"open_rate":45.6,"click_rate":4.6,"ctor":10.1,"conv_rate":1.79,"conversions":21,"revenue":987.77,"rpr":0.84},
-  {"name":"2x Purchasers | 25% Off - Final Reminder","send_time":"2025-11-03T11:15:00.000Z","recipients":1513,"open_rate":42.9,"click_rate":3.4,"ctor":7.9,"conv_rate":1.66,"conversions":25,"revenue":982.36,"rpr":0.65},
-  {"name":"Whole List | Offer+Edu | Vday + Night Layering","send_time":"2026-01-23T10:06:05.099Z","recipients":17933,"open_rate":31.3,"click_rate":1.0,"ctor":3.1,"conv_rate":0.12,"conversions":21,"revenue":970.26,"rpr":0.05},
-  {"name":"0x Purchasers | BF Now On","send_time":"2025-11-19T11:14:56.419Z","recipients":10111,"open_rate":25.1,"click_rate":1.3,"ctor":5.0,"conv_rate":0.14,"conversions":14,"revenue":962.76,"rpr":0.1},
-  {"name":"2x or More Purchasers | Hair Launch Day","send_time":"2025-10-23T09:30:00.000Z","recipients":1542,"open_rate":44.0,"click_rate":5.9,"ctor":13.3,"conv_rate":1.1,"conversions":17,"revenue":926.37,"rpr":0.6},
-  {"name":"Purchased 1x - We miss you 15% off","send_time":"2025-06-05T09:25:00.000Z","recipients":2474,"open_rate":38.4,"click_rate":2.1,"ctor":5.5,"conv_rate":0.73,"conversions":18,"revenue":900.14,"rpr":0.36},
-  {"name":"Mother's Day - Founder Plain Text FollowUp","send_time":"2025-03-31T09:34:56.000Z","recipients":8726,"open_rate":31.1,"click_rate":1.0,"ctor":3.1,"conv_rate":0.21,"conversions":18,"revenue":883.14,"rpr":0.1},
-  {"name":"1x Purchasers | 25% Off - Final Reminder","send_time":"2025-11-03T11:00:00.000Z","recipients":4309,"open_rate":38.3,"click_rate":1.4,"ctor":3.5,"conv_rate":0.49,"conversions":21,"revenue":874.36,"rpr":0.2},
-  {"name":"2x Purchasers - Reminder 2 Diwali 35% Off","send_time":"2025-10-03T09:15:00.000Z","recipients":1263,"open_rate":45.4,"click_rate":2.9,"ctor":6.3,"conv_rate":1.59,"conversions":20,"revenue":870.13,"rpr":0.69}
-];
-
-// Sort by revenue desc initially
-campaigns.sort((a, b) => b.revenue - a.revenue);
-
-function formatDate(iso) {
-  const d = new Date(iso);
+// ══════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════
+function formatMonthShort(dateStr) {
+  // "2025-04" -> "Apr 25"
+  const [y, m] = dateStr.split('-');
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+  return months[parseInt(m) - 1] + ' ' + y.slice(2);
 }
 
-function renderCampaignTable() {
-  const tbody = document.getElementById('campaignTableBody');
+function pnd(v) { return '\u00a3' + Number(v).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function pndInt(v) { return '\u00a3' + Math.round(v).toLocaleString('en-GB'); }
+function pct(v) { return (v * 100).toFixed(1) + '%'; }
+function num(v) { return Number(v).toLocaleString('en-GB'); }
+
+// ══════════════════════════════════════════════════════
+// KPI COMPUTATION
+// ══════════════════════════════════════════════════════
+function computeKPIs(data) {
+  const totalRev = data.reduce((s, r) => s + Number(r.placed_order_value || 0), 0);
+  const totalSent = data.reduce((s, r) => s + Number(r.emails_sent || 0), 0);
+  const totalRecipients = data.reduce((s, r) => s + Number(r.unique_recipients || 0), 0);
+  const totalOrders = data.reduce((s, r) => s + Number(r.placed_orders || 0), 0);
+  // Weighted average open/click rate: weight by emails_sent (since open_rate = opens/sent*100 in Klaviyo)
+  let weightedOpen = 0, weightedClick = 0;
+  data.forEach(r => {
+    const sent = Number(r.emails_sent || 0);
+    weightedOpen += Number(r.open_rate || 0) * sent;
+    weightedClick += Number(r.click_rate || 0) * sent;
+  });
+  const avgOpenRate = totalSent > 0 ? weightedOpen / totalSent : 0; // already a percentage, e.g. 8.09
+  const avgClickRate = totalSent > 0 ? weightedClick / totalSent : 0; // already a percentage, e.g. 1.03
+  const rpr = totalRecipients > 0 ? totalRev / totalRecipients : 0;
+  return { totalRev, totalSent, totalRecipients, totalOrders, avgOpenRate, avgClickRate, rpr };
+}
+
+function renderKPIs(data) {
+  const k = computeKPIs(data);
+  document.getElementById('kpiTotalRev').textContent = pndInt(k.totalRev);
+  document.getElementById('kpiTotalRevSub').textContent = data.length + ' months of data';
+  document.getElementById('kpiEmailsSent').textContent = num(k.totalSent);
+  document.getElementById('kpiEmailsSentSub').textContent = num(k.totalRecipients) + ' unique recipients';
+  document.getElementById('kpiOrders').textContent = num(k.totalOrders);
+  document.getElementById('kpiOrdersSub').textContent = 'Attributed to email';
+  document.getElementById('kpiOpenRate').textContent = k.avgOpenRate.toFixed(1) + '%';
+  document.getElementById('kpiClickRate').textContent = k.avgClickRate.toFixed(1) + '%';
+  document.getElementById('kpiRPR').textContent = '\u00a3' + k.rpr.toFixed(2);
+  document.getElementById('kpiRPRSub').textContent = 'Per unique recipient';
+}
+
+// ══════════════════════════════════════════════════════
+// MONTHLY REVENUE CHART
+// ══════════════════════════════════════════════════════
+function renderMonthlyChart(data) {
+  const labels = data.map(r => formatMonthShort(r.report_month));
+  const rev = data.map(r => Number(r.placed_order_value || 0));
+  const ord = data.map(r => Number(r.placed_orders || 0));
+
+  if (monthlyChart) {
+    monthlyChart.data.labels = labels;
+    monthlyChart.data.datasets[0].data = rev;
+    monthlyChart.data.datasets[1].data = ord;
+    monthlyChart.update();
+    return;
+  }
+
+  const ctx = document.getElementById('monthlyRevenueChart').getContext('2d');
+  monthlyChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Revenue',
+        data: rev,
+        backgroundColor: 'rgba(13, 148, 136, 0.7)',
+        borderColor: 'rgba(13, 148, 136, 1)',
+        borderWidth: 1, borderRadius: 4, yAxisID: 'y',
+      }, {
+        label: 'Orders',
+        data: ord,
+        type: 'line',
+        borderColor: '#7c3aed',
+        backgroundColor: 'rgba(124, 58, 237, 0.1)',
+        pointBackgroundColor: '#7c3aed',
+        pointRadius: 4, pointHoverRadius: 6,
+        borderWidth: 2, tension: 0.3, fill: false, yAxisID: 'y1',
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top', labels: { usePointStyle: true, padding: 16, font: { size: 11 } } },
+        tooltip: {
+          callbacks: {
+            label(ctx) {
+              if (ctx.dataset.label === 'Revenue') return ' Revenue: \u00a3' + ctx.raw.toLocaleString('en-GB', { minimumFractionDigits: 2 });
+              return ' Orders: ' + ctx.raw;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+        y: {
+          position: 'left',
+          grid: { color: getThemeColors().grid },
+          ticks: { font: { size: 11 }, callback: v => '\u00a3' + (v / 1000).toFixed(0) + 'k' },
+          title: { display: true, text: 'Revenue (\u00a3)', font: { size: 11 } }
+        },
+        y1: {
+          position: 'right',
+          grid: { drawOnChartArea: false },
+          ticks: { font: { size: 11 } },
+          title: { display: true, text: 'Orders', font: { size: 11 } }
+        }
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// ENGAGEMENT TRENDS CHART (replaces doughnut)
+// ══════════════════════════════════════════════════════
+function renderEngagementChart(data) {
+  const labels = data.map(r => formatMonthShort(r.report_month));
+  const openRates = data.map(r => Number(r.open_rate || 0));
+  const clickRates = data.map(r => Number(r.click_rate || 0));
+
+  if (engagementChart) {
+    engagementChart.data.labels = labels;
+    engagementChart.data.datasets[0].data = openRates;
+    engagementChart.data.datasets[1].data = clickRates;
+    engagementChart.update();
+    return;
+  }
+
+  const ctx = document.getElementById('engagementTrendChart').getContext('2d');
+  engagementChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Open Rate',
+        data: openRates,
+        borderColor: 'rgba(13, 148, 136, 1)',
+        backgroundColor: 'rgba(13, 148, 136, 0.1)',
+        pointBackgroundColor: 'rgba(13, 148, 136, 1)',
+        pointRadius: 4, pointHoverRadius: 6,
+        borderWidth: 2, tension: 0.3, fill: true, yAxisID: 'y',
+      }, {
+        label: 'Click Rate',
+        data: clickRates,
+        borderColor: '#7c3aed',
+        backgroundColor: 'rgba(124, 58, 237, 0.1)',
+        pointBackgroundColor: '#7c3aed',
+        pointRadius: 4, pointHoverRadius: 6,
+        borderWidth: 2, tension: 0.3, fill: true, yAxisID: 'y1',
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top', labels: { usePointStyle: true, padding: 16, font: { size: 11 } } },
+        tooltip: {
+          callbacks: {
+            label(ctx) { return ' ' + ctx.dataset.label + ': ' + ctx.raw.toFixed(1) + '%'; }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+        y: {
+          position: 'left',
+          grid: { color: getThemeColors().grid },
+          ticks: { font: { size: 11 }, callback: v => v + '%' },
+          title: { display: true, text: 'Open Rate', font: { size: 11 } }
+        },
+        y1: {
+          position: 'right',
+          grid: { drawOnChartArea: false },
+          ticks: { font: { size: 11 }, callback: v => v + '%' },
+          title: { display: true, text: 'Click Rate', font: { size: 11 } }
+        }
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// BENCHMARK CHART
+// ══════════════════════════════════════════════════════
+function renderBenchmarkChart(data) {
+  const k = computeKPIs(data);
+  const ourOpen = k.avgOpenRate.toFixed(1);
+  const ourClick = k.avgClickRate.toFixed(1);
+
+  if (benchmarkChart) {
+    benchmarkChart.data.datasets[0].data = [parseFloat(ourOpen), parseFloat(ourClick)];
+    benchmarkChart.update();
+    return;
+  }
+
+  const ctx = document.getElementById('benchmarkChart').getContext('2d');
+  benchmarkChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Open Rate', 'Click Rate'],
+      datasets: [{
+        label: 'Karmic Skin',
+        data: [parseFloat(ourOpen), parseFloat(ourClick)],
+        backgroundColor: 'rgba(13, 148, 136, 0.8)',
+        borderColor: 'rgba(13, 148, 136, 1)',
+        borderWidth: 1, borderRadius: 4, barPercentage: 0.5,
+      }, {
+        label: 'Industry Average',
+        data: [40.0, 1.5],
+        backgroundColor: 'rgba(156, 163, 175, 0.5)',
+        borderColor: 'rgba(156, 163, 175, 0.8)',
+        borderWidth: 1, borderRadius: 4, barPercentage: 0.5,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { usePointStyle: true, padding: 16, font: { size: 11 } } },
+        tooltip: {
+          callbacks: {
+            label(ctx) { return ' ' + ctx.dataset.label + ': ' + ctx.raw + '%'; }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: getThemeColors().grid },
+          ticks: { font: { size: 11 }, callback: v => v + '%' }
+        },
+        y: { grid: { display: false }, ticks: { font: { size: 12, weight: '600' } } }
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// MONTHLY PERFORMANCE TABLE
+// ══════════════════════════════════════════════════════
+function renderMonthlyTable(data) {
+  const tbody = document.getElementById('monthlyTableBody');
   tbody.innerHTML = '';
-  campaigns.forEach(c => {
-    const isHigh = c.rpr >= 0.50;
+  const k = computeKPIs(data);
+  document.getElementById('monthlyTableSummary').textContent =
+    data.length + ' months \u00b7 ' + pndInt(k.totalRev) + ' total revenue \u00b7 ' + num(k.totalOrders) + ' orders';
+
+  // Find best revenue month for highlighting
+  const maxRev = Math.max(...data.map(r => Number(r.placed_order_value || 0)));
+
+  data.forEach(r => {
+    const rev = Number(r.placed_order_value || 0);
+    const recipients = Number(r.unique_recipients || 0);
+    const rpr = recipients > 0 ? rev / recipients : 0;
+    const isBest = rev === maxRev && rev > 0;
     const tr = document.createElement('tr');
-    if (isHigh) tr.classList.add('high-performer');
-    tr.innerHTML = `
-      <td>${c.name}</td>
-      <td>${formatDate(c.send_time)}</td>
-      <td>${c.recipients.toLocaleString('en-GB')}</td>
-      <td>${c.open_rate.toFixed(1)}%</td>
-      <td>${c.click_rate.toFixed(1)}%</td>
-      <td>${c.ctor.toFixed(1)}%</td>
-      <td>${c.conv_rate.toFixed(2)}%</td>
-      <td>${c.conversions}</td>
-      <td style="font-weight:600;">\u00a3${c.revenue.toLocaleString('en-GB', {minimumFractionDigits:2})}</td>
-      <td class="${isHigh ? 'highlight-best' : ''}">\u00a3${c.rpr.toFixed(2)}</td>
-    `;
+    if (isBest) tr.classList.add('high-performer');
+    tr.innerHTML =
+      '<td>' + formatMonthShort(r.report_month) + '</td>' +
+      '<td>' + num(r.emails_sent) + '</td>' +
+      '<td>' + num(r.unique_recipients) + '</td>' +
+      '<td>' + Number(r.open_rate || 0).toFixed(1) + '%</td>' +
+      '<td>' + Number(r.click_rate || 0).toFixed(1) + '%</td>' +
+      '<td>' + num(r.emails_bounced) + '</td>' +
+      '<td>' + num(r.unsubscribes) + '</td>' +
+      '<td>' + num(r.placed_orders) + '</td>' +
+      '<td style="font-weight:600;"' + (isBest ? ' class="highlight-best"' : '') + '>' + pnd(rev) + '</td>' +
+      '<td>' + '\u00a3' + rpr.toFixed(2) + '</td>';
     tbody.appendChild(tr);
   });
 }
-renderCampaignTable();
 
-// ── Sortable Tables ──
+// ══════════════════════════════════════════════════════
+// INSIGHTS (auto-generated)
+// ══════════════════════════════════════════════════════
+function renderInsights(data) {
+  const grid = document.getElementById('insightsGrid');
+  grid.innerHTML = '';
+  if (!data.length) return;
+
+  const k = computeKPIs(data);
+  // Best revenue month
+  const best = data.reduce((a, b) => Number(a.placed_order_value) > Number(b.placed_order_value) ? a : b);
+  // Worst revenue month
+  const worst = data.reduce((a, b) => Number(a.placed_order_value) < Number(b.placed_order_value) ? a : b);
+  // Best open rate month
+  const bestOpen = data.reduce((a, b) => Number(a.open_rate) > Number(b.open_rate) ? a : b);
+  // Total unsubscribes
+  const totalUnsubs = data.reduce((s, r) => s + Number(r.unsubscribes || 0), 0);
+  // Total bounces
+  const totalBounces = data.reduce((s, r) => s + Number(r.emails_bounced || 0), 0);
+  const totalSent = data.reduce((s, r) => s + Number(r.emails_sent || 0), 0);
+  const bounceRate = totalSent > 0 ? (totalBounces / totalSent * 100).toFixed(2) : '0';
+
+  const insights = [
+    { icon: '&#9733;', cls: 'green', html: '<strong>Best revenue month: ' + formatMonthShort(best.report_month) + '</strong> with ' + pnd(best.placed_order_value) + ' from ' + num(best.placed_orders) + ' orders attributed to email.' },
+    { icon: '&#128200;', cls: 'purple', html: '<strong>Highest open rate: ' + formatMonthShort(bestOpen.report_month) + '</strong> at ' + Number(bestOpen.open_rate).toFixed(1) + '%. ' + (Number(bestOpen.open_rate) >= 40 ? 'Above' : 'Below') + ' the 40% industry benchmark.' },
+    { icon: '&#128176;', cls: 'blue', html: '<strong>Revenue per recipient averages \u00a3' + k.rpr.toFixed(2) + '</strong> across ' + num(k.totalRecipients) + ' unique recipients over ' + data.length + ' months.' },
+    { icon: '&#9888;', cls: 'amber', html: '<strong>' + num(totalUnsubs) + ' unsubscribes</strong> recorded in this period. Bounce rate is ' + bounceRate + '% (' + num(totalBounces) + ' bounced emails).' },
+    { icon: '&#9889;', cls: 'green', html: '<strong>Lowest revenue month: ' + formatMonthShort(worst.report_month) + '</strong> at ' + pnd(worst.placed_order_value) + '. Consider reviewing send strategy for that period.' },
+  ];
+
+  insights.forEach(i => {
+    const card = document.createElement('div');
+    card.className = 'insight-card';
+    card.innerHTML = '<div class="insight-icon ' + i.cls + '">' + i.icon + '</div><div class="insight-text">' + i.html + '</div>';
+    grid.appendChild(card);
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// SORTABLE TABLE (preserved)
+// ══════════════════════════════════════════════════════
 let sortState = {};
 function sortTable(tableId, colIdx, type) {
   const table = document.getElementById(tableId);
@@ -782,7 +783,6 @@ function sortTable(tableId, colIdx, type) {
   const asc = sortState[key] === 'asc' ? 'desc' : 'asc';
   sortState[key] = asc;
 
-  // Clear sorted class from all th
   table.querySelectorAll('th').forEach(th => th.classList.remove('sorted'));
   table.querySelectorAll('th')[colIdx].classList.add('sorted');
 
@@ -796,8 +796,7 @@ function sortTable(tableId, colIdx, type) {
       va = new Date(va).getTime() || 0;
       vb = new Date(vb).getTime() || 0;
     } else {
-      va = va.toLowerCase();
-      vb = vb.toLowerCase();
+      va = va.toLowerCase(); vb = vb.toLowerCase();
     }
     if (va < vb) return asc === 'asc' ? -1 : 1;
     if (va > vb) return asc === 'asc' ? 1 : -1;
@@ -805,35 +804,88 @@ function sortTable(tableId, colIdx, type) {
   });
 
   rows.forEach(r => tbody.appendChild(r));
-
-  // Update arrow
   const arrow = table.querySelectorAll('th')[colIdx].querySelector('.sort-arrow');
   if (arrow) arrow.innerHTML = asc === 'asc' ? '&#9650;' : '&#9660;';
 }
 
-// ── Update charts on theme change ──
+// ══════════════════════════════════════════════════════
+// THEME UPDATE (preserved)
+// ══════════════════════════════════════════════════════
 function updateChartThemes() {
   applyChartDefaults();
   const c = getThemeColors();
-
-  // Monthly chart
-  monthlyChart.options.scales.y.grid.color = c.grid;
-  monthlyChart.options.scales.x.ticks.color = c.tick;
-  monthlyChart.options.scales.y.ticks.color = c.tick;
-  monthlyChart.options.scales.y1.ticks.color = c.tick;
-  monthlyChart.update();
-
-  // Split chart
-  splitChart.update();
-
-  // Benchmark chart
-  benchmarkChart.options.scales.x.grid.color = c.grid;
-  benchmarkChart.options.scales.x.ticks.color = c.tick;
-  benchmarkChart.options.scales.y.ticks.color = c.tick;
-  benchmarkChart.update();
+  if (monthlyChart) {
+    monthlyChart.options.scales.y.grid.color = c.grid;
+    monthlyChart.options.scales.x.ticks.color = c.tick;
+    monthlyChart.options.scales.y.ticks.color = c.tick;
+    monthlyChart.options.scales.y1.ticks.color = c.tick;
+    monthlyChart.update();
+  }
+  if (engagementChart) {
+    engagementChart.options.scales.y.grid.color = c.grid;
+    engagementChart.options.scales.x.ticks.color = c.tick;
+    engagementChart.options.scales.y.ticks.color = c.tick;
+    engagementChart.options.scales.y1.ticks.color = c.tick;
+    engagementChart.update();
+  }
+  if (benchmarkChart) {
+    benchmarkChart.options.scales.x.grid.color = c.grid;
+    benchmarkChart.options.scales.x.ticks.color = c.tick;
+    benchmarkChart.options.scales.y.ticks.color = c.tick;
+    benchmarkChart.update();
+  }
 }
 
-// --- Tooltip popup for info-tip elements ---
+// ══════════════════════════════════════════════════════
+// RENDER ALL
+// ══════════════════════════════════════════════════════
+function renderAll(data) {
+  renderKPIs(data);
+  renderMonthlyChart(data);
+  renderEngagementChart(data);
+  renderBenchmarkChart(data);
+  renderMonthlyTable(data);
+  renderInsights(data);
+}
+
+// ══════════════════════════════════════════════════════
+// FETCH FROM SUPABASE & BOOTSTRAP
+// ══════════════════════════════════════════════════════
+async function fetchData() {
+  try {
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/raw_klaviyo_monthly?order=report_month.asc&select=*',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+    );
+    if (!res.ok) throw new Error('Supabase returned ' + res.status);
+    allData = await res.json();
+    filteredData = getFilteredData(activePeriod);
+    renderAll(filteredData);
+
+    // Data refreshed timestamp
+    const d = new Date();
+    const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    const timeStr = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('dataSource').textContent =
+      'Data source: Klaviyo via Supabase \u00b7 ' + allData.length + ' months loaded \u00b7 Data refreshed at: ' + dateStr + ', ' + timeStr;
+
+    // Set date picker min/max from data
+    if (allData.length) {
+      document.getElementById('dateFrom').value = allData[0].report_month;
+      document.getElementById('dateTo').value = allData[allData.length - 1].report_month;
+    }
+  } catch (err) {
+    console.error('Failed to fetch email data:', err);
+    document.getElementById('dataSource').textContent = 'Error loading data from Supabase: ' + err.message;
+    document.getElementById('kpiTotalRev').textContent = 'Error';
+  }
+}
+
+fetchData();
+
+// ══════════════════════════════════════════════════════
+// TOOLTIP POPUP (preserved)
+// ══════════════════════════════════════════════════════
 const tooltipEl = document.getElementById('tooltipPopup');
 document.addEventListener('mouseover', e => {
   const tip = e.target.closest('.info-tip');

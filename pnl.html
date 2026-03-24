@@ -358,7 +358,7 @@ function render() {
 
   const ytdProductGP = ytdRev - ytdProdCost;
   const ytdFulfilledGP = ytdProductGP - ytdFulf;
-  const ytdTotalCoS = ytdProdCost + ytdFulf + ytdAds;
+  const ytdTotalCoS = ytdProdCost + ytdAds;
   const ytdTotalGP = ytdRev - ytdTotalCoS;
 
   // KPI Cards
@@ -408,18 +408,18 @@ function buildTable(d, n) {
   // Helper: compute derived monthly values
   function getMonthProductGP(i) { return d.revenue[i] - d.prodCost[i]; }
   function getMonthFulfilledGP(i) { return d.revenue[i] - d.prodCost[i] - d.fulfilment[i]; }
-  function getMonthTotalCoS(i) { return d.prodCost[i] + d.fulfilment[i] + d.adSpend[i]; }
-  function getMonthTotalGP(i) { return d.revenue[i] - d.prodCost[i] - d.fulfilment[i] - d.adSpend[i]; }
+  function getMonthTotalCoS(i) { return d.prodCost[i] + d.adSpend[i]; }
+  function getMonthTotalGP(i) { return d.revenue[i] - d.prodCost[i] - d.adSpend[i]; }
 
   // Shop/Amz derived
   function getShopProductGP(i) { return d.shopRev[i] - d.shopProdC[i]; }
   function getAmzProductGP(i) { return d.amzRev[i] - d.amzProdC[i]; }
   function getShopFulfilledGP(i) { return d.shopRev[i] - d.shopProdC[i] - d.shopFulf[i]; }
   function getAmzFulfilledGP(i) { return d.amzRev[i] - d.amzProdC[i] - d.amzFulf[i]; }
-  function getShopTotalCoS(i) { return d.shopProdC[i] + d.shopFulf[i] + d.shopAds[i]; }
-  function getAmzTotalCoS(i) { return d.amzProdC[i] + d.amzFulf[i] + d.amzAds[i]; }
-  function getShopTotalGP(i) { return d.shopRev[i] - d.shopProdC[i] - d.shopFulf[i] - d.shopAds[i]; }
-  function getAmzTotalGP(i) { return d.amzRev[i] - d.amzProdC[i] - d.amzFulf[i] - d.amzAds[i]; }
+  function getShopTotalCoS(i) { return d.shopProdC[i] + d.shopAds[i]; }
+  function getAmzTotalCoS(i) { return d.amzProdC[i] + d.amzAds[i]; }
+  function getShopTotalGP(i) { return d.shopRev[i] - d.shopProdC[i] - d.shopAds[i]; }
+  function getAmzTotalGP(i) { return d.amzRev[i] - d.amzProdC[i] - d.amzAds[i]; }
 
   // YTD computed
   const ytdRev = sum(d.revenue, n), ytdShopRev = sum(d.shopRev, n), ytdAmzRev = sum(d.amzRev, n);
@@ -436,9 +436,9 @@ function buildTable(d, n) {
   const ytdFulfilledGP = ytdProductGP - ytdFulf;
   const ytdShopFulfilledGP = ytdShopProductGP - ytdShopFulf;
   const ytdAmzFulfilledGP = ytdAmzProductGP - ytdAmzFulf;
-  const ytdTotalCoS = ytdProdCost + ytdFulf + ytdAds;
-  const ytdShopTotalCoS = ytdShopProdC + ytdShopFulf + ytdShopAds;
-  const ytdAmzTotalCoS = ytdAmzProdC + ytdAmzFulf + ytdAmzAds;
+  const ytdTotalCoS = ytdProdCost + ytdAds;
+  const ytdShopTotalCoS = ytdShopProdC + ytdShopAds;
+  const ytdAmzTotalCoS = ytdAmzProdC + ytdAmzAds;
   const ytdTotalGP = ytdRev - ytdTotalCoS;
   const ytdShopTotalGP = ytdShopRev - ytdShopTotalCoS;
   const ytdAmzTotalGP = ytdAmzRev - ytdAmzTotalCoS;

@@ -355,6 +355,16 @@
       <div class="toggle-dot" style="--dot-color: #0891b2"></div>
       <span class="toggle-label">Google Ad Spend</span>
     </div>
+    <div class="toggle-item" onclick="this.querySelector('input').click()">
+      <input type="checkbox" data-metric="sessions">
+      <div class="toggle-dot" style="--dot-color: #4f46e5"></div>
+      <span class="toggle-label">Sessions</span>
+    </div>
+    <div class="toggle-item" onclick="this.querySelector('input').click()">
+      <input type="checkbox" data-metric="cvr">
+      <div class="toggle-dot" style="--dot-color: #be185d"></div>
+      <span class="toggle-label">CVR %</span>
+    </div>
   </div>
 </div>
 
@@ -527,6 +537,8 @@ const METRIC_CONFIG = {
   cac:          { label: 'Blended CAC',     color: '#ea580c', prefix: '\u00A3', yAxis: 'y1', decimals: 1 },
   metaSpend:    { label: 'Meta Ad Spend',   color: '#6366f1', prefix: '\u00A3', yAxis: 'y',  decimals: 0 },
   googleSpend:  { label: 'Google Ad Spend', color: '#0891b2', prefix: '\u00A3', yAxis: 'y',  decimals: 0 },
+  sessions:     { label: 'Sessions',        color: '#4f46e5', prefix: '',       yAxis: 'y1', decimals: 0 },
+  cvr:          { label: 'CVR %',           color: '#be185d', prefix: '',       yAxis: 'y1', decimals: 2, suffix: '%' },
 };
 
 // THEME
@@ -775,7 +787,7 @@ function getActiveMetrics() {
 }
 
 // Metrics that render as bars (volume/magnitude)
-const BAR_METRICS = new Set(['revenue', 'adSpend', 'orders', 'newCustomers', 'metaSpend', 'googleSpend']);
+const BAR_METRICS = new Set(['revenue', 'adSpend', 'orders', 'newCustomers', 'metaSpend', 'googleSpend', 'sessions']);
 // Metrics that render as lines (rates/efficiency)
 // roas, aov, repeatPct, cac
 

@@ -135,6 +135,10 @@
   /* FOOTER */
   .footer-note { text-align: center; padding: 12px 24px 24px; font-size: 11px; color: var(--text-muted); }
 
+  .info-tip { display: inline-block; font-size: 10px; opacity: 0.5; cursor: help; margin-left: 2px; }
+  .tooltip-popup { position: fixed; background: #111; color: #fff; font-size: 11px; padding: 5px 10px; border-radius: 6px; pointer-events: none; font-weight: 400; text-transform: none; letter-spacing: 0; z-index: 9999; box-shadow: 0 2px 8px rgba(0,0,0,0.4); display: none; border: 1px solid #333; max-width: 90vw; white-space: normal; }
+  [data-theme="light"] .tooltip-popup { background: #1a1a1a; color: #fff; border-color: #333; }
+
   /* RESPONSIVE */
   @media (max-width: 1200px) {
     .kpi-strip { grid-template-columns: repeat(4, 1fr); }
@@ -147,6 +151,7 @@
 </style>
 </head>
 <body>
+<div class="tooltip-popup" id="tooltipPopup"></div>
 
 <!-- PAGE NAV -->
 <nav class="page-nav">
@@ -362,20 +367,20 @@ function buildKPIs(data) {
   const ctr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
 
   const kpis = [
-    { label: 'Spend', value: fmt(totalSpend, 'gbp') },
-    { label: 'Revenue', value: fmt(totalRev, 'gbp') },
-    { label: 'ROAS', value: fmt(roas, 'x') },
-    { label: 'CPA', value: fmt(cpa, 'gbp') },
-    { label: 'Purchases', value: fmt(totalPurchases, 'num') },
-    { label: 'CPM', value: fmt(cpm, 'gbp') },
-    { label: 'CPC', value: fmt(cpc, 'gbp') },
-    { label: 'CTR', value: fmt(ctr, 'pct') },
+    { label: 'Spend', value: fmt(totalSpend, 'gbp'), tip: 'Total Meta advertising spend' },
+    { label: 'Revenue', value: fmt(totalRev, 'gbp'), tip: 'Purchase value attributed to Meta ads' },
+    { label: 'ROAS', value: fmt(roas, 'x'), tip: 'Revenue \u00f7 Ad Spend' },
+    { label: 'CPA', value: fmt(cpa, 'gbp'), tip: 'Ad Spend \u00f7 Purchases' },
+    { label: 'Purchases', value: fmt(totalPurchases, 'num'), tip: 'Total purchases attributed to Meta ads' },
+    { label: 'CPM', value: fmt(cpm, 'gbp'), tip: 'Ad Spend \u00f7 Impressions \u00d7 1000' },
+    { label: 'CPC', value: fmt(cpc, 'gbp'), tip: 'Ad Spend \u00f7 Link Clicks' },
+    { label: 'CTR', value: fmt(ctr, 'pct'), tip: 'Link Clicks \u00f7 Impressions \u00d7 100' },
   ];
 
   const strip = document.getElementById('kpiStrip');
   strip.innerHTML = kpis.map(k => `
     <div class="kpi-card">
-      <div class="label">${k.label}</div>
+      <div class="label">${k.label} <span class="info-tip" data-tip="${k.tip}">?</span></div>
       <div class="value">${k.value}</div>
     </div>
   `).join('');
@@ -802,6 +807,27 @@ function rebuildAll() {
 }
 
 rebuildAll();
+
+// --- Tooltip popup for info-tip elements ---
+const tooltipEl = document.getElementById('tooltipPopup');
+document.addEventListener('mouseover', e => {
+  const tip = e.target.closest('.info-tip');
+  if (tip && tip.dataset.tip) {
+    const rect = tip.getBoundingClientRect();
+    tooltipEl.textContent = tip.dataset.tip;
+    tooltipEl.style.display = 'block';
+    let left = rect.left + rect.width / 2 - tooltipEl.offsetWidth / 2;
+    let top = rect.top - tooltipEl.offsetHeight - 6;
+    left = Math.max(8, Math.min(left, window.innerWidth - tooltipEl.offsetWidth - 8));
+    if (top < 4) top = rect.bottom + 6;
+    top = Math.max(4, Math.min(top, window.innerHeight - tooltipEl.offsetHeight - 4));
+    tooltipEl.style.left = left + 'px';
+    tooltipEl.style.top = top + 'px';
+  }
+});
+document.addEventListener('mouseout', e => {
+  if (e.target.closest('.info-tip')) tooltipEl.style.display = 'none';
+});
 </script>
 </body>
 </html>

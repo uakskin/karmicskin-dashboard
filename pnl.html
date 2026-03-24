@@ -131,6 +131,10 @@
   .footer-note { padding: 16px 24px 24px; text-align: center; }
   .footer-note span { font-size: 10px; color: var(--text-muted); }
 
+  .info-tip { display: inline-block; font-size: 10px; opacity: 0.5; cursor: help; margin-left: 2px; }
+  .tooltip-popup { position: fixed; background: #111; color: #fff; font-size: 11px; padding: 5px 10px; border-radius: 6px; pointer-events: none; font-weight: 400; text-transform: none; letter-spacing: 0; z-index: 9999; box-shadow: 0 2px 8px rgba(0,0,0,0.4); display: none; border: 1px solid #333; max-width: 90vw; white-space: normal; }
+  [data-theme="light"] .tooltip-popup { background: #1a1a1a; color: #fff; border-color: #333; }
+
   /* RESPONSIVE */
   @media (max-width: 1024px) {
     .kpi-strip { grid-template-columns: repeat(3, 1fr); gap: 6px; }
@@ -152,6 +156,7 @@
 </style>
 </head>
 <body>
+<div class="tooltip-popup" id="tooltipPopup"></div>
 
 <nav class="page-nav">
   <a href="index.html">Shopify</a>
@@ -178,14 +183,14 @@
 
 <!-- KPI Cards -->
 <div class="kpi-strip">
-  <div class="kpi-card"><div class="label">Gross Margin</div><div class="value pos" id="kpiGrossMargin">--</div></div>
+  <div class="kpi-card"><div class="label">Gross Margin <span class="info-tip" data-tip="Product Gross Profit &divide; Revenue &times; 100">?</span></div><div class="value pos" id="kpiGrossMargin">--</div></div>
   <div class="kpi-card"><div class="label">Fulfilled Margin</div><div class="value pos" id="kpiFulfilledMargin">--</div></div>
-  <div class="kpi-card"><div class="label">EBITDA Margin</div><div class="value pos" id="kpiEBITDAMargin">--</div></div>
-  <div class="kpi-card"><div class="label">EBITDA</div><div class="value pos" id="kpiEBITDA">--</div></div>
-  <div class="kpi-card"><div class="label">Total Revenue</div><div class="value pos" id="kpiRevenue">--</div></div>
-  <div class="kpi-card"><div class="label">Ad Spend</div><div class="value neg" id="kpiAdSpend">--</div></div>
-  <div class="kpi-card"><div class="label">COGS</div><div class="value neg" id="kpiCOGS">--</div></div>
-  <div class="kpi-card"><div class="label">Fulfilment</div><div class="value neg" id="kpiFulfilment">--</div></div>
+  <div class="kpi-card"><div class="label">EBITDA Margin <span class="info-tip" data-tip="EBITDA &divide; Revenue &times; 100">?</span></div><div class="value pos" id="kpiEBITDAMargin">--</div></div>
+  <div class="kpi-card"><div class="label">EBITDA <span class="info-tip" data-tip="Earnings before interest, tax, depreciation &amp; amortisation">?</span></div><div class="value pos" id="kpiEBITDA">--</div></div>
+  <div class="kpi-card"><div class="label">Total Revenue <span class="info-tip" data-tip="Total revenue excluding VAT">?</span></div><div class="value pos" id="kpiRevenue">--</div></div>
+  <div class="kpi-card"><div class="label">Ad Spend <span class="info-tip" data-tip="Total advertising cost (Meta + Google + Amazon)">?</span></div><div class="value neg" id="kpiAdSpend">--</div></div>
+  <div class="kpi-card"><div class="label">COGS <span class="info-tip" data-tip="Cost of goods sold — product manufacturing cost">?</span></div><div class="value neg" id="kpiCOGS">--</div></div>
+  <div class="kpi-card"><div class="label">Fulfilment <span class="info-tip" data-tip="Shipping, packaging &amp; delivery costs">?</span></div><div class="value neg" id="kpiFulfilment">--</div></div>
 </div>
 
 <!-- P&L Summary Table -->
@@ -696,6 +701,27 @@ function buildChannelComparison(d, n) {
 
 // ─── INIT ───────────────────────────────────────────────────────────────────
 render();
+
+// --- Tooltip popup for info-tip elements ---
+const tooltipEl = document.getElementById('tooltipPopup');
+document.addEventListener('mouseover', e => {
+  const tip = e.target.closest('.info-tip');
+  if (tip && tip.dataset.tip) {
+    const rect = tip.getBoundingClientRect();
+    tooltipEl.textContent = tip.dataset.tip;
+    tooltipEl.style.display = 'block';
+    let left = rect.left + rect.width / 2 - tooltipEl.offsetWidth / 2;
+    let top = rect.top - tooltipEl.offsetHeight - 6;
+    left = Math.max(8, Math.min(left, window.innerWidth - tooltipEl.offsetWidth - 8));
+    if (top < 4) top = rect.bottom + 6;
+    top = Math.max(4, Math.min(top, window.innerHeight - tooltipEl.offsetHeight - 4));
+    tooltipEl.style.left = left + 'px';
+    tooltipEl.style.top = top + 'px';
+  }
+});
+document.addEventListener('mouseout', e => {
+  if (e.target.closest('.info-tip')) tooltipEl.style.display = 'none';
+});
 </script>
 </body>
 </html>

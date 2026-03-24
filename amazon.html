@@ -173,6 +173,11 @@
   .overlay { position: fixed; inset: 0; z-index: 99; display: none; }
   .overlay.open { display: block; }
 
+  /* TOOLTIPS */
+  .info-tip { display: inline-block; font-size: 10px; opacity: 0.5; cursor: help; margin-left: 2px; }
+  .tooltip-popup { position: fixed; background: #111; color: #fff; font-size: 11px; padding: 5px 10px; border-radius: 6px; pointer-events: none; font-weight: 400; text-transform: none; letter-spacing: 0; z-index: 9999; box-shadow: 0 2px 8px rgba(0,0,0,0.4); display: none; border: 1px solid #333; max-width: 90vw; white-space: normal; }
+  [data-theme="light"] .tooltip-popup { background: #1a1a1a; color: #fff; border-color: #333; }
+
   /* RESPONSIVE */
   @media (max-width: 1024px) {
     .kpi-strip { grid-template-columns: repeat(5, 1fr); gap: 6px; }
@@ -208,6 +213,7 @@
 </style>
 </head>
 <body>
+<div class="tooltip-popup" id="tooltipPopup"></div>
 
 <nav class="page-nav">
   <a href="index.html">Shopify</a>
@@ -275,15 +281,15 @@
 </div>
 
 <div class="kpi-strip">
-  <div class="kpi-card" title="Total ordered product sales"><div class="label">Revenue</div><div class="value" id="kpi-revenue">--</div></div>
-  <div class="kpi-card" title="Total advertising spend (monthly spread evenly across days)"><div class="label">Ad Spend</div><div class="value" id="kpi-adspend">--</div></div>
-  <div class="kpi-card" title="Revenue / Ad Spend"><div class="label">ROAS</div><div class="value" id="kpi-roas">--</div></div>
-  <div class="kpi-card" title="Total number of orders placed"><div class="label">Orders</div><div class="value" id="kpi-orders">--</div></div>
-  <div class="kpi-card" title="Total units ordered"><div class="label">Units</div><div class="value" id="kpi-units">--</div></div>
-  <div class="kpi-card" title="Total number of sessions"><div class="label">Sessions</div><div class="value" id="kpi-sessions">--</div></div>
-  <div class="kpi-card" title="Revenue / Orders"><div class="label">AOV</div><div class="value" id="kpi-aov">--</div></div>
-  <div class="kpi-card" title="Units Ordered / Sessions x 100 (Unit Session %)"><div class="label">Conversion Rate</div><div class="value" id="kpi-convrate">--</div></div>
-  <div class="kpi-card" title="Total page views"><div class="label">Page Views</div><div class="value" id="kpi-pageviews">--</div></div>
+  <div class="kpi-card"><div class="label">Revenue <span class="info-tip" data-tip="Total ordered product sales from Amazon">?</span></div><div class="value" id="kpi-revenue">--</div></div>
+  <div class="kpi-card"><div class="label">Ad Spend <span class="info-tip" data-tip="Amazon Sponsored Products ad spend">?</span></div><div class="value" id="kpi-adspend">--</div></div>
+  <div class="kpi-card"><div class="label">ROAS <span class="info-tip" data-tip="Revenue ÷ Ad Spend">?</span></div><div class="value" id="kpi-roas">--</div></div>
+  <div class="kpi-card"><div class="label">Orders <span class="info-tip" data-tip="Total Amazon orders placed in period">?</span></div><div class="value" id="kpi-orders">--</div></div>
+  <div class="kpi-card"><div class="label">Units <span class="info-tip" data-tip="Total units ordered">?</span></div><div class="value" id="kpi-units">--</div></div>
+  <div class="kpi-card"><div class="label">Sessions <span class="info-tip" data-tip="Amazon listing sessions — unique visitor sessions">?</span></div><div class="value" id="kpi-sessions">--</div></div>
+  <div class="kpi-card"><div class="label">AOV <span class="info-tip" data-tip="Revenue ÷ Orders">?</span></div><div class="value" id="kpi-aov">--</div></div>
+  <div class="kpi-card"><div class="label">Conversion Rate <span class="info-tip" data-tip="Units Ordered ÷ Sessions × 100 (Unit Session %)">?</span></div><div class="value" id="kpi-convrate">--</div></div>
+  <div class="kpi-card"><div class="label">Page Views <span class="info-tip" data-tip="Total Amazon listing page views">?</span></div><div class="value" id="kpi-pageviews">--</div></div>
 </div>
 
 <div class="dashboard-body">
@@ -1276,6 +1282,27 @@ fetchAllData();
     document.getElementById('avgRev12m').textContent = '\u00A3' + avg365.toLocaleString();
   } catch(e) { console.error('Avg monthly revenue error:', e); }
 })();
+
+// --- Tooltip popup for info-tip elements ---
+const tooltipEl = document.getElementById('tooltipPopup');
+document.addEventListener('mouseover', e => {
+  const tip = e.target.closest('.info-tip');
+  if (tip && tip.dataset.tip) {
+    const rect = tip.getBoundingClientRect();
+    tooltipEl.textContent = tip.dataset.tip;
+    tooltipEl.style.display = 'block';
+    let left = rect.left + rect.width / 2 - tooltipEl.offsetWidth / 2;
+    let top = rect.top - tooltipEl.offsetHeight - 6;
+    left = Math.max(8, Math.min(left, window.innerWidth - tooltipEl.offsetWidth - 8));
+    if (top < 4) top = rect.bottom + 6;
+    top = Math.max(4, Math.min(top, window.innerHeight - tooltipEl.offsetHeight - 4));
+    tooltipEl.style.left = left + 'px';
+    tooltipEl.style.top = top + 'px';
+  }
+});
+document.addEventListener('mouseout', e => {
+  if (e.target.closest('.info-tip')) tooltipEl.style.display = 'none';
+});
 </script>
 </body>
 </html>

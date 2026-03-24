@@ -129,6 +129,10 @@
   /* DATA SOURCE */
   .data-source { text-align: center; padding: 16px 24px 24px; font-size: 11px; color: var(--text-muted); }
 
+  .info-tip { display: inline-block; font-size: 10px; opacity: 0.5; cursor: help; margin-left: 2px; }
+  .tooltip-popup { position: fixed; background: #111; color: #fff; font-size: 11px; padding: 5px 10px; border-radius: 6px; pointer-events: none; font-weight: 400; text-transform: none; letter-spacing: 0; z-index: 9999; box-shadow: 0 2px 8px rgba(0,0,0,0.4); display: none; border: 1px solid #333; max-width: 90vw; white-space: normal; }
+  [data-theme="light"] .tooltip-popup { background: #1a1a1a; color: #fff; border-color: #333; }
+
   /* RESPONSIVE */
   @media (max-width: 1100px) {
     .kpi-strip { grid-template-columns: repeat(3, 1fr); }
@@ -144,6 +148,7 @@
 </style>
 </head>
 <body>
+<div class="tooltip-popup" id="tooltipPopup"></div>
 
 <!-- PAGE NAV -->
 <nav class="page-nav">
@@ -175,32 +180,32 @@
 <!-- KPI CARDS -->
 <section class="kpi-strip">
   <div class="kpi-card">
-    <div class="label">Total Email Revenue</div>
+    <div class="label">Total Email Revenue <span class="info-tip" data-tip="Revenue attributed to email marketing">?</span></div>
     <div class="value" id="kpiTotalRev">&pound;142,555</div>
     <div class="sub">Campaigns + Flows</div>
   </div>
   <div class="kpi-card">
-    <div class="label">Flow Revenue</div>
+    <div class="label">Flow Revenue <span class="info-tip" data-tip="Revenue from automated email flows">?</span></div>
     <div class="value">&pound;31,325</div>
     <div class="sub">4 active flows</div>
   </div>
   <div class="kpi-card">
-    <div class="label">Campaign Revenue</div>
+    <div class="label">Campaign Revenue <span class="info-tip" data-tip="Revenue from manual email campaigns">?</span></div>
     <div class="value">&pound;111,230</div>
     <div class="sub">150 campaigns sent</div>
   </div>
   <div class="kpi-card">
-    <div class="label">Avg Open Rate</div>
+    <div class="label">Avg Open Rate <span class="info-tip" data-tip="Unique opens &divide; Delivered emails &times; 100">?</span></div>
     <div class="value">36.1%</div>
     <div class="sub">Industry avg: ~40%</div>
   </div>
   <div class="kpi-card">
-    <div class="label">Avg Click Rate</div>
+    <div class="label">Avg Click Rate <span class="info-tip" data-tip="Unique clicks &divide; Delivered emails &times; 100">?</span></div>
     <div class="value">1.2%</div>
     <div class="sub">Industry avg: ~1.5%</div>
   </div>
   <div class="kpi-card">
-    <div class="label">Revenue Per Recipient</div>
+    <div class="label">Revenue Per Recipient <span class="info-tip" data-tip="Total email revenue &divide; Total recipients">?</span></div>
     <div class="value" id="kpiRPR">&pound;0.12</div>
     <div class="sub">Across all campaigns</div>
   </div>
@@ -768,6 +773,27 @@ function updateChartThemes() {
   benchmarkChart.options.scales.y.ticks.color = c.tick;
   benchmarkChart.update();
 }
+
+// --- Tooltip popup for info-tip elements ---
+const tooltipEl = document.getElementById('tooltipPopup');
+document.addEventListener('mouseover', e => {
+  const tip = e.target.closest('.info-tip');
+  if (tip && tip.dataset.tip) {
+    const rect = tip.getBoundingClientRect();
+    tooltipEl.textContent = tip.dataset.tip;
+    tooltipEl.style.display = 'block';
+    let left = rect.left + rect.width / 2 - tooltipEl.offsetWidth / 2;
+    let top = rect.top - tooltipEl.offsetHeight - 6;
+    left = Math.max(8, Math.min(left, window.innerWidth - tooltipEl.offsetWidth - 8));
+    if (top < 4) top = rect.bottom + 6;
+    top = Math.max(4, Math.min(top, window.innerHeight - tooltipEl.offsetHeight - 4));
+    tooltipEl.style.left = left + 'px';
+    tooltipEl.style.top = top + 'px';
+  }
+});
+document.addEventListener('mouseout', e => {
+  if (e.target.closest('.info-tip')) tooltipEl.style.display = 'none';
+});
 </script>
 </body>
 </html>

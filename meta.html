@@ -13,7 +13,6 @@
     --bg-page: #f8f9fa; --bg-card: #ffffff; --bg-card-alt: #f3f4f6; --bg-input: #ffffff;
     --border: #e5e7eb; --border-hover: #d1d5db;
     --text-primary: #111827; --text-secondary: #6b7280; --text-muted: #9ca3af; --text-heading: #374151;
-    --pill-bg: #f3f4f6; --pill-border: #e5e7eb; --pill-active-bg: #e5e7eb; --pill-text: #6b7280; --pill-active-text: #111827;
     --table-header-bg: #f9fafb; --table-border: #f3f4f6; --table-hover: #f9fafb;
     --dropdown-shadow: 0 12px 40px rgba(0,0,0,0.1);
     --accent: #0d9488; --accent-hover: #0f766e;
@@ -30,7 +29,6 @@
     --bg-page: #0f1117; --bg-card: #18181b; --bg-card-alt: #1e1e22; --bg-input: #0f1117;
     --border: #27272a; --border-hover: #3f3f46;
     --text-primary: #f4f4f5; --text-secondary: #a1a1aa; --text-muted: #71717a; --text-heading: #e4e4e7;
-    --pill-bg: #18181b; --pill-border: #3f3f46; --pill-active-bg: #3f3f46; --pill-text: #a1a1aa; --pill-active-text: #fff;
     --table-header-bg: #1e1e22; --table-border: #1f1f23; --table-hover: #1e1e22;
     --dropdown-shadow: 0 12px 40px rgba(0,0,0,0.5);
     --accent: #34d399; --accent-hover: #6ee7b7;
@@ -62,11 +60,22 @@
   .theme-toggle { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; cursor: pointer; font-size: 16px; line-height: 1; transition: all 0.15s; }
   .theme-toggle:hover { border-color: var(--border-hover); }
 
-  /* PERIOD PILLS */
-  .period-pills { display: flex; gap: 2px; background: var(--pill-bg); border: 1px solid var(--pill-border); border-radius: 8px; padding: 2px; }
-  .period-pill { padding: 5px 12px; border-radius: 6px; border: none; background: transparent; color: var(--pill-text); font-size: 12px; cursor: pointer; transition: all 0.15s; }
-  .period-pill:hover { color: var(--text-primary); }
-  .period-pill.active { background: var(--pill-active-bg); color: var(--pill-active-text); }
+  /* DATE PICKER */
+  .date-picker-wrap { position: relative; }
+  .date-picker-btn { padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border-hover); background: var(--bg-card); color: var(--text-primary); font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .date-picker-btn:hover { border-color: var(--text-muted); }
+  .date-picker-btn svg { width: 14px; height: 14px; fill: var(--text-muted); }
+
+  .date-dropdown { position: absolute; top: calc(100% + 6px); right: 0; background: var(--bg-card); border: 1px solid var(--border-hover); border-radius: 12px; box-shadow: var(--dropdown-shadow); z-index: 100; display: none; min-width: 180px; }
+  .date-dropdown.open { display: block; }
+  .date-presets { padding: 8px 0; }
+  .date-preset { padding: 8px 16px; font-size: 13px; color: var(--text-secondary); cursor: pointer; display: block; width: 100%; text-align: left; background: none; border: none; }
+  .date-preset:hover { background: var(--bg-card-alt); color: var(--text-primary); }
+  .date-preset.active { background: var(--bg-card-alt); color: var(--accent); }
+
+  /* Click outside to close */
+  .overlay { position: fixed; inset: 0; z-index: 99; display: none; }
+  .overlay.open { display: block; }
 
   .header-controls { display: flex; align-items: center; gap: 10px; }
 
@@ -147,11 +156,13 @@
     .kpi-strip { grid-template-columns: repeat(2, 1fr); }
     .section-row { flex-direction: column; }
     .signals-grid { grid-template-columns: 1fr; }
+    .date-dropdown { right: auto; left: 0; }
   }
 </style>
 </head>
 <body>
 <div class="tooltip-popup" id="tooltipPopup"></div>
+<div class="overlay" id="overlay"></div>
 
 <!-- PAGE NAV -->
 <nav class="page-nav">
@@ -169,14 +180,23 @@
     <h1>Meta Ads Dashboard</h1>
   </div>
   <div class="header-controls">
-    <div class="period-pills" id="periodPills">
-      <button class="period-pill" data-period="30">Last 30d</button>
-      <button class="period-pill" data-period="90">Last 90d</button>
-      <button class="period-pill" data-period="180">Last 6m</button>
-      <button class="period-pill active" data-period="365">Last 12m</button>
-      <button class="period-pill" data-period="all">All Time</button>
-    </div>
     <button class="theme-toggle" id="themeToggle" title="Toggle theme">🌙</button>
+    <div class="date-picker-wrap">
+      <button class="date-picker-btn" id="datePickerBtn" onclick="toggleDatePicker()">
+        <svg viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 1h10a1 1 0 011 1v1H4V5a1 1 0 011-1zm-1 4h12v7a1 1 0 01-1 1H5a1 1 0 01-1-1V8z"/></svg>
+        <span id="dateLabel">Last 12 months</span>
+        <svg viewBox="0 0 20 20" style="width:10px;height:10px"><path d="M10 13l-5-5h10z"/></svg>
+      </button>
+      <div class="date-dropdown" id="dateDropdown">
+        <div class="date-presets">
+          <button class="date-preset" data-preset="30">Last 30 days</button>
+          <button class="date-preset" data-preset="90">Last 90 days</button>
+          <button class="date-preset" data-preset="180">Last 6 months</button>
+          <button class="date-preset active" data-preset="365">Last 12 months</button>
+          <button class="date-preset" data-preset="all">All Time</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -302,13 +322,31 @@ themeToggle.addEventListener('click', () => {
   rebuildAll();
 });
 
-// ── PERIOD SELECTOR ──
+// ── DATE PICKER ──
 let currentPeriod = '365';
-document.querySelectorAll('.period-pill').forEach(btn => {
+const presetLabels = { '30': 'Last 30 days', '90': 'Last 90 days', '180': 'Last 6 months', '365': 'Last 12 months', 'all': 'All Time' };
+
+function toggleDatePicker() {
+  const dd = document.getElementById('dateDropdown');
+  const ov = document.getElementById('overlay');
+  dd.classList.toggle('open');
+  ov.classList.toggle('open');
+}
+
+function closeDatePicker() {
+  document.getElementById('dateDropdown').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+document.getElementById('overlay').addEventListener('click', closeDatePicker);
+
+document.querySelectorAll('.date-preset').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.period-pill').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.date-preset').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    currentPeriod = btn.dataset.period;
+    currentPeriod = btn.dataset.preset;
+    document.getElementById('dateLabel').textContent = presetLabels[currentPeriod] || currentPeriod;
+    closeDatePicker();
     rebuildAll();
   });
 });

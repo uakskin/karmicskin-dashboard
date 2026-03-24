@@ -99,11 +99,12 @@
   .pnl-table tbody tr.ebitda-row td.row-label { background: var(--highlight-bg); font-weight: 700; color: var(--highlight-text); }
   .pnl-table .neg { color: var(--negative); }
   .pnl-table .margin { font-size: 10px; color: var(--margin-text); margin-left: 4px; }
-  .pnl-table td.ytd-cell { background: rgba(255,255,255,0.04); font-weight: 600; color: var(--text-primary); border-right: 2px solid var(--border); }
-  .pnl-table th.ytd-header { border-right: 2px solid var(--border); }
-  [data-theme="light"] .pnl-table td.ytd-cell { background: rgba(0,0,0,0.03); }
-  .pnl-table tbody tr.subtotal-row td.ytd-cell { background: rgba(13,148,136,0.12); }
-  .pnl-table tbody tr.ebitda-row td.ytd-cell { background: rgba(124,58,237,0.18); }
+  .pnl-table td.ytd-cell { background: rgba(255,255,255,0.08); font-weight: 700; font-size: 13px; color: #fff; border-right: 2px solid rgba(255,255,255,0.15); border-left: 2px solid rgba(255,255,255,0.15); }
+  .pnl-table th.ytd-header { border-right: 2px solid rgba(255,255,255,0.15); border-left: 2px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); }
+  [data-theme="light"] .pnl-table td.ytd-cell { background: rgba(0,0,0,0.06); color: #111; border-right: 2px solid rgba(0,0,0,0.12); border-left: 2px solid rgba(0,0,0,0.12); }
+  [data-theme="light"] .pnl-table th.ytd-header { border-right: 2px solid rgba(0,0,0,0.12); border-left: 2px solid rgba(0,0,0,0.12); background: rgba(0,0,0,0.04); }
+  .pnl-table tbody tr.subtotal-row td.ytd-cell { background: rgba(13,148,136,0.18); }
+  .pnl-table tbody tr.ebitda-row td.ytd-cell { background: rgba(124,58,237,0.25); }
 
   /* CHARTS */
   .charts-row { display: flex; gap: 16px; padding: 0 24px 16px; }

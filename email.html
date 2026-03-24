@@ -462,6 +462,11 @@ function closeDatePicker() {
 
 document.getElementById('overlay').addEventListener('click', closeDatePicker);
 
+function applyCustomDates() {
+  // Custom date range not applicable for static monthly data — just close the picker
+  closeDatePicker();
+}
+
 const presetLabels = { '30d': 'Last 30 days', '90d': 'Last 90 days', '12m': 'Last 12 months', 'all': 'All Time' };
 
 function getSliceCount(period) {

@@ -350,6 +350,21 @@ function closeDatePicker() {
 
 document.getElementById('overlay').addEventListener('click', closeDatePicker);
 
+function applyCustomDates() {
+  const from = document.getElementById('dateFrom').value;
+  const to = document.getElementById('dateTo').value;
+  if (from && to) {
+    const fromDate = new Date(from);
+    const toDate = new Date(to);
+    const diffDays = Math.round((toDate - fromDate) / 86400000);
+    currentPeriod = String(diffDays);
+    document.getElementById('dateLabel').textContent = fromDate.toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'}) + ' – ' + toDate.toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'});
+    document.querySelectorAll('.date-preset').forEach(b => b.classList.remove('active'));
+    closeDatePicker();
+    rebuildAll();
+  }
+}
+
 document.querySelectorAll('.date-preset').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.date-preset').forEach(b => b.classList.remove('active'));

@@ -66,12 +66,17 @@
   .date-picker-btn:hover { border-color: var(--text-muted); }
   .date-picker-btn svg { width: 14px; height: 14px; fill: var(--text-muted); }
 
-  .date-dropdown { position: absolute; top: calc(100% + 6px); right: 0; background: var(--bg-card); border: 1px solid var(--border-hover); border-radius: 12px; box-shadow: var(--dropdown-shadow); z-index: 100; display: none; min-width: 180px; }
-  .date-dropdown.open { display: block; }
-  .date-presets { padding: 8px 0; }
+  .date-dropdown { position: absolute; top: calc(100% + 6px); right: 0; background: var(--bg-card); border: 1px solid var(--border-hover); border-radius: 12px; box-shadow: var(--dropdown-shadow); z-index: 100; display: none; min-width: 320px; }
+  .date-dropdown.open { display: flex; }
+  .date-presets { border-right: 1px solid var(--border); padding: 8px 0; min-width: 150px; }
   .date-preset { padding: 8px 16px; font-size: 13px; color: var(--text-secondary); cursor: pointer; display: block; width: 100%; text-align: left; background: none; border: none; }
   .date-preset:hover { background: var(--bg-card-alt); color: var(--text-primary); }
   .date-preset.active { background: var(--bg-card-alt); color: var(--accent); }
+  .date-custom { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .date-custom label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .date-custom input[type="date"] { padding: 7px 10px; border-radius: 6px; border: 1px solid var(--border-hover); background: var(--bg-input); color: var(--text-primary); font-size: 13px; width: 100%; }
+  .date-custom .apply-btn { padding: 8px 16px; border-radius: 8px; border: none; background: var(--accent); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 4px; }
+  .date-custom .apply-btn:hover { background: var(--accent-hover); }
 
   /* Click outside to close */
   .overlay { position: fixed; inset: 0; z-index: 99; display: none; }
@@ -166,7 +171,7 @@
 
 <!-- PAGE NAV -->
 <nav class="page-nav">
-  <a href="index.html">Shopify</a>
+  <a href="dashboard.html">Shopify</a>
   <a href="amazon.html">Amazon</a>
   <a href="pnl.html">P&L</a>
   <a href="email.html">Email</a>
@@ -194,6 +199,11 @@
           <button class="date-preset" data-preset="180">Last 6 months</button>
           <button class="date-preset active" data-preset="365">Last 12 months</button>
           <button class="date-preset" data-preset="all">All Time</button>
+        </div>
+        <div class="date-custom">
+          <div><label>Starting</label><input type="date" id="dateFrom"></div>
+          <div><label>Ending</label><input type="date" id="dateTo"></div>
+          <button class="apply-btn" onclick="applyCustomDates()">Apply</button>
         </div>
       </div>
     </div>

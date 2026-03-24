@@ -684,6 +684,7 @@ async function fetchAllData() {
   if (dailyDataWithAds.length > 0) {
     const lastDate = dailyDataWithAds[dailyDataWithAds.length - 1].report_date;
     const d = new Date(lastDate + 'T04:00:00');
+    d.setDate(d.getDate() + 1);
     const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
     document.getElementById('lastUpdated').textContent = `Data refreshed last at: ${dateStr}, 4:00 am`;
   }

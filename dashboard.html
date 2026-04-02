@@ -127,6 +127,7 @@
   .perf-table .negative { color: var(--negative); }
   .perf-table .subtle { color: var(--text-muted); }
   .perf-table .highlight-best { background: var(--highlight-bg); color: var(--highlight-text); font-weight: 700; }
+  .perf-table .highlight-worst { background: rgba(239,68,68,0.15); color: #fca5a5; font-weight: 700; }
 
   /* PAGE NAV */
   .page-nav { display: flex; border-bottom: 1px solid var(--border); background: var(--bg-card); position: sticky; top: 0; z-index: 50; }
@@ -262,6 +263,7 @@
           <button class="date-preset" data-preset="ytd">Year to date</button>
           <button class="date-preset" data-preset="last7">Last 7 days</button>
           <button class="date-preset" data-preset="last30">Last 30 days</button>
+          <button class="date-preset" data-preset="last90">Last 90 days</button>
           <button class="date-preset" data-preset="lastMonth">Last month</button>
           <button class="date-preset" data-preset="last12m">Last 12 months</button>
           <button class="date-preset" data-preset="lastYear">Last year</button>
@@ -286,11 +288,11 @@
   <div class="kpi-card"><div class="label">Revenue <span class="info-tip" data-tip="Total Shopify sales inc. VAT, net of refunds">ⓘ</span></div><div class="value" id="kpi-revenue">--</div></div>
   <div class="kpi-card"><div class="label">Ad Spend <span class="info-tip" data-tip="Meta + Google ad spend combined">ⓘ</span></div><div class="value" id="kpi-adspend">--</div></div>
   <div class="kpi-card"><div class="label">Blended ROAS <span class="info-tip" data-tip="Revenue ÷ Ad Spend">ⓘ</span></div><div class="value" id="kpi-roas">--</div></div>
-  <div class="kpi-card"><div class="label">AOV <span class="info-tip" data-tip="Revenue ÷ Orders">ⓘ</span></div><div class="value" id="kpi-aov">--</div></div>
+  <div class="kpi-card"><div class="label">AOV <span class="info-tip" data-tip="Net product revenue (ex-VAT, ex-shipping) ÷ Orders">ⓘ</span></div><div class="value" id="kpi-aov">--</div></div>
   <div class="kpi-card"><div class="label">Orders <span class="info-tip" data-tip="Total Shopify orders placed in period">ⓘ</span></div><div class="value" id="kpi-orders">--</div></div>
   <div class="kpi-card"><div class="label">New Customers <span class="info-tip" data-tip="First-time buyers only (no prior Shopify orders)">ⓘ</span></div><div class="value" id="kpi-new">--</div></div>
-  <div class="kpi-card"><div class="label">Repeat % <span class="info-tip" data-tip="Repeat Orders ÷ Total Orders × 100">ⓘ</span></div><div class="value" id="kpi-repeat">--</div></div>
-  <div class="kpi-card"><div class="label">Blended CAC <span class="info-tip" data-tip="Ad Spend ÷ Orders">ⓘ</span></div><div class="value" id="kpi-cac">--</div></div>
+  <div class="kpi-card"><div class="label">Repeat % <span class="info-tip" data-tip="Returning Customers ÷ Total Unique Customers × 100">ⓘ</span></div><div class="value" id="kpi-repeat">--</div></div>
+  <div class="kpi-card"><div class="label">N-CAC <span class="info-tip" data-tip="Ad Spend (Meta + Google) ÷ New Unique Paying Customers">ⓘ</span></div><div class="value" id="kpi-cac">--</div></div>
   <div class="kpi-card"><div class="label">Sessions <span class="info-tip" data-tip="GA4 sessions — total website visits tracked by Google Analytics">ⓘ</span></div><div class="value" id="kpi-sessions">--</div></div>
   <div class="kpi-card"><div class="label">CVR % <span class="info-tip" data-tip="Orders ÷ GA4 Sessions × 100 — uses GA4 sessions as the denominator">ⓘ</span></div><div class="value" id="kpi-cvr">--</div></div>
 </div>
@@ -341,9 +343,9 @@
       <span class="toggle-label">Repeat %</span>
     </div>
     <div class="toggle-item" onclick="this.querySelector('input').click()">
-      <input type="checkbox" data-metric="cac">
+      <input type="checkbox" data-metric="ncac">
       <div class="toggle-dot" style="--dot-color: #ea580c"></div>
-      <span class="toggle-label">Blended CAC</span>
+      <span class="toggle-label">N-CAC</span>
     </div>
     <div class="toggle-item" onclick="this.querySelector('input').click()">
       <input type="checkbox" data-metric="metaSpend">
@@ -429,15 +431,15 @@
             <th data-col="adSpend" title="Meta Ad Spend + Google Ad Spend">Ad Spend <span class="sort-arrow">▼</span></th>
             <th data-col="roas" title="Revenue ÷ Ad Spend">ROAS <span class="sort-arrow">▼</span></th>
             <th data-col="orders" title="Total number of orders placed">Orders <span class="sort-arrow">▼</span></th>
-            <th data-col="aov" title="Revenue ÷ Orders">AOV <span class="sort-arrow">▼</span></th>
-            <th data-col="cac" title="Ad Spend ÷ Orders">CAC <span class="sort-arrow">▼</span></th>
-            <th data-col="repeatPct" title="Repeat Orders ÷ Total Orders × 100">Repeat % <span class="sort-arrow">▼</span></th>
+            <th data-col="aov" title="Net product revenue (ex-VAT, ex-shipping) ÷ Orders">AOV <span class="sort-arrow">▼</span></th>
+            <th data-col="repeatPct" title="Returning Customers ÷ Total Unique Customers × 100">Repeat % <span class="sort-arrow">▼</span></th>
             <th data-col="newCust" title="Customers placing their first-ever order">New Cust. <span class="sort-arrow">▼</span></th>
             <th data-col="repeat" title="Customers who have ordered before">Repeat <span class="sort-arrow">▼</span></th>
             <th data-col="meta" title="Total Meta (Facebook/Instagram) advertising spend">Meta Ad Spend <span class="sort-arrow">▼</span></th>
             <th data-col="google" title="Total Google Ads (Search/PMax) advertising spend">Google Ad Spend <span class="sort-arrow">▼</span></th>
-            <th data-col="ltv" title="Trailing 12-month Revenue ÷ Unique Customers in that period">LTV 12m <span class="sort-arrow">▼</span></th>
-            <th data-col="ltv6m" title="Trailing 6-month Revenue ÷ Unique Customers in that period">LTV 6m <span class="sort-arrow">▼</span></th>
+            <th data-col="ltv" title="Trailing 12-month Revenue ÷ Unique Customers in that 12-month window">LTV 12m <span class="info-tip" data-tip="Trailing 12-month Revenue ÷ Unique Customers in that 12-month window">ⓘ</span> <span class="sort-arrow">▼</span></th>
+            <th data-col="ncac" title="New Customer Acquisition Cost. Total Ad Spend (Meta + Google) ÷ New Unique Paying Customers acquired that month.">N-CAC <span class="info-tip" data-tip="Total Ad Spend (Meta + Google) ÷ New Unique Paying Customers acquired that month">ⓘ</span> <span class="sort-arrow">▼</span></th>
+            <th data-col="ltvNcac" title="LTV 12m ÷ N-CAC. How much lifetime revenue a customer generates relative to what you paid to acquire them.">LTV:N-CAC <span class="info-tip" data-tip="LTV 12m ÷ N-CAC. Lifetime revenue relative to new customer acquisition cost.">ⓘ</span> <span class="sort-arrow">▼</span></th>
           </tr>
         </thead>
         <tbody id="perfTableBody">
@@ -534,7 +536,7 @@ const METRIC_CONFIG = {
   orders:       { label: 'Orders',          color: '#2563eb', prefix: '',       yAxis: 'y1', decimals: 0 },
   newCustomers: { label: 'New Customers',   color: '#059669', prefix: '',       yAxis: 'y1', decimals: 0 },
   repeatPct:    { label: 'Repeat %',        color: '#9333ea', prefix: '',       yAxis: 'y1', decimals: 1, suffix: '%' },
-  cac:          { label: 'Blended CAC',     color: '#ea580c', prefix: '\u00A3', yAxis: 'y1', decimals: 1 },
+  ncac:         { label: 'N-CAC',            color: '#ea580c', prefix: '\u00A3', yAxis: 'y1', decimals: 1 },
   metaSpend:    { label: 'Meta Ad Spend',   color: '#6366f1', prefix: '\u00A3', yAxis: 'y',  decimals: 0 },
   googleSpend:  { label: 'Google Ad Spend', color: '#0891b2', prefix: '\u00A3', yAxis: 'y',  decimals: 0 },
   sessions:     { label: 'Sessions',        color: '#4f46e5', prefix: '',       yAxis: 'y1', decimals: 0 },
@@ -577,7 +579,7 @@ let currentPeriod = 'weekly';
 let activePreset = 'mtd';
 
 // DATE HELPERS
-function fmtDate(d) { return d.toISOString().split('T')[0]; }
+function fmtDate(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
 function fmtDisplay(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -597,6 +599,10 @@ function getPresetDates(preset) {
     case 'last30': {
       const from = new Date(today); from.setDate(today.getDate() - 29);
       return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Last 30 days' };
+    }
+    case 'last90': {
+      const from = new Date(today); from.setDate(today.getDate() - 89);
+      return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Last 90 days' };
     }
     case 'mtd': {
       const from = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -677,8 +683,18 @@ document.querySelectorAll('.date-preset').forEach(btn => {
   btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
 });
 
-// INIT dates
-const initDates = getPresetDates('mtd');
+// INIT dates — on 1st of month MTD is empty (from > to), fall back to Last Month
+let initPreset = 'mtd';
+let initDates = getPresetDates('mtd');
+if (initDates.from > initDates.to) {
+  initPreset = 'lastMonth';
+  initDates = getPresetDates('lastMonth');
+  activePreset = 'lastMonth';
+  document.getElementById('dateLabel').textContent = initDates.label;
+  document.querySelectorAll('.date-preset').forEach(b => {
+    b.classList.toggle('active', b.dataset.preset === 'lastMonth');
+  });
+}
 document.getElementById('dateFrom').value = initDates.from;
 document.getElementById('dateTo').value = initDates.to;
 document.getElementById('dateFrom').dataset.current = initDates.from;
@@ -689,7 +705,7 @@ async function fetchData() {
   const from = document.getElementById('dateFrom').dataset.current || document.getElementById('dateFrom').value;
   const to = document.getElementById('dateTo').dataset.current || document.getElementById('dateTo').value;
 
-  const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.${from}&report_date=lte.${to}&order=report_date.asc&select=report_date,total_sales,total_ad_spend,meta_spend,google_spend,total_orders,aov,new_customer_orders,returning_customer_orders,blended_cac,ga4_sessions`;
+  const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.${from}&report_date=lte.${to}&order=report_date.asc&select=report_date,total_sales,net_product_revenue,total_ad_spend,meta_spend,google_spend,meta_revenue,google_revenue,total_orders,aov,new_customer_orders,returning_customer_orders,blended_cac,ga4_sessions`;
 
   const resp = await fetch(url, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
@@ -713,12 +729,15 @@ function aggregateData(data, period) {
       const q = Math.floor(d.getMonth() / 3);
       key = d.getFullYear() + '-' + String(q * 3 + 1).padStart(2, '0') + '-01';
     }
-    if (!buckets[key]) buckets[key] = { date: key, revenue: 0, adSpend: 0, metaSpend: 0, googleSpend: 0, orders: 0, newCustomers: 0, returning: 0, sessions: 0, days: 0 };
+    if (!buckets[key]) buckets[key] = { date: key, revenue: 0, netProductRev: 0, adSpend: 0, metaSpend: 0, googleSpend: 0, metaRev: 0, googleRev: 0, orders: 0, newCustomers: 0, returning: 0, sessions: 0, days: 0 };
     const b = buckets[key];
     b.revenue += parseFloat(row.total_sales || 0);
+    b.netProductRev += parseFloat(row.net_product_revenue || 0);
     b.adSpend += parseFloat(row.total_ad_spend || 0);
     b.metaSpend += parseFloat(row.meta_spend || 0);
     b.googleSpend += parseFloat(row.google_spend || 0);
+    b.metaRev += parseFloat(row.meta_revenue || 0);
+    b.googleRev += parseFloat(row.google_revenue || 0);
     b.orders += parseInt(row.total_orders || 0);
     b.newCustomers += parseInt(row.new_customer_orders || 0);
     b.returning += parseInt(row.returning_customer_orders || 0);
@@ -726,12 +745,15 @@ function aggregateData(data, period) {
     b.days++;
   }
   return Object.values(buckets).map(b => ({
-    date: b.date, revenue: b.revenue, adSpend: b.adSpend, metaSpend: b.metaSpend, googleSpend: b.googleSpend,
+    date: b.date, revenue: b.revenue, netProductRev: b.netProductRev, adSpend: b.adSpend,
+    metaSpend: b.metaSpend, googleSpend: b.googleSpend, metaRev: b.metaRev, googleRev: b.googleRev,
     roas: b.adSpend > 0 ? b.revenue / b.adSpend : 0,
-    aov: b.orders > 0 ? b.revenue / b.orders : 0,
-    orders: b.orders, newCustomers: b.newCustomers,
-    repeatPct: b.orders > 0 ? (b.returning / b.orders) * 100 : 0,
-    cac: b.orders > 0 ? b.adSpend / b.orders : 0,
+    aov: b.orders > 0 ? b.netProductRev / b.orders : 0,
+    metaRoas: b.metaSpend > 0 ? b.metaRev / b.metaSpend : 0,
+    googleRoas: b.googleSpend > 0 ? b.googleRev / b.googleSpend : 0,
+    orders: b.orders, newCustomers: b.newCustomers, returning: b.returning,
+    repeatPct: (b.newCustomers + b.returning) > 0 ? (b.returning / (b.newCustomers + b.returning)) * 100 : 0,
+    ncac: b.newCustomers > 0 ? b.adSpend / b.newCustomers : 0,
     sessions: b.sessions,
     cvr: b.sessions > 0 ? (b.orders / b.sessions) * 100 : 0,
   })).sort((a, b) => a.date.localeCompare(b.date));
@@ -764,20 +786,20 @@ fetchAvgMonthlyRevenue();
 
 function updateKPIs(data) {
   const t = data.reduce((a, d) => {
-    a.revenue += d.revenue; a.adSpend += d.adSpend; a.orders += d.orders;
-    a.newCustomers += d.newCustomers; a.returning += (d.orders - d.newCustomers);
+    a.revenue += d.revenue; a.netProductRev += (d.netProductRev || 0); a.adSpend += d.adSpend;
+    a.orders += d.orders; a.newCustomers += d.newCustomers; a.returning += (d.returning || 0);
     a.sessions += d.sessions;
     return a;
-  }, { revenue: 0, adSpend: 0, orders: 0, newCustomers: 0, returning: 0, sessions: 0 });
+  }, { revenue: 0, netProductRev: 0, adSpend: 0, orders: 0, newCustomers: 0, returning: 0, sessions: 0 });
 
   document.getElementById('kpi-revenue').textContent = '\u00A3' + Math.round(t.revenue).toLocaleString();
   document.getElementById('kpi-adspend').textContent = '\u00A3' + Math.round(t.adSpend).toLocaleString();
   document.getElementById('kpi-roas').textContent = t.adSpend > 0 ? (t.revenue / t.adSpend).toFixed(2) : '--';
-  document.getElementById('kpi-aov').textContent = '\u00A3' + (t.orders > 0 ? (t.revenue / t.orders).toFixed(1) : '--');
+  document.getElementById('kpi-aov').textContent = '\u00A3' + (t.orders > 0 ? (t.netProductRev / t.orders).toFixed(0) : '--');
   document.getElementById('kpi-orders').textContent = t.orders.toLocaleString();
   document.getElementById('kpi-new').textContent = t.newCustomers.toLocaleString();
-  document.getElementById('kpi-repeat').textContent = t.orders > 0 ? ((t.returning / t.orders) * 100).toFixed(1) + '%' : '--';
-  document.getElementById('kpi-cac').textContent = '\u00A3' + (t.orders > 0 ? (t.adSpend / t.orders).toFixed(1) : '--');
+  document.getElementById('kpi-repeat').textContent = (t.newCustomers + t.returning) > 0 ? ((t.returning / (t.newCustomers + t.returning)) * 100).toFixed(1) + '%' : '--';
+  document.getElementById('kpi-cac').textContent = '\u00A3' + (t.newCustomers > 0 ? (t.adSpend / t.newCustomers).toFixed(0) : '--');
   document.getElementById('kpi-sessions').textContent = t.sessions.toLocaleString();
   document.getElementById('kpi-cvr').textContent = t.sessions > 0 ? ((t.orders / t.sessions) * 100).toFixed(2) + '%' : '--';
 }
@@ -890,12 +912,12 @@ document.querySelectorAll('.toggle-item input').forEach(cb => {
 // PERFORMANCE TABLE
 let allDailyData = [];
 let ltvData = {};
-let ltv6mData = {};
+// N-CAC and LTV:N-CAC computed from existing data
 let tablePeriod = 'monthly';
 const VISIBLE_ROWS = 12;
 
 async function fetchTableData() {
-  const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.2024-01-01&report_date=lt.${fmtDate(new Date())}&order=report_date.asc&select=report_date,total_sales,total_ad_spend,meta_spend,google_spend,total_orders,new_customer_orders,returning_customer_orders,ga4_sessions`;
+  const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.2024-01-01&report_date=lt.${fmtDate(new Date())}&order=report_date.asc&select=report_date,total_sales,net_product_revenue,total_ad_spend,meta_spend,google_spend,meta_revenue,google_revenue,total_orders,new_customer_orders,returning_customer_orders,ga4_sessions`;
   const resp = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } });
   allDailyData = await resp.json();
 
@@ -909,23 +931,15 @@ async function fetchTableData() {
     if (Array.isArray(ltvRows)) { for (const r of ltvRows) ltvData[r.month] = parseFloat(r.ltv_12m); }
   } catch(e) {}
 
-  // Fetch LTV 6m
-  try {
-    const ltv6Resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_trailing_ltv_6m`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
-      body: '{}'
-    });
-    const ltv6Rows = await ltv6Resp.json();
-    if (Array.isArray(ltv6Rows)) { for (const r of ltv6Rows) ltv6mData[r.month] = parseFloat(r.ltv_6m); }
-  } catch(e) {}
+  // LTV 6m removed — N-CAC and LTV:N-CAC computed from table data
 
   // Set last updated from actual data
   if (allDailyData.length > 0) {
     const lastDate = allDailyData[allDailyData.length - 1].report_date;
-    const d = new Date(lastDate + 'T04:00:00');
-    d.setDate(d.getDate() + 1); // Data for day X is synced at 4am on day X+1
+    const d = new Date(lastDate + 'T00:00:00');
+    d.setDate(d.getDate() + 1); // Data through end of lastDate = start of next day
     const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-    document.getElementById('lastUpdated').textContent = `Data refreshed last at: ${dateStr}, 4:00 am`;
+    document.getElementById('lastUpdated').textContent = `Data refreshed until: ${dateStr} (00:00)`;
   }
 
   renderTable();
@@ -944,12 +958,15 @@ function aggregateTableData(period) {
     } else {
       key = row.report_date.substring(0, 7);
     }
-    if (!buckets[key]) buckets[key] = { revenue: 0, adSpend: 0, meta: 0, google: 0, orders: 0, newCust: 0, repeat: 0 };
+    if (!buckets[key]) buckets[key] = { revenue: 0, netProductRev: 0, adSpend: 0, meta: 0, google: 0, metaRev: 0, googleRev: 0, orders: 0, newCust: 0, repeat: 0 };
     const b = buckets[key];
     b.revenue += parseFloat(row.total_sales || 0);
+    b.netProductRev += parseFloat(row.net_product_revenue || 0);
     b.adSpend += parseFloat(row.total_ad_spend || 0);
     b.meta += parseFloat(row.meta_spend || 0);
     b.google += parseFloat(row.google_spend || 0);
+    b.metaRev += parseFloat(row.meta_revenue || 0);
+    b.googleRev += parseFloat(row.google_revenue || 0);
     b.orders += parseInt(row.total_orders || 0);
     b.newCust += parseInt(row.new_customer_orders || 0);
     b.repeat += parseInt(row.returning_customer_orders || 0);
@@ -981,11 +998,11 @@ function buildTableRows() {
   tableRows = chronoKeys.map(k => {
     const d = buckets[k];
     const roas = d.adSpend > 0 ? d.revenue / d.adSpend : 0;
-    const aov = d.orders > 0 ? d.revenue / d.orders : 0;
-    const repeatPct = d.orders > 0 ? (d.repeat / d.orders * 100) : 0;
-    const cac = d.orders > 0 ? d.adSpend / d.orders : 0;
+    const aov = d.orders > 0 ? d.netProductRev / d.orders : 0;
+    const repeatPct = (d.newCust + d.repeat) > 0 ? (d.repeat / (d.newCust + d.repeat) * 100) : 0;
     const ltv = tablePeriod === 'monthly' ? (ltvData[k] || 0) : 0;
-    const ltv6m = tablePeriod === 'monthly' ? (ltv6mData[k] || 0) : 0;
+    const ncac = d.newCust > 0 ? d.adSpend / d.newCust : 0;
+    const ltvNcac = (ltv > 0 && ncac > 0) ? ltv / ncac : 0;
     let label;
     if (tablePeriod === 'monthly') {
       label = monthNames[parseInt(k.substring(5, 7)) - 1] + ' ' + String(parseInt(k.substring(0, 4))).slice(2);
@@ -996,7 +1013,7 @@ function buildTableRows() {
     }
     return {
       key: k, label, roas, revenue: d.revenue, adSpend: d.adSpend, meta: d.meta, google: d.google,
-      orders: d.orders, aov, newCust: d.newCust, repeat: d.repeat, repeatPct, cac, ltv, ltv6m,
+      orders: d.orders, aov, newCust: d.newCust, repeat: d.repeat, repeatPct, ltv, ncac, ltvNcac,
       growthPct: growthMap[k].revGrowth, spendGrowth: growthMap[k].spendGrowth,
     };
   });
@@ -1019,14 +1036,14 @@ function renderTable() {
   let bestOrdersVal = -Infinity, bestOrdersKey = null;
   let bestNewCustVal = -Infinity, bestNewCustKey = null;
   let bestRepeatVal = -Infinity, bestRepeatKey = null;
-  let bestCacVal = Infinity, bestCacKey = null;
+  // bestCac removed — B-CAC no longer shown
   for (const r of rows) {
     if (r.revenue > bestRevVal) { bestRevVal = r.revenue; bestRevKey = r.key; }
     if (r.roas > bestRoasVal && r.adSpend > 100) { bestRoasVal = r.roas; bestRoasKey = r.key; }
     if (r.orders > bestOrdersVal) { bestOrdersVal = r.orders; bestOrdersKey = r.key; }
     if (r.newCust > bestNewCustVal) { bestNewCustVal = r.newCust; bestNewCustKey = r.key; }
     if (r.repeat > bestRepeatVal) { bestRepeatVal = r.repeat; bestRepeatKey = r.key; }
-    if (r.cac > 0 && r.cac < bestCacVal) { bestCacVal = r.cac; bestCacKey = r.key; }
+    // B-CAC tracking removed
   }
 
   // Update header arrows
@@ -1046,7 +1063,7 @@ function renderTable() {
     const isTopOrders = r.key === bestOrdersKey;
     const isTopNewCust = r.key === bestNewCustKey;
     const isTopRepeat = r.key === bestRepeatKey;
-    const isBestCac = r.key === bestCacKey;
+    // B-CAC highlight removed
 
     html += `<tr>
       <td>${r.label}</td>
@@ -1056,14 +1073,14 @@ function renderTable() {
       <td${isTopRoas ? ' class="highlight-best"' : ''}>${r.roas.toFixed(2)}</td>
       <td${isTopOrders ? ' class="highlight-best"' : ''}>${r.orders.toLocaleString()}</td>
       <td>\u00A3${Math.round(r.aov)}</td>
-      <td${isBestCac ? ' class="highlight-best"' : ''}>\u00A3${Math.round(r.cac)}</td>
       <td>${r.repeatPct.toFixed(1)}%</td>
       <td${isTopNewCust ? ' class="highlight-best"' : ''}>${r.newCust.toLocaleString()}</td>
       <td${isTopRepeat ? ' class="highlight-best"' : ''}>${r.repeat.toLocaleString()}</td>
       <td>\u00A3${Math.round(r.meta).toLocaleString()}</td>
       <td>\u00A3${Math.round(r.google).toLocaleString()}</td>
       <td>${r.ltv > 0 ? '\u00A3' + r.ltv.toFixed(0) : '-'}</td>
-      <td>${r.ltv6m > 0 ? '\u00A3' + r.ltv6m.toFixed(0) : '-'}</td>
+      <td>${r.ncac > 0 ? '\u00A3' + r.ncac.toFixed(0) : '-'}</td>
+      <td>${r.ltvNcac > 0 ? r.ltvNcac.toFixed(1) + 'x' : '-'}</td>
     </tr>`;
   }
 
@@ -1289,14 +1306,46 @@ async function fetchCohortRetention() {
       const intensity = Math.min(pct / 0.25, 1);
       return `background: rgba(13, 148, 136, ${intensity * 0.35})`;
     }
-    let html = '';
+    // Compute two averages rows: all-time and last 24 months
+    const thresholds = [1, 2, 3, 4, 5, 6, 12, 18, 24];
+    const allSums = new Array(9).fill(0), allCounts = new Array(9).fill(0);
+    const l24Sums = new Array(9).fill(0), l24Counts = new Array(9).fill(0);
+    let allSize = 0, allSizeN = 0, l24Size = 0, l24SizeN = 0;
+    const now = new Date();
+    const cutoff24 = new Date(now.getFullYear() - 2, now.getMonth(), 1).toISOString().substring(0, 7);
+    for (const r of data) {
+      const size = parseInt(r.cohort_size);
+      const elapsed = parseInt(r.months_elapsed) || 0;
+      const rawVals = [parseInt(r.m1), parseInt(r.m2), parseInt(r.m3), parseInt(r.m4), parseInt(r.m5), parseInt(r.m6), parseInt(r.m12), parseInt(r.m18), parseInt(r.m24)];
+      const isLast24 = r.cohort >= cutoff24;
+      allSize += size; allSizeN++;
+      if (isLast24) { l24Size += size; l24SizeN++; }
+      for (let i = 0; i < 9; i++) {
+        if (elapsed >= thresholds[i] && rawVals[i] > 0 && size > 0) {
+          const pct = rawVals[i] / size * 100;
+          allSums[i] += pct; allCounts[i]++;
+          if (isLast24) { l24Sums[i] += pct; l24Counts[i]++; }
+        }
+      }
+    }
+    function avgRow(label, sums, counts, totalSize, sizeN, borderStyle) {
+      return `<tr style="${borderStyle}background:rgba(13,148,136,0.06)">
+        <td style="font-weight:700">${label}</td>
+        <td style="font-weight:600">${sizeN > 0 ? Math.round(totalSize / sizeN).toLocaleString() : '-'}</td>
+        ${sums.map((s, i) => counts[i] > 0
+          ? `<td style="font-weight:600;${retColor(s / counts[i] * 0.01 * 100, 100)}">${(s / counts[i]).toFixed(1)}%</td>`
+          : '<td>-</td>'
+        ).join('')}
+      </tr>`;
+    }
+    let html = avgRow('Avg (Last 24M)', l24Sums, l24Counts, l24Size, l24SizeN, '');
+    html += avgRow('Avg (All Time)', allSums, allCounts, allSize, allSizeN, 'border-bottom:2px solid var(--border);');
     for (const r of data) {
       const yr = parseInt(r.cohort.substring(0, 4));
       const mo = parseInt(r.cohort.substring(5, 7));
       const label = monthNames[mo - 1] + ' ' + String(yr).slice(2);
       const size = parseInt(r.cohort_size);
       const elapsed = parseInt(r.months_elapsed) || 0;
-      const thresholds = [1, 2, 3, 4, 5, 6, 12, 18, 24];
       const rawVals = [parseInt(r.m1), parseInt(r.m2), parseInt(r.m3), parseInt(r.m4), parseInt(r.m5), parseInt(r.m6), parseInt(r.m12), parseInt(r.m18), parseInt(r.m24)];
       html += `<tr>
         <td style="font-weight:600">${label}</td>

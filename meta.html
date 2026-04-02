@@ -82,7 +82,7 @@
   .overlay { position: fixed; inset: 0; z-index: 99; display: none; }
   .overlay.open { display: block; }
 
-  .header-controls { display: flex; align-items: center; gap: 10px; }
+  .date-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
   /* KPI STRIP */
   .kpi-strip { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; padding: 16px 24px; }
@@ -162,6 +162,7 @@
     .section-row { flex-direction: column; }
     .signals-grid { grid-template-columns: 1fr; }
     .date-dropdown { right: auto; left: 0; }
+    .date-controls { width: 100%; }
   }
 </style>
 </head>
@@ -184,21 +185,28 @@
     <div class="brand">KARMIC SKIN</div>
     <h1>Meta Ads Dashboard</h1>
   </div>
-  <div class="header-controls">
+  <div class="date-controls">
+    <div style="text-align:right;margin-right:8px">
+      <span class="last-updated" id="lastUpdated"></span>
+    </div>
     <button class="theme-toggle" id="themeToggle" title="Toggle theme">🌙</button>
     <div class="date-picker-wrap">
       <button class="date-picker-btn" id="datePickerBtn" onclick="toggleDatePicker()">
         <svg viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 1h10a1 1 0 011 1v1H4V5a1 1 0 011-1zm-1 4h12v7a1 1 0 01-1 1H5a1 1 0 01-1-1V8z"/></svg>
-        <span id="dateLabel">Last 12 months</span>
+        <span id="dateLabel">Month to date</span>
         <svg viewBox="0 0 20 20" style="width:10px;height:10px"><path d="M10 13l-5-5h10z"/></svg>
       </button>
       <div class="date-dropdown" id="dateDropdown">
         <div class="date-presets">
-          <button class="date-preset" data-preset="30">Last 30 days</button>
-          <button class="date-preset" data-preset="90">Last 90 days</button>
-          <button class="date-preset" data-preset="180">Last 6 months</button>
-          <button class="date-preset active" data-preset="365">Last 12 months</button>
-          <button class="date-preset" data-preset="all">All Time</button>
+          <button class="date-preset" data-preset="yesterday">Yesterday</button>
+          <button class="date-preset active" data-preset="mtd">Month to date</button>
+          <button class="date-preset" data-preset="ytd">Year to date</button>
+          <button class="date-preset" data-preset="last7">Last 7 days</button>
+          <button class="date-preset" data-preset="last30">Last 30 days</button>
+          <button class="date-preset" data-preset="last90">Last 90 days</button>
+          <button class="date-preset" data-preset="lastMonth">Last month</button>
+          <button class="date-preset" data-preset="last12m">Last 12 months</button>
+          <button class="date-preset" data-preset="lastYear">Last year</button>
         </div>
         <div class="date-custom">
           <div><label>Starting</label><input type="date" id="dateFrom"></div>
@@ -308,13 +316,19 @@ const monthLabel = (m) => {
   return d.toLocaleDateString('en-GB', {month:'short', year:'2-digit'});
 };
 
-function getFilteredData(period) {
-  if (period === 'all') return [...metaData];
-  const now = new Date('2026-03-31');
-  const days = parseInt(period);
-  const cutoff = new Date(now);
-  cutoff.setDate(cutoff.getDate() - days);
-  return metaData.filter(d => new Date(d.month) >= cutoff);
+function getFilteredData() {
+  if (!currentDateFrom || !currentDateTo) return [...metaData];
+  const from = currentDateFrom;
+  const to = currentDateTo;
+  return metaData.filter(d => {
+    // Each row is a month starting on the 1st. Include the month if it overlaps the date range.
+    const monthStart = d.month; // e.g. '2026-03-01'
+    const mDate = new Date(monthStart);
+    const mEnd = new Date(mDate.getFullYear(), mDate.getMonth() + 1, 0); // last day of that month
+    const monthEndStr = fmtDate(mEnd);
+    // Include if month overlaps [from, to]
+    return monthEndStr >= from && monthStart <= to;
+  });
 }
 
 function sumField(data, field) { return data.reduce((s, r) => s + r[field], 0); }
@@ -332,15 +346,72 @@ themeToggle.addEventListener('click', () => {
   rebuildAll();
 });
 
-// ── DATE PICKER ──
-let currentPeriod = '365';
-const presetLabels = { '30': 'Last 30 days', '90': 'Last 90 days', '180': 'Last 6 months', '365': 'Last 12 months', 'all': 'All Time' };
+// ── DATE PICKER (Shopify-matching) ──
+let activePreset = 'mtd';
+let currentDateFrom = '';
+let currentDateTo = '';
+
+function fmtDate(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function fmtDisplay(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function getPresetDates(preset) {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+
+  switch(preset) {
+    case 'yesterday': return { from: fmtDate(yesterday), to: fmtDate(yesterday), label: 'Yesterday' };
+    case 'last7': {
+      const from = new Date(today); from.setDate(today.getDate() - 6);
+      return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Last 7 days' };
+    }
+    case 'last30': {
+      const from = new Date(today); from.setDate(today.getDate() - 29);
+      return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Last 30 days' };
+    }
+    case 'last90': {
+      const from = new Date(today); from.setDate(today.getDate() - 89);
+      return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Last 90 days' };
+    }
+    case 'mtd': {
+      const from = new Date(today.getFullYear(), today.getMonth(), 1);
+      return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Month to date' };
+    }
+    case 'lastMonth': {
+      const from = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      const to = new Date(today.getFullYear(), today.getMonth(), 0);
+      return { from: fmtDate(from), to: fmtDate(to), label: 'Last month' };
+    }
+    case 'ytd': {
+      const from = new Date(today.getFullYear(), 0, 1);
+      return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Year to date' };
+    }
+    case 'last12m': {
+      const from = new Date(today); from.setFullYear(today.getFullYear() - 1); from.setDate(from.getDate() + 1);
+      return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Last 12 months' };
+    }
+    case 'lastYear': {
+      const from = new Date(today.getFullYear() - 1, 0, 1);
+      const to = new Date(today.getFullYear() - 1, 11, 31);
+      return { from: fmtDate(from), to: fmtDate(to), label: `${today.getFullYear() - 1}` };
+    }
+    default: return null;
+  }
+}
 
 function toggleDatePicker() {
   const dd = document.getElementById('dateDropdown');
   const ov = document.getElementById('overlay');
+  const isOpen = dd.classList.contains('open');
   dd.classList.toggle('open');
   ov.classList.toggle('open');
+  if (!isOpen) {
+    document.getElementById('dateFrom').value = document.getElementById('dateFrom').dataset.current || '';
+    document.getElementById('dateTo').value = document.getElementById('dateTo').dataset.current || '';
+  }
 }
 
 function closeDatePicker() {
@@ -350,30 +421,40 @@ function closeDatePicker() {
 
 document.getElementById('overlay').addEventListener('click', closeDatePicker);
 
+function applyPreset(preset) {
+  const dates = getPresetDates(preset);
+  if (!dates) return;
+  activePreset = preset;
+  currentDateFrom = dates.from;
+  currentDateTo = dates.to;
+  document.querySelectorAll('.date-preset').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-preset="${preset}"]`)?.classList.add('active');
+  document.getElementById('dateFrom').value = dates.from;
+  document.getElementById('dateTo').value = dates.to;
+  document.getElementById('dateFrom').dataset.current = dates.from;
+  document.getElementById('dateTo').dataset.current = dates.to;
+  document.getElementById('dateLabel').textContent = dates.label;
+  closeDatePicker();
+  rebuildAll();
+}
+
 function applyCustomDates() {
   const from = document.getElementById('dateFrom').value;
   const to = document.getElementById('dateTo').value;
-  if (from && to) {
-    const fromDate = new Date(from);
-    const toDate = new Date(to);
-    const diffDays = Math.round((toDate - fromDate) / 86400000);
-    currentPeriod = String(diffDays);
-    document.getElementById('dateLabel').textContent = fromDate.toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'}) + ' – ' + toDate.toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'});
-    document.querySelectorAll('.date-preset').forEach(b => b.classList.remove('active'));
-    closeDatePicker();
-    rebuildAll();
-  }
+  if (!from || !to) return;
+  activePreset = null;
+  currentDateFrom = from;
+  currentDateTo = to;
+  document.querySelectorAll('.date-preset').forEach(b => b.classList.remove('active'));
+  document.getElementById('dateFrom').dataset.current = from;
+  document.getElementById('dateTo').dataset.current = to;
+  document.getElementById('dateLabel').textContent = fmtDisplay(from) + ' – ' + fmtDisplay(to);
+  closeDatePicker();
+  rebuildAll();
 }
 
 document.querySelectorAll('.date-preset').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.date-preset').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentPeriod = btn.dataset.preset;
-    document.getElementById('dateLabel').textContent = presetLabels[currentPeriod] || currentPeriod;
-    closeDatePicker();
-    rebuildAll();
-  });
+  btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
 });
 
 // ── CHART INSTANCES ──
@@ -859,7 +940,7 @@ function buildSignals(data) {
 
 // ── REBUILD ALL ──
 function rebuildAll() {
-  const data = getFilteredData(currentPeriod);
+  const data = getFilteredData();
   buildKPIs(data);
   buildSpendRevenueChart(data);
   buildFunnel(data);
@@ -869,7 +950,11 @@ function rebuildAll() {
   buildSignals(data);
 }
 
-rebuildAll();
+// Init — on 1st of month MTD is empty, fall back to Last Month
+{
+  const testDates = getPresetDates('mtd');
+  applyPreset(testDates.from > testDates.to ? 'lastMonth' : 'mtd');
+}
 
 // --- Tooltip popup for info-tip elements ---
 const tooltipEl = document.getElementById('tooltipPopup');

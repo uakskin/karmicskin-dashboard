@@ -260,6 +260,7 @@
           <button class="date-preset" data-preset="ytd">Year to date</button>
           <button class="date-preset" data-preset="last7">Last 7 days</button>
           <button class="date-preset" data-preset="last30">Last 30 days</button>
+          <button class="date-preset" data-preset="last90">Last 90 days</button>
           <button class="date-preset" data-preset="lastMonth">Last month</button>
           <button class="date-preset" data-preset="last12m">Last 12 months</button>
           <button class="date-preset" data-preset="lastYear">Last year</button>
@@ -522,7 +523,7 @@ let currentPeriod = 'weekly';
 let activePreset = 'mtd';
 
 // DATE HELPERS
-function fmtDate(d) { return d.toISOString().split('T')[0]; }
+function fmtDate(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
 function fmtDisplay(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -542,6 +543,10 @@ function getPresetDates(preset) {
     case 'last30': {
       const from = new Date(today); from.setDate(today.getDate() - 29);
       return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Last 30 days' };
+    }
+    case 'last90': {
+      const from = new Date(today); from.setDate(today.getDate() - 89);
+      return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Last 90 days' };
     }
     case 'mtd': {
       const from = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -621,8 +626,15 @@ document.querySelectorAll('.date-preset').forEach(btn => {
   btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
 });
 
-// INIT dates
-const initDates = getPresetDates('mtd');
+// INIT dates — on 1st of month MTD is empty, fall back to Last Month
+let initDates = getPresetDates('mtd');
+if (initDates.from > initDates.to) {
+  initDates = getPresetDates('lastMonth');
+  document.getElementById('dateLabel').textContent = initDates.label;
+  document.querySelectorAll('.date-preset').forEach(b => {
+    b.classList.toggle('active', b.dataset.preset === 'lastMonth');
+  });
+}
 document.getElementById('dateFrom').value = initDates.from;
 document.getElementById('dateTo').value = initDates.to;
 document.getElementById('dateFrom').dataset.current = initDates.from;
@@ -683,10 +695,10 @@ async function fetchAllData() {
   // Set last updated
   if (dailyDataWithAds.length > 0) {
     const lastDate = dailyDataWithAds[dailyDataWithAds.length - 1].report_date;
-    const d = new Date(lastDate + 'T04:00:00');
-    d.setDate(d.getDate() + 1);
+    const d = new Date(lastDate + 'T00:00:00');
+    d.setDate(d.getDate() + 1); // Data through end of lastDate = start of next day
     const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-    document.getElementById('lastUpdated').textContent = `Data refreshed last at: ${dateStr}, 4:00 am`;
+    document.getElementById('lastUpdated').textContent = `Data refreshed until: ${dateStr} (00:00)`;
   }
 
   applyFilters();

@@ -79,6 +79,7 @@
   .overlay.open { display: block; }
 
   .header-right { display: flex; align-items: center; gap: 12px; }
+  .date-controls { display: flex; align-items: center; gap: 8px; }
 
   /* KPI STRIP */
   .kpi-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; padding: 16px 24px; }
@@ -181,22 +182,27 @@
   <div class="header-left">
     <div class="brand">KARMIC SKIN</div>
     <h1>Email Marketing Dashboard</h1>
-    <div class="last-updated" id="lastUpdated">Last 12 months</div>
   </div>
-  <div class="header-right">
+  <div class="date-controls">
+    <div style="text-align:right;margin-right:8px"><span class="last-updated" id="lastUpdated"></span></div>
     <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
     <div class="date-picker-wrap">
       <button class="date-picker-btn" id="datePickerBtn" onclick="toggleDatePicker()">
         <svg viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 1h10a1 1 0 011 1v1H4V5a1 1 0 011-1zm-1 4h12v7a1 1 0 01-1 1H5a1 1 0 01-1-1V8z"/></svg>
-        <span id="dateLabel">Last 12 months</span>
+        <span id="dateLabel">Month to date</span>
         <svg viewBox="0 0 20 20" style="width:10px;height:10px"><path d="M10 13l-5-5h10z"/></svg>
       </button>
       <div class="date-dropdown" id="dateDropdown">
         <div class="date-presets">
-          <button class="date-preset" data-preset="30d">Last 30 days</button>
-          <button class="date-preset" data-preset="90d">Last 90 days</button>
-          <button class="date-preset active" data-preset="12m">Last 12 months</button>
-          <button class="date-preset" data-preset="all">All Time</button>
+          <button class="date-preset" data-preset="yesterday">Yesterday</button>
+          <button class="date-preset active" data-preset="mtd">Month to date</button>
+          <button class="date-preset" data-preset="ytd">Year to date</button>
+          <button class="date-preset" data-preset="last7">Last 7 days</button>
+          <button class="date-preset" data-preset="last30">Last 30 days</button>
+          <button class="date-preset" data-preset="last90">Last 90 days</button>
+          <button class="date-preset" data-preset="lastMonth">Last month</button>
+          <button class="date-preset" data-preset="last12m">Last 12 months</button>
+          <button class="date-preset" data-preset="lastYear">Last year</button>
         </div>
         <div class="date-custom">
           <div><label>Starting</label><input type="date" id="dateFrom"></div>
@@ -226,14 +232,14 @@
     <div class="sub" id="kpiOrdersSub">Loading...</div>
   </div>
   <div class="kpi-card">
-    <div class="label">Avg Open Rate <span class="info-tip" data-tip="Weighted average: total unique opens &divide; total unique recipients">ⓘ</span></div>
+    <div class="label">Avg Open Rate <span class="info-tip" data-tip="Weighted avg of Klaviyo per-campaign &amp; per-flow open rates (unique opens &divide; delivered)">ⓘ</span></div>
     <div class="value" id="kpiOpenRate">--</div>
-    <div class="sub">Industry avg: ~40%</div>
+    <div class="sub">Industry avg: ~30-40%</div>
   </div>
   <div class="kpi-card">
-    <div class="label">Avg Click Rate <span class="info-tip" data-tip="Weighted average: total unique clicks &divide; total unique recipients">ⓘ</span></div>
+    <div class="label">Avg Click Rate <span class="info-tip" data-tip="Weighted avg of Klaviyo per-campaign &amp; per-flow click rates (unique clicks &divide; delivered)">ⓘ</span></div>
     <div class="value" id="kpiClickRate">--</div>
-    <div class="sub">Industry avg: ~1.5%</div>
+    <div class="sub">Industry avg: ~1-2%</div>
   </div>
   <div class="kpi-card">
     <div class="label">Revenue Per Recipient <span class="info-tip" data-tip="Total email revenue &divide; Total unique recipients">ⓘ</span></div>
@@ -380,58 +386,124 @@ function getThemeColors() {
 }
 
 // ══════════════════════════════════════════════════════
-// DATE PICKER (preserved, now filters Supabase data)
+// DATE PICKER (matching Shopify dashboard exactly)
 // ══════════════════════════════════════════════════════
-let activePeriod = '12m';
+let activePreset = 'mtd';
 
-function toggleDatePicker() {
-  document.getElementById('dateDropdown').classList.toggle('open');
-  document.getElementById('overlay').classList.toggle('open');
+// DATE HELPERS (matching Shopify exactly)
+function fmtDate(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function fmtDisplay(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
+
+function getPresetDates(preset) {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+
+  switch(preset) {
+    case 'yesterday': return { from: fmtDate(yesterday), to: fmtDate(yesterday), label: 'Yesterday' };
+    case 'last7': {
+      const from = new Date(today); from.setDate(today.getDate() - 6);
+      return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Last 7 days' };
+    }
+    case 'last30': {
+      const from = new Date(today); from.setDate(today.getDate() - 29);
+      return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Last 30 days' };
+    }
+    case 'last90': {
+      const from = new Date(today); from.setDate(today.getDate() - 89);
+      return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Last 90 days' };
+    }
+    case 'mtd': {
+      const from = new Date(today.getFullYear(), today.getMonth(), 1);
+      return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Month to date' };
+    }
+    case 'lastMonth': {
+      const from = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      const to = new Date(today.getFullYear(), today.getMonth(), 0);
+      return { from: fmtDate(from), to: fmtDate(to), label: 'Last month' };
+    }
+    case 'ytd': {
+      const from = new Date(today.getFullYear(), 0, 1);
+      return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Year to date' };
+    }
+    case 'last12m': {
+      const from = new Date(today); from.setFullYear(today.getFullYear() - 1); from.setDate(from.getDate() + 1);
+      return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Last 12 months' };
+    }
+    case 'lastYear': {
+      const from = new Date(today.getFullYear() - 1, 0, 1);
+      const to = new Date(today.getFullYear() - 1, 11, 31);
+      return { from: fmtDate(from), to: fmtDate(to), label: `${today.getFullYear() - 1}` };
+    }
+    default: return null;
+  }
+}
+
+// Filter monthly data by date range
+function getFilteredData(from, to) {
+  if (!allData.length) return [];
+  // A month "YYYY-MM" overlaps [from, to] if month-start <= to AND month-end >= from
+  const fromMonth = from.substring(0, 7);
+  const toMonth = to.substring(0, 7);
+  return allData.filter(r => r.report_month >= fromMonth && r.report_month <= toMonth);
+}
+
+// DATE PICKER
+function toggleDatePicker() {
+  const dd = document.getElementById('dateDropdown');
+  const ov = document.getElementById('overlay');
+  const isOpen = dd.classList.contains('open');
+  dd.classList.toggle('open');
+  ov.classList.toggle('open');
+  if (!isOpen) {
+    document.getElementById('dateFrom').value = document.getElementById('dateFrom').dataset.current || '';
+    document.getElementById('dateTo').value = document.getElementById('dateTo').dataset.current || '';
+  }
+}
+
 function closeDatePicker() {
   document.getElementById('dateDropdown').classList.remove('open');
   document.getElementById('overlay').classList.remove('open');
 }
+
 document.getElementById('overlay').addEventListener('click', closeDatePicker);
 
-const presetLabels = { '30d': 'Last 30 days', '90d': 'Last 90 days', '12m': 'Last 12 months', 'all': 'All Time' };
-
-function getFilteredData(period) {
-  if (!allData.length) return [];
-  if (period === 'all') return [...allData];
-  const monthsBack = period === '30d' ? 1 : period === '90d' ? 3 : 12;
-  return allData.slice(-monthsBack);
-}
-
-function applyPeriod(period) {
-  activePeriod = period;
-  filteredData = getFilteredData(period);
-  document.getElementById('dateLabel').textContent = presetLabels[period] || period;
-  document.getElementById('lastUpdated').textContent = presetLabels[period] || period;
+function applyPreset(preset) {
+  const dates = getPresetDates(preset);
+  if (!dates) return;
+  activePreset = preset;
+  document.querySelectorAll('.date-preset').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-preset="${preset}"]`)?.classList.add('active');
+  document.getElementById('dateFrom').value = dates.from;
+  document.getElementById('dateTo').value = dates.to;
+  document.getElementById('dateFrom').dataset.current = dates.from;
+  document.getElementById('dateTo').dataset.current = dates.to;
+  document.getElementById('dateLabel').textContent = dates.label;
+  closeDatePicker();
+  filteredData = getFilteredData(dates.from, dates.to);
   renderAll(filteredData);
 }
 
 function applyCustomDates() {
   const from = document.getElementById('dateFrom').value;
   const to = document.getElementById('dateTo').value;
-  if (!from || !to) { closeDatePicker(); return; }
-  filteredData = allData.filter(r => r.report_month >= from && r.report_month <= to);
+  if (!from || !to) return;
+  activePreset = null;
   document.querySelectorAll('.date-preset').forEach(b => b.classList.remove('active'));
-  const label = formatMonthShort(from) + ' – ' + formatMonthShort(to);
-  document.getElementById('dateLabel').textContent = label;
-  document.getElementById('lastUpdated').textContent = label;
-  activePeriod = 'custom';
-  renderAll(filteredData);
+  document.getElementById('dateFrom').dataset.current = from;
+  document.getElementById('dateTo').dataset.current = to;
+  document.getElementById('dateLabel').textContent = fmtDisplay(from) + ' \u2013 ' + fmtDisplay(to);
   closeDatePicker();
+  filteredData = getFilteredData(from, to);
+  renderAll(filteredData);
 }
 
+// Preset click handlers
 document.querySelectorAll('.date-preset').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.date-preset').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    applyPeriod(btn.dataset.preset);
-    closeDatePicker();
-  });
+  btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
 });
 
 // ══════════════════════════════════════════════════════
@@ -883,7 +955,20 @@ async function fetchData() {
       const m = r.report_date.substring(0, 7);
       window._monthlyTotalRev[m] = (window._monthlyTotalRev[m] || 0) + Number(r.total_sales || 0);
     }
-    filteredData = getFilteredData(activePeriod);
+    // Init with MTD preset — on 1st of month MTD is empty, fall back to Last Month
+    let initDates = getPresetDates('mtd');
+    if (initDates.from > initDates.to) {
+      initDates = getPresetDates('lastMonth');
+      document.getElementById('dateLabel').textContent = initDates.label;
+      document.querySelectorAll('.date-preset').forEach(b => {
+        b.classList.toggle('active', b.dataset.preset === 'lastMonth');
+      });
+    }
+    document.getElementById('dateFrom').value = initDates.from;
+    document.getElementById('dateTo').value = initDates.to;
+    document.getElementById('dateFrom').dataset.current = initDates.from;
+    document.getElementById('dateTo').dataset.current = initDates.to;
+    filteredData = getFilteredData(initDates.from, initDates.to);
     renderAll(filteredData);
 
     // Data refreshed timestamp
@@ -892,12 +977,6 @@ async function fetchData() {
     const timeStr = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
     document.getElementById('dataSource').textContent =
       'Data source: Klaviyo via Supabase \u00b7 ' + allData.length + ' months loaded \u00b7 Data refreshed at: ' + dateStr + ', ' + timeStr;
-
-    // Set date picker min/max from data
-    if (allData.length) {
-      document.getElementById('dateFrom').value = allData[0].report_month;
-      document.getElementById('dateTo').value = allData[allData.length - 1].report_month;
-    }
   } catch (err) {
     console.error('Failed to fetch email data:', err);
     document.getElementById('dataSource').textContent = 'Error loading data from Supabase: ' + err.message;

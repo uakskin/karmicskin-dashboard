@@ -938,18 +938,31 @@ function renderAll(data) {
 // ══════════════════════════════════════════════════════
 // FETCH FROM SUPABASE & BOOTSTRAP
 // ══════════════════════════════════════════════════════
+// PostgREST defaults to 1000 rows. Paginate to avoid silently truncating.
+async function fetchAllPages(baseUrl) {
+  const PAGE = 1000;
+  const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
+  let all = [], offset = 0;
+  while (true) {
+    const sep = baseUrl.includes('?') ? '&' : '?';
+    const resp = await fetch(`${baseUrl}${sep}limit=${PAGE}&offset=${offset}`, { headers });
+    const rows = await resp.json();
+    if (!Array.isArray(rows) || rows.length === 0) break;
+    all = all.concat(rows);
+    if (rows.length < PAGE) break;
+    offset += PAGE;
+  }
+  return all;
+}
+
 async function fetchData() {
   try {
-    const [res, rptRes] = await Promise.all([
-      fetch(SUPABASE_URL + '/rest/v1/raw_klaviyo_monthly?order=report_month.asc&select=*',
-        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }),
-      fetch(SUPABASE_URL + '/rest/v1/rpt_daily_overview?select=report_date,total_sales&order=report_date.asc',
-        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } })
+    const [allData_, rptData] = await Promise.all([
+      fetchAllPages(SUPABASE_URL + '/rest/v1/raw_klaviyo_monthly?order=report_month.asc&select=*'),
+      fetchAllPages(SUPABASE_URL + '/rest/v1/rpt_daily_overview?select=report_date,total_sales&order=report_date.asc')
     ]);
-    if (!res.ok) throw new Error('Supabase returned ' + res.status);
-    allData = await res.json();
+    allData = allData_;
     // Build monthly total revenue map from rpt_daily_overview
-    const rptData = rptRes.ok ? await rptRes.json() : [];
     window._monthlyTotalRev = {};
     for (const r of rptData) {
       const m = r.report_date.substring(0, 7);

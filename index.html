@@ -701,16 +701,34 @@ document.getElementById('dateFrom').dataset.current = initDates.from;
 document.getElementById('dateTo').dataset.current = initDates.to;
 
 // FETCH DATA
+// PostgREST defaults to a 1000-row ceiling. For date ranges >1000 days
+// (e.g. full history since Jun 2023), we must paginate to avoid silently
+// truncating the most recent rows. fetchAllPages handles this.
+async function fetchAllPages(baseUrl) {
+  const PAGE = 1000;
+  const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
+  let all = [];
+  let offset = 0;
+  while (true) {
+    const sep = baseUrl.includes('?') ? '&' : '?';
+    const url = `${baseUrl}${sep}limit=${PAGE}&offset=${offset}`;
+    const resp = await fetch(url, { headers });
+    const rows = await resp.json();
+    if (!Array.isArray(rows) || rows.length === 0) break;
+    all = all.concat(rows);
+    if (rows.length < PAGE) break;
+    offset += PAGE;
+  }
+  return all;
+}
+
 async function fetchData() {
   const from = document.getElementById('dateFrom').dataset.current || document.getElementById('dateFrom').value;
   const to = document.getElementById('dateTo').dataset.current || document.getElementById('dateTo').value;
 
   const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.${from}&report_date=lte.${to}&order=report_date.asc&select=report_date,total_sales,net_product_revenue,total_ad_spend,meta_spend,google_spend,meta_revenue,google_revenue,total_orders,aov,new_customer_orders,returning_customer_orders,blended_cac,ga4_sessions`;
 
-  const resp = await fetch(url, {
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-  });
-  rawData = await resp.json();
+  rawData = await fetchAllPages(url);
   updateDashboard();
 }
 
@@ -918,8 +936,7 @@ const VISIBLE_ROWS = 12;
 
 async function fetchTableData() {
   const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.2024-01-01&report_date=lt.${fmtDate(new Date())}&order=report_date.asc&select=report_date,total_sales,net_product_revenue,total_ad_spend,meta_spend,google_spend,meta_revenue,google_revenue,total_orders,new_customer_orders,returning_customer_orders,ga4_sessions`;
-  const resp = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } });
-  allDailyData = await resp.json();
+  allDailyData = await fetchAllPages(url);
 
   // Fetch LTV
   try {

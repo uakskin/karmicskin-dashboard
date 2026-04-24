@@ -100,13 +100,37 @@
   .chart-wrap{position:relative;height:340px;padding:0 20px 16px}
   .chart-wrap-sm{position:relative;height:280px;padding:0 20px 16px}
 
-  /* FUNNEL */
+  /* FUNNEL — legacy classes (still used by summary) */
   .funnel-wrap{padding:20px 20px 16px}
-  .funnel-step{display:flex;align-items:center;gap:12px;margin-bottom:4px}
-  .funnel-label{font-size:12px;color:var(--text-secondary);min-width:140px;text-align:right;font-weight:600}
-  .funnel-bar{height:44px;border-radius:6px;display:flex;align-items:center;padding:0 14px;color:#fff;font-size:13px;font-weight:700;min-width:60px;transition:width .4s ease}
-  .funnel-rate{font-size:11px;color:var(--text-muted);margin-left:8px;white-space:nowrap}
   .funnel-dropoff{font-size:11px;color:var(--negative);padding:2px 0 8px 156px;font-weight:500}
+
+  /* FUNNEL V3 — side-by-side tapered visual */
+  .funnel-pair{display:grid;grid-template-columns:1fr 1fr;gap:32px;padding:8px 12px 24px}
+  @media (max-width:880px){.funnel-pair{grid-template-columns:1fr;gap:32px}}
+  .funnel-v3{display:flex;flex-direction:column;align-items:stretch;gap:0}
+  .fv3-title{text-align:center;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-secondary);margin-bottom:2px}
+  .fv3-sub{text-align:center;font-size:10px;color:var(--text-muted);margin-bottom:14px;letter-spacing:.3px}
+  .fv3-stage{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .fv3-shape{width:100%;max-width:380px;margin:0 auto;height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;position:relative}
+  .fv3-shape::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.18),transparent 60%);clip-path:inherit;border-radius:inherit;pointer-events:none}
+  .fv3-ellipse{border-radius:50%;height:78px;max-width:340px}
+  .fv3-name{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;opacity:.95;line-height:1.2;white-space:nowrap}
+  .fv3-num{font-size:16px;font-weight:800;letter-spacing:.3px;margin-top:2px}
+  .fv3-rate{font-size:11px;color:var(--text-secondary);margin-top:4px;font-weight:600;letter-spacing:.2px}
+  .fv3-rate strong{color:var(--text-primary);font-weight:800}
+  .fv3-rate.fv3-cvr{font-size:12px;margin-top:6px}
+  .fv3-rate.fv3-cvr strong{font-size:14px}
+  .fv3-rate.fv3-cvr em{display:block;font-style:normal;font-size:9px;opacity:.7;margin-top:1px;letter-spacing:.5px;text-transform:uppercase}
+  .fv3-rate.fv3-cvr.positive strong{color:var(--positive)}
+  .fv3-rate.fv3-cvr.amber strong{color:var(--amber)}
+  .fv3-rate.fv3-cvr.negative strong{color:var(--negative)}
+  .fv3-drop{font-size:11px;color:var(--negative);font-weight:600;text-align:center;padding:8px 0;letter-spacing:.3px;line-height:1.3}
+  .fv3-drop strong{font-size:12px;color:var(--negative);font-weight:800}
+  .fv3-arrow{display:block;font-size:9px;opacity:.7;margin-top:2px}
+  .fv3-purchase{display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:4px}
+  .fv3-coins{font-size:24px;letter-spacing:-6px;line-height:1}
+  .fv3-purchase-pill{padding:10px 28px;border-radius:999px;color:#fff;display:flex;flex-direction:column;align-items:center;min-width:140px}
+  .fv3-purchase-pill .fv3-num{font-size:18px}
   .funnel-summary{margin:12px 20px 0 156px;padding:12px 14px;background:var(--bg-card-alt);border-radius:8px;font-size:12px;color:var(--text-secondary)}
   .funnel-summary-row{display:flex;align-items:center;gap:10px;padding:4px 0}
   .funnel-summary-row span{flex:1}
@@ -504,7 +528,7 @@ function buildKPIs(){
   const kpis = [
     { label:'Spend', value:fmt(spend,'gbp0'), tip:'Total Meta ad spend' },
     { label:'Revenue', value:fmt(rev,'gbp0'), tip:'Purchase value attributed to Meta' },
-    { label:'ROAS', value:fmt(roas,'x'), tip:'Revenue ÷ Spend' },
+    { label:'Meta-attributed ROAS', value:fmt(roas,'x'), tip:'Meta-reported revenue ÷ Meta spend' },
     { label:'CPA', value:fmt(cpa,'gbp'), tip:'Spend ÷ Purchases' },
     { label:'Purchases', value:fmt(pur,'num'), tip:'Attributed purchases' },
     { label:'CPM', value:fmt(cpm,'gbp'), tip:'Cost per 1,000 impressions' },
@@ -561,17 +585,17 @@ function buildSpendRevenueChart(){
   const sd = scaleDef();
   spendRevenueChartInst = new Chart(ctx, {
     data: { labels, datasets: [
-      { type:'bar', label:'Spend', data: trend.map(r=>r.spend), backgroundColor:'rgba(99,102,241,0.5)', borderColor:'rgba(99,102,241,0.8)', borderWidth:1, borderRadius:4, yAxisID:'y', order:2 },
+      { type:'bar', label:'Spend', data: trend.map(r=>r.spend), backgroundColor:'rgba(239,68,68,0.55)', borderColor:'rgba(239,68,68,0.9)', borderWidth:1, borderRadius:4, yAxisID:'y', order:2 },
       { type:'bar', label:'Revenue', data: trend.map(r=>r.purchase_value), backgroundColor:'rgba(16,185,129,0.45)', borderColor:'rgba(16,185,129,0.8)', borderWidth:1, borderRadius:4, yAxisID:'y', order:3 },
-      { type:'line', label:'ROAS', data: trend.map(r=> r.spend>0 ? r.purchase_value/r.spend : 0), borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,0.1)', pointRadius:trendMode==='daily'?2:4, borderWidth:2.5, tension:0.3, yAxisID:'y1', order:1 }
+      { type:'line', label:'Meta-attributed ROAS', data: trend.map(r=> r.spend>0 ? r.purchase_value/r.spend : 0), borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,0.1)', pointRadius:trendMode==='daily'?2:4, borderWidth:2.5, tension:0.3, yAxisID:'y1', order:1 }
     ]},
     options: {
       responsive:true, maintainAspectRatio:false, interaction:{mode:'index', intersect:false},
       plugins:{
-        tooltip:{ ...tooltipCfg(), callbacks:{ label: c=> c.dataset.label==='ROAS' ? 'ROAS: '+c.parsed.y.toFixed(2)+'x' : c.dataset.label+': £'+c.parsed.y.toLocaleString('en-GB',{maximumFractionDigits:0}) } },
+        tooltip:{ ...tooltipCfg(), callbacks:{ label: c=> c.dataset.label.includes('ROAS') ? c.dataset.label+': '+c.parsed.y.toFixed(2)+'x' : c.dataset.label+': £'+c.parsed.y.toLocaleString('en-GB',{maximumFractionDigits:0}) } },
         legend:{ labels:{ color:getChartColors().tick, font:{size:12}, usePointStyle:true, pointStyle:'rectRounded', padding:16 } }
       },
-      scales:{ x:{...sd}, y:{...sd, position:'left', title:{display:true,text:'GBP (£)',color:getChartColors().tick,font:{size:11}}}, y1:{...sd, position:'right', grid:{display:false}, title:{display:true,text:'ROAS',color:getChartColors().tick,font:{size:11}}, min:0} }
+      scales:{ x:{...sd}, y:{...sd, position:'left', title:{display:true,text:'GBP (£)',color:getChartColors().tick,font:{size:11}}}, y1:{...sd, position:'right', grid:{display:false}, title:{display:true,text:'Meta-attributed ROAS',color:getChartColors().tick,font:{size:11}}, min:0} }
     }
   });
 }
@@ -637,69 +661,110 @@ function buildFunnel(){
   const totals = totalsOf(accountDaily);
   const base90 = totalsOf(trailing90Daily);
 
-  const stepKeys = ['impressions', 'link_clicks', 'landing_page_views', 'add_to_carts', 'initiate_checkouts', 'purchases'];
-  const steps = [
-    { label:'Impressions', key:'impressions', color:'#6366f1', rateName:'' },
-    { label:'Link Clicks', key:'link_clicks', color:'#8b5cf6', rateName:'CTR' },
-    { label:'Landing Page Views', key:'landing_page_views', color:'#a78bfa', rateName:'LPV rate' },
-    { label:'Add to Cart', key:'add_to_carts', color:'#f59e0b', rateName:'ATC rate' },
-    { label:'Initiate Checkout', key:'initiate_checkouts', color:'#f97316', rateName:'IC rate' },
-    { label:'Purchase', key:'purchases', color:'#10b981', rateName:'Purchase rate' },
+  const stepDefs = [
+    { label:'Impressions',        key:'impressions',         rateName:'' },
+    { label:'Link Clicks',        key:'link_clicks',         rateName:'CTR' },
+    { label:'Landing Page Views', key:'landing_page_views',  rateName:'LPV rate' },
+    { label:'Add to Cart',        key:'add_to_carts',        rateName:'ATC rate' },
+    { label:'Initiate Checkout',  key:'initiate_checkouts',  rateName:'IC rate' },
+    { label:'Purchase',           key:'purchases',           rateName:'Purchase rate' },
   ];
+  // Blue for current, grey for 90d baseline. Each stage uses a slight gradient deepening
+  // toward the bottom of the funnel for visual depth.
+  const palettes = {
+    current:  ['#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8', '#1e40af', '#1e3a8a'],
+    baseline: ['#94a3b8', '#7d8a9c', '#64748b', '#56657a', '#475569', '#334155'],
+  };
   const dropLabels = ['didn\'t click', 'didn\'t land on page', 'didn\'t add to cart', 'abandoned cart', 'abandoned checkout'];
+  // Trapezoid edges (% from container left): [topL, topR, botL, botR]
+  // Tapers tuned to keep stage labels readable
+  const tapers = [
+    null,
+    [0,   100, 6,  94],
+    [6,   94,  14, 86],
+    [14,  86,  22, 78],
+    [22,  78,  30, 70],
+    [30,  70,  40, 60],
+  ];
   const rateAt = (t, i) => {
-    const cur = t[steps[i].key];
-    const prev = i > 0 ? t[steps[i-1].key] : cur;
+    const cur = t[stepDefs[i].key];
+    const prev = i > 0 ? t[stepDefs[i-1].key] : cur;
     return prev > 0 ? (cur / prev) * 100 : 0;
   };
-  let html = '';
-  steps.forEach((s, i) => {
-    const rate = rateAt(totals, i);
-    const rate90 = rateAt(base90, i);
-    const delta = rate - rate90;
-    const deltaCls = Math.abs(delta) < 0.05 ? 'neutral' : delta > 0 ? 'up' : 'down';
-    const deltaArrow = Math.abs(delta) < 0.05 ? '•' : delta > 0 ? '↑' : '↓';
-    const w = i === 0 ? 100 : Math.max(4, rate);
-    const rateStr = i === 0 ? '100%' : (s.rateName ? `${s.rateName} ${rate.toFixed(2)}%` : `${rate.toFixed(1)}%`);
-    const rate90Str = i === 0 ? '' :
-      `<span class="funnel-baseline ${deltaCls}">
-         <span class="funnel-baseline-arrow">${deltaArrow}</span>
-         90d: ${rate90.toFixed(2)}%
-         ${Math.abs(delta) >= 0.05 ? `<em>(${delta >= 0 ? '+' : ''}${delta.toFixed(2)}pt)</em>` : ''}
-       </span>`;
-    html += `<div class="funnel-step">
-      <div class="funnel-label">${s.label}</div>
-      <div class="funnel-bar" style="width:${w}%;background:${s.color}">${rateStr}</div>
-      <span class="funnel-rate">${fmt(totals[s.key],'num')}</span>
-      ${rate90Str}
-    </div>`;
-    // Drop shown between this step and next
-    if (i < steps.length - 1 && totals[s.key] > 0) {
-      const next = steps[i+1];
-      const nextRate = (totals[next.key] / totals[s.key]) * 100;
-      const dropPct = 100 - nextRate;
-      html += `<div class="funnel-dropoff">↓ &minus;${dropPct.toFixed(1)}% &nbsp;·&nbsp; ${dropLabels[i]}</div>`;
-    }
-  });
-  // Compound CVR summary + 90d comparison
-  const lpv = totals.landing_page_views, pur = totals.purchases, lc = totals.link_clicks;
-  const clickToPur = lc > 0 ? (pur / lc) * 100 : 0;
-  const lpvToPur = lpv > 0 ? (pur / lpv) * 100 : 0;
-  const lpvToPur90 = base90.landing_page_views > 0 ? (base90.purchases / base90.landing_page_views) * 100 : 0;
-  const clickToPur90 = base90.link_clicks > 0 ? (base90.purchases / base90.link_clicks) * 100 : 0;
-  const lpvDelta = lpvToPur - lpvToPur90;
-  const clickDelta = clickToPur - clickToPur90;
-  const lpvToPurClass = lpvToPur >= 4.5 ? 'positive' : lpvToPur >= 3.5 ? 'amber' : 'negative';
-  const summaryBaseline = (cur, base, delta) => {
-    const cls = Math.abs(delta) < 0.05 ? 'neutral' : delta > 0 ? 'up' : 'down';
-    const arrow = Math.abs(delta) < 0.05 ? '•' : delta > 0 ? '↑' : '↓';
-    const deltaStr = Math.abs(delta) < 0.05 ? '' : `<em>(${delta >= 0 ? '+' : ''}${delta.toFixed(2)}pt)</em>`;
-    return `<span class="funnel-baseline ${cls}"><span class="funnel-baseline-arrow">${arrow}</span> 90d: ${base.toFixed(2)}% ${deltaStr}</span>`;
+
+  const renderFunnel = (data, palette, title, sub) => {
+    // Rate per stage: CTR vs Imp; LPV vs Link Clicks; ATC/IC/Purchase all vs Landing Page Views
+    // (matches Shopify's session-based methodology — see chat for explainer).
+    const lc = data.link_clicks || 1;
+    const lpv = data.landing_page_views || 1;
+    const ratesByKey = {
+      link_clicks: data.impressions > 0 ? (data.link_clicks / data.impressions) * 100 : 0,
+      landing_page_views: (data.landing_page_views / lc) * 100,
+      add_to_carts: (data.add_to_carts / lpv) * 100,
+      initiate_checkouts: (data.initiate_checkouts / lpv) * 100,
+      purchases: (data.purchases / lpv) * 100, // LPV → Purchase CVR (site-wide post-click)
+    };
+    const lpvToPur = ratesByKey.purchases;
+    const lpvCvrCls = lpvToPur >= 4.5 ? 'positive' : lpvToPur >= 3.5 ? 'amber' : 'negative';
+    let html = `<div class="funnel-v3">
+      <div class="fv3-title">${title}</div>
+      ${sub ? `<div class="fv3-sub">${sub}</div>` : ''}`;
+    stepDefs.forEach((s, i) => {
+      const colour = palette[i];
+      let shape;
+      if (i === 0) {
+        shape = `<div class="fv3-shape fv3-ellipse" style="background:${colour}">
+                   <span class="fv3-name">${s.label}</span>
+                   <span class="fv3-num">${fmt(data[s.key],'num')}</span>
+                 </div>`;
+      } else if (i === stepDefs.length - 1) {
+        shape = `<div class="fv3-purchase">
+                   <div class="fv3-purchase-pill" style="background:${colour}">
+                     <span class="fv3-name">${s.label}</span>
+                     <span class="fv3-num">${fmt(data[s.key],'num')}</span>
+                   </div>
+                 </div>`;
+      } else {
+        const t = tapers[i];
+        const clip = `polygon(${t[0]}% 0%, ${t[1]}% 0%, ${t[3]}% 100%, ${t[2]}% 100%)`;
+        shape = `<div class="fv3-shape fv3-trapezoid" style="background:${colour};clip-path:${clip}">
+                   <span class="fv3-name">${s.label}</span>
+                   <span class="fv3-num">${fmt(data[s.key],'num')}</span>
+                 </div>`;
+      }
+      let rateLine = '';
+      if (i > 0) {
+        const r = ratesByKey[s.key];
+        if (s.key === 'purchases') {
+          rateLine = `<div class="fv3-rate fv3-cvr ${lpvCvrCls}">LPV &rarr; Purchase CVR <strong>${r.toFixed(2)}%</strong> <em>vs 4.5% target</em></div>`;
+        } else {
+          rateLine = `<div class="fv3-rate">${s.rateName} <strong>${r.toFixed(2)}%</strong></div>`;
+        }
+      }
+      html += `<div class="fv3-stage">${shape}${rateLine}</div>`;
+      if (i < stepDefs.length - 1 && data[s.key] > 0) {
+        const next = stepDefs[i+1];
+        const nextRate = (data[next.key] / data[s.key]) * 100;
+        const dropPct = 100 - nextRate;
+        html += `<div class="fv3-drop"><strong>${dropPct.toFixed(1)}%</strong> ${dropLabels[i]} <span class="fv3-arrow">▼</span></div>`;
+      }
+    });
+    html += '</div>';
+    return html;
   };
-  html += `<div class="funnel-summary">
-    <div class="funnel-summary-row"><span>Click &rarr; Purchase CVR</span><strong>${clickToPur.toFixed(2)}%</strong>${summaryBaseline(clickToPur, clickToPur90, clickDelta)}</div>
-    <div class="funnel-summary-row"><span>LPV &rarr; Purchase CVR <em>(site-wide post-click)</em></span><strong class="${lpvToPurClass}">${lpvToPur.toFixed(2)}%</strong>${summaryBaseline(lpvToPur, lpvToPur90, lpvDelta)}<span class="funnel-summary-target">vs 4.5% target</span></div>
-  </div>`;
+
+  // Window labels
+  const days = Math.round((new Date(currentDateTo) - new Date(currentDateFrom)) / 86400000) + 1;
+  const titleCurrent = 'Current Window';
+  const subCurrent = `${days}d &middot; ${currentDateFrom} &rarr; ${currentDateTo}`;
+  const titleBaseline = 'Trailing 90 days';
+  const subBaseline = 'rolling baseline';
+
+  let html = '<div class="funnel-pair">';
+  html += renderFunnel(totals, palettes.current, titleCurrent, subCurrent);
+  html += renderFunnel(base90, palettes.baseline, titleBaseline, subBaseline);
+  html += '</div>';
+
   document.getElementById('funnelWrap').innerHTML = html;
 }
 

@@ -107,6 +107,21 @@
   .funnel-bar{height:44px;border-radius:6px;display:flex;align-items:center;padding:0 14px;color:#fff;font-size:13px;font-weight:700;min-width:60px;transition:width .4s ease}
   .funnel-rate{font-size:11px;color:var(--text-muted);margin-left:8px;white-space:nowrap}
   .funnel-dropoff{font-size:11px;color:var(--negative);padding:2px 0 8px 156px;font-weight:500}
+  .funnel-summary{margin:12px 20px 0 156px;padding:12px 14px;background:var(--bg-card-alt);border-radius:8px;font-size:12px;color:var(--text-secondary)}
+  .funnel-summary-row{display:flex;align-items:center;gap:10px;padding:4px 0}
+  .funnel-summary-row span{flex:1}
+  .funnel-summary-row em{color:var(--text-muted);font-style:normal}
+  .funnel-summary-row strong{font-size:14px;color:var(--text-primary);min-width:72px;text-align:right}
+  .funnel-summary-row strong.positive{color:var(--positive)}
+  .funnel-summary-row strong.amber{color:var(--amber)}
+  .funnel-summary-row strong.negative{color:var(--negative)}
+  .funnel-summary-target{font-size:10px;color:var(--text-muted);min-width:auto}
+  .funnel-baseline{font-size:11px;color:var(--text-muted);white-space:nowrap;display:inline-flex;align-items:center;gap:4px;margin-left:8px}
+  .funnel-baseline em{font-style:normal;font-size:10px;opacity:.8}
+  .funnel-baseline .funnel-baseline-arrow{font-weight:700}
+  .funnel-baseline.up{color:var(--positive)}
+  .funnel-baseline.down{color:var(--negative)}
+  .funnel-baseline.neutral{color:var(--text-muted)}
 
   /* TABLES */
   .perf-table-wrap{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:0 24px 16px}
@@ -294,6 +309,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 // ═════════════ STATE ═════════════
 let accountDaily = [];   // raw_meta_ads_daily rows in date range
 let adDaily = [];        // raw_meta_ads_ad_daily rows in date range
+let trailing90Daily = []; // raw_meta_ads_daily rows for trailing 90 days (baseline)
 let adDailyAvailable = {min:null, max:null};
 let currentDateFrom = '';
 let currentDateTo = '';
@@ -417,12 +433,18 @@ async function fetchRange(table, from, to, cols='*'){
 async function loadAndRender(){
   try {
     showStatus('Loading…', 'info');
-    const [acc, ads] = await Promise.all([
+    // Compute 90-day trailing window (ending yesterday) for baseline comparison
+    const t = new Date(); t.setDate(t.getDate() - 1);
+    const t90 = new Date(t); t90.setDate(t90.getDate() - 89);
+    const t90From = fmtDate(t90), t90To = fmtDate(t);
+    const [acc, ads, acc90] = await Promise.all([
       fetchRange('raw_meta_ads_daily', currentDateFrom, currentDateTo),
       fetchRange('raw_meta_ads_ad_daily', currentDateFrom, currentDateTo),
+      fetchRange('raw_meta_ads_daily', t90From, t90To),
     ]);
     accountDaily = acc;
     adDaily = ads;
+    trailing90Daily = acc90;
     if (ads.length > 0) {
       adDailyAvailable.min = ads.reduce((m,r)=>m && m < r.report_date ? m : r.report_date, null);
       adDailyAvailable.max = ads.reduce((m,r)=>m && m > r.report_date ? m : r.report_date, null);
@@ -604,38 +626,80 @@ function buildFunnelRatesChart(){
 
 // ═════════════ FUNNEL ═════════════
 function buildFunnel(){
-  const d = accountDaily;
-  const totals = {
-    impressions: sum(d,'impressions'),
-    link_clicks: sum(d,'link_clicks'),
-    landing_page_views: sum(d,'landing_page_views'),
-    add_to_carts: sum(d,'add_to_carts'),
-    initiate_checkouts: sum(d,'initiate_checkouts'),
-    purchases: sum(d,'purchases'),
-  };
+  const totalsOf = rows => ({
+    impressions: sum(rows,'impressions'),
+    link_clicks: sum(rows,'link_clicks'),
+    landing_page_views: sum(rows,'landing_page_views'),
+    add_to_carts: sum(rows,'add_to_carts'),
+    initiate_checkouts: sum(rows,'initiate_checkouts'),
+    purchases: sum(rows,'purchases'),
+  });
+  const totals = totalsOf(accountDaily);
+  const base90 = totalsOf(trailing90Daily);
+
+  const stepKeys = ['impressions', 'link_clicks', 'landing_page_views', 'add_to_carts', 'initiate_checkouts', 'purchases'];
   const steps = [
-    { label:'Impressions', value:totals.impressions, color:'#6366f1' },
-    { label:'Link Clicks', value:totals.link_clicks, color:'#8b5cf6' },
-    { label:'Landing Page Views', value:totals.landing_page_views, color:'#a78bfa' },
-    { label:'Add to Cart', value:totals.add_to_carts, color:'#f59e0b' },
-    { label:'Initiate Checkout', value:totals.initiate_checkouts, color:'#f97316' },
-    { label:'Purchase', value:totals.purchases, color:'#10b981' },
+    { label:'Impressions', key:'impressions', color:'#6366f1', rateName:'' },
+    { label:'Link Clicks', key:'link_clicks', color:'#8b5cf6', rateName:'CTR' },
+    { label:'Landing Page Views', key:'landing_page_views', color:'#a78bfa', rateName:'LPV rate' },
+    { label:'Add to Cart', key:'add_to_carts', color:'#f59e0b', rateName:'ATC rate' },
+    { label:'Initiate Checkout', key:'initiate_checkouts', color:'#f97316', rateName:'IC rate' },
+    { label:'Purchase', key:'purchases', color:'#10b981', rateName:'Purchase rate' },
   ];
-  const maxVal = steps[0].value || 1;
+  const dropLabels = ['didn\'t click', 'didn\'t land on page', 'didn\'t add to cart', 'abandoned cart', 'abandoned checkout'];
+  const rateAt = (t, i) => {
+    const cur = t[steps[i].key];
+    const prev = i > 0 ? t[steps[i-1].key] : cur;
+    return prev > 0 ? (cur / prev) * 100 : 0;
+  };
   let html = '';
-  steps.forEach((s,i) => {
-    const w = Math.max(8, (s.value / maxVal) * 100);
+  steps.forEach((s, i) => {
+    const rate = rateAt(totals, i);
+    const rate90 = rateAt(base90, i);
+    const delta = rate - rate90;
+    const deltaCls = Math.abs(delta) < 0.05 ? 'neutral' : delta > 0 ? 'up' : 'down';
+    const deltaArrow = Math.abs(delta) < 0.05 ? '•' : delta > 0 ? '↑' : '↓';
+    const w = i === 0 ? 100 : Math.max(4, rate);
+    const rateStr = i === 0 ? '100%' : (s.rateName ? `${s.rateName} ${rate.toFixed(2)}%` : `${rate.toFixed(1)}%`);
+    const rate90Str = i === 0 ? '' :
+      `<span class="funnel-baseline ${deltaCls}">
+         <span class="funnel-baseline-arrow">${deltaArrow}</span>
+         90d: ${rate90.toFixed(2)}%
+         ${Math.abs(delta) >= 0.05 ? `<em>(${delta >= 0 ? '+' : ''}${delta.toFixed(2)}pt)</em>` : ''}
+       </span>`;
     html += `<div class="funnel-step">
       <div class="funnel-label">${s.label}</div>
-      <div class="funnel-bar" style="width:${w}%;background:${s.color}">${fmt(s.value,'num')}</div>
-      ${i>0 ? `<span class="funnel-rate">${((s.value/steps[i-1].value)*100||0).toFixed(1)}% from prev</span>` : ''}
+      <div class="funnel-bar" style="width:${w}%;background:${s.color}">${rateStr}</div>
+      <span class="funnel-rate">${fmt(totals[s.key],'num')}</span>
+      ${rate90Str}
     </div>`;
-    if (i > 0 && steps[i-1].value > 0) {
-      const drop = steps[i-1].value - s.value;
-      const dropPct = (drop / steps[i-1].value) * 100;
-      html += `<div class="funnel-dropoff">-${fmt(drop,'num')} (${dropPct.toFixed(1)}% drop-off)</div>`;
+    // Drop shown between this step and next
+    if (i < steps.length - 1 && totals[s.key] > 0) {
+      const next = steps[i+1];
+      const nextRate = (totals[next.key] / totals[s.key]) * 100;
+      const dropPct = 100 - nextRate;
+      html += `<div class="funnel-dropoff">↓ &minus;${dropPct.toFixed(1)}% &nbsp;·&nbsp; ${dropLabels[i]}</div>`;
     }
   });
+  // Compound CVR summary + 90d comparison
+  const lpv = totals.landing_page_views, pur = totals.purchases, lc = totals.link_clicks;
+  const clickToPur = lc > 0 ? (pur / lc) * 100 : 0;
+  const lpvToPur = lpv > 0 ? (pur / lpv) * 100 : 0;
+  const lpvToPur90 = base90.landing_page_views > 0 ? (base90.purchases / base90.landing_page_views) * 100 : 0;
+  const clickToPur90 = base90.link_clicks > 0 ? (base90.purchases / base90.link_clicks) * 100 : 0;
+  const lpvDelta = lpvToPur - lpvToPur90;
+  const clickDelta = clickToPur - clickToPur90;
+  const lpvToPurClass = lpvToPur >= 4.5 ? 'positive' : lpvToPur >= 3.5 ? 'amber' : 'negative';
+  const summaryBaseline = (cur, base, delta) => {
+    const cls = Math.abs(delta) < 0.05 ? 'neutral' : delta > 0 ? 'up' : 'down';
+    const arrow = Math.abs(delta) < 0.05 ? '•' : delta > 0 ? '↑' : '↓';
+    const deltaStr = Math.abs(delta) < 0.05 ? '' : `<em>(${delta >= 0 ? '+' : ''}${delta.toFixed(2)}pt)</em>`;
+    return `<span class="funnel-baseline ${cls}"><span class="funnel-baseline-arrow">${arrow}</span> 90d: ${base.toFixed(2)}% ${deltaStr}</span>`;
+  };
+  html += `<div class="funnel-summary">
+    <div class="funnel-summary-row"><span>Click &rarr; Purchase CVR</span><strong>${clickToPur.toFixed(2)}%</strong>${summaryBaseline(clickToPur, clickToPur90, clickDelta)}</div>
+    <div class="funnel-summary-row"><span>LPV &rarr; Purchase CVR <em>(site-wide post-click)</em></span><strong class="${lpvToPurClass}">${lpvToPur.toFixed(2)}%</strong>${summaryBaseline(lpvToPur, lpvToPur90, lpvDelta)}<span class="funnel-summary-target">vs 4.5% target</span></div>
+  </div>`;
   document.getElementById('funnelWrap').innerHTML = html;
 }
 

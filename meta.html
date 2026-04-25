@@ -736,7 +736,7 @@ function buildFunnel(){
       if (i > 0) {
         const r = ratesByKey[s.key];
         if (s.key === 'purchases') {
-          rateLine = `<div class="fv3-rate fv3-cvr ${lpvCvrCls}">LPV &rarr; Purchase CVR <strong>${r.toFixed(2)}%</strong> <em>vs 4.5% target</em></div>`;
+          rateLine = `<div class="fv3-rate fv3-cvr ${lpvCvrCls}">LPV &rarr; Purchase CVR <strong>${r.toFixed(2)}%</strong></div>`;
         } else {
           rateLine = `<div class="fv3-rate">${s.rateName} <strong>${r.toFixed(2)}%</strong></div>`;
         }

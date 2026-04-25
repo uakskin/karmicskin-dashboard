@@ -487,14 +487,20 @@
       <table class="analytics-table" id="dowTable">
         <thead>
           <tr>
-            <th>Day</th>
+            <th rowspan="2" style="vertical-align:bottom">Day</th>
+            <th colspan="3" style="text-align:center;border-bottom:1px solid var(--border)">Last 90 days <span style="font-weight:400;color:var(--text-muted);font-size:10px">(rolling)</span> <span class="info-tip" data-tip="Lookback window recommended by Sam Piliero's Moonlighter Blueprint M4">ⓘ</span></th>
+            <th colspan="3" style="text-align:center;border-bottom:1px solid var(--border)">Selected period</th>
+          </tr>
+          <tr>
             <th>Avg Revenue</th>
             <th>ROAS</th>
             <th>Avg Orders</th>
-            <th>Avg Ad Spend</th>
+            <th>Avg Revenue</th>
+            <th>ROAS</th>
+            <th>Avg Orders</th>
           </tr>
         </thead>
-        <tbody id="dowBody"><tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
+        <tbody id="dowBody"><tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -1284,31 +1290,78 @@ document.querySelectorAll('#productPerfTable th[data-pcol]').forEach(th => {
   });
 });
 
-// --- Day-of-Week Performance ---
+// --- Day-of-Week Performance (selected period vs last-90-days rolling) ---
 async function fetchDayOfWeek() {
   const dates = getProductAnalyticsDates();
+
+  // Last-90-days rolling window (today minus 90, exclusive of today)
+  const today = new Date();
+  const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+  const ninetyAgo = new Date(today); ninetyAgo.setDate(today.getDate() - 90);
+  const last90Dates = { from_date: fmtDate(ninetyAgo), to_date: fmtDate(yesterday) };
+
   try {
-    const data = await rpcCall('get_day_of_week_performance', dates);
-    if (!Array.isArray(data)) return;
+    const [period, last90] = await Promise.all([
+      rpcCall('get_day_of_week_performance', dates),
+      rpcCall('get_day_of_week_performance', last90Dates),
+    ]);
+
     const dowEl = document.getElementById('dowDateRange');
     if (dowEl) dowEl.textContent = fmtDisplay(dates.from_date) + ' \u2013 ' + fmtDisplay(dates.to_date);
-    // Reorder: Sun=0 first
-    const ordered = [0,1,2,3,4,5,6].map(d => data.find(r => r.day_num === d)).filter(Boolean);
-    let bestRev = Math.max(...ordered.map(r => parseFloat(r.avg_revenue)));
-    let bestOrd = Math.max(...ordered.map(r => parseFloat(r.avg_orders)));
+
+    if (!Array.isArray(period) || !Array.isArray(last90)) return;
+
+    const orderedPeriod = [0,1,2,3,4,5,6].map(d => period.find(r => r.day_num === d) || {});
+    const orderedLast90 = [0,1,2,3,4,5,6].map(d => last90.find(r => r.day_num === d) || {});
+
+    const periodRevs = orderedPeriod.map(r => parseFloat(r.avg_revenue) || 0);
+    const periodOrds = orderedPeriod.map(r => parseFloat(r.avg_orders) || 0);
+    const last90Revs = orderedLast90.map(r => parseFloat(r.avg_revenue) || 0);
+    const last90Ords = orderedLast90.map(r => parseFloat(r.avg_orders) || 0);
+
+    const bestPeriodRev = Math.max(...periodRevs);
+    const bestPeriodOrd = Math.max(...periodOrds);
+    const bestLast90Rev = Math.max(...last90Revs);
+    const bestLast90Ord = Math.max(...last90Ords);
+
+    const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+    const deltaSpan = (val, isPct) => {
+      if (Math.abs(val) < 0.05) return '';
+      const sign = val > 0 ? '+' : '';
+      const colour = val > 0 ? 'var(--positive)' : 'var(--negative)';
+      const formatted = isPct ? `${sign}${val.toFixed(1)}%` : `${sign}${val.toFixed(2)}`;
+      return `<span style="font-size:10px;color:${colour};margin-left:4px;font-weight:500">${formatted}</span>`;
+    };
+
     let html = '';
-    for (const r of ordered) {
-      const rev = parseFloat(r.avg_revenue);
-      const ord = parseFloat(r.avg_orders);
+    for (let i = 0; i < 7; i++) {
+      const p = orderedPeriod[i];
+      const l = orderedLast90[i];
+      const dayName = p.day_name || l.day_name || dayNames[i];
+
+      const pRev = parseFloat(p.avg_revenue) || 0;
+      const pRoas = parseFloat(p.avg_roas) || 0;
+      const pOrd = parseFloat(p.avg_orders) || 0;
+      const lRev = parseFloat(l.avg_revenue) || 0;
+      const lRoas = parseFloat(l.avg_roas) || 0;
+      const lOrd = parseFloat(l.avg_orders) || 0;
+
+      const revDelta = lRev > 0 ? (pRev - lRev) / lRev * 100 : 0;
+      const ordDelta = lOrd > 0 ? (pOrd - lOrd) / lOrd * 100 : 0;
+      const roasDelta = lRoas > 0 ? (pRoas - lRoas) : 0;
+
       html += `<tr>
-        <td style="font-weight:600">${r.day_name}</td>
-        <td${rev === bestRev ? ' class="highlight-best"' : ''}>\u00A3${Math.round(rev).toLocaleString()}</td>
-        <td>${parseFloat(r.avg_roas).toFixed(2)}</td>
-        <td${ord === bestOrd ? ' class="highlight-best"' : ''}>${Math.round(ord)}</td>
-        <td>\u00A3${Math.round(parseFloat(r.avg_ad_spend)).toLocaleString()}</td>
+        <td style="font-weight:600">${dayName}</td>
+        <td${lRev === bestLast90Rev && lRev > 0 ? ' class="highlight-best"' : ''}>${lRev > 0 ? '\u00A3' + Math.round(lRev).toLocaleString() : '\u2014'}</td>
+        <td>${lRoas > 0 ? lRoas.toFixed(2) : '\u2014'}</td>
+        <td${lOrd === bestLast90Ord && lOrd > 0 ? ' class="highlight-best"' : ''}>${lOrd > 0 ? Math.round(lOrd) : '\u2014'}</td>
+        <td${pRev === bestPeriodRev && pRev > 0 ? ' class="highlight-best"' : ''}>${pRev > 0 ? '\u00A3' + Math.round(pRev).toLocaleString() : '\u2014'}${deltaSpan(revDelta, true)}</td>
+        <td>${pRoas > 0 ? pRoas.toFixed(2) : '\u2014'}${deltaSpan(roasDelta, false)}</td>
+        <td${pOrd === bestPeriodOrd && pOrd > 0 ? ' class="highlight-best"' : ''}>${pOrd > 0 ? Math.round(pOrd) : '\u2014'}${deltaSpan(ordDelta, true)}</td>
       </tr>`;
     }
-    document.getElementById('dowBody').innerHTML = html || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">No data</td></tr>';
+    document.getElementById('dowBody').innerHTML = html || '<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">No data</td></tr>';
   } catch(e) { console.error('Day of week error:', e); }
 }
 

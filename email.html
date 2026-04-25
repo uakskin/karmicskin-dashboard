@@ -225,10 +225,10 @@
 <!-- PAGE NAV -->
 <nav class="page-nav">
   <a href="dashboard.html">Shopify</a>
+  <a href="meta.html">Meta</a>
+  <a href="email.html" class="active">Email</a>
   <a href="amazon.html">Amazon</a>
   <a href="pnl.html">P&L</a>
-  <a href="email.html" class="active">Email</a>
-  <a href="meta.html">Meta</a>
 </nav>
 
 <div class="overlay" id="overlay"></div>
@@ -314,18 +314,12 @@
   </div>
 </section>
 
-<!-- ENGAGEMENT TRENDS + BENCHMARKS -->
-<section class="charts-row">
-  <div class="chart-card" style="flex: 1;">
+<!-- ENGAGEMENT TRENDS -->
+<section class="dashboard-body">
+  <div class="chart-area" style="flex:1;">
     <h3>Monthly Engagement Trends</h3>
-    <div class="chart-card-wrap" style="height: 300px;">
+    <div class="chart-wrap">
       <canvas id="engagementTrendChart"></canvas>
-    </div>
-  </div>
-  <div class="chart-card" style="flex: 1;">
-    <h3>Engagement Benchmarks vs Industry</h3>
-    <div class="chart-card-wrap" style="height: 300px;">
-      <canvas id="benchmarkChart"></canvas>
     </div>
   </div>
 </section>
@@ -539,14 +533,6 @@
   <div style="font-size: 11px; color: var(--text-muted); padding: 12px 8px 0;">Combined estimated uplift if all 5 executed: <strong>£50–85k/yr</strong> &mdash; roughly the same as the current 6-month campaign revenue.</div>
 </section>
 
-<!-- KEY INSIGHTS (auto-generated from data) -->
-<section class="insights-section">
-  <div class="section-title">Key Insights</div>
-  <div class="insights-grid" id="insightsGrid">
-    <!-- Populated dynamically from Supabase data -->
-  </div>
-</section>
-
 <!-- DATA SOURCE -->
 <div class="data-source" id="dataSource">Data source: Klaviyo via Supabase &middot; Loading...</div>
 
@@ -564,7 +550,6 @@ let filteredData = [];
 // Chart instances
 let monthlyChart = null;
 let engagementChart = null;
-let benchmarkChart = null;
 
 // ══════════════════════════════════════════════════════
 // THEME TOGGLE (preserved)
@@ -952,61 +937,6 @@ function renderEngagementChart(data) {
 }
 
 // ══════════════════════════════════════════════════════
-// BENCHMARK CHART
-// ══════════════════════════════════════════════════════
-function renderBenchmarkChart(data) {
-  const k = computeKPIs(data);
-  const ourOpen = k.avgOpenRate.toFixed(1);
-  const ourClick = k.avgClickRate.toFixed(1);
-
-  if (benchmarkChart) {
-    benchmarkChart.data.datasets[0].data = [parseFloat(ourOpen), parseFloat(ourClick)];
-    benchmarkChart.update();
-    return;
-  }
-
-  const ctx = document.getElementById('benchmarkChart').getContext('2d');
-  benchmarkChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: ['Open Rate', 'Click Rate'],
-      datasets: [{
-        label: 'Karmic Skin',
-        data: [parseFloat(ourOpen), parseFloat(ourClick)],
-        backgroundColor: 'rgba(13, 148, 136, 0.8)',
-        borderColor: 'rgba(13, 148, 136, 1)',
-        borderWidth: 1, borderRadius: 4, barPercentage: 0.5,
-      }, {
-        label: 'Industry Average',
-        data: [40.0, 1.5],
-        backgroundColor: 'rgba(156, 163, 175, 0.5)',
-        borderColor: 'rgba(156, 163, 175, 0.8)',
-        borderWidth: 1, borderRadius: 4, barPercentage: 0.5,
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'top', labels: { usePointStyle: true, padding: 16, font: { size: 11 } } },
-        tooltip: {
-          callbacks: {
-            label(ctx) { return ' ' + ctx.dataset.label + ': ' + ctx.raw + '%'; }
-          }
-        }
-      },
-      scales: {
-        x: {
-          grid: { color: getThemeColors().grid },
-          ticks: { font: { size: 11 }, callback: v => v + '%' }
-        },
-        y: { grid: { display: false }, ticks: { font: { size: 12, weight: '600' } } }
-      }
-    }
-  });
-}
-
-// ══════════════════════════════════════════════════════
 // MONTHLY PERFORMANCE TABLE
 // ══════════════════════════════════════════════════════
 function renderMonthlyTable(data) {
@@ -1044,41 +974,6 @@ function renderMonthlyTable(data) {
 // ══════════════════════════════════════════════════════
 // INSIGHTS (auto-generated)
 // ══════════════════════════════════════════════════════
-function renderInsights(data) {
-  const grid = document.getElementById('insightsGrid');
-  grid.innerHTML = '';
-  if (!data.length) return;
-
-  const k = computeKPIs(data);
-  // Best revenue month
-  const best = data.reduce((a, b) => Number(a.placed_order_value) > Number(b.placed_order_value) ? a : b);
-  // Worst revenue month
-  const worst = data.reduce((a, b) => Number(a.placed_order_value) < Number(b.placed_order_value) ? a : b);
-  // Best open rate month
-  const bestOpen = data.reduce((a, b) => Number(a.open_rate) > Number(b.open_rate) ? a : b);
-  // Total unsubscribes
-  const totalUnsubs = data.reduce((s, r) => s + Number(r.unsubscribes || 0), 0);
-  // Total bounces
-  const totalBounces = data.reduce((s, r) => s + Number(r.emails_bounced || 0), 0);
-  const totalSent = data.reduce((s, r) => s + Number(r.emails_sent || 0), 0);
-  const bounceRate = totalSent > 0 ? (totalBounces / totalSent * 100).toFixed(2) : '0';
-
-  const insights = [
-    { icon: '&#9733;', cls: 'green', html: '<strong>Best revenue month: ' + formatMonthShort(best.report_month) + '</strong> with ' + pnd(best.placed_order_value) + ' from ' + num(best.placed_orders) + ' orders attributed to email.' },
-    { icon: '&#128200;', cls: 'purple', html: '<strong>Highest open rate: ' + formatMonthShort(bestOpen.report_month) + '</strong> at ' + Number(bestOpen.open_rate).toFixed(1) + '%. ' + (Number(bestOpen.open_rate) >= 40 ? 'Above' : 'Below') + ' the 40% industry benchmark.' },
-    { icon: '&#128176;', cls: 'blue', html: '<strong>Revenue per recipient averages \u00a3' + k.rpr.toFixed(2) + '</strong> across ' + num(k.totalRecipients) + ' unique recipients over ' + data.length + ' months.' },
-    { icon: '&#9888;', cls: 'amber', html: '<strong>' + num(totalUnsubs) + ' unsubscribes</strong> recorded in this period. Bounce rate is ' + bounceRate + '% (' + num(totalBounces) + ' bounced emails).' },
-    { icon: '&#9889;', cls: 'green', html: '<strong>Lowest revenue month: ' + formatMonthShort(worst.report_month) + '</strong> at ' + pnd(worst.placed_order_value) + '. Consider reviewing send strategy for that period.' },
-  ];
-
-  insights.forEach(i => {
-    const card = document.createElement('div');
-    card.className = 'insight-card';
-    card.innerHTML = '<div class="insight-icon ' + i.cls + '">' + i.icon + '</div><div class="insight-text">' + i.html + '</div>';
-    grid.appendChild(card);
-  });
-}
-
 // ══════════════════════════════════════════════════════
 // SORTABLE TABLE (preserved)
 // ══════════════════════════════════════════════════════
@@ -1136,12 +1031,6 @@ function updateChartThemes() {
     engagementChart.options.scales.y1.ticks.color = c.tick;
     engagementChart.update();
   }
-  if (benchmarkChart) {
-    benchmarkChart.options.scales.x.grid.color = c.grid;
-    benchmarkChart.options.scales.x.ticks.color = c.tick;
-    benchmarkChart.options.scales.y.ticks.color = c.tick;
-    benchmarkChart.update();
-  }
 }
 
 // ══════════════════════════════════════════════════════
@@ -1151,9 +1040,7 @@ function renderAll(data) {
   renderKPIs(data);
   renderMonthlyChart(data);
   renderEngagementChart(data);
-  renderBenchmarkChart(data);
   renderMonthlyTable(data);
-  renderInsights(data);
 }
 
 // ══════════════════════════════════════════════════════

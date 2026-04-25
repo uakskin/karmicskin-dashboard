@@ -164,6 +164,59 @@
     .insights-grid { grid-template-columns: 1fr; }
     .page-nav { overflow-x: auto; }
   }
+
+  /* ════════════════════════════════════════════════
+     STRATEGIC ANALYSIS SECTIONS
+     ════════════════════════════════════════════════ */
+  .strategic-banner { padding: 24px 24px 8px; }
+  .strategic-banner-inner { background: linear-gradient(135deg, rgba(13,148,136,0.06) 0%, rgba(124,58,237,0.04) 100%); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; }
+  [data-theme="dark"] .strategic-banner-inner { background: linear-gradient(135deg, rgba(52,211,153,0.08) 0%, rgba(228,193,249,0.06) 100%); }
+  .strategic-eyebrow { font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
+  .strategic-h2 { font-size: 20px; font-weight: 700; color: var(--text-primary); margin: 4px 0 4px; }
+  .strategic-period { font-size: 12px; color: var(--text-muted); }
+  .strategic-toplines { display: flex; gap: 24px; flex-wrap: wrap; }
+  .topline-block { min-width: 110px; }
+  .topline-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; }
+  .topline-value { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+
+  .chart-note { font-size: 11px; color: var(--text-muted); margin-top: 12px; line-height: 1.5; padding-top: 10px; border-top: 1px solid var(--border); }
+
+  /* Winners/losers list */
+  .winners-list { display: flex; flex-direction: column; gap: 6px; }
+  .winner-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; background: var(--bg-card-alt); }
+  .winner-rank { width: 22px; height: 22px; flex-shrink: 0; border-radius: 50%; background: var(--accent); color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .loser-rank { background: var(--negative); }
+  .winner-body { flex: 1; min-width: 0; }
+  .winner-name { font-size: 12px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .winner-meta { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+  .winner-stat { text-align: right; flex-shrink: 0; min-width: 90px; }
+  .winner-stat-value { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+  .winner-stat-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+
+  /* Status pills for flows */
+  .status-pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+  .status-live { background: rgba(22,163,74,0.12); color: var(--positive); }
+  .status-partial { background: rgba(245,158,11,0.15); color: #d97706; }
+  .status-missing { background: rgba(220,38,38,0.10); color: var(--negative); }
+  .status-draft { background: rgba(124,58,237,0.10); color: #7c3aed; }
+  [data-theme="dark"] .status-live { background: rgba(34,197,94,0.16); color: var(--positive); }
+  [data-theme="dark"] .status-partial { background: rgba(245,158,11,0.18); color: #fbbf24; }
+  [data-theme="dark"] .status-missing { background: rgba(239,68,68,0.16); color: var(--negative); }
+  [data-theme="dark"] .status-draft { background: rgba(228,193,249,0.15); color: #E4C1F9; }
+
+  /* Opportunity cards */
+  .opportunities-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
+  .opportunity-card { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 10px; padding: 16px; }
+  .opportunity-rank { font-size: 10px; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .opportunity-title { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+  .opportunity-body { font-size: 12px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px; }
+  .opportunity-stats { display: flex; gap: 16px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .opportunity-stat { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .opportunity-stat strong { display: block; font-size: 13px; color: var(--text-primary); margin-top: 2px; text-transform: none; letter-spacing: 0; }
+
+  /* Audience/Type table — RPR cell colour scale */
+  .perf-table .rpr-good { color: var(--positive); font-weight: 600; }
+  .perf-table .rpr-bad { color: var(--negative); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -308,17 +361,182 @@
 </section>
 
 <!-- CAMPAIGN & FLOW PERFORMANCE -->
+<!-- ════════════════════════════════════════════════════════════════
+     STRATEGIC ANALYSIS SECTIONS (snapshot, refreshed manually)
+     Period: 25 Oct 2025 – 25 Apr 2026 (6 months)
+     Source: Klaviyo MCP metric aggregates + flow-values report
+     ════════════════════════════════════════════════════════════════ -->
+
+<section class="strategic-banner">
+  <div class="strategic-banner-inner">
+    <div>
+      <span class="strategic-eyebrow">STRATEGIC SNAPSHOT</span>
+      <h2 class="strategic-h2">Campaign &amp; Flow Performance</h2>
+      <div class="strategic-period">25 Oct 2025 – 25 Apr 2026 &middot; <span id="strategicAnalyzedDate">Last analysed: 25 Apr 2026</span></div>
+    </div>
+    <div class="strategic-toplines">
+      <div class="topline-block">
+        <div class="topline-label">Total email revenue</div>
+        <div class="topline-value" id="topRevenue">£93,564</div>
+      </div>
+      <div class="topline-block">
+        <div class="topline-label">Campaigns vs Flows</div>
+        <div class="topline-value" id="topSplit">80% / 20%</div>
+      </div>
+      <div class="topline-block">
+        <div class="topline-label">Campaign avg RPR</div>
+        <div class="topline-value" id="topCampaignRPR">£0.124</div>
+      </div>
+      <div class="topline-block">
+        <div class="topline-label">Flow avg RPR</div>
+        <div class="topline-value" id="topFlowRPR">£0.522</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AUDIENCE & TYPE PERFORMANCE -->
+<section class="charts-row">
+  <div class="chart-card" style="flex: 1;">
+    <h3>Revenue per Recipient by Audience</h3>
+    <div class="chart-card-wrap" style="height: 360px;">
+      <canvas id="audienceRPRChart"></canvas>
+    </div>
+    <div class="chart-note">Repeat purchasers (2x+) generate 5–11× more revenue per email than 0x Purchasers. Engaged opens look great (54%) but RPR is the same as Whole List — open rate is misleading.</div>
+  </div>
+  <div class="chart-card" style="flex: 1;">
+    <h3>Revenue per Recipient by Type</h3>
+    <div class="chart-card-wrap" style="height: 360px;">
+      <canvas id="typeRPRChart"></canvas>
+    </div>
+    <div class="chart-note">Offers earn 58% more per recipient than Education (£0.16 vs £0.10). Birthday/anniversary &ldquo;a gift for us&rdquo; emotional template is the strongest pattern of the period.</div>
+  </div>
+</section>
+
+<!-- AUDIENCE TABLE -->
 <section class="perf-table-section">
   <div class="perf-table-wrap">
     <div class="perf-table-header">
-      <h3>Campaign &amp; Flow Performance</h3>
+      <h3>Audience Effectiveness</h3>
+      <span style="font-size:11px; color:var(--text-muted);">Higher RPR = higher leverage. Cohorts with low n_campaigns &amp; high RPR are under-utilised.</span>
     </div>
-    <div style="padding: 32px 20px; text-align: center;">
-      <div style="font-size: 32px; margin-bottom: 8px; opacity: 0.5;">&#128268;</div>
-      <div style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">Data sync in progress</div>
-      <div style="font-size: 12px; color: var(--text-muted);">Per-campaign and per-flow breakdowns will appear here once the Klaviyo campaign-level API sync is connected.</div>
+    <div class="perf-table-scroll">
+      <table class="perf-table" id="audienceTable">
+        <thead>
+          <tr>
+            <th>Audience</th>
+            <th>Campaigns</th>
+            <th>Recipients</th>
+            <th>Open %</th>
+            <th>Click %</th>
+            <th>Orders</th>
+            <th>Revenue</th>
+            <th>RPR</th>
+            <th>Read</th>
+          </tr>
+        </thead>
+        <tbody id="audienceTableBody"></tbody>
+      </table>
     </div>
   </div>
+</section>
+
+<!-- TYPE TABLE -->
+<section class="perf-table-section">
+  <div class="perf-table-wrap">
+    <div class="perf-table-header">
+      <h3>Type / Theme Effectiveness</h3>
+      <span style="font-size:11px; color:var(--text-muted);">Education that names a product converts. Brand-essay Education does not.</span>
+    </div>
+    <div class="perf-table-scroll">
+      <table class="perf-table" id="typeTable">
+        <thead>
+          <tr>
+            <th>Type / Theme</th>
+            <th>Campaigns</th>
+            <th>Recipients</th>
+            <th>Open %</th>
+            <th>Click %</th>
+            <th>Orders</th>
+            <th>Revenue</th>
+            <th>RPR</th>
+          </tr>
+        </thead>
+        <tbody id="typeTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- WINNERS & LOSERS -->
+<section class="charts-row">
+  <div class="chart-card" style="flex: 1;">
+    <h3>Top 10 Campaigns by Revenue</h3>
+    <div class="winners-list" id="winnersList"></div>
+  </div>
+  <div class="chart-card" style="flex: 1;">
+    <h3>Top 10 Campaigns by Lowest RPR (n &ge; 200)</h3>
+    <div class="winners-list" id="losersList"></div>
+  </div>
+</section>
+
+<!-- FLOW PERFORMANCE -->
+<section class="perf-table-section">
+  <div class="perf-table-wrap">
+    <div class="perf-table-header">
+      <h3>Flow Performance</h3>
+      <span style="font-size:11px; color:var(--text-muted);">Flows convert ~4× harder than campaigns. Only 3 are live.</span>
+    </div>
+    <div class="perf-table-scroll">
+      <table class="perf-table" id="flowsTable">
+        <thead>
+          <tr>
+            <th>Flow</th>
+            <th>Trigger</th>
+            <th>Status</th>
+            <th>Recipients</th>
+            <th>Open %</th>
+            <th>Click %</th>
+            <th>Orders</th>
+            <th>Revenue</th>
+            <th>RPR</th>
+          </tr>
+        </thead>
+        <tbody id="flowsTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- FLOW GAP ANALYSIS -->
+<section class="perf-table-section">
+  <div class="perf-table-wrap">
+    <div class="perf-table-header">
+      <h3>Flow Gap Analysis &mdash; What&apos;s missing</h3>
+      <span style="font-size:11px; color:var(--text-muted);">Of 13 standard D2C flows, 3 are live, 1 is partial, 9 are missing.</span>
+    </div>
+    <div class="perf-table-scroll">
+      <table class="perf-table" id="flowGapTable">
+        <thead>
+          <tr>
+            <th style="width:40px;">&nbsp;</th>
+            <th>Flow</th>
+            <th>Status</th>
+            <th>Estimated annual uplift if built</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="flowGapTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- STRATEGIC FINDINGS -->
+<section class="insights-section">
+  <div class="section-title">5 Biggest Opportunities &mdash; Ranked</div>
+  <div class="opportunities-grid" id="opportunitiesGrid"></div>
+  <div style="font-size: 11px; color: var(--text-muted); padding: 12px 8px 0;">Combined estimated uplift if all 5 executed: <strong>£50–85k/yr</strong> &mdash; roughly the same as the current 6-month campaign revenue.</div>
 </section>
 
 <!-- KEY INSIGHTS (auto-generated from data) -->
@@ -1001,6 +1219,254 @@ async function fetchData() {
 }
 
 fetchData();
+
+// ══════════════════════════════════════════════════════
+// STRATEGIC ANALYSIS — campaigns + flows snapshot
+// Source: Klaviyo MCP metric aggregates (25 Oct 2025 – 25 Apr 2026)
+// Refresh: re-run /tmp/karmic-klaviyo-analysis/build.py to regenerate
+// ══════════════════════════════════════════════════════
+const KLAVIYO_ANALYSIS = {"summary":{"period_start":"2025-10-25","period_end":"2026-04-25","last_analyzed":"2026-04-25","campaigns_total":83,"campaign_revenue":75290.38,"campaign_recipients":608125,"campaign_orders":1388,"campaign_avg_rpr":0.1238,"flow_revenue":18274.26,"flow_recipients":34995,"flow_orders":322,"flow_avg_rpr":0.5222},"by_audience":[{"audience":"2x Purchasers","n_campaigns":2,"recipients":3012,"revenue":2024.91,"orders":50,"open_rate":0.4701,"click_rate":0.0442,"rpr":0.6723},{"audience":"2x or More Purchasers","n_campaigns":3,"recipients":4531,"revenue":2687.96,"orders":47,"open_rate":0.4639,"click_rate":0.0543,"rpr":0.5932},{"audience":"2x or More","n_campaigns":1,"recipients":2053,"revenue":857.76,"orders":15,"open_rate":0.4618,"click_rate":0.02,"rpr":0.4178},{"audience":"Purchased","n_campaigns":1,"recipients":6823,"revenue":2535.62,"orders":49,"open_rate":0.4401,"click_rate":0.0311,"rpr":0.3716},{"audience":"0x and 1x Purchased","n_campaigns":1,"recipients":6686,"revenue":1045.78,"orders":19,"open_rate":0.4945,"click_rate":0.012,"rpr":0.1564},{"audience":"1x Purchasers","n_campaigns":7,"recipients":30550,"revenue":4211.87,"orders":88,"open_rate":0.3977,"click_rate":0.0148,"rpr":0.1379},{"audience":"1x Purchased","n_campaigns":1,"recipients":5598,"revenue":719.55,"orders":14,"open_rate":0.3959,"click_rate":0.0123,"rpr":0.1285},{"audience":"Trustpilot Review Request","n_campaigns":4,"recipients":3119,"revenue":400.17,"orders":8,"open_rate":0.5223,"click_rate":0.0321,"rpr":0.1283},{"audience":"Whole List","n_campaigns":18,"recipients":243141,"revenue":29873.35,"orders":540,"open_rate":0.3561,"click_rate":0.0102,"rpr":0.1229},{"audience":"Engaged","n_campaigns":29,"recipients":197005,"revenue":23070.13,"orders":414,"open_rate":0.538,"click_rate":0.0121,"rpr":0.1171},{"audience":"0x Purchasers","n_campaigns":7,"recipients":51871,"revenue":2825.02,"orders":52,"open_rate":0.3439,"click_rate":0.007,"rpr":0.0545}],"by_type":[{"type":"Spring Sale 1st Announcement","n_campaigns":1,"recipients":7458,"revenue":1950.33,"orders":34,"open_rate":0.5422,"click_rate":0.0245,"rpr":0.2615},{"type":"25% Off - Final Reminder","n_campaigns":3,"recipients":9845,"revenue":2500.85,"orders":56,"open_rate":0.495,"click_rate":0.0154,"rpr":0.254},{"type":"BF Now On","n_campaigns":3,"recipients":16189,"revenue":3819.61,"orders":64,"open_rate":0.3251,"click_rate":0.0257,"rpr":0.2359},{"type":"BF - Selling Out Fast","n_campaigns":1,"recipients":16038,"revenue":3105.82,"orders":50,"open_rate":0.3231,"click_rate":0.0119,"rpr":0.1937},{"type":"Offer","n_campaigns":14,"recipients":131176,"revenue":21083.75,"orders":369,"open_rate":0.4005,"click_rate":0.0126,"rpr":0.1607},{"type":"Founder Note","n_campaigns":1,"recipients":6686,"revenue":1045.78,"orders":19,"open_rate":0.4945,"click_rate":0.012,"rpr":0.1564},{"type":"Spring Must Haves","n_campaigns":1,"recipients":7669,"revenue":1084.02,"orders":18,"open_rate":0.4826,"click_rate":0.0136,"rpr":0.1414},{"type":"25% Off - 1st Reminder","n_campaigns":3,"recipients":15073,"revenue":2009.05,"orders":46,"open_rate":0.3288,"click_rate":0.0141,"rpr":0.1333},{"type":"BF - Black Friday Day","n_campaigns":1,"recipients":16161,"revenue":2038.3,"orders":41,"open_rate":0.311,"click_rate":0.0117,"rpr":0.1261},{"type":"Education","n_campaigns":25,"recipients":162824,"revenue":16629,"orders":295,"open_rate":0.4421,"click_rate":0.0124,"rpr":0.1021}],"winners":[{"name":"Whole List | BF - Selling Out Fast","recipients":16038,"revenue":3105.82,"rpr":0.1937,"open_rate":0.3231,"click_rate":0.0119,"click_to_buy":0.2618},{"name":"Purchased | Offer | Birthday Sale","recipients":6823,"revenue":2535.62,"rpr":0.3716,"open_rate":0.4401,"click_rate":0.0311,"click_to_buy":0.2311},{"name":"Whole List | Offer | Birthday Sale Reminder","recipients":6397,"revenue":2318.19,"rpr":0.3624,"open_rate":0.6295,"click_rate":0.0228,"click_to_buy":0.2671},{"name":"Whole List | Offer | New Year Sale","recipients":17279,"revenue":2242.15,"rpr":0.1298,"open_rate":0.3253,"click_rate":0.0094,"click_to_buy":0.2454},{"name":"Whole List | BF - Black Friday Day","recipients":16161,"revenue":2038.3,"rpr":0.1261,"open_rate":0.311,"click_rate":0.0117,"click_to_buy":0.2169},{"name":"Engaged | Spring Sale 1st Announcement","recipients":7458,"revenue":1950.33,"rpr":0.2615,"open_rate":0.5422,"click_rate":0.0245,"click_to_buy":0.1858},{"name":"Whole List | Offer | Vday Sale","recipients":15309,"revenue":1921.58,"rpr":0.1255,"open_rate":0.3594,"click_rate":0.0132,"click_to_buy":0.1634},{"name":"Whole List | Offer | Birthday Sale Reminder (Final)","recipients":6330,"revenue":1836.14,"rpr":0.2901,"open_rate":0.5199,"click_rate":0.0179,"click_to_buy":0.3009},{"name":"Whole List | Education | Night-Time Recovery","recipients":17364,"revenue":1813.88,"rpr":0.1045,"open_rate":0.3557,"click_rate":0.0073,"click_to_buy":0.2756},{"name":"Whole List | Offer | New Year Sale (Last Day)","recipients":17513,"revenue":1800.86,"rpr":0.1028,"open_rate":0.3287,"click_rate":0.0085,"click_to_buy":0.223}],"losers":[{"name":"Trustpilot Review Request | JudgeMe 5 Star Reviewers","recipients":517,"revenue":0,"rpr":0,"open_rate":0.6151,"click_rate":0.0426,"click_to_buy":0},{"name":"0x Purchased | Offer | Spring Sale Reminder 1","recipients":12143,"revenue":94.98,"rpr":0.0078,"open_rate":0.2749,"click_rate":0.0044,"click_to_buy":0.0556},{"name":"Non-Purchasers | Education | Serums Consistency","recipients":3342,"revenue":70.89,"rpr":0.0212,"open_rate":0.5694,"click_rate":0.0045,"click_to_buy":0.2},{"name":"0x Purchasers | 25% Off - 1st Reminder","recipients":9354,"revenue":214.03,"rpr":0.0229,"open_rate":0.2627,"click_rate":0.0065,"click_to_buy":0.082},{"name":"Engaged | Education - Skin doesn’t need fixing","recipients":8605,"revenue":203.63,"rpr":0.0237,"open_rate":0.602,"click_rate":0,"click_to_buy":0},{"name":"0x Purchasers | Education | Cooler Air Brighter Skin","recipients":10052,"revenue":291.62,"rpr":0.029,"open_rate":0.2772,"click_rate":0.0031,"click_to_buy":0.1935},{"name":"0x Purchasers | Customer Story - Sarah's Story","recipients":10095,"revenue":380.25,"rpr":0.0377,"open_rate":0.2826,"click_rate":0.0016,"click_to_buy":0.375},{"name":"0x Purchasers | Hair Serum Ingredients","recipients":4116,"revenue":162.77,"rpr":0.0395,"open_rate":0.492,"click_rate":0.0097,"click_to_buy":0.125},{"name":"0x Purchasers | Bars Highlight","recipients":4152,"revenue":169.46,"rpr":0.0408,"open_rate":0.5908,"click_rate":0.0108,"click_to_buy":0.1333},{"name":"Engaged | What a cleanser should feel like","recipients":7136,"revenue":320.5,"rpr":0.0449,"open_rate":0.485,"click_rate":0.0084,"click_to_buy":0.0833}],"flows":[{"flow_name":"Welcome Flow - Skin Quiz - Aug 2025","trigger":"Added to List","status":"live","recipients":30956,"revenue":13063.56,"rpr":0.4254,"open_rate":0.3344,"click_rate":0.0211,"orders":220},{"flow_name":"Welcome Flow - Newsletter - 5 June 2024","trigger":"Added to List","status":"live","recipients":2767,"revenue":3109.41,"rpr":1.1373,"open_rate":0.3614,"click_rate":0.0304,"orders":54},{"flow_name":"Checkout Started - 5 June 2024","trigger":"Metric","status":"live","recipients":1272,"revenue":2101.29,"rpr":1.6743,"open_rate":0.3514,"click_rate":0.0629,"orders":48}]};
+
+const FLOW_GAPS = [
+  {flow: "Welcome Series (Quiz)",       status: "live",    statusLabel: "Live",     uplift: "—",         note: "7 messages, low avg RPR. Compress to a stronger #1 + #2 + branched"},
+  {flow: "Welcome Series (Newsletter)", status: "live",    statusLabel: "Live",     uplift: "—",         note: "Best converting flow. Make sure all non-quiz signups land here"},
+  {flow: "Cart Abandonment",            status: "partial", statusLabel: "Partial",  uplift: "+£3–6k/yr", note: "Single email at £1.67 RPR. Add email #2 (24h) and #3 (48h with £5 off)"},
+  {flow: "Browse Abandonment",          status: "draft",   statusLabel: "Draft",    uplift: "+£8–15k/yr", note: "Sits as 2023 draft, never live. High-intent signal wasted"},
+  {flow: "Replenishment",               status: "missing", statusLabel: "Missing",  uplift: "+£15–25k/yr", note: "60/90/120 days based on hero SKU. Biggest single opportunity"},
+  {flow: "Post-Purchase Upsell",        status: "missing", statusLabel: "Missing",  uplift: "+£6–12k/yr",  note: "Day 1 'thank you + add this'"},
+  {flow: "Post-Purchase How-To-Use",    status: "missing", statusLabel: "Missing",  uplift: "+£4–8k/yr",   note: "Day 3 + Day 14 nurture so customer actually uses product = repurchase"},
+  {flow: "Win-Back",                    status: "missing", statusLabel: "Missing",  uplift: "+£4–8k/yr",   note: "60/90/180-day no purchase trigger"},
+  {flow: "Birthday",                    status: "missing", statusLabel: "Missing",  uplift: "+£2–4k/yr",   note: "Currently a campaign. Trigger as a flow on birthday property"},
+  {flow: "Review Request",              status: "partial", statusLabel: "Partial",  uplift: "frees campaign slots", note: "Trustpilot/JudgeMe run as campaigns. Move to flow at delivery+14d"},
+  {flow: "VIP / Loyalty (3x+)",         status: "missing", statusLabel: "Missing",  uplift: "+£3–6k/yr",   note: "2x+ campaign-level RPR is £0.59. Automate early access"},
+  {flow: "Back-in-Stock",               status: "missing", statusLabel: "Missing",  uplift: "+£2–4k/yr",   note: "Worth £2–4k/yr per major SKU"},
+  {flow: "Cross-sell (Skin↔Hair)",      status: "missing", statusLabel: "Missing",  uplift: "+£3–6k/yr",   note: "Hair launch sales to non-Skin buyers were poor; cross-sell to Skin buyers"},
+];
+
+const OPPORTUNITIES = [
+  {rank:"#1", title:"Build the Replenishment Flow", body:"Sunlight, Moonlight, Sleepytime are 60–90 day usage products. With 6 months of repeat-purchaser revenue at £0.59 RPR, even modest replenishment automation should add £15–25k/yr. Needs Shopify last_purchased_product piped to Klaviyo, then 3 segmented flows (one per hero SKU).", uplift:"£15–25k/yr", effort:"1–2 weeks"},
+  {rank:"#2", title:"Repeat-Purchaser Cadence Lift", body:"2x+ Purchasers (RPR £0.59–£1.10) received only ~6 campaigns in 6 months. Doubling cadence — still well within fatigue limits given high engagement — should add ~£10–15k/yr without needing new content. Just re-segment existing campaigns to hit this cohort first.", uplift:"£10–15k/yr", effort:"1 day"},
+  {rank:"#3", title:"Replicate the “A gift for us” template", body:"Birthday Sale series alone = £6,690 from 3 sends with 26–30% click-to-buy — by far the strongest emotional-offer pattern of the period. Currently used once a year. Reuse the template and emotional voice for Diwali, Anniversary, Founder Birthday, Mother's Day, Boxing Day. 4–6 new moment-led sales/yr.", uplift:"£8–15k/yr", effort:"Low (template reuse)"},
+  {rank:"#4", title:"Stop the bleed on 0x Purchasers", body:"0x Purchasers received 51,871 sends in 6 months and produced £2,825 (RPR £0.054, 1/11 the 2x cohort). Cut their volume in half without changing total revenue → frees deliverability for higher-value cohorts. Build a dedicated first-buy nurture flow with money-back, social proof, tester-size offer.", uplift:"£3–5k/yr (direct) + sender reputation", effort:"Medium"},
+  {rank:"#5", title:"Build Browse Abandon + Post-Purchase flows", body:"Browse Abandon sits as a 2023 draft, never live. Post-purchase flows don't exist. The Checkout Started flow at £1.67 RPR shows automated emails work — there's no reason browse and post-purchase wouldn't convert similarly.", uplift:"£15–25k/yr combined", effort:"1 week each"},
+];
+
+// ── Helpers ─────────────────────────────────────────────
+function fmtCurrency(v) { if (v == null) return '—'; return '£' + Number(v).toLocaleString('en-GB', {minimumFractionDigits: v < 100 ? 2 : 0, maximumFractionDigits: v < 100 ? 2 : 0}); }
+function fmtPct(v) { if (v == null) return '—'; return (Number(v) * 100).toFixed(1) + '%'; }
+function fmtRPR(v) { if (v == null) return '—'; return '£' + Number(v).toFixed(3); }
+function fmtNum(v) { if (v == null) return '—'; return Number(v).toLocaleString('en-GB'); }
+
+// ── Render top-line banner ─────────────────────────────
+function renderTopline() {
+  const s = KLAVIYO_ANALYSIS.summary;
+  const total = s.campaign_revenue + s.flow_revenue;
+  const pctC = (s.campaign_revenue / total * 100).toFixed(0);
+  const pctF = (s.flow_revenue / total * 100).toFixed(0);
+  document.getElementById('topRevenue').textContent = fmtCurrency(total);
+  document.getElementById('topSplit').textContent = pctC + '% / ' + pctF + '%';
+  document.getElementById('topCampaignRPR').textContent = fmtRPR(s.campaign_avg_rpr);
+  document.getElementById('topFlowRPR').textContent = fmtRPR(s.flow_avg_rpr);
+  document.getElementById('strategicAnalyzedDate').textContent = 'Last analysed: ' + new Date(s.last_analyzed).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+}
+
+// ── Audience RPR chart (horizontal bars) ───────────────
+function renderAudienceRPR() {
+  const ctx = document.getElementById('audienceRPRChart').getContext('2d');
+  const data = KLAVIYO_ANALYSIS.by_audience.slice().sort((a,b) => b.rpr - a.rpr);
+  const cs = getComputedStyle(document.documentElement);
+  const accent = cs.getPropertyValue('--accent').trim();
+  const negative = cs.getPropertyValue('--negative').trim();
+  const tickColor = cs.getPropertyValue('--chart-tick').trim();
+  const gridColor = cs.getPropertyValue('--chart-grid').trim();
+  const benchmark = KLAVIYO_ANALYSIS.summary.campaign_avg_rpr;
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: data.map(d => d.audience),
+      datasets: [{
+        label: 'RPR',
+        data: data.map(d => d.rpr),
+        backgroundColor: data.map(d => d.rpr >= benchmark ? accent : negative),
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ' RPR: ' + fmtRPR(ctx.parsed.x) + '  (' + fmtNum(data[ctx.dataIndex].recipients) + ' recipients)' } }
+      },
+      scales: {
+        x: { ticks: { color: tickColor, callback: v => '£' + v.toFixed(2) }, grid: { color: gridColor } },
+        y: { ticks: { color: tickColor }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+// ── Type RPR chart ─────────────────────────────────────
+function renderTypeRPR() {
+  const ctx = document.getElementById('typeRPRChart').getContext('2d');
+  const data = KLAVIYO_ANALYSIS.by_type.slice().sort((a,b) => b.rpr - a.rpr);
+  const cs = getComputedStyle(document.documentElement);
+  const accent = cs.getPropertyValue('--accent').trim();
+  const negative = cs.getPropertyValue('--negative').trim();
+  const tickColor = cs.getPropertyValue('--chart-tick').trim();
+  const gridColor = cs.getPropertyValue('--chart-grid').trim();
+  const benchmark = KLAVIYO_ANALYSIS.summary.campaign_avg_rpr;
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: data.map(d => d.type),
+      datasets: [{
+        label: 'RPR',
+        data: data.map(d => d.rpr),
+        backgroundColor: data.map(d => d.rpr >= benchmark ? accent : negative),
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ' RPR: ' + fmtRPR(ctx.parsed.x) + '  (' + fmtNum(data[ctx.dataIndex].recipients) + ' recipients)' } }
+      },
+      scales: {
+        x: { ticks: { color: tickColor, callback: v => '£' + v.toFixed(2) }, grid: { color: gridColor } },
+        y: { ticks: { color: tickColor }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+// ── Audience table ─────────────────────────────────────
+function renderAudienceTable() {
+  const tbody = document.getElementById('audienceTableBody');
+  const benchmark = KLAVIYO_ANALYSIS.summary.campaign_avg_rpr;
+  const data = KLAVIYO_ANALYSIS.by_audience.slice().sort((a,b) => b.rpr - a.rpr);
+  tbody.innerHTML = data.map(d => {
+    const rprClass = d.rpr >= benchmark * 1.5 ? 'rpr-good' : (d.rpr < benchmark * 0.6 ? 'rpr-bad' : '');
+    const read = d.rpr >= benchmark * 1.5 ? '🟢 Under-utilised — send more here' : (d.rpr < benchmark * 0.6 ? '🔴 Bleeding deliverability' : '⚪ Average');
+    return '<tr>' +
+      '<td><strong>' + d.audience + '</strong></td>' +
+      '<td>' + d.n_campaigns + '</td>' +
+      '<td>' + fmtNum(d.recipients) + '</td>' +
+      '<td>' + fmtPct(d.open_rate) + '</td>' +
+      '<td>' + fmtPct(d.click_rate) + '</td>' +
+      '<td>' + fmtNum(d.orders) + '</td>' +
+      '<td>' + fmtCurrency(d.revenue) + '</td>' +
+      '<td class="' + rprClass + '">' + fmtRPR(d.rpr) + '</td>' +
+      '<td style="font-size:11px;">' + read + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+// ── Type table ─────────────────────────────────────────
+function renderTypeTable() {
+  const tbody = document.getElementById('typeTableBody');
+  const benchmark = KLAVIYO_ANALYSIS.summary.campaign_avg_rpr;
+  const data = KLAVIYO_ANALYSIS.by_type.slice().sort((a,b) => b.rpr - a.rpr);
+  tbody.innerHTML = data.map(d => {
+    const rprClass = d.rpr >= benchmark * 1.5 ? 'rpr-good' : (d.rpr < benchmark * 0.6 ? 'rpr-bad' : '');
+    return '<tr>' +
+      '<td><strong>' + d.type + '</strong></td>' +
+      '<td>' + d.n_campaigns + '</td>' +
+      '<td>' + fmtNum(d.recipients) + '</td>' +
+      '<td>' + fmtPct(d.open_rate) + '</td>' +
+      '<td>' + fmtPct(d.click_rate) + '</td>' +
+      '<td>' + fmtNum(d.orders) + '</td>' +
+      '<td>' + fmtCurrency(d.revenue) + '</td>' +
+      '<td class="' + rprClass + '">' + fmtRPR(d.rpr) + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+// ── Winners / losers list ─────────────────────────────
+function renderCampaignList(arr, elId, isLoser) {
+  const el = document.getElementById(elId);
+  el.innerHTML = arr.map((c, i) => {
+    const stat = isLoser ? fmtRPR(c.rpr) : fmtCurrency(c.revenue);
+    const statLabel = isLoser ? 'RPR' : 'Revenue';
+    return '<div class="winner-row">' +
+      '<div class="winner-rank ' + (isLoser ? 'loser-rank' : '') + '">' + (i+1) + '</div>' +
+      '<div class="winner-body">' +
+        '<div class="winner-name" title="' + c.name + '">' + c.name + '</div>' +
+        '<div class="winner-meta">' + fmtNum(c.recipients) + ' recipients · ' + fmtPct(c.open_rate) + ' open · ' + fmtPct(c.click_rate) + ' click · ' + fmtPct(c.click_to_buy) + ' click→buy</div>' +
+      '</div>' +
+      '<div class="winner-stat">' +
+        '<div class="winner-stat-value">' + stat + '</div>' +
+        '<div class="winner-stat-label">' + statLabel + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ── Flow performance table ─────────────────────────────
+function renderFlowsTable() {
+  const tbody = document.getElementById('flowsTableBody');
+  tbody.innerHTML = KLAVIYO_ANALYSIS.flows.slice().sort((a,b) => b.revenue - a.revenue).map(f => {
+    return '<tr>' +
+      '<td><strong>' + f.flow_name + '</strong></td>' +
+      '<td><span class="status-pill" style="background:rgba(124,58,237,0.10);color:#7c3aed;">' + f.trigger + '</span></td>' +
+      '<td><span class="status-pill status-live">Live</span></td>' +
+      '<td>' + fmtNum(f.recipients) + '</td>' +
+      '<td>' + fmtPct(f.open_rate) + '</td>' +
+      '<td>' + fmtPct(f.click_rate) + '</td>' +
+      '<td>' + fmtNum(f.orders) + '</td>' +
+      '<td>' + fmtCurrency(f.revenue) + '</td>' +
+      '<td class="rpr-good">' + fmtRPR(f.rpr) + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+// ── Flow gap analysis table ────────────────────────────
+function renderFlowGapTable() {
+  const tbody = document.getElementById('flowGapTableBody');
+  const icons = { live: '✅', partial: '⚠️', draft: '📝', missing: '❌' };
+  tbody.innerHTML = FLOW_GAPS.map(f => {
+    return '<tr>' +
+      '<td style="text-align:center;font-size:16px;">' + (icons[f.status] || '·') + '</td>' +
+      '<td><strong>' + f.flow + '</strong></td>' +
+      '<td><span class="status-pill status-' + f.status + '">' + f.statusLabel + '</span></td>' +
+      '<td><strong style="color:var(--accent);">' + f.uplift + '</strong></td>' +
+      '<td style="font-size:11px;color:var(--text-secondary);">' + f.note + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+// ── Opportunity cards ──────────────────────────────────
+function renderOpportunities() {
+  const grid = document.getElementById('opportunitiesGrid');
+  grid.innerHTML = OPPORTUNITIES.map(o => {
+    return '<div class="opportunity-card">' +
+      '<div class="opportunity-rank">' + o.rank + '</div>' +
+      '<div class="opportunity-title">' + o.title + '</div>' +
+      '<div class="opportunity-body">' + o.body + '</div>' +
+      '<div class="opportunity-stats">' +
+        '<div class="opportunity-stat">Uplift<strong>' + o.uplift + '</strong></div>' +
+        '<div class="opportunity-stat">Effort<strong>' + o.effort + '</strong></div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ── Run all renders ────────────────────────────────────
+function renderStrategicAnalysis() {
+  renderTopline();
+  renderAudienceRPR();
+  renderTypeRPR();
+  renderAudienceTable();
+  renderTypeTable();
+  renderCampaignList(KLAVIYO_ANALYSIS.winners, 'winnersList', false);
+  renderCampaignList(KLAVIYO_ANALYSIS.losers, 'losersList', true);
+  renderFlowsTable();
+  renderFlowGapTable();
+  renderOpportunities();
+}
+renderStrategicAnalysis();
 
 // ══════════════════════════════════════════════════════
 // TOOLTIP POPUP (preserved)

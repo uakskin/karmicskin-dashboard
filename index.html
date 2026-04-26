@@ -316,18 +316,18 @@
     <div class="value" id="kpi-roas">--</div>
     <div class="benchmark" id="kpi-roas-be" title="Breakeven MER: the level where EBITDA = 0 at current period scale. Calculated from cost structure (variable 32.2%, fixed £944/mo prorated, VAT pass-through).">Breakeven --</div>
   </div>
-  <div class="kpi-card"><div class="label">AOV <span class="info-tip" data-tip="Total Shopify sales (inc. VAT, inc. shipping) ÷ Orders. The all-in average order value.">ⓘ</span></div><div class="value" id="kpi-aov">--</div></div>
   <div class="kpi-card"><div class="label">Orders <span class="info-tip" data-tip="Total Shopify orders placed in period">ⓘ</span></div><div class="value" id="kpi-orders">--</div></div>
+  <div class="kpi-card"><div class="label">AOV <span class="info-tip" data-tip="Total Shopify sales (inc. VAT, inc. shipping) ÷ Orders. The all-in average order value.">ⓘ</span></div><div class="value" id="kpi-aov">--</div></div>
   <div class="kpi-card"><div class="label">New Customers <span class="info-tip" data-tip="First-time buyers only (no prior Shopify orders)">ⓘ</span></div><div class="value" id="kpi-new">--</div></div>
   <div class="kpi-card"><div class="label">Repeat % <span class="info-tip" data-tip="Returning Customers ÷ Total Unique Customers × 100">ⓘ</span></div><div class="value" id="kpi-repeat">--</div></div>
-  <div class="kpi-card">
-    <div class="label">N-CAC <span class="info-tip" data-tip="Ad Spend (Meta + Google) ÷ New Unique Paying Customers">ⓘ</span></div>
-    <div class="value" id="kpi-cac">--</div>
-    <div class="benchmark" id="kpi-cac-be" title="Breakeven CPA: max we can spend acquiring a customer at first-order level (AOV × ~56.5% contribution margin). If N-CAC exceeds this, the first order is unprofitable — only justified by 12-month LTV.">Breakeven --</div>
-  </div>
-  <div class="kpi-card"><div class="label">Blended CPA <span class="info-tip" data-tip="Ad Spend ÷ Total Orders. Includes returning-customer orders so it\u2019s lower than N-CAC. Sanity check against AOV.">ⓘ</span></div><div class="value" id="kpi-blended-cpa">--</div></div>
   <div class="kpi-card"><div class="label">Sessions <span class="info-tip" data-tip="GA4 sessions — total website visits tracked by Google Analytics">ⓘ</span></div><div class="value" id="kpi-sessions">--</div></div>
   <div class="kpi-card"><div class="label">CVR % <span class="info-tip" data-tip="Orders ÷ GA4 Sessions × 100 — uses GA4 sessions as the denominator">ⓘ</span></div><div class="value" id="kpi-cvr">--</div></div>
+  <div class="kpi-card">
+    <div class="label">Blended CPA <span class="info-tip" data-tip="Ad Spend ÷ Total Orders. Average per-order ad cost across all orders (new + returning).">ⓘ</span></div>
+    <div class="value" id="kpi-blended-cpa">--</div>
+    <div class="benchmark" id="kpi-blended-cpa-be" title="Breakeven CPA: max ad cost per order at break-even (AOV × ~56.5% contribution margin). If Blended CPA exceeds this, the average order is unprofitable on its own — only justified by repeat purchases.">Breakeven --</div>
+  </div>
+  <div class="kpi-card"><div class="label">N-CAC <span class="info-tip" data-tip="Ad Spend (Meta + Google) ÷ New Unique Paying Customers">ⓘ</span></div><div class="value" id="kpi-cac">--</div></div>
 </div>
 
 <div class="dashboard-body">
@@ -899,9 +899,7 @@ function updateKPIs(data) {
   document.getElementById('kpi-orders').textContent = t.orders.toLocaleString();
   document.getElementById('kpi-new').textContent = t.newCustomers.toLocaleString();
   document.getElementById('kpi-repeat').textContent = (t.newCustomers + t.returning) > 0 ? ((t.returning / (t.newCustomers + t.returning)) * 100).toFixed(1) + '%' : '--';
-  // N-CAC with inline breakeven comparison
-  const ncacVal = t.newCustomers > 0 ? t.adSpend / t.newCustomers : 0;
-  document.getElementById('kpi-cac').textContent = ncacVal > 0 ? '\u00A3' + ncacVal.toFixed(0) : '--';
+  document.getElementById('kpi-cac').textContent = '\u00A3' + (t.newCustomers > 0 ? (t.adSpend / t.newCustomers).toFixed(0) : '--');
   // Blended CPA: ad spend / total orders
   document.getElementById('kpi-blended-cpa').textContent = '\u00A3' + (t.orders > 0 ? (t.adSpend / t.orders).toFixed(0) : '--');
   document.getElementById('kpi-sessions').textContent = t.sessions.toLocaleString();
@@ -935,13 +933,14 @@ function updateKPIs(data) {
     beEl.classList.remove('above', 'below');
   }
 
-  // BE CPA at first-order level: AOV (inc-VAT) × cmTwBasis
-  // (ignores LTV — conservative). Rendered inline under N-CAC for direct comparison.
+  // Blended CPA vs Breakeven CPA — both per-order metrics, direct comparison.
+  // Breakeven CPA = AOV (inc-VAT) × contribution margin on TW basis (~56.5%)
   const aovIncVat = t.orders > 0 ? t.revenue / t.orders : 0;
   const beCpa = aovIncVat * cmTwBasis;
-  const beCpaEl = document.getElementById('kpi-cac-be');
-  if (beCpa > 0 && ncacVal > 0) {
-    const isUnder = ncacVal <= beCpa; // lower N-CAC than breakeven = good
+  const blendedCpa = t.orders > 0 ? t.adSpend / t.orders : 0;
+  const beCpaEl = document.getElementById('kpi-blended-cpa-be');
+  if (beCpa > 0 && blendedCpa > 0) {
+    const isUnder = blendedCpa <= beCpa; // lower per-order cost than breakeven = good
     const arrow = isUnder ? '\u2193' : '\u2191';
     beCpaEl.innerHTML = `<span class="be-arrow">${arrow}</span>vs Breakeven \u00A3${Math.round(beCpa)}`;
     beCpaEl.classList.remove('above', 'below');

@@ -313,8 +313,16 @@
 </div>
 
 <div class="kpi-strip">
-  <div class="kpi-card"><div class="label">Revenue <span class="info-tip" data-tip="Total Shopify sales inc. VAT, net of refunds">ⓘ</span></div><div class="value" id="kpi-revenue">--</div></div>
-  <div class="kpi-card"><div class="label">Ad Spend <span class="info-tip" data-tip="Meta + Google ad spend combined">ⓘ</span></div><div class="value" id="kpi-adspend">--</div></div>
+  <div class="kpi-card">
+    <div class="label">Revenue <span class="info-tip" data-tip="Total Shopify sales inc. VAT, net of refunds">ⓘ</span></div>
+    <div class="value" id="kpi-revenue">--</div>
+    <div class="benchmark" id="kpi-revenue-split" title="New customer revenue · Returning customer revenue (with share %)">--</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">Ad Spend <span class="info-tip" data-tip="Meta + Google ad spend combined">ⓘ</span></div>
+    <div class="value" id="kpi-adspend">--</div>
+    <div class="benchmark" id="kpi-adspend-split" title="Meta spend · Google spend (with share %)">--</div>
+  </div>
   <div class="kpi-card">
     <div class="label">MER <span class="info-tip" data-tip="Marketing Efficiency Ratio: Total Shopify revenue ÷ Total marketing spend (Meta + Google). The true blended return — independent of platform attribution.">ⓘ</span></div>
     <div class="value" id="kpi-roas">--</div>
@@ -912,14 +920,37 @@ fetchAvgMonthlyRevenue();
 function updateKPIs(data) {
   const t = data.reduce((a, d) => {
     a.revenue += d.revenue; a.netProductRev += (d.netProductRev || 0); a.adSpend += d.adSpend;
+    a.metaSpend += (d.metaSpend || 0); a.googleSpend += (d.googleSpend || 0);
     a.orders += d.orders; a.newCustomers += d.newCustomers; a.returning += (d.returning || 0);
     a.newRev += (d.newRev || 0); a.retRev += (d.retRev || 0);
     a.sessions += d.sessions;
     return a;
-  }, { revenue: 0, netProductRev: 0, adSpend: 0, orders: 0, newCustomers: 0, returning: 0, newRev: 0, retRev: 0, sessions: 0 });
+  }, { revenue: 0, netProductRev: 0, adSpend: 0, metaSpend: 0, googleSpend: 0, orders: 0, newCustomers: 0, returning: 0, newRev: 0, retRev: 0, sessions: 0 });
 
   document.getElementById('kpi-revenue').textContent = '\u00A3' + Math.round(t.revenue).toLocaleString();
   document.getElementById('kpi-adspend').textContent = '\u00A3' + Math.round(t.adSpend).toLocaleString();
+
+  // Revenue split: New / Returning customers (with share %)
+  const splitRevEl = document.getElementById('kpi-revenue-split');
+  const totalCustRev = t.newRev + t.retRev;
+  if (totalCustRev > 0) {
+    const newPct = Math.round((t.newRev / totalCustRev) * 100);
+    const retPct = Math.round((t.retRev / totalCustRev) * 100);
+    splitRevEl.textContent = 'New £' + Math.round(t.newRev).toLocaleString() + ' (' + newPct + '%) · Returning £' + Math.round(t.retRev).toLocaleString() + ' (' + retPct + '%)';
+  } else {
+    splitRevEl.textContent = '--';
+  }
+
+  // Ad Spend split: Meta / Google (with share %)
+  const splitAdEl = document.getElementById('kpi-adspend-split');
+  if (t.adSpend > 0) {
+    const metaPct = Math.round((t.metaSpend / t.adSpend) * 100);
+    const googlePct = Math.round((t.googleSpend / t.adSpend) * 100);
+    splitAdEl.textContent = 'Meta £' + Math.round(t.metaSpend).toLocaleString() + ' (' + metaPct + '%) · Google £' + Math.round(t.googleSpend).toLocaleString() + ' (' + googlePct + '%)';
+  } else {
+    splitAdEl.textContent = '--';
+  }
+
   document.getElementById('kpi-roas').textContent = t.adSpend > 0 ? (t.revenue / t.adSpend).toFixed(2) : '--';
   // AOV inc-VAT (total_sales / orders)
   document.getElementById('kpi-aov').textContent = '\u00A3' + (t.orders > 0 ? (t.revenue / t.orders).toFixed(0) : '--');

@@ -90,6 +90,7 @@
   .mp-card .mp-ads { font-size: 12px; font-weight: 500; color: var(--text-secondary); white-space: nowrap; }
   .mp-card .mp-mer { font-size: 13px; font-weight: 700; color: var(--text-primary); white-space: nowrap; margin-left: auto; }
   .mp-card .mp-mer.above { color: var(--positive); }
+  .mp-card .mp-mer.warn { color: #ca8a04; }
   .mp-card .mp-mer.below { color: var(--negative); }
   .mp-card .mp-op { font-size: 10px; color: var(--text-muted); opacity: 0.55; }
   @media (max-width: 1200px) { .multi-period-strip { grid-template-columns: repeat(3, 1fr); } }
@@ -98,8 +99,6 @@
   .kpi-card .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
   .kpi-card .value { font-size: 20px; font-weight: 700; color: var(--text-primary); }
   .kpi-card .benchmark { font-size: 10px; color: var(--text-muted); font-weight: 500; margin-top: 2px; letter-spacing: 0.2px; display: flex; align-items: center; gap: 3px; }
-  .kpi-card .benchmark.above { color: var(--positive); }
-  .kpi-card .benchmark.below { color: var(--negative); }
   .kpi-card .benchmark .be-arrow { font-size: 9px; opacity: 0.7; }
 
   /* DASHBOARD BODY */
@@ -881,19 +880,20 @@ async function fetchMultiPeriod() {
       const fmtCompact = v => v >= 10000 ? '\u00A3' + (v/1000).toFixed(0) + 'k' : '\u00A3' + Math.round(v).toLocaleString();
       document.getElementById(`mp-${r.id}-rev`).textContent = rev > 0 ? fmtCompact(rev) : '--';
       document.getElementById(`mp-${r.id}-ads`).textContent = ads > 0 ? fmtCompact(ads) : '--';
-      // MER + colour vs window's breakeven
+      // MER value + 3-zone colour classification:
+      //   < breakeven (1.77x)        → red    (losing money on variable costs)
+      //   breakeven to 2.0           → yellow (covering variables, but thin)
+      //   >= 2.0                     → green  (healthy)
       const merEl = document.getElementById(`mp-${r.id}-roas`);
-      merEl.classList.remove('above', 'below');
+      merEl.classList.remove('above', 'warn', 'below');
       if (ads > 0 && rev > 0) {
         const mer = rev / ads;
-        const fixedPeriod = COST_STRUCTURE.fixedCostsPerMonth * (r.days / 30.44);
-        const beAds = rev * cmTwBasis - fixedPeriod;
-        const beMer = beAds > 0 ? rev / beAds : null;
+        const beMer = 1 / cmTwBasis; // contribution-margin breakeven, scale-independent
         merEl.textContent = mer.toFixed(2) + 'x';
-        if (beMer !== null) {
-          merEl.classList.add(mer >= beMer ? 'above' : 'below');
-          merEl.title = `Breakeven MER for this window: ${beMer.toFixed(2)}x`;
-        }
+        if (mer >= 2.0) merEl.classList.add('above');
+        else if (mer >= beMer) merEl.classList.add('warn');
+        else merEl.classList.add('below');
+        merEl.title = `Breakeven MER (variable costs only): ${beMer.toFixed(2)}x · Healthy zone: ≥ 2.00x`;
       } else {
         merEl.textContent = '--';
         merEl.title = '';
@@ -927,32 +927,26 @@ function updateKPIs(data) {
   document.getElementById('kpi-sessions').textContent = t.sessions.toLocaleString();
   document.getElementById('kpi-cvr').textContent = t.sessions > 0 ? ((t.orders / t.sessions) * 100).toFixed(2) + '%' : '--';
 
-  // Breakeven MER and CPA
-  // BE_MER = TW_rev / (TW_rev × contribution/1.2 × (1+VAT) - fixed_period)
-  // Simpler form: TW_rev × 0.5650 - fixed = ad spend at breakeven
-  // → BE_MER = TW_rev / (TW_rev × 0.5650 - fixed_period)
-  // 0.5650 = contributionMarginExVat / (1 + VAT) = 0.678 / 1.2
-  const cm = COST_STRUCTURE.contributionMarginExVat;
-  const vatF = 1 + COST_STRUCTURE.vatRate;
-  const cmTwBasis = cm / vatF;  // ≈ 0.565 — contribution margin expressed on TW revenue basis
-  const periodDays = data.length || 1;
-  const fixedPeriod = COST_STRUCTURE.fixedCostsPerMonth * (periodDays / 30.44);
-  const beAdSpend = t.revenue * cmTwBasis - fixedPeriod;
-  const beMer = beAdSpend > 0 ? t.revenue / beAdSpend : 0;
+  // Breakeven MER — contribution-margin basis (variable costs only).
+  // Scale-independent and simpler to reason about: above 1/cm, every £1 of marketing
+  // spend returns more than its share of COGS + Fulfilment + VAT. Fixed costs are
+  // small (~£944/mo) and absorbed across the contribution.
+  const cmTwBasis = COST_STRUCTURE.contributionMarginExVat / (1 + COST_STRUCTURE.vatRate);
+  const beMer = 1 / cmTwBasis;  // ≈ 1.77x
   const merVal = t.adSpend > 0 ? t.revenue / t.adSpend : 0;
   const beEl = document.getElementById('kpi-roas-be');
+  beEl.classList.remove('above', 'warn', 'below');
   if (beMer > 0 && merVal > 0) {
-    const isAbove = merVal >= beMer;
-    const arrow = isAbove ? '\u2191' : '\u2193';
+    let zone, arrow;
+    if (merVal >= 2.0)        { zone = 'above'; arrow = '\u2191'; }
+    else if (merVal >= beMer) { zone = 'warn';  arrow = '\u2192'; }
+    else                      { zone = 'below'; arrow = '\u2193'; }
     beEl.innerHTML = `<span class="be-arrow">${arrow}</span>vs Breakeven ${beMer.toFixed(2)}`;
-    beEl.classList.remove('above', 'below');
-    beEl.classList.add(isAbove ? 'above' : 'below');
+    beEl.classList.add(zone);
   } else if (beMer > 0) {
     beEl.textContent = 'Breakeven ' + beMer.toFixed(2);
-    beEl.classList.remove('above', 'below');
   } else {
     beEl.textContent = 'Breakeven --';
-    beEl.classList.remove('above', 'below');
   }
 
   // Blended CPA vs Breakeven CPA — both per-order metrics, direct comparison.
@@ -1011,21 +1005,12 @@ function updateChart(aggregated) {
     }
   });
 
-  // When MER (roas) is selected, overlay a Breakeven MER reference line per bucket
-  // BE MER per bucket = bucket_rev / (bucket_rev × 0.565 − bucket_fixed)
+  // When MER selected, overlay a constant Breakeven MER reference line (~1.77x)
+  // computed from contribution margin only (scale-independent).
   if (activeMetrics.includes('roas')) {
-    const cmTwBasis = COST_STRUCTURE.contributionMarginExVat / (1 + COST_STRUCTURE.vatRate); // ≈ 0.565
-    const monthlyFixed = COST_STRUCTURE.fixedCostsPerMonth;
-    // Bucket day count by period
-    const bucketDays = currentPeriod === 'daily' ? 1 :
-                       currentPeriod === 'weekly' ? 7 :
-                       currentPeriod === 'monthly' ? 30.44 :
-                       currentPeriod === 'quarterly' ? 91.31 : 1;
-    const beData = aggregated.map(d => {
-      const bucketFixed = monthlyFixed * (bucketDays / 30.44);
-      const beAds = d.revenue * cmTwBasis - bucketFixed;
-      return beAds > 0 ? d.revenue / beAds : null;
-    });
+    const cmTwBasis = COST_STRUCTURE.contributionMarginExVat / (1 + COST_STRUCTURE.vatRate);
+    const beMer = 1 / cmTwBasis;
+    const beData = aggregated.map(d => beMer);
     datasets.push({
       type: 'line',
       label: 'Breakeven MER',

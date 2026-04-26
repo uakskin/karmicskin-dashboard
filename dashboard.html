@@ -235,6 +235,8 @@
 <body>
 <div class="tooltip-popup" id="tooltipPopup"></div>
 
+<div id="monitorBanner" style="display:none;padding:10px 16px;font-size:13px;font-weight:500;border-bottom:1px solid rgba(0,0,0,0.1);text-align:center"></div>
+
 <nav class="page-nav">
   <a href="dashboard.html" class="active">Shopify</a>
   <a href="meta.html">Meta</a>
@@ -1306,12 +1308,44 @@ document.querySelectorAll('.perf-table-tab').forEach(btn => {
 fetchTableData();
 fetchData();
 
+// Webhook health banner — surfaces silent failures (HMAC mismatch, downtime).
+// Reads from monitor_status table populated by monitor-webhook-health Edge Fn (every 15 min).
+async function fetchMonitorStatus() {
+  try {
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/monitor_status?component=eq.shopify_webhook&select=status,message,last_checked_at`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    if (!resp.ok) return;
+    const rows = await resp.json();
+    const banner = document.getElementById('monitorBanner');
+    if (!banner) return;
+    if (!rows.length || rows[0].status === 'healthy') {
+      banner.style.display = 'none';
+      return;
+    }
+    const r = rows[0];
+    const colours = {
+      degraded: { bg: '#fee2e2', fg: '#991b1b', icon: '⚠️' },
+      silent:   { bg: '#fef3c7', fg: '#92400e', icon: '⏸️' },
+      unknown:  { bg: '#e5e7eb', fg: '#374151', icon: '❔' },
+    };
+    const c = colours[r.status] || colours.unknown;
+    banner.style.background = c.bg;
+    banner.style.color = c.fg;
+    const checkedAgo = Math.floor((Date.now() - new Date(r.last_checked_at).getTime()) / 60000);
+    banner.innerHTML = `${c.icon} <strong>Shopify webhook ${r.status}</strong> — ${r.message} <span style="opacity:0.7;font-weight:400">(checked ${checkedAgo} min ago)</span>`;
+    banner.style.display = 'block';
+  } catch (e) { console.error('Monitor banner fetch failed:', e); }
+}
+fetchMonitorStatus();
+
 // Auto-refresh every 5 minutes — reporting tables rebuild every 10 mins,
 // so this picks up the latest aggregations + multi-period strip values.
 setInterval(() => {
   fetchData();
   fetchTableData();
   fetchMultiPeriod();
+  fetchMonitorStatus();
 }, 5 * 60 * 1000);
 
 // ========== PRODUCT ANALYTICS ==========

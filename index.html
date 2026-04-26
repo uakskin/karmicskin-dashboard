@@ -320,9 +320,12 @@
   <div class="kpi-card"><div class="label">Orders <span class="info-tip" data-tip="Total Shopify orders placed in period">ⓘ</span></div><div class="value" id="kpi-orders">--</div></div>
   <div class="kpi-card"><div class="label">New Customers <span class="info-tip" data-tip="First-time buyers only (no prior Shopify orders)">ⓘ</span></div><div class="value" id="kpi-new">--</div></div>
   <div class="kpi-card"><div class="label">Repeat % <span class="info-tip" data-tip="Returning Customers ÷ Total Unique Customers × 100">ⓘ</span></div><div class="value" id="kpi-repeat">--</div></div>
-  <div class="kpi-card"><div class="label">N-CAC <span class="info-tip" data-tip="Ad Spend (Meta + Google) ÷ New Unique Paying Customers">ⓘ</span></div><div class="value" id="kpi-cac">--</div></div>
-  <div class="kpi-card"><div class="label">Blended CPA <span class="info-tip" data-tip="Ad Spend ÷ Total Orders. Includes returning-customer orders so it’s lower than N-CAC. Sanity check against AOV.">ⓘ</span></div><div class="value" id="kpi-blended-cpa">--</div></div>
-  <div class="kpi-card"><div class="label">Breakeven CPA <span class="info-tip" data-tip="The maximum we can spend acquiring a customer at first-order level and still break even. Calculated as AOV × contribution margin (~56.5% of inc-VAT). If N-CAC > Breakeven CPA, the customer is unprofitable on first order — only justified by 12-month LTV.">ⓘ</span></div><div class="value" id="kpi-be-cpa">--</div></div>
+  <div class="kpi-card">
+    <div class="label">N-CAC <span class="info-tip" data-tip="Ad Spend (Meta + Google) ÷ New Unique Paying Customers">ⓘ</span></div>
+    <div class="value" id="kpi-cac">--</div>
+    <div class="benchmark" id="kpi-cac-be" title="Breakeven CPA: max we can spend acquiring a customer at first-order level (AOV × ~56.5% contribution margin). If N-CAC exceeds this, the first order is unprofitable — only justified by 12-month LTV.">Breakeven --</div>
+  </div>
+  <div class="kpi-card"><div class="label">Blended CPA <span class="info-tip" data-tip="Ad Spend ÷ Total Orders. Includes returning-customer orders so it\u2019s lower than N-CAC. Sanity check against AOV.">ⓘ</span></div><div class="value" id="kpi-blended-cpa">--</div></div>
   <div class="kpi-card"><div class="label">Sessions <span class="info-tip" data-tip="GA4 sessions — total website visits tracked by Google Analytics">ⓘ</span></div><div class="value" id="kpi-sessions">--</div></div>
   <div class="kpi-card"><div class="label">CVR % <span class="info-tip" data-tip="Orders ÷ GA4 Sessions × 100 — uses GA4 sessions as the denominator">ⓘ</span></div><div class="value" id="kpi-cvr">--</div></div>
 </div>
@@ -896,7 +899,9 @@ function updateKPIs(data) {
   document.getElementById('kpi-orders').textContent = t.orders.toLocaleString();
   document.getElementById('kpi-new').textContent = t.newCustomers.toLocaleString();
   document.getElementById('kpi-repeat').textContent = (t.newCustomers + t.returning) > 0 ? ((t.returning / (t.newCustomers + t.returning)) * 100).toFixed(1) + '%' : '--';
-  document.getElementById('kpi-cac').textContent = '\u00A3' + (t.newCustomers > 0 ? (t.adSpend / t.newCustomers).toFixed(0) : '--');
+  // N-CAC with inline breakeven comparison
+  const ncacVal = t.newCustomers > 0 ? t.adSpend / t.newCustomers : 0;
+  document.getElementById('kpi-cac').textContent = ncacVal > 0 ? '\u00A3' + ncacVal.toFixed(0) : '--';
   // Blended CPA: ad spend / total orders
   document.getElementById('kpi-blended-cpa').textContent = '\u00A3' + (t.orders > 0 ? (t.adSpend / t.orders).toFixed(0) : '--');
   document.getElementById('kpi-sessions').textContent = t.sessions.toLocaleString();
@@ -931,11 +936,23 @@ function updateKPIs(data) {
   }
 
   // BE CPA at first-order level: AOV (inc-VAT) × cmTwBasis
-  // i.e. how much you can spend on acquisition while keeping that single order at breakeven
-  // (ignores LTV — conservative)
+  // (ignores LTV — conservative). Rendered inline under N-CAC for direct comparison.
   const aovIncVat = t.orders > 0 ? t.revenue / t.orders : 0;
   const beCpa = aovIncVat * cmTwBasis;
-  document.getElementById('kpi-be-cpa').textContent = beCpa > 0 ? '\u00A3' + Math.round(beCpa).toLocaleString() : '--';
+  const beCpaEl = document.getElementById('kpi-cac-be');
+  if (beCpa > 0 && ncacVal > 0) {
+    const isUnder = ncacVal <= beCpa; // lower N-CAC than breakeven = good
+    const arrow = isUnder ? '\u2193' : '\u2191';
+    beCpaEl.innerHTML = `<span class="be-arrow">${arrow}</span>vs Breakeven \u00A3${Math.round(beCpa)}`;
+    beCpaEl.classList.remove('above', 'below');
+    beCpaEl.classList.add(isUnder ? 'above' : 'below');
+  } else if (beCpa > 0) {
+    beCpaEl.textContent = 'Breakeven \u00A3' + Math.round(beCpa);
+    beCpaEl.classList.remove('above', 'below');
+  } else {
+    beCpaEl.textContent = 'Breakeven --';
+    beCpaEl.classList.remove('above', 'below');
+  }
 }
 
 function getActiveMetrics() {

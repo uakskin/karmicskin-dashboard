@@ -343,7 +343,7 @@
     <div class="toggle-item" onclick="this.querySelector('input').click()">
       <input type="checkbox" data-metric="roas">
       <div class="toggle-dot" style="--dot-color: #d97706"></div>
-      <span class="toggle-label">ROAS</span>
+      <span class="toggle-label">MER</span>
     </div>
     <div class="toggle-item" onclick="this.querySelector('input').click()">
       <input type="checkbox" data-metric="aov">
@@ -452,7 +452,7 @@
             <th data-col="growthPct" title="(Current Revenue − Previous Revenue) ÷ Previous Revenue × 100">Rev Growth % <span class="sort-arrow">▼</span></th>
             <th data-col="revenue" title="Total sales including VAT, net of refunds">Revenue <span class="sort-arrow">▼</span></th>
             <th data-col="adSpend" title="Meta Ad Spend + Google Ad Spend">Ad Spend <span class="sort-arrow">▼</span></th>
-            <th data-col="roas" title="Revenue ÷ Ad Spend">ROAS <span class="sort-arrow">▼</span></th>
+            <th data-col="roas" title="Revenue ÷ Ad Spend (Marketing Efficiency Ratio)">MER <span class="sort-arrow">▼</span></th>
             <th data-col="orders" title="Total number of orders placed">Orders <span class="sort-arrow">▼</span></th>
             <th data-col="aov" title="Net product revenue (ex-VAT, ex-shipping) ÷ Orders">AOV <span class="sort-arrow">▼</span></th>
             <th data-col="repeatPct" title="Returning Customers ÷ Total Unique Customers × 100">Repeat % <span class="sort-arrow">▼</span></th>
@@ -513,10 +513,10 @@
           </tr>
           <tr>
             <th>Avg Revenue</th>
-            <th>ROAS</th>
+            <th>MER</th>
             <th>Avg Orders</th>
             <th>Avg Revenue</th>
-            <th>ROAS</th>
+            <th>MER</th>
             <th>Avg Orders</th>
           </tr>
         </thead>
@@ -560,7 +560,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const METRIC_CONFIG = {
   revenue:      { label: 'Revenue',         color: '#0d9488', prefix: '\u00A3', yAxis: 'y',  decimals: 0 },
   adSpend:      { label: 'Ad Spend',        color: '#e11d48', prefix: '\u00A3', yAxis: 'y',  decimals: 0 },
-  roas:         { label: 'ROAS',            color: '#d97706', prefix: '',       yAxis: 'y1', decimals: 2 },
+  roas:         { label: 'MER',             color: '#d97706', prefix: '',       yAxis: 'y1', decimals: 2 },
   aov:          { label: 'AOV',             color: '#7c3aed', prefix: '\u00A3', yAxis: 'y1', decimals: 1 },
   orders:       { label: 'Orders',          color: '#2563eb', prefix: '',       yAxis: 'y1', decimals: 0 },
   newCustomers: { label: 'New Customers',   color: '#059669', prefix: '',       yAxis: 'y1', decimals: 0 },
@@ -951,6 +951,38 @@ function updateChart(aggregated) {
       };
     }
   });
+
+  // When MER (roas) is selected, overlay a Breakeven MER reference line per bucket
+  // BE MER per bucket = bucket_rev / (bucket_rev × 0.565 − bucket_fixed)
+  if (activeMetrics.includes('roas')) {
+    const cmTwBasis = COST_STRUCTURE.contributionMarginExVat / (1 + COST_STRUCTURE.vatRate); // ≈ 0.565
+    const monthlyFixed = COST_STRUCTURE.fixedCostsPerMonth;
+    // Bucket day count by period
+    const bucketDays = currentPeriod === 'daily' ? 1 :
+                       currentPeriod === 'weekly' ? 7 :
+                       currentPeriod === 'monthly' ? 30.44 :
+                       currentPeriod === 'quarterly' ? 91.31 : 1;
+    const beData = aggregated.map(d => {
+      const bucketFixed = monthlyFixed * (bucketDays / 30.44);
+      const beAds = d.revenue * cmTwBasis - bucketFixed;
+      return beAds > 0 ? d.revenue / beAds : null;
+    });
+    datasets.push({
+      type: 'line',
+      label: 'Breakeven MER',
+      data: beData,
+      borderColor: '#9ca3af',
+      borderDash: [6, 4],
+      borderWidth: 1.5,
+      pointRadius: 0,
+      pointHoverRadius: 0,
+      tension: 0,
+      fill: false,
+      yAxisID: 'y1',
+      order: 0,
+      spanGaps: true,
+    });
+  }
 
   document.getElementById('chartLoading').style.display = 'none';
   if (chart) chart.destroy();

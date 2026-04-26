@@ -81,7 +81,7 @@
   .date-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 
   /* KPI */
-  .kpi-strip{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;padding:16px 24px}
+  .kpi-strip{display:grid;grid-template-columns:repeat(9,1fr);gap:8px;padding:16px 24px}
   .kpi-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
   .kpi-card .label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
   .kpi-card .value{font-size:20px;font-weight:700;color:var(--text-primary)}
@@ -532,6 +532,7 @@ function buildKPIs(){
     { label:'CPA', value:fmt(cpa,'gbp'), tip:'Spend ÷ Purchases' },
     { label:'Purchases', value:fmt(pur,'num'), tip:'Attributed purchases' },
     { label:'CPM', value:fmt(cpm,'gbp'), tip:'Cost per 1,000 impressions' },
+    { label:'CPC', value:fmt(cpc,'gbp'), tip:'Spend ÷ Link clicks. Average cost per click on the ad.' },
     { label:'CTR', value:fmt(ctr,'pct'), tip:'Link clicks ÷ impressions' },
     { label:'LPV rate', value:fmt(lpvRate,'pct1'), tip:'Landing page views ÷ link clicks' },
   ];

@@ -84,12 +84,12 @@
   /* KPI STRIP */
   .kpi-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; padding: 16px 24px; }
   .multi-period-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; padding: 8px 24px 0; }
-  .mp-card { background: var(--bg-card-alt); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; display: flex; align-items: baseline; gap: 6px; flex-wrap: nowrap; overflow: hidden; }
-  .mp-card .mp-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; flex-shrink: 0; }
-  .mp-card .mp-stat { display: inline-flex; align-items: baseline; gap: 3px; white-space: nowrap; }
-  .mp-card .mp-stat .mp-k { font-size: 9px; color: var(--text-muted); text-transform: lowercase; letter-spacing: 0.2px; }
-  .mp-card .mp-stat .mp-v { font-size: 12px; font-weight: 600; color: var(--text-primary); }
-  .mp-card .mp-sep { font-size: 10px; color: var(--text-muted); opacity: 0.4; align-self: center; }
+  .mp-card { background: var(--bg-card-alt); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; display: flex; align-items: baseline; gap: 5px; flex-wrap: nowrap; overflow: hidden; }
+  .mp-card .mp-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; flex-shrink: 0; margin-right: 2px; }
+  .mp-card .mp-rev { font-size: 12px; font-weight: 600; color: var(--text-primary); white-space: nowrap; }
+  .mp-card .mp-ads { font-size: 12px; font-weight: 500; color: var(--text-secondary); white-space: nowrap; }
+  .mp-card .mp-mer { font-size: 13px; font-weight: 700; color: var(--accent); white-space: nowrap; margin-left: auto; }
+  .mp-card .mp-op { font-size: 10px; color: var(--text-muted); opacity: 0.55; }
   @media (max-width: 1200px) { .multi-period-strip { grid-template-columns: repeat(3, 1fr); } }
   @media (max-width: 700px) { .multi-period-strip { grid-template-columns: repeat(2, 1fr); } }
   .kpi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
@@ -301,12 +301,12 @@
 </div>
 
 <div class="multi-period-strip" id="multiPeriodStrip">
-  <div class="mp-card"><span class="mp-label">Yesterday</span><span class="mp-stat"><span class="mp-k">rev</span><span class="mp-v" id="mp-yest-rev">--</span></span><span class="mp-stat"><span class="mp-k">ads</span><span class="mp-v" id="mp-yest-ads">--</span></span><span class="mp-stat"><span class="mp-k">mer</span><span class="mp-v" id="mp-yest-roas">--</span></span></div>
-  <div class="mp-card"><span class="mp-label">Last 7</span><span class="mp-stat"><span class="mp-k">rev</span><span class="mp-v" id="mp-l7-rev">--</span></span><span class="mp-stat"><span class="mp-k">ads</span><span class="mp-v" id="mp-l7-ads">--</span></span><span class="mp-stat"><span class="mp-k">mer</span><span class="mp-v" id="mp-l7-roas">--</span></span></div>
-  <div class="mp-card"><span class="mp-label">Prev 7 (8-14)</span><span class="mp-stat"><span class="mp-k">rev</span><span class="mp-v" id="mp-p7-rev">--</span></span><span class="mp-stat"><span class="mp-k">ads</span><span class="mp-v" id="mp-p7-ads">--</span></span><span class="mp-stat"><span class="mp-k">mer</span><span class="mp-v" id="mp-p7-roas">--</span></span></div>
-  <div class="mp-card"><span class="mp-label">Last 14</span><span class="mp-stat"><span class="mp-k">rev</span><span class="mp-v" id="mp-l14-rev">--</span></span><span class="mp-stat"><span class="mp-k">ads</span><span class="mp-v" id="mp-l14-ads">--</span></span><span class="mp-stat"><span class="mp-k">mer</span><span class="mp-v" id="mp-l14-roas">--</span></span></div>
-  <div class="mp-card"><span class="mp-label">Last 30</span><span class="mp-stat"><span class="mp-k">rev</span><span class="mp-v" id="mp-l30-rev">--</span></span><span class="mp-stat"><span class="mp-k">ads</span><span class="mp-v" id="mp-l30-ads">--</span></span><span class="mp-stat"><span class="mp-k">mer</span><span class="mp-v" id="mp-l30-roas">--</span></span></div>
-  <div class="mp-card"><span class="mp-label">Last 90</span><span class="mp-stat"><span class="mp-k">rev</span><span class="mp-v" id="mp-l90-rev">--</span></span><span class="mp-stat"><span class="mp-k">ads</span><span class="mp-v" id="mp-l90-ads">--</span></span><span class="mp-stat"><span class="mp-k">mer</span><span class="mp-v" id="mp-l90-roas">--</span></span></div>
+  <div class="mp-card" title="Revenue ÷ Ad Spend = MER"><span class="mp-label">Yesterday</span><span class="mp-rev" id="mp-yest-rev">--</span><span class="mp-op">÷</span><span class="mp-ads" id="mp-yest-ads">--</span><span class="mp-op">=</span><span class="mp-mer" id="mp-yest-roas">--</span></div>
+  <div class="mp-card" title="Revenue ÷ Ad Spend = MER"><span class="mp-label">Last 7</span><span class="mp-rev" id="mp-l7-rev">--</span><span class="mp-op">÷</span><span class="mp-ads" id="mp-l7-ads">--</span><span class="mp-op">=</span><span class="mp-mer" id="mp-l7-roas">--</span></div>
+  <div class="mp-card" title="Revenue ÷ Ad Spend = MER"><span class="mp-label">Prev 7 (8-14)</span><span class="mp-rev" id="mp-p7-rev">--</span><span class="mp-op">÷</span><span class="mp-ads" id="mp-p7-ads">--</span><span class="mp-op">=</span><span class="mp-mer" id="mp-p7-roas">--</span></div>
+  <div class="mp-card" title="Revenue ÷ Ad Spend = MER"><span class="mp-label">Last 14</span><span class="mp-rev" id="mp-l14-rev">--</span><span class="mp-op">÷</span><span class="mp-ads" id="mp-l14-ads">--</span><span class="mp-op">=</span><span class="mp-mer" id="mp-l14-roas">--</span></div>
+  <div class="mp-card" title="Revenue ÷ Ad Spend = MER"><span class="mp-label">Last 30</span><span class="mp-rev" id="mp-l30-rev">--</span><span class="mp-op">÷</span><span class="mp-ads" id="mp-l30-ads">--</span><span class="mp-op">=</span><span class="mp-mer" id="mp-l30-roas">--</span></div>
+  <div class="mp-card" title="Revenue ÷ Ad Spend = MER"><span class="mp-label">Last 90</span><span class="mp-rev" id="mp-l90-rev">--</span><span class="mp-op">÷</span><span class="mp-ads" id="mp-l90-ads">--</span><span class="mp-op">=</span><span class="mp-mer" id="mp-l90-roas">--</span></div>
 </div>
 
 <div class="kpi-strip">
@@ -866,7 +866,7 @@ async function fetchMultiPeriod() {
       const fmtCompact = v => v >= 10000 ? '\u00A3' + (v/1000).toFixed(0) + 'k' : '\u00A3' + Math.round(v).toLocaleString();
       document.getElementById(`mp-${r.id}-rev`).textContent = rev > 0 ? fmtCompact(rev) : '--';
       document.getElementById(`mp-${r.id}-ads`).textContent = ads > 0 ? fmtCompact(ads) : '--';
-      document.getElementById(`mp-${r.id}-roas`).textContent = ads > 0 ? (rev / ads).toFixed(2) : '--';
+      document.getElementById(`mp-${r.id}-roas`).textContent = ads > 0 ? (rev / ads).toFixed(2) + 'x' : '--';
     } catch(e) { console.error('Multi-period fetch error for ' + r.id, e); }
   }
 }

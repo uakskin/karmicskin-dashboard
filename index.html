@@ -836,6 +836,7 @@ function aggregateData(data, period) {
     metaRoas: b.metaSpend > 0 ? b.metaRev / b.metaSpend : 0,
     googleRoas: b.googleSpend > 0 ? b.googleRev / b.googleSpend : 0,
     orders: b.orders, newCustomers: b.newCustomers, returning: b.returning,
+    newRev: b.newRev, retRev: b.retRev,
     repeatPct: (b.newCustomers + b.returning) > 0 ? (b.returning / (b.newCustomers + b.returning)) * 100 : 0,
     ncac: b.newCustomers > 0 ? b.adSpend / b.newCustomers : 0,
     sessions: b.sessions,

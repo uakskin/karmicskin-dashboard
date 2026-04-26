@@ -94,6 +94,10 @@
   .kpi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
   .kpi-card .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
   .kpi-card .value { font-size: 20px; font-weight: 700; color: var(--text-primary); }
+  .kpi-card .benchmark { font-size: 10px; color: var(--text-muted); font-weight: 500; margin-top: 2px; letter-spacing: 0.2px; display: flex; align-items: center; gap: 3px; }
+  .kpi-card .benchmark.above { color: var(--positive); }
+  .kpi-card .benchmark.below { color: var(--negative); }
+  .kpi-card .benchmark .be-arrow { font-size: 9px; opacity: 0.7; }
 
   /* DASHBOARD BODY */
   .dashboard-body { display: flex; padding: 0 24px 24px; gap: 16px; }
@@ -307,8 +311,11 @@
 <div class="kpi-strip">
   <div class="kpi-card"><div class="label">Revenue <span class="info-tip" data-tip="Total Shopify sales inc. VAT, net of refunds">ⓘ</span></div><div class="value" id="kpi-revenue">--</div></div>
   <div class="kpi-card"><div class="label">Ad Spend <span class="info-tip" data-tip="Meta + Google ad spend combined">ⓘ</span></div><div class="value" id="kpi-adspend">--</div></div>
-  <div class="kpi-card"><div class="label">MER <span class="info-tip" data-tip="Marketing Efficiency Ratio: Total Shopify revenue ÷ Total marketing spend (Meta + Google). The true blended return — independent of platform attribution. Same number we used to call 'Blended ROAS'.">ⓘ</span></div><div class="value" id="kpi-roas">--</div></div>
-  <div class="kpi-card"><div class="label">Breakeven MER <span class="info-tip" data-tip="The MER level where EBITDA = 0 at the current period revenue. Calculated from cost structure: COGS 14.8% + Fulfilment 17.4% (% of ex-VAT rev) + Fixed costs (£944/mo prorated) + 16.7% VAT pass-through. If current MER > Breakeven MER, you're profitable.">ⓘ</span></div><div class="value" id="kpi-be-roas">--</div></div>
+  <div class="kpi-card">
+    <div class="label">MER <span class="info-tip" data-tip="Marketing Efficiency Ratio: Total Shopify revenue ÷ Total marketing spend (Meta + Google). The true blended return — independent of platform attribution.">ⓘ</span></div>
+    <div class="value" id="kpi-roas">--</div>
+    <div class="benchmark" id="kpi-roas-be" title="Breakeven MER: the level where EBITDA = 0 at current period scale. Calculated from cost structure (variable 32.2%, fixed £944/mo prorated, VAT pass-through).">Breakeven --</div>
+  </div>
   <div class="kpi-card"><div class="label">AOV <span class="info-tip" data-tip="Total Shopify sales (inc. VAT, inc. shipping) ÷ Orders. The all-in average order value.">ⓘ</span></div><div class="value" id="kpi-aov">--</div></div>
   <div class="kpi-card"><div class="label">Orders <span class="info-tip" data-tip="Total Shopify orders placed in period">ⓘ</span></div><div class="value" id="kpi-orders">--</div></div>
   <div class="kpi-card"><div class="label">New Customers <span class="info-tip" data-tip="First-time buyers only (no prior Shopify orders)">ⓘ</span></div><div class="value" id="kpi-new">--</div></div>
@@ -907,7 +914,21 @@ function updateKPIs(data) {
   const fixedPeriod = COST_STRUCTURE.fixedCostsPerMonth * (periodDays / 30.44);
   const beAdSpend = t.revenue * cmTwBasis - fixedPeriod;
   const beMer = beAdSpend > 0 ? t.revenue / beAdSpend : 0;
-  document.getElementById('kpi-be-roas').textContent = beMer > 0 ? beMer.toFixed(2) : '--';
+  const merVal = t.adSpend > 0 ? t.revenue / t.adSpend : 0;
+  const beEl = document.getElementById('kpi-roas-be');
+  if (beMer > 0 && merVal > 0) {
+    const isAbove = merVal >= beMer;
+    const arrow = isAbove ? '\u2191' : '\u2193';
+    beEl.innerHTML = `<span class="be-arrow">${arrow}</span>vs Breakeven ${beMer.toFixed(2)}`;
+    beEl.classList.remove('above', 'below');
+    beEl.classList.add(isAbove ? 'above' : 'below');
+  } else if (beMer > 0) {
+    beEl.textContent = 'Breakeven ' + beMer.toFixed(2);
+    beEl.classList.remove('above', 'below');
+  } else {
+    beEl.textContent = 'Breakeven --';
+    beEl.classList.remove('above', 'below');
+  }
 
   // BE CPA at first-order level: AOV (inc-VAT) × cmTwBasis
   // i.e. how much you can spend on acquisition while keeping that single order at breakeven

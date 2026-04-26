@@ -84,13 +84,12 @@
   /* KPI STRIP */
   .kpi-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; padding: 16px 24px; }
   .multi-period-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; padding: 8px 24px 0; }
-  .mp-card { background: var(--bg-card-alt); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 11px; }
-  .mp-card .mp-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; font-weight: 600; }
-  .mp-card .mp-rows { display: flex; gap: 12px; flex-wrap: wrap; }
-  .mp-card .mp-rows > div { display: flex; flex-direction: column; gap: 2px; }
-  .mp-card .mp-rows .mp-k { font-size: 9px; color: var(--text-muted); text-transform: uppercase; }
-  .mp-card .mp-rows .mp-v { font-size: 13px; font-weight: 600; color: var(--text-primary); }
-  @media (max-width: 900px) { .multi-period-strip { grid-template-columns: repeat(2, 1fr); } }
+  .mp-card { background: var(--bg-card-alt); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; display: flex; align-items: baseline; gap: 8px; flex-wrap: nowrap; overflow: hidden; }
+  .mp-card .mp-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; flex-shrink: 0; }
+  .mp-card .mp-v { font-size: 12px; font-weight: 600; color: var(--text-primary); white-space: nowrap; }
+  .mp-card .mp-sep { font-size: 10px; color: var(--text-muted); opacity: 0.5; }
+  @media (max-width: 1200px) { .multi-period-strip { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 700px) { .multi-period-strip { grid-template-columns: repeat(2, 1fr); } }
   .kpi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
   .kpi-card .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
   .kpi-card .value { font-size: 20px; font-weight: 700; color: var(--text-primary); }
@@ -300,12 +299,12 @@
 </div>
 
 <div class="multi-period-strip" id="multiPeriodStrip">
-  <div class="mp-card"><div class="mp-label">Yesterday</div><div class="mp-rows"><div><span class="mp-k">Rev</span><span class="mp-v" id="mp-yest-rev">--</span></div><div><span class="mp-k">Ads</span><span class="mp-v" id="mp-yest-ads">--</span></div><div><span class="mp-k">MER</span><span class="mp-v" id="mp-yest-roas">--</span></div></div></div>
-  <div class="mp-card"><div class="mp-label">Last 7</div><div class="mp-rows"><div><span class="mp-k">Rev</span><span class="mp-v" id="mp-l7-rev">--</span></div><div><span class="mp-k">Ads</span><span class="mp-v" id="mp-l7-ads">--</span></div><div><span class="mp-k">MER</span><span class="mp-v" id="mp-l7-roas">--</span></div></div></div>
-  <div class="mp-card"><div class="mp-label">Prev 7 (8-14)</div><div class="mp-rows"><div><span class="mp-k">Rev</span><span class="mp-v" id="mp-p7-rev">--</span></div><div><span class="mp-k">Ads</span><span class="mp-v" id="mp-p7-ads">--</span></div><div><span class="mp-k">MER</span><span class="mp-v" id="mp-p7-roas">--</span></div></div></div>
-  <div class="mp-card"><div class="mp-label">Last 14</div><div class="mp-rows"><div><span class="mp-k">Rev</span><span class="mp-v" id="mp-l14-rev">--</span></div><div><span class="mp-k">Ads</span><span class="mp-v" id="mp-l14-ads">--</span></div><div><span class="mp-k">MER</span><span class="mp-v" id="mp-l14-roas">--</span></div></div></div>
-  <div class="mp-card"><div class="mp-label">Last 30</div><div class="mp-rows"><div><span class="mp-k">Rev</span><span class="mp-v" id="mp-l30-rev">--</span></div><div><span class="mp-k">Ads</span><span class="mp-v" id="mp-l30-ads">--</span></div><div><span class="mp-k">MER</span><span class="mp-v" id="mp-l30-roas">--</span></div></div></div>
-  <div class="mp-card"><div class="mp-label">Last 90</div><div class="mp-rows"><div><span class="mp-k">Rev</span><span class="mp-v" id="mp-l90-rev">--</span></div><div><span class="mp-k">Ads</span><span class="mp-v" id="mp-l90-ads">--</span></div><div><span class="mp-k">MER</span><span class="mp-v" id="mp-l90-roas">--</span></div></div></div>
+  <div class="mp-card" title="Revenue · Ad Spend · MER"><span class="mp-label">Yesterday</span><span class="mp-v" id="mp-yest-rev">--</span><span class="mp-sep">·</span><span class="mp-v" id="mp-yest-ads">--</span><span class="mp-sep">·</span><span class="mp-v" id="mp-yest-roas">--</span></div>
+  <div class="mp-card" title="Revenue · Ad Spend · MER"><span class="mp-label">Last 7</span><span class="mp-v" id="mp-l7-rev">--</span><span class="mp-sep">·</span><span class="mp-v" id="mp-l7-ads">--</span><span class="mp-sep">·</span><span class="mp-v" id="mp-l7-roas">--</span></div>
+  <div class="mp-card" title="Revenue · Ad Spend · MER"><span class="mp-label">Prev 7 (8-14)</span><span class="mp-v" id="mp-p7-rev">--</span><span class="mp-sep">·</span><span class="mp-v" id="mp-p7-ads">--</span><span class="mp-sep">·</span><span class="mp-v" id="mp-p7-roas">--</span></div>
+  <div class="mp-card" title="Revenue · Ad Spend · MER"><span class="mp-label">Last 14</span><span class="mp-v" id="mp-l14-rev">--</span><span class="mp-sep">·</span><span class="mp-v" id="mp-l14-ads">--</span><span class="mp-sep">·</span><span class="mp-v" id="mp-l14-roas">--</span></div>
+  <div class="mp-card" title="Revenue · Ad Spend · MER"><span class="mp-label">Last 30</span><span class="mp-v" id="mp-l30-rev">--</span><span class="mp-sep">·</span><span class="mp-v" id="mp-l30-ads">--</span><span class="mp-sep">·</span><span class="mp-v" id="mp-l30-roas">--</span></div>
+  <div class="mp-card" title="Revenue · Ad Spend · MER"><span class="mp-label">Last 90</span><span class="mp-v" id="mp-l90-rev">--</span><span class="mp-sep">·</span><span class="mp-v" id="mp-l90-ads">--</span><span class="mp-sep">·</span><span class="mp-v" id="mp-l90-roas">--</span></div>
 </div>
 
 <div class="kpi-strip">

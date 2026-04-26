@@ -641,23 +641,26 @@ function getPresetDates(preset) {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
 
+  // Trailing-window and to-date presets now end on TODAY (was 'yesterday' in pre-real-time
+  // era when dashboard only had completed-day data). Real-time webhook + 10-min reporting
+  // rebuild means today's row is in rpt_daily_overview, so include it.
   switch(preset) {
     case 'yesterday': return { from: fmtDate(yesterday), to: fmtDate(yesterday), label: 'Yesterday' };
     case 'last7': {
       const from = new Date(today); from.setDate(today.getDate() - 6);
-      return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Last 7 days' };
+      return { from: fmtDate(from), to: fmtDate(today), label: 'Last 7 days' };
     }
     case 'last30': {
       const from = new Date(today); from.setDate(today.getDate() - 29);
-      return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Last 30 days' };
+      return { from: fmtDate(from), to: fmtDate(today), label: 'Last 30 days' };
     }
     case 'last90': {
       const from = new Date(today); from.setDate(today.getDate() - 89);
-      return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Last 90 days' };
+      return { from: fmtDate(from), to: fmtDate(today), label: 'Last 90 days' };
     }
     case 'mtd': {
       const from = new Date(today.getFullYear(), today.getMonth(), 1);
-      return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Month to date' };
+      return { from: fmtDate(from), to: fmtDate(today), label: 'Month to date' };
     }
     case 'lastMonth': {
       const from = new Date(today.getFullYear(), today.getMonth() - 1, 1);
@@ -666,11 +669,11 @@ function getPresetDates(preset) {
     }
     case 'ytd': {
       const from = new Date(today.getFullYear(), 0, 1);
-      return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Year to date' };
+      return { from: fmtDate(from), to: fmtDate(today), label: 'Year to date' };
     }
     case 'last12m': {
       const from = new Date(today); from.setFullYear(today.getFullYear() - 1); from.setDate(from.getDate() + 1);
-      return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Last 12 months' };
+      return { from: fmtDate(from), to: fmtDate(today), label: 'Last 12 months' };
     }
     case 'lastYear': {
       const from = new Date(today.getFullYear() - 1, 0, 1);

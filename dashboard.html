@@ -567,6 +567,16 @@
 </div>
 
 <script>
+// ── COST STRUCTURE CONSTANTS (from P&L analysis) ──
+// Used to compute Breakeven MER / Breakeven CPA from current period scale.
+// COGS + Fulfilment as % of ex-VAT revenue. Fixed costs are £/month.
+const COST_STRUCTURE = {
+  variableCostRatioExVat: 0.322,    // 14.8% COGS + 17.4% fulfilment
+  contributionMarginExVat: 0.678,   // 1 - variable
+  fixedCostsPerMonth: 944,          // subscriptions + other expenses - Wise cashback
+  vatRate: 0.20                     // standard 20% UK VAT (cosmetics)
+};
+
 const SUPABASE_URL = 'https://unmkzatppwftnasafhlb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVubWt6YXRwcHdmdG5hc2FmaGxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDQ5OTIsImV4cCI6MjA4NjU4MDk5Mn0.SYQm1km08xwlJSIf9jq8DXH3Ijxbxqk_LpTRh0PZhD4';
 
@@ -893,16 +903,6 @@ async function fetchMultiPeriod() {
 }
 fetchMultiPeriod();
 fetchAvgMonthlyRevenue();
-
-// ── COST STRUCTURE CONSTANTS (from P&L analysis) ──
-// Used to compute Breakeven MER / Breakeven CPA from current period scale.
-// COGS + Fulfilment as % of ex-VAT revenue. Fixed costs are £/month.
-const COST_STRUCTURE = {
-  variableCostRatioExVat: 0.322,    // 14.8% COGS + 17.4% fulfilment
-  contributionMarginExVat: 0.678,   // 1 - variable
-  fixedCostsPerMonth: 944,          // subscriptions + other expenses - Wise cashback
-  vatRate: 0.20                     // standard 20% UK VAT (cosmetics)
-};
 
 function updateKPIs(data) {
   const t = data.reduce((a, d) => {

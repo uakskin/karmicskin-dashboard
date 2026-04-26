@@ -88,7 +88,9 @@
   .mp-card .mp-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; flex-shrink: 0; margin-right: 2px; }
   .mp-card .mp-rev { font-size: 12px; font-weight: 600; color: var(--text-primary); white-space: nowrap; }
   .mp-card .mp-ads { font-size: 12px; font-weight: 500; color: var(--text-secondary); white-space: nowrap; }
-  .mp-card .mp-mer { font-size: 13px; font-weight: 700; color: var(--accent); white-space: nowrap; margin-left: auto; }
+  .mp-card .mp-mer { font-size: 13px; font-weight: 700; color: var(--text-primary); white-space: nowrap; margin-left: auto; }
+  .mp-card .mp-mer.above { color: var(--positive); }
+  .mp-card .mp-mer.below { color: var(--negative); }
   .mp-card .mp-op { font-size: 10px; color: var(--text-muted); opacity: 0.55; }
   @media (max-width: 1200px) { .multi-period-strip { grid-template-columns: repeat(3, 1fr); } }
   @media (max-width: 700px) { .multi-period-strip { grid-template-columns: repeat(2, 1fr); } }
@@ -848,13 +850,16 @@ async function fetchMultiPeriod() {
   const yest = new Date(now); yest.setDate(now.getDate() - 1);
 
   const ranges = [
-    { id: 'yest',  from: fmtDate(yest),                                     to: fmtDate(yest) },
-    { id: 'l7',    from: fmtDate(new Date(yest.getTime() - 6  * 86400000)), to: fmtDate(yest) },
-    { id: 'p7',    from: fmtDate(new Date(yest.getTime() - 13 * 86400000)), to: fmtDate(new Date(yest.getTime() - 7 * 86400000)) },
-    { id: 'l14',   from: fmtDate(new Date(yest.getTime() - 13 * 86400000)), to: fmtDate(yest) },
-    { id: 'l30',   from: fmtDate(new Date(yest.getTime() - 29 * 86400000)), to: fmtDate(yest) },
-    { id: 'l90',   from: fmtDate(new Date(yest.getTime() - 89 * 86400000)), to: fmtDate(yest) },
+    { id: 'yest',  days: 1,  from: fmtDate(yest),                                     to: fmtDate(yest) },
+    { id: 'l7',    days: 7,  from: fmtDate(new Date(yest.getTime() - 6  * 86400000)), to: fmtDate(yest) },
+    { id: 'p7',    days: 7,  from: fmtDate(new Date(yest.getTime() - 13 * 86400000)), to: fmtDate(new Date(yest.getTime() - 7 * 86400000)) },
+    { id: 'l14',   days: 14, from: fmtDate(new Date(yest.getTime() - 13 * 86400000)), to: fmtDate(yest) },
+    { id: 'l30',   days: 30, from: fmtDate(new Date(yest.getTime() - 29 * 86400000)), to: fmtDate(yest) },
+    { id: 'l90',   days: 90, from: fmtDate(new Date(yest.getTime() - 89 * 86400000)), to: fmtDate(yest) },
   ];
+
+  // Pre-compute the contribution margin on TW (inc-VAT) basis, same as main KPI tile
+  const cmTwBasis = COST_STRUCTURE.contributionMarginExVat / (1 + COST_STRUCTURE.vatRate);
 
   for (const r of ranges) {
     try {
@@ -866,7 +871,23 @@ async function fetchMultiPeriod() {
       const fmtCompact = v => v >= 10000 ? '\u00A3' + (v/1000).toFixed(0) + 'k' : '\u00A3' + Math.round(v).toLocaleString();
       document.getElementById(`mp-${r.id}-rev`).textContent = rev > 0 ? fmtCompact(rev) : '--';
       document.getElementById(`mp-${r.id}-ads`).textContent = ads > 0 ? fmtCompact(ads) : '--';
-      document.getElementById(`mp-${r.id}-roas`).textContent = ads > 0 ? (rev / ads).toFixed(2) + 'x' : '--';
+      // MER + colour vs window's breakeven
+      const merEl = document.getElementById(`mp-${r.id}-roas`);
+      merEl.classList.remove('above', 'below');
+      if (ads > 0 && rev > 0) {
+        const mer = rev / ads;
+        const fixedPeriod = COST_STRUCTURE.fixedCostsPerMonth * (r.days / 30.44);
+        const beAds = rev * cmTwBasis - fixedPeriod;
+        const beMer = beAds > 0 ? rev / beAds : null;
+        merEl.textContent = mer.toFixed(2) + 'x';
+        if (beMer !== null) {
+          merEl.classList.add(mer >= beMer ? 'above' : 'below');
+          merEl.title = `Breakeven MER for this window: ${beMer.toFixed(2)}x`;
+        }
+      } else {
+        merEl.textContent = '--';
+        merEl.title = '';
+      }
     } catch(e) { console.error('Multi-period fetch error for ' + r.id, e); }
   }
 }

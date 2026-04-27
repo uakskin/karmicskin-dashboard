@@ -884,19 +884,15 @@ async function fetchMultiPeriod() {
     { id: 'l90',   days: 90, from: fmtDate(new Date(yest.getTime() - 89 * 86400000)), to: fmtDate(yest) },
   ];
 
-  // Show actual day-of-month numbers for Prev 7 (e.g. "13-19" today, not "8-14" days-ago).
-  const monthAbbr = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  // Prev 7 label: actual day-of-month + lowercase month abbr (e.g. "13apr-19apr"),
+  // consistent whether same-month or cross-month. Avoids the "8-14 days ago" misread.
+  const monthAbbr = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
   const p7 = ranges.find(r => r.id === 'p7');
   if (p7) {
     const fromD = new Date(p7.from + 'T00:00:00');
     const toD = new Date(p7.to + 'T00:00:00');
-    const sameMonth = fromD.getMonth() === toD.getMonth();
-    // Same-month: just numbers ("13-19"). Cross-month: include month abbr to disambiguate.
-    const label = sameMonth
-      ? `Prev 7 (${fromD.getDate()}-${toD.getDate()})`
-      : `Prev 7 (${fromD.getDate()} ${monthAbbr[fromD.getMonth()]}-${toD.getDate()} ${monthAbbr[toD.getMonth()]})`;
     const labelEl = document.getElementById('mp-p7-label');
-    if (labelEl) labelEl.textContent = label;
+    if (labelEl) labelEl.textContent = `Prev 7 (${fromD.getDate()}${monthAbbr[fromD.getMonth()]}-${toD.getDate()}${monthAbbr[toD.getMonth()]})`;
   }
 
   // Pre-compute the contribution margin on TW (inc-VAT) basis, same as main KPI tile

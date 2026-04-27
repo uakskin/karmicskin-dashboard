@@ -674,7 +674,19 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 let USER_JWT = SUPABASE_KEY;
 let AUTH_READY = false;
 const SB_AUTH = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: { persistSession: true, autoRefreshToken: true, storage: window.localStorage, storageKey: 'ks-dashboard-auth' }
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    storage: window.localStorage,
+    storageKey: 'ks-dashboard-auth',
+    // Disable cross-tab navigator.locks synchronization. Default supabase-js behaviour
+    // can deadlock when multiple dashboard tabs are open: one tab acquires the lock,
+    // a subtle JS error or tab crash prevents release, every other tab's getSession()
+    // hangs indefinitely. We don't rely on cross-tab session sharing for correctness
+    // (storage events handle that automatically), so a no-op lock is safe and removes
+    // the hang.
+    lock: async (_name, _timeout, fn) => fn()
+  }
 });
 // Auto-fetch calls scattered through the script funnel through bootRun(fn) so they only fire
 // AFTER the user has authenticated and passed the email allowlist. Pre-auth calls would 401
@@ -2110,6 +2122,26 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
       showStep('email');
     }
   });
+
+  // Defensive fallback: if the auth event hasn't fired within 1.5s, read the session
+  // directly from localStorage and proceed. Belt-and-braces against any future
+  // supabase-js init quirks that prevent INITIAL_SESSION from firing.
+  setTimeout(async () => {
+    if (AUTH_READY) return;
+    try {
+      const stored = JSON.parse(localStorage.getItem('ks-dashboard-auth') || 'null');
+      if (stored && stored.access_token && stored.expires_at && stored.expires_at > Math.floor(Date.now()/1000)) {
+        await adoptSession({ access_token: stored.access_token, user: stored.user });
+      } else if (overlay.style.display === '' || overlay.style.display === 'none') {
+        showOverlay();
+        showStep('email');
+      }
+    } catch (e) {
+      console.error('Defensive auth fallback failed:', e);
+      showOverlay();
+      showStep('email');
+    }
+  }, 1500);
 })();
 </script>
 </body>

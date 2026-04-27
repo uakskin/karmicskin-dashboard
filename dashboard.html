@@ -260,8 +260,8 @@
     .product-analytics-row { flex-direction: column; padding: 0 16px 16px; }
   }
 </style>
-  <!-- Supabase Auth client (gates the dashboard behind email allowlist) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Auth gate uses direct REST against Supabase Auth, not the supabase-js library. -->
+
   <style>
     /* Login overlay — full-screen gate shown until the user is authenticated and on the allowlist */
     #authOverlay { position: fixed; inset: 0; background: var(--bg-page, #f7f7f8); display: flex; align-items: center; justify-content: center; z-index: 100000; padding: 20px; }
@@ -673,21 +673,10 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 // (those calls would fail RLS anyway since data tables are now authenticated+allowlist-only).
 let USER_JWT = SUPABASE_KEY;
 let AUTH_READY = false;
-const SB_AUTH = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    storage: window.localStorage,
-    storageKey: 'ks-dashboard-auth',
-    // Disable cross-tab navigator.locks synchronization. Default supabase-js behaviour
-    // can deadlock when multiple dashboard tabs are open: one tab acquires the lock,
-    // a subtle JS error or tab crash prevents release, every other tab's getSession()
-    // hangs indefinitely. We don't rely on cross-tab session sharing for correctness
-    // (storage events handle that automatically), so a no-op lock is safe and removes
-    // the hang.
-    lock: async (_name, _timeout, fn) => fn()
-  }
-});
+// We deliberately do NOT use supabase-js's auth client. v2's session machinery hangs in
+// this environment (cross-tab lock issues, internal awaits stalling, etc.). Direct REST
+// + localStorage is simpler, faster, and we control every state transition.
+const AUTH_STORAGE_KEY = 'ks-dashboard-auth';
 // Auto-fetch calls scattered through the script funnel through bootRun(fn) so they only fire
 // AFTER the user has authenticated and passed the email allowlist. Pre-auth calls would 401
 // because the data-table RLS now requires authenticated + on-allowlist.
@@ -2023,7 +2012,10 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
 });
 
 // ============================================================
-// AUTH — magic-link OTP via Supabase Auth + email allowlist gate
+// AUTH — magic-link via Supabase Auth REST + email allowlist gate
+// (We do NOT use supabase-js here. Direct fetch + localStorage is faster, more
+// reliable, and lets us control every state transition. Avoids supabase-js v2's
+// internal-lock and init-race issues.)
 // ============================================================
 (function authBoot() {
   const overlay = document.getElementById('authOverlay');
@@ -2033,10 +2025,11 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
   const sendBtn = document.getElementById('authSendCode');
   const backBtn = document.getElementById('authBackToEmail');
   const msgEl = document.getElementById('authMsg');
-  const subEl = document.getElementById('authSub');
 
   let pendingEmail = '';
+  let refreshTimer = null;
 
+  // ---- UI helpers ----
   function setMsg(text, kind) {
     msgEl.textContent = text || '';
     msgEl.classList.remove('error', 'info');
@@ -2051,97 +2044,159 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
   function hideOverlay() { overlay.style.display = 'none'; }
   function showOverlay() { overlay.style.display = 'flex'; }
 
-  // Verify the signed-in user's email is on the allowlist. If not, sign out and reject.
-  async function verifyAllowlist() {
-    const { data, error } = await SB_AUTH.from('allowed_emails').select('email').limit(1);
-    if (error) {
-      console.error('allowlist check error:', error);
-      return false;
-    }
+  // ---- Storage helpers ----
+  function readStored() {
+    try { return JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY) || 'null'); }
+    catch { return null; }
+  }
+  function saveStored(s) { localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(s)); }
+  function clearStored() { localStorage.removeItem(AUTH_STORAGE_KEY); }
+  function isExpired(s) { return !s || !s.expires_at || s.expires_at <= Math.floor(Date.now() / 1000); }
+
+  // ---- REST helpers ----
+  async function verifyAllowlistREST(accessToken) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/allowed_emails?select=email&limit=1`, {
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${accessToken}` }
+    });
+    if (!r.ok) return false;
+    const data = await r.json();
     return Array.isArray(data) && data.length > 0;
   }
 
-  async function adoptSession(session) {
-    USER_JWT = session.access_token;
-    const ok = await verifyAllowlist();
+  async function refreshAccessToken(refreshToken) {
+    const r = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken })
+    });
+    if (!r.ok) throw new Error('refresh failed: ' + r.status);
+    return await r.json();
+  }
+
+  async function sendMagicLinkREST(email) {
+    const body = {
+      email,
+      create_user: true,
+      gotrue_meta_security: {}
+    };
+    // Where the magic link should redirect to after Supabase verifies it.
+    // Must match a URL allowed by the project's "Site URL" / "Redirect URLs".
+    const redirectTo = window.location.origin + window.location.pathname;
+    const r = await fetch(`${SUPABASE_URL}/auth/v1/otp?redirect_to=${encodeURIComponent(redirectTo)}`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!r.ok) {
+      let errMsg = 'Failed to send link.';
+      try { const e = await r.json(); errMsg = e.msg || e.error_description || e.error || errMsg; } catch {}
+      throw new Error(errMsg);
+    }
+  }
+
+  // ---- Session lifecycle ----
+  function scheduleRefresh(s) {
+    if (refreshTimer) clearTimeout(refreshTimer);
+    const msUntilExpiry = (s.expires_at * 1000) - Date.now();
+    const refreshIn = Math.max(15_000, msUntilExpiry - 60_000);  // 60s before expiry, min 15s
+    refreshTimer = setTimeout(async () => {
+      try {
+        const refreshed = await refreshAccessToken(s.refresh_token);
+        USER_JWT = refreshed.access_token;
+        saveStored(refreshed);
+        scheduleRefresh(refreshed);
+      } catch (e) {
+        console.error('[auth] Token refresh failed:', e);
+        clearStored();
+        AUTH_READY = false;
+        USER_JWT = SUPABASE_KEY;
+        showOverlay();
+        showStep('email');
+        setMsg('Your session expired. Sign in again.', 'info');
+      }
+    }, refreshIn);
+  }
+
+  async function adoptSession(s) {
+    USER_JWT = s.access_token;
+    const ok = await verifyAllowlistREST(s.access_token);
     if (!ok) {
-      await SB_AUTH.auth.signOut();
+      clearStored();
       USER_JWT = SUPABASE_KEY;
       showOverlay();
       showStep('email');
       setMsg('That email is not on the access list. Contact Uday to be added.', 'error');
       return false;
     }
+    saveStored(s);
     hideOverlay();
+    scheduleRefresh(s);
     flushBootQueue();
     return true;
   }
 
-  // Send-link handler
+  // ---- Wire up the form ----
   sendBtn.addEventListener('click', async () => {
     const email = emailInput.value.trim().toLowerCase();
     if (!email || !email.includes('@')) { setMsg('Please enter a valid email.', 'error'); return; }
     sendBtn.disabled = true;
     setMsg('Sending link…', 'info');
-    const { error } = await SB_AUTH.auth.signInWithOtp({
-      email,
-      options: {
-        shouldCreateUser: true,
-        // Land directly on the dashboard URL so the magic-link redirect doesn't dump tokens at the site root.
-        emailRedirectTo: window.location.origin + window.location.pathname
-      }
-    });
-    sendBtn.disabled = false;
-    if (error) { setMsg(error.message || 'Failed to send link.', 'error'); return; }
-    pendingEmail = email;
-    showStep('sent');
+    try {
+      await sendMagicLinkREST(email);
+      pendingEmail = email;
+      showStep('sent');
+    } catch (e) {
+      setMsg(e.message || 'Failed to send link.', 'error');
+    } finally {
+      sendBtn.disabled = false;
+    }
   });
-
-  // Allow pressing Enter to submit
   emailInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendBtn.click(); });
-
-  // Back to email handler
   backBtn.addEventListener('click', () => { pendingEmail = ''; showStep('email'); });
 
-  // Single source of truth for auth state. Handles every event uniformly:
-  //   - INITIAL_SESSION (page load with persisted session in localStorage) -> adoptSession
-  //   - SIGNED_IN       (just logged in via magic link)                    -> adoptSession
-  //   - TOKEN_REFRESHED (background refresh)                                -> just update USER_JWT
-  //   - SIGNED_OUT or null session                                          -> show login overlay
-  // This avoids a race that previously left the user on the login screen
-  // even when their session was already in localStorage (getSession sometimes
-  // returns null before supabase-js finishes hydrating from storage).
-  SB_AUTH.auth.onAuthStateChange(async (event, session) => {
-    if (session) {
-      USER_JWT = session.access_token;
-      if (!AUTH_READY) await adoptSession(session);
-    } else {
-      USER_JWT = SUPABASE_KEY;
-      AUTH_READY = false;
-      showOverlay();
-      showStep('email');
-    }
-  });
-
-  // Defensive fallback: if the auth event hasn't fired within 1.5s, read the session
-  // directly from localStorage and proceed. Belt-and-braces against any future
-  // supabase-js init quirks that prevent INITIAL_SESSION from firing.
-  setTimeout(async () => {
-    if (AUTH_READY) return;
-    try {
-      const stored = JSON.parse(localStorage.getItem('ks-dashboard-auth') || 'null');
-      if (stored && stored.access_token && stored.expires_at && stored.expires_at > Math.floor(Date.now()/1000)) {
-        await adoptSession({ access_token: stored.access_token, user: stored.user });
-      } else if (overlay.style.display === '' || overlay.style.display === 'none') {
-        showOverlay();
-        showStep('email');
+  // ---- Boot ----
+  (async () => {
+    // Case 1: returning from a magic-link click (URL hash carries the tokens).
+    if (window.location.hash.includes('access_token')) {
+      const params = new URLSearchParams(window.location.hash.slice(1));
+      const access_token = params.get('access_token');
+      const refresh_token = params.get('refresh_token');
+      const expires_at = parseInt(params.get('expires_at') || '0', 10);
+      const expires_in = parseInt(params.get('expires_in') || '0', 10);
+      // Strip the hash so refresh-and-bookmark don't capture a single-use token.
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+      if (access_token && refresh_token && (expires_at || expires_in)) {
+        const s = {
+          access_token, refresh_token,
+          expires_at: expires_at || (Math.floor(Date.now() / 1000) + expires_in),
+          expires_in,
+          token_type: 'bearer'
+        };
+        if (await adoptSession(s)) return;
       }
-    } catch (e) {
-      console.error('Defensive auth fallback failed:', e);
-      showOverlay();
-      showStep('email');
     }
-  }, 1500);
+
+    // Case 2: existing session in localStorage.
+    const stored = readStored();
+    if (stored && stored.access_token) {
+      if (!isExpired(stored)) {
+        if (await adoptSession(stored)) return;
+      } else if (stored.refresh_token) {
+        // Try refresh.
+        try {
+          const refreshed = await refreshAccessToken(stored.refresh_token);
+          if (await adoptSession(refreshed)) return;
+        } catch (e) {
+          console.warn('[auth] Boot refresh failed, falling back to login:', e);
+          clearStored();
+        }
+      }
+    }
+
+    // Case 3: no session — show login.
+    showOverlay();
+    showStep('email');
+  })();
 })();
 </script>
 </body>

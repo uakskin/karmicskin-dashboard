@@ -277,7 +277,7 @@
       </button>
       <div class="date-dropdown" id="dateDropdown">
         <div class="date-presets">
-          <button class="date-preset" data-preset="yesterday">Yesterday</button>
+          <button class="date-preset" data-preset="today">Today</button>
           <button class="date-preset active" data-preset="mtd">Month to date</button>
           <button class="date-preset" data-preset="ytd">Year to date</button>
           <button class="date-preset" data-preset="last7">Last 7 days</button>
@@ -655,7 +655,7 @@ function getPresetDates(preset) {
   // era when dashboard only had completed-day data). Real-time webhook + 10-min reporting
   // rebuild means today's row is in rpt_daily_overview, so include it.
   switch(preset) {
-    case 'yesterday': return { from: fmtDate(yesterday), to: fmtDate(yesterday), label: 'Yesterday' };
+    case 'today': return { from: fmtDate(today), to: fmtDate(today), label: 'Today' };
     case 'last7': {
       const from = new Date(today); from.setDate(today.getDate() - 6);
       return { from: fmtDate(from), to: fmtDate(today), label: 'Last 7 days' };
@@ -1162,16 +1162,9 @@ async function fetchTableData() {
 
   // LTV 6m removed — N-CAC and LTV:N-CAC computed from table data
 
-  // Last refreshed = the moment this page actually fetched fresh data from Supabase.
-  // Data is near-real-time: Shopify orders flow in via webhook (seconds), reporting
-  // tables rebuild every 10 mins, dashboard auto-refreshes every 5 mins.
-  const now = new Date();
-  const ukTime = now.toLocaleString('en-GB', {
-    timeZone: 'Europe/London',
-    day: 'numeric', month: 'short', year: 'numeric',
-    hour: '2-digit', minute: '2-digit', hour12: false
-  });
-  document.getElementById('lastUpdated').textContent = `Last refreshed: ${ukTime} UK`;
+  // "Last refreshed" reflects actual data freshness per source, not page render time.
+  // Fetches MAX(loaded_at) from each raw source so user can see if any source has stalled.
+  fetchDataFreshness();
 
   renderTable();
 }
@@ -1376,6 +1369,50 @@ async function fetchMonitorStatus() {
 }
 fetchMonitorStatus();
 
+// Per-source data freshness — Shopify (webhook), Meta (30-min cron), Google (hourly script).
+// Fetches MAX(loaded_at) from each raw table so the user sees if any source has stalled.
+async function fetchDataFreshness() {
+  const el = document.getElementById('lastUpdated');
+  if (!el) return;
+  const sources = [
+    { key: 'shopify', label: 'Shopify', table: 'raw_shopify_orders' },
+    { key: 'meta',    label: 'Meta',    table: 'raw_meta_ads_daily' },
+    { key: 'google',  label: 'Google',  table: 'raw_google_ads_daily' },
+  ];
+  try {
+    const results = await Promise.all(sources.map(async s => {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/${s.table}?select=loaded_at&order=loaded_at.desc&limit=1`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      });
+      if (!r.ok) return { ...s, ts: null };
+      const rows = await r.json();
+      return { ...s, ts: rows[0]?.loaded_at ? new Date(rows[0].loaded_at) : null };
+    }));
+    const fmtAgo = ms => {
+      const m = Math.floor(ms / 60000);
+      if (m < 60) return m + 'm';
+      const h = Math.floor(m / 60);
+      if (h < 24) return h + 'h';
+      return Math.floor(h / 24) + 'd';
+    };
+    const fmtAbs = d => d.toLocaleString('en-GB', {
+      timeZone: 'Europe/London',
+      day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false
+    }) + ' UK';
+    const now = Date.now();
+    const parts = results.map(r => {
+      if (!r.ts) return `${r.label} —`;
+      const ago = fmtAgo(now - r.ts.getTime());
+      return `<span title="${r.label}: last loaded ${fmtAbs(r.ts)}">${r.label} ${ago}</span>`;
+    });
+    el.innerHTML = 'Data: ' + parts.join(' · ') + ' ago';
+  } catch (e) {
+    console.error('Data freshness fetch failed:', e);
+    el.textContent = 'Data freshness unavailable';
+  }
+}
+fetchDataFreshness();
+
 // Auto-refresh every 5 minutes — reporting tables rebuild every 10 mins,
 // so this picks up the latest aggregations + multi-period strip values.
 setInterval(() => {
@@ -1383,6 +1420,7 @@ setInterval(() => {
   fetchTableData();
   fetchMultiPeriod();
   fetchMonitorStatus();
+  fetchDataFreshness();
 }, 5 * 60 * 1000);
 
 // ========== PRODUCT ANALYTICS ==========

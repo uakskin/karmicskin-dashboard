@@ -2078,7 +2078,11 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
     setMsg('Sending code…', 'info');
     const { error } = await SB_AUTH.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: true }
+      options: {
+        shouldCreateUser: true,
+        // Land directly on the dashboard URL so the magic-link redirect doesn't dump tokens at the site root.
+        emailRedirectTo: window.location.origin + window.location.pathname
+      }
     });
     sendBtn.disabled = false;
     if (error) { setMsg(error.message || 'Failed to send code.', 'error'); return; }

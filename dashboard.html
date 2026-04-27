@@ -493,7 +493,6 @@
             <th data-col="orders" title="Total number of orders placed">Orders <span class="sort-arrow">▼</span></th>
             <th data-col="aov" title="Net product revenue (ex-VAT, ex-shipping) ÷ Orders">AOV <span class="sort-arrow">▼</span></th>
             <th data-col="repeatPct" title="Orders from returning customers ÷ Total orders × 100">Repeat Orders % <span class="sort-arrow">▼</span></th>
-            <th data-col="aovUplift" title="(Repeat AOV − New AOV) ÷ New AOV × 100. How much bigger an average repeat order is vs an average first-time order. A quick proxy for repeat-customer value — but LTV:N-CAC (last column) is the more complete measure.">Repeat AOV vs New <span class="info-tip" data-tip="<p><strong>Repeat AOV vs New</strong> = (Repeat AOV − New AOV) ÷ New AOV × 100</p><p class='tt-muted'>How much bigger an average repeat order is than an average first-time order. Almost always positive — repeat customers are warmer and add more to the basket.</p><div class='tt-divider'></div><p><strong>Caveats:</strong></p><p class='tt-muted'>This is a per-order signal. It misses two things repeat customers also do: (1) order more frequently, and (2) tend to have higher gross margin if they skip first-order discounts. The most complete measure is <strong>LTV:N-CAC</strong> (final column) — total lifetime revenue per customer relative to what you paid to acquire them.</p>">ⓘ</span> <span class="sort-arrow">▼</span></th>
             <th data-col="newCust" title="Customers placing their first-ever order">New Cust. <span class="sort-arrow">▼</span></th>
             <th data-col="repeat" title="Customers who have ordered before">Repeat <span class="sort-arrow">▼</span></th>
             <th data-col="meta" title="Total Meta (Facebook/Instagram) advertising spend">Meta Ad Spend <span class="sort-arrow">▼</span></th>
@@ -501,6 +500,7 @@
             <th data-col="ltv" title="Trailing 12-month Revenue ÷ Unique Customers in that 12-month window">LTV 12m <span class="info-tip" data-tip="Trailing 12-month Revenue ÷ Unique Customers in that 12-month window">ⓘ</span> <span class="sort-arrow">▼</span></th>
             <th data-col="ncac" title="New Customer Acquisition Cost. Total Ad Spend (Meta + Google) ÷ New Unique Paying Customers acquired that month.">N-CAC <span class="info-tip" data-tip="Total Ad Spend (Meta + Google) ÷ New Unique Paying Customers acquired that month">ⓘ</span> <span class="sort-arrow">▼</span></th>
             <th data-col="ltvNcac" title="LTV 12m ÷ N-CAC. How much lifetime revenue a customer generates relative to what you paid to acquire them.">LTV:N-CAC <span class="info-tip" data-tip="LTV 12m ÷ N-CAC. Lifetime revenue relative to new customer acquisition cost.">ⓘ</span> <span class="sort-arrow">▼</span></th>
+            <th data-col="aovUplift" title="(Repeat AOV − New AOV) ÷ New AOV × 100. How much bigger an average repeat order is vs an average first-time order. A quick proxy for repeat-customer value — but LTV:N-CAC is the more complete measure.">Repeat AOV vs New <span class="info-tip" data-tip="<p><strong>Repeat AOV vs New</strong> = (Repeat AOV − New AOV) ÷ New AOV × 100</p><p class='tt-muted'>How much bigger an average repeat order is than an average first-time order. Almost always positive — repeat customers are warmer and add more to the basket.</p><div class='tt-divider'></div><p><strong>Caveats:</strong></p><p class='tt-muted'>This is a per-order signal. It misses two things repeat customers also do: (1) order more frequently, and (2) tend to have higher gross margin if they skip first-order discounts. The most complete measure is <strong>LTV:N-CAC</strong> — total lifetime revenue per customer relative to what you paid to acquire them.</p>">ⓘ</span> <span class="sort-arrow">▼</span></th>
           </tr>
         </thead>
         <tbody id="perfTableBody">
@@ -1339,7 +1339,6 @@ function renderTable() {
       <td${isTopOrders ? ' class="highlight-best"' : ''}>${r.orders.toLocaleString()}</td>
       <td>\u00A3${Math.round(r.aov)}</td>
       <td>${r.repeatPct.toFixed(1)}%</td>
-      <td>${r.aovUplift === null ? '-' : (r.aovUplift >= 0 ? '+' : '') + r.aovUplift.toFixed(0) + '%'}</td>
       <td${isTopNewCust ? ' class="highlight-best"' : ''}>${r.newCust.toLocaleString()}</td>
       <td${isTopRepeat ? ' class="highlight-best"' : ''}>${r.repeat.toLocaleString()}</td>
       <td>\u00A3${Math.round(r.meta).toLocaleString()}</td>
@@ -1347,6 +1346,7 @@ function renderTable() {
       <td>${r.ltv > 0 ? '\u00A3' + r.ltv.toFixed(0) : '-'}</td>
       <td>${r.ncac > 0 ? '\u00A3' + r.ncac.toFixed(0) : '-'}</td>
       <td>${r.ltvNcac > 0 ? r.ltvNcac.toFixed(1) + 'x' : '-'}</td>
+      <td>${r.aovUplift === null ? '-' : (r.aovUplift >= 0 ? '+' : '') + r.aovUplift.toFixed(0) + '%'}</td>
     </tr>`;
   }
 

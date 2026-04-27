@@ -304,19 +304,19 @@
 </div>
 
 <div class="multi-period-strip" id="multiPeriodStrip">
-  <div class="mp-card" title="Revenue ÷ Ad Spend = MER"><span class="mp-label">Yesterday</span><span class="mp-rev" id="mp-yest-rev">--</span><span class="mp-op">÷</span><span class="mp-ads" id="mp-yest-ads">--</span><span class="mp-op">=</span><span class="mp-mer" id="mp-yest-roas">--</span></div>
-  <div class="mp-card" title="Revenue ÷ Ad Spend = MER"><span class="mp-label">Last 7</span><span class="mp-rev" id="mp-l7-rev">--</span><span class="mp-op">÷</span><span class="mp-ads" id="mp-l7-ads">--</span><span class="mp-op">=</span><span class="mp-mer" id="mp-l7-roas">--</span></div>
-  <div class="mp-card" title="Revenue ÷ Ad Spend = MER"><span class="mp-label">Prev 7 (8-14)</span><span class="mp-rev" id="mp-p7-rev">--</span><span class="mp-op">÷</span><span class="mp-ads" id="mp-p7-ads">--</span><span class="mp-op">=</span><span class="mp-mer" id="mp-p7-roas">--</span></div>
-  <div class="mp-card" title="Revenue ÷ Ad Spend = MER"><span class="mp-label">Last 14</span><span class="mp-rev" id="mp-l14-rev">--</span><span class="mp-op">÷</span><span class="mp-ads" id="mp-l14-ads">--</span><span class="mp-op">=</span><span class="mp-mer" id="mp-l14-roas">--</span></div>
-  <div class="mp-card" title="Revenue ÷ Ad Spend = MER"><span class="mp-label">Last 30</span><span class="mp-rev" id="mp-l30-rev">--</span><span class="mp-op">÷</span><span class="mp-ads" id="mp-l30-ads">--</span><span class="mp-op">=</span><span class="mp-mer" id="mp-l30-roas">--</span></div>
-  <div class="mp-card" title="Revenue ÷ Ad Spend = MER"><span class="mp-label">Last 90</span><span class="mp-rev" id="mp-l90-rev">--</span><span class="mp-op">÷</span><span class="mp-ads" id="mp-l90-ads">--</span><span class="mp-op">=</span><span class="mp-mer" id="mp-l90-roas">--</span></div>
+  <div class="mp-card" title="Revenue ÷ Ad Spend = ROAS"><span class="mp-label">Yesterday</span><span class="mp-rev" id="mp-yest-rev">--</span><span class="mp-op">÷</span><span class="mp-ads" id="mp-yest-ads">--</span><span class="mp-op">=</span><span class="mp-mer" id="mp-yest-roas">--</span></div>
+  <div class="mp-card" title="Revenue ÷ Ad Spend = ROAS"><span class="mp-label">Last 7</span><span class="mp-rev" id="mp-l7-rev">--</span><span class="mp-op">÷</span><span class="mp-ads" id="mp-l7-ads">--</span><span class="mp-op">=</span><span class="mp-mer" id="mp-l7-roas">--</span></div>
+  <div class="mp-card" title="Revenue ÷ Ad Spend = ROAS"><span class="mp-label">Prev 7 (8-14)</span><span class="mp-rev" id="mp-p7-rev">--</span><span class="mp-op">÷</span><span class="mp-ads" id="mp-p7-ads">--</span><span class="mp-op">=</span><span class="mp-mer" id="mp-p7-roas">--</span></div>
+  <div class="mp-card" title="Revenue ÷ Ad Spend = ROAS"><span class="mp-label">Last 14</span><span class="mp-rev" id="mp-l14-rev">--</span><span class="mp-op">÷</span><span class="mp-ads" id="mp-l14-ads">--</span><span class="mp-op">=</span><span class="mp-mer" id="mp-l14-roas">--</span></div>
+  <div class="mp-card" title="Revenue ÷ Ad Spend = ROAS"><span class="mp-label">Last 30</span><span class="mp-rev" id="mp-l30-rev">--</span><span class="mp-op">÷</span><span class="mp-ads" id="mp-l30-ads">--</span><span class="mp-op">=</span><span class="mp-mer" id="mp-l30-roas">--</span></div>
+  <div class="mp-card" title="Revenue ÷ Ad Spend = ROAS"><span class="mp-label">Last 90</span><span class="mp-rev" id="mp-l90-rev">--</span><span class="mp-op">÷</span><span class="mp-ads" id="mp-l90-ads">--</span><span class="mp-op">=</span><span class="mp-mer" id="mp-l90-roas">--</span></div>
 </div>
 
 <div class="kpi-strip">
   <div class="kpi-card">
     <div class="label">Revenue <span class="info-tip" data-tip="Total Shopify sales inc. VAT, net of refunds">ⓘ</span></div>
     <div class="value" id="kpi-revenue">--</div>
-    <div class="benchmark" id="kpi-revenue-split" title="New customer revenue · Returning customer revenue (with share %)">--</div>
+    <div class="benchmark" id="kpi-revenue-split" title="New customer revenue · Repeat customer revenue (with share %)">--</div>
   </div>
   <div class="kpi-card">
     <div class="label">Ad Spend <span class="info-tip" data-tip="Meta + Google ad spend combined">ⓘ</span></div>
@@ -324,14 +324,14 @@
     <div class="benchmark" id="kpi-adspend-split" title="Meta spend · Google spend (with share %)">--</div>
   </div>
   <div class="kpi-card">
-    <div class="label">MER <span class="info-tip" data-tip="Marketing Efficiency Ratio: Total Shopify revenue ÷ Total marketing spend (Meta + Google). The true blended return — independent of platform attribution.">ⓘ</span></div>
+    <div class="label">ROAS <span class="info-tip" data-tip="Return on Ad Spend: Total Shopify revenue ÷ Paid ad spend (Meta + Google). Note: this is paid-only — organic, influencer, affiliate, and agency fees are not included, so this is ROAS not true MER.">ⓘ</span></div>
     <div class="value" id="kpi-roas">--</div>
-    <div class="benchmark" id="kpi-roas-be" title="Breakeven MER: the level where EBITDA = 0 at current period scale. Calculated from cost structure (variable 32.2%, fixed £944/mo prorated, VAT pass-through).">Breakeven --</div>
+    <div class="benchmark" id="kpi-roas-be" title="Breakeven ROAS: the level where EBITDA = 0 at current period scale. Calculated from cost structure (variable 32.2%, fixed £944/mo prorated, VAT pass-through).">Breakeven --</div>
   </div>
   <div class="kpi-card"><div class="label">Orders <span class="info-tip" data-tip="Total Shopify orders placed in period">ⓘ</span></div><div class="value" id="kpi-orders">--</div></div>
   <div class="kpi-card"><div class="label">AOV <span class="info-tip" data-tip="Total Shopify sales (inc. VAT, inc. shipping) ÷ Orders. The all-in average order value.">ⓘ</span></div><div class="value" id="kpi-aov">--</div></div>
   <div class="kpi-card"><div class="label">New Customers <span class="info-tip" data-tip="First-time buyers only (no prior Shopify orders)">ⓘ</span></div><div class="value" id="kpi-new">--</div></div>
-  <div class="kpi-card"><div class="label">Repeat % <span class="info-tip" data-tip="Returning Customers ÷ Total Unique Customers × 100">ⓘ</span></div><div class="value" id="kpi-repeat">--</div></div>
+  <div class="kpi-card"><div class="label">Repeat Orders % <span class="info-tip" data-tip="Orders from returning customers ÷ Total orders × 100. The share of orders placed by people who'd ordered before.">ⓘ</span></div><div class="value" id="kpi-repeat">--</div></div>
   <div class="kpi-card"><div class="label">Sessions <span class="info-tip" data-tip="GA4 sessions — total website visits tracked by Google Analytics">ⓘ</span></div><div class="value" id="kpi-sessions">--</div></div>
   <div class="kpi-card"><div class="label">CVR % <span class="info-tip" data-tip="Orders ÷ GA4 Sessions × 100 — uses GA4 sessions as the denominator">ⓘ</span></div><div class="value" id="kpi-cvr">--</div></div>
   <div class="kpi-card">
@@ -365,7 +365,7 @@
     <div class="toggle-item" onclick="this.querySelector('input').click()">
       <input type="checkbox" data-metric="roas">
       <div class="toggle-dot" style="--dot-color: #d97706"></div>
-      <span class="toggle-label">MER</span>
+      <span class="toggle-label">ROAS</span>
     </div>
     <div class="toggle-item" onclick="this.querySelector('input').click()">
       <input type="checkbox" data-metric="aov">
@@ -385,7 +385,7 @@
     <div class="toggle-item" onclick="this.querySelector('input').click()">
       <input type="checkbox" data-metric="repeatPct">
       <div class="toggle-dot" style="--dot-color: #9333ea"></div>
-      <span class="toggle-label">Repeat %</span>
+      <span class="toggle-label">Repeat Orders %</span>
     </div>
     <div class="toggle-item" onclick="this.querySelector('input').click()">
       <input type="checkbox" data-metric="ncac">
@@ -474,10 +474,10 @@
             <th data-col="growthPct" title="(Current Revenue − Previous Revenue) ÷ Previous Revenue × 100">Rev Growth % <span class="sort-arrow">▼</span></th>
             <th data-col="revenue" title="Total sales including VAT, net of refunds">Revenue <span class="sort-arrow">▼</span></th>
             <th data-col="adSpend" title="Meta Ad Spend + Google Ad Spend">Ad Spend <span class="sort-arrow">▼</span></th>
-            <th data-col="roas" title="Revenue ÷ Ad Spend (Marketing Efficiency Ratio)">MER <span class="sort-arrow">▼</span></th>
+            <th data-col="roas" title="Revenue ÷ Paid Ad Spend (Meta + Google). Paid-only — does not include organic/influencer/agency.">ROAS <span class="sort-arrow">▼</span></th>
             <th data-col="orders" title="Total number of orders placed">Orders <span class="sort-arrow">▼</span></th>
             <th data-col="aov" title="Net product revenue (ex-VAT, ex-shipping) ÷ Orders">AOV <span class="sort-arrow">▼</span></th>
-            <th data-col="repeatPct" title="Returning Customers ÷ Total Unique Customers × 100">Repeat % <span class="sort-arrow">▼</span></th>
+            <th data-col="repeatPct" title="Orders from returning customers ÷ Total orders × 100">Repeat Orders % <span class="sort-arrow">▼</span></th>
             <th data-col="newCust" title="Customers placing their first-ever order">New Cust. <span class="sort-arrow">▼</span></th>
             <th data-col="repeat" title="Customers who have ordered before">Repeat <span class="sort-arrow">▼</span></th>
             <th data-col="meta" title="Total Meta (Facebook/Instagram) advertising spend">Meta Ad Spend <span class="sort-arrow">▼</span></th>
@@ -535,10 +535,10 @@
           </tr>
           <tr>
             <th>Avg Revenue</th>
-            <th>MER</th>
+            <th>ROAS</th>
             <th>Avg Orders</th>
             <th>Avg Revenue</th>
-            <th>MER</th>
+            <th>ROAS</th>
             <th>Avg Orders</th>
           </tr>
         </thead>
@@ -577,7 +577,7 @@
 
 <script>
 // ── COST STRUCTURE CONSTANTS (from P&L analysis) ──
-// Used to compute Breakeven MER / Breakeven CPA from current period scale.
+// Used to compute Breakeven ROAS / Breakeven CPA from current period scale.
 // COGS + Fulfilment as % of ex-VAT revenue. Fixed costs are £/month.
 const COST_STRUCTURE = {
   variableCostRatioExVat: 0.322,    // 14.8% COGS + 17.4% fulfilment
@@ -592,11 +592,11 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const METRIC_CONFIG = {
   revenue:      { label: 'Revenue',         color: '#0d9488', prefix: '\u00A3', yAxis: 'y',  decimals: 0 },
   adSpend:      { label: 'Ad Spend',        color: '#e11d48', prefix: '\u00A3', yAxis: 'y',  decimals: 0 },
-  roas:         { label: 'MER',             color: '#d97706', prefix: '',       yAxis: 'y1', decimals: 2 },
+  roas:         { label: 'ROAS',            color: '#d97706', prefix: '',       yAxis: 'y1', decimals: 2 },
   aov:          { label: 'AOV',             color: '#7c3aed', prefix: '\u00A3', yAxis: 'y1', decimals: 1 },
   orders:       { label: 'Orders',          color: '#2563eb', prefix: '',       yAxis: 'y1', decimals: 0 },
   newCustomers: { label: 'New Customers',   color: '#059669', prefix: '',       yAxis: 'y1', decimals: 0 },
-  repeatPct:    { label: 'Repeat %',        color: '#9333ea', prefix: '',       yAxis: 'y1', decimals: 1, suffix: '%' },
+  repeatPct:    { label: 'Repeat Orders %', color: '#9333ea', prefix: '',       yAxis: 'y1', decimals: 1, suffix: '%' },
   ncac:         { label: 'N-CAC',            color: '#ea580c', prefix: '\u00A3', yAxis: 'y1', decimals: 1 },
   metaSpend:    { label: 'Meta Ad Spend',   color: '#6366f1', prefix: '\u00A3', yAxis: 'y',  decimals: 0 },
   googleSpend:  { label: 'Google Ad Spend', color: '#0891b2', prefix: '\u00A3', yAxis: 'y',  decimals: 0 },
@@ -790,7 +790,7 @@ async function fetchData() {
   const from = document.getElementById('dateFrom').dataset.current || document.getElementById('dateFrom').value;
   const to = document.getElementById('dateTo').dataset.current || document.getElementById('dateTo').value;
 
-  const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.${from}&report_date=lte.${to}&order=report_date.asc&select=report_date,total_sales,net_product_revenue,total_ad_spend,meta_spend,google_spend,meta_revenue,google_revenue,total_orders,aov,new_customer_orders,returning_customer_orders,new_customer_revenue,returning_customer_revenue,blended_cac,ga4_sessions`;
+  const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.${from}&report_date=lte.${to}&order=report_date.asc&select=report_date,total_sales,net_product_revenue,total_ad_spend,meta_spend,google_spend,meta_revenue,google_revenue,total_orders,aov,new_customer_orders,returning_customer_orders,orders_from_new,orders_from_returning,new_customer_revenue,returning_customer_revenue,blended_cac,ga4_sessions`;
 
   rawData = await fetchAllPages(url);
   updateDashboard();
@@ -811,7 +811,7 @@ function aggregateData(data, period) {
       const q = Math.floor(d.getMonth() / 3);
       key = d.getFullYear() + '-' + String(q * 3 + 1).padStart(2, '0') + '-01';
     }
-    if (!buckets[key]) buckets[key] = { date: key, revenue: 0, netProductRev: 0, adSpend: 0, metaSpend: 0, googleSpend: 0, metaRev: 0, googleRev: 0, orders: 0, newCustomers: 0, returning: 0, newRev: 0, retRev: 0, sessions: 0, days: 0 };
+    if (!buckets[key]) buckets[key] = { date: key, revenue: 0, netProductRev: 0, adSpend: 0, metaSpend: 0, googleSpend: 0, metaRev: 0, googleRev: 0, orders: 0, newCustomers: 0, returning: 0, newRev: 0, retRev: 0, ordersFromNew: 0, ordersFromReturning: 0, sessions: 0, days: 0 };
     const b = buckets[key];
     b.revenue += parseFloat(row.total_sales || 0);
     b.netProductRev += parseFloat(row.net_product_revenue || 0);
@@ -825,6 +825,8 @@ function aggregateData(data, period) {
     b.returning += parseInt(row.returning_customer_orders || 0);
     b.newRev += parseFloat(row.new_customer_revenue || 0);
     b.retRev += parseFloat(row.returning_customer_revenue || 0);
+    b.ordersFromNew += parseInt(row.orders_from_new || 0);
+    b.ordersFromReturning += parseInt(row.orders_from_returning || 0);
     b.sessions += parseInt(row.ga4_sessions || 0);
     b.days++;
   }
@@ -837,7 +839,8 @@ function aggregateData(data, period) {
     googleRoas: b.googleSpend > 0 ? b.googleRev / b.googleSpend : 0,
     orders: b.orders, newCustomers: b.newCustomers, returning: b.returning,
     newRev: b.newRev, retRev: b.retRev,
-    repeatPct: (b.newCustomers + b.returning) > 0 ? (b.returning / (b.newCustomers + b.returning)) * 100 : 0,
+    ordersFromNew: b.ordersFromNew, ordersFromReturning: b.ordersFromReturning,
+    repeatPct: b.orders > 0 ? (b.ordersFromReturning / b.orders) * 100 : 0,
     ncac: b.newCustomers > 0 ? b.adSpend / b.newCustomers : 0,
     sessions: b.sessions,
     cvr: b.sessions > 0 ? (b.orders / b.sessions) * 100 : 0,
@@ -907,7 +910,7 @@ async function fetchMultiPeriod() {
         if (mer >= 2.0) merEl.classList.add('above');
         else if (mer >= beMer) merEl.classList.add('warn');
         else merEl.classList.add('below');
-        merEl.title = `Breakeven MER (variable costs only): ${beMer.toFixed(2)}x · Healthy zone: ≥ 2.00x`;
+        merEl.title = `Breakeven ROAS (variable costs only): ${beMer.toFixed(2)}x · Healthy zone: ≥ 2.00x`;
       } else {
         merEl.textContent = '--';
         merEl.title = '';
@@ -924,9 +927,10 @@ function updateKPIs(data) {
     a.metaSpend += (d.metaSpend || 0); a.googleSpend += (d.googleSpend || 0);
     a.orders += d.orders; a.newCustomers += d.newCustomers; a.returning += (d.returning || 0);
     a.newRev += (d.newRev || 0); a.retRev += (d.retRev || 0);
+    a.ordersFromNew += (d.ordersFromNew || 0); a.ordersFromReturning += (d.ordersFromReturning || 0);
     a.sessions += d.sessions;
     return a;
-  }, { revenue: 0, netProductRev: 0, adSpend: 0, metaSpend: 0, googleSpend: 0, orders: 0, newCustomers: 0, returning: 0, newRev: 0, retRev: 0, sessions: 0 });
+  }, { revenue: 0, netProductRev: 0, adSpend: 0, metaSpend: 0, googleSpend: 0, orders: 0, newCustomers: 0, returning: 0, newRev: 0, retRev: 0, ordersFromNew: 0, ordersFromReturning: 0, sessions: 0 });
 
   document.getElementById('kpi-revenue').textContent = '\u00A3' + Math.round(t.revenue).toLocaleString();
   document.getElementById('kpi-adspend').textContent = '\u00A3' + Math.round(t.adSpend).toLocaleString();
@@ -937,7 +941,7 @@ function updateKPIs(data) {
   if (totalCustRev > 0) {
     const newPct = Math.round((t.newRev / totalCustRev) * 100);
     const retPct = Math.round((t.retRev / totalCustRev) * 100);
-    splitRevEl.textContent = 'New £' + Math.round(t.newRev).toLocaleString() + ' (' + newPct + '%) · Returning £' + Math.round(t.retRev).toLocaleString() + ' (' + retPct + '%)';
+    splitRevEl.textContent = 'New £' + Math.round(t.newRev).toLocaleString() + ' (' + newPct + '%) · Repeat £' + Math.round(t.retRev).toLocaleString() + ' (' + retPct + '%)';
   } else {
     splitRevEl.textContent = '--';
   }
@@ -957,14 +961,14 @@ function updateKPIs(data) {
   document.getElementById('kpi-aov').textContent = '\u00A3' + (t.orders > 0 ? (t.revenue / t.orders).toFixed(0) : '--');
   document.getElementById('kpi-orders').textContent = t.orders.toLocaleString();
   document.getElementById('kpi-new').textContent = t.newCustomers.toLocaleString();
-  document.getElementById('kpi-repeat').textContent = (t.newCustomers + t.returning) > 0 ? ((t.returning / (t.newCustomers + t.returning)) * 100).toFixed(1) + '%' : '--';
+  document.getElementById('kpi-repeat').textContent = t.orders > 0 ? ((t.ordersFromReturning / t.orders) * 100).toFixed(1) + '%' : '--';
   document.getElementById('kpi-cac').textContent = '\u00A3' + (t.newCustomers > 0 ? (t.adSpend / t.newCustomers).toFixed(0) : '--');
   // Blended CPA: ad spend / total orders
   document.getElementById('kpi-blended-cpa').textContent = '\u00A3' + (t.orders > 0 ? (t.adSpend / t.orders).toFixed(0) : '--');
   document.getElementById('kpi-sessions').textContent = t.sessions.toLocaleString();
   document.getElementById('kpi-cvr').textContent = t.sessions > 0 ? ((t.orders / t.sessions) * 100).toFixed(2) + '%' : '--';
 
-  // Breakeven MER — contribution-margin basis (variable costs only).
+  // Breakeven ROAS — contribution-margin basis (variable costs only).
   // Scale-independent and simpler to reason about: above 1/cm, every £1 of marketing
   // spend returns more than its share of COGS + Fulfilment + VAT. Fixed costs are
   // small (~£944/mo) and absorbed across the contribution.
@@ -1042,7 +1046,7 @@ function updateChart(aggregated) {
     }
   });
 
-  // When MER selected, overlay a constant Breakeven MER reference line (~1.77x)
+  // When MER selected, overlay a constant Breakeven ROAS reference line (~1.77x)
   // computed from contribution margin only (scale-independent).
   if (activeMetrics.includes('roas')) {
     const cmTwBasis = COST_STRUCTURE.contributionMarginExVat / (1 + COST_STRUCTURE.vatRate);
@@ -1050,7 +1054,7 @@ function updateChart(aggregated) {
     const beData = aggregated.map(d => beMer);
     datasets.push({
       type: 'line',
-      label: 'Breakeven MER',
+      label: 'Breakeven ROAS',
       data: beData,
       borderColor: '#9ca3af',
       borderDash: [6, 4],
@@ -1185,7 +1189,7 @@ function aggregateTableData(period) {
     } else {
       key = row.report_date.substring(0, 7);
     }
-    if (!buckets[key]) buckets[key] = { revenue: 0, netProductRev: 0, adSpend: 0, meta: 0, google: 0, metaRev: 0, googleRev: 0, orders: 0, newCust: 0, repeat: 0 };
+    if (!buckets[key]) buckets[key] = { revenue: 0, netProductRev: 0, adSpend: 0, meta: 0, google: 0, metaRev: 0, googleRev: 0, orders: 0, newCust: 0, repeat: 0, ordersFromReturning: 0 };
     const b = buckets[key];
     b.revenue += parseFloat(row.total_sales || 0);
     b.netProductRev += parseFloat(row.net_product_revenue || 0);
@@ -1197,6 +1201,7 @@ function aggregateTableData(period) {
     b.orders += parseInt(row.total_orders || 0);
     b.newCust += parseInt(row.new_customer_orders || 0);
     b.repeat += parseInt(row.returning_customer_orders || 0);
+    b.ordersFromReturning += parseInt(row.orders_from_returning || 0);
   }
   return buckets;
 }
@@ -1226,7 +1231,7 @@ function buildTableRows() {
     const d = buckets[k];
     const roas = d.adSpend > 0 ? d.revenue / d.adSpend : 0;
     const aov = d.orders > 0 ? d.netProductRev / d.orders : 0;
-    const repeatPct = (d.newCust + d.repeat) > 0 ? (d.repeat / (d.newCust + d.repeat) * 100) : 0;
+    const repeatPct = d.orders > 0 ? (d.ordersFromReturning / d.orders * 100) : 0;
     const ltv = tablePeriod === 'monthly' ? (ltvData[k] || 0) : 0;
     const ncac = d.newCust > 0 ? d.adSpend / d.newCust : 0;
     const ltvNcac = (ltv > 0 && ncac > 0) ? ltv / ncac : 0;

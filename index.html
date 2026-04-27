@@ -2039,7 +2039,7 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
     stepEmail.classList.toggle('auth-hidden', step !== 'email');
     stepCode.classList.toggle('auth-hidden', step !== 'code');
     if (step === 'email') { setMsg(''); emailInput.focus(); }
-    if (step === 'code')  { setMsg(`Code sent to ${pendingEmail}. Check your inbox (also check Spam).`, 'info'); codeInput.focus(); }
+    if (step === 'code')  { setMsg(`Email sent to ${pendingEmail}. Click the sign-in link in the email — you'll be redirected back here automatically. (Or paste the 6-digit code below if your email contains one.)`, 'info'); codeInput.focus(); }
   }
   function hideOverlay() { overlay.style.display = 'none'; }
   function showOverlay() { overlay.style.display = 'flex'; }
@@ -2110,10 +2110,16 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
   // Back to email handler
   backBtn.addEventListener('click', () => { codeInput.value = ''; pendingEmail = ''; showStep('email'); });
 
-  // Keep token fresh; if signed out elsewhere, fall back to login
-  SB_AUTH.auth.onAuthStateChange((event, session) => {
-    if ((event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') && session) {
+  // Auth-state listener — also handles magic-link redirects.
+  // When the user clicks the link in their email, supabase-js detects the URL hash
+  // (#access_token=...&refresh_token=...) automatically because detectSessionInUrl is on
+  // by default. That fires SIGNED_IN, which we route through adoptSession to do the
+  // allowlist check + flush the boot queue.
+  SB_AUTH.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'TOKEN_REFRESHED' && session) {
       USER_JWT = session.access_token;
+    } else if (event === 'SIGNED_IN' && session && !AUTH_READY) {
+      await adoptSession(session);
     } else if (event === 'SIGNED_OUT') {
       USER_JWT = SUPABASE_KEY;
       AUTH_READY = false;

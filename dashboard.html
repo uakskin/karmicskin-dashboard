@@ -987,7 +987,10 @@ function updateKPIs(data) {
   document.getElementById('kpi-aov').textContent = '\u00A3' + (t.orders > 0 ? (t.revenue / t.orders).toFixed(0) : '--');
   document.getElementById('kpi-orders').textContent = t.orders.toLocaleString();
   document.getElementById('kpi-new').textContent = t.newCustomers.toLocaleString();
-  document.getElementById('kpi-repeat').textContent = t.orders > 0 ? ((t.ordersFromReturning / t.orders) * 100).toFixed(1) + '%' : '--';
+  // Cap at 3 digits: 100% (not 100.0%), but 26.9% / 5.4% keep 1 decimal.
+  document.getElementById('kpi-repeat').textContent = t.orders > 0
+    ? (() => { const p = (t.ordersFromReturning / t.orders) * 100; return (p >= 100 ? p.toFixed(0) : p.toFixed(1)) + '%'; })()
+    : '--';
   document.getElementById('kpi-cac').textContent = '\u00A3' + (t.newCustomers > 0 ? (t.adSpend / t.newCustomers).toFixed(0) : '--');
   // Blended CPA: ad spend / total orders
   document.getElementById('kpi-blended-cpa').textContent = '\u00A3' + (t.orders > 0 ? (t.adSpend / t.orders).toFixed(0) : '--');

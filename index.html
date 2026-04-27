@@ -291,18 +291,15 @@
   <div class="auth-card">
     <div class="auth-brand">Karmic Skin</div>
     <h1>Analytics access</h1>
-    <p class="auth-sub" id="authSub">Enter your email to receive a one-time login code. Only authorised emails can sign in.</p>
+    <p class="auth-sub" id="authSub">Enter your email and we'll send you a sign-in link. Only authorised emails can sign in.</p>
 
     <div id="authStepEmail">
       <label for="authEmail">Email</label>
       <input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com" />
-      <button class="auth-btn" id="authSendCode" type="button">Send login code</button>
+      <button class="auth-btn" id="authSendCode" type="button">Send sign-in link</button>
     </div>
 
-    <div id="authStepCode" class="auth-hidden">
-      <label for="authCode">6-digit code</label>
-      <input id="authCode" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="123456" />
-      <button class="auth-btn" id="authVerify" type="button">Verify and sign in</button>
+    <div id="authStepSent" class="auth-hidden">
       <button class="auth-back" id="authBackToEmail" type="button">Use a different email</button>
     </div>
 
@@ -2019,11 +2016,9 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
 (function authBoot() {
   const overlay = document.getElementById('authOverlay');
   const stepEmail = document.getElementById('authStepEmail');
-  const stepCode = document.getElementById('authStepCode');
+  const stepSent = document.getElementById('authStepSent');
   const emailInput = document.getElementById('authEmail');
-  const codeInput = document.getElementById('authCode');
   const sendBtn = document.getElementById('authSendCode');
-  const verifyBtn = document.getElementById('authVerify');
   const backBtn = document.getElementById('authBackToEmail');
   const msgEl = document.getElementById('authMsg');
   const subEl = document.getElementById('authSub');
@@ -2037,9 +2032,9 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
   }
   function showStep(step) {
     stepEmail.classList.toggle('auth-hidden', step !== 'email');
-    stepCode.classList.toggle('auth-hidden', step !== 'code');
+    stepSent.classList.toggle('auth-hidden', step !== 'sent');
     if (step === 'email') { setMsg(''); emailInput.focus(); }
-    if (step === 'code')  { setMsg(`Email sent to ${pendingEmail}. Click the sign-in link in the email — you'll be redirected back here automatically. (Or paste the 6-digit code below if your email contains one.)`, 'info'); codeInput.focus(); }
+    if (step === 'sent')  { setMsg(`Email sent to ${pendingEmail}. Click the sign-in link in your inbox — you'll be brought right back here. (Check Spam if you don't see it.)`, 'info'); }
   }
   function hideOverlay() { overlay.style.display = 'none'; }
   function showOverlay() { overlay.style.display = 'flex'; }
@@ -2070,12 +2065,12 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
     return true;
   }
 
-  // Send-code handler
+  // Send-link handler
   sendBtn.addEventListener('click', async () => {
     const email = emailInput.value.trim().toLowerCase();
     if (!email || !email.includes('@')) { setMsg('Please enter a valid email.', 'error'); return; }
     sendBtn.disabled = true;
-    setMsg('Sending code…', 'info');
+    setMsg('Sending link…', 'info');
     const { error } = await SB_AUTH.auth.signInWithOtp({
       email,
       options: {
@@ -2085,34 +2080,16 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
       }
     });
     sendBtn.disabled = false;
-    if (error) { setMsg(error.message || 'Failed to send code.', 'error'); return; }
+    if (error) { setMsg(error.message || 'Failed to send link.', 'error'); return; }
     pendingEmail = email;
-    showStep('code');
+    showStep('sent');
   });
 
   // Allow pressing Enter to submit
   emailInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendBtn.click(); });
-  codeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') verifyBtn.click(); });
-
-  // Verify-code handler
-  verifyBtn.addEventListener('click', async () => {
-    const token = codeInput.value.trim();
-    if (!token) { setMsg('Enter the 6-digit code from your email.', 'error'); return; }
-    verifyBtn.disabled = true;
-    setMsg('Verifying…', 'info');
-    const { data, error } = await SB_AUTH.auth.verifyOtp({
-      email: pendingEmail,
-      token,
-      type: 'email'
-    });
-    verifyBtn.disabled = false;
-    if (error) { setMsg(error.message || 'Invalid or expired code.', 'error'); return; }
-    if (!data || !data.session) { setMsg('No session returned.', 'error'); return; }
-    await adoptSession(data.session);
-  });
 
   // Back to email handler
-  backBtn.addEventListener('click', () => { codeInput.value = ''; pendingEmail = ''; showStep('email'); });
+  backBtn.addEventListener('click', () => { pendingEmail = ''; showStep('email'); });
 
   // Auth-state listener — also handles magic-link redirects.
   // When the user clicks the link in their email, supabase-js detects the URL hash

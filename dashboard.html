@@ -493,6 +493,7 @@
             <th data-col="orders" title="Total number of orders placed">Orders <span class="sort-arrow">▼</span></th>
             <th data-col="aov" title="Net product revenue (ex-VAT, ex-shipping) ÷ Orders">AOV <span class="sort-arrow">▼</span></th>
             <th data-col="repeatPct" title="Orders from returning customers ÷ Total orders × 100">Repeat Orders % <span class="sort-arrow">▼</span></th>
+            <th data-col="aovUplift" title="(Repeat AOV − New AOV) ÷ New AOV × 100. How much bigger an average repeat order is vs an average first-time order. A quick proxy for repeat-customer value — but LTV:N-CAC (last column) is the more complete measure.">Repeat AOV vs New <span class="info-tip" data-tip="<p><strong>Repeat AOV vs New</strong> = (Repeat AOV − New AOV) ÷ New AOV × 100</p><p class='tt-muted'>How much bigger an average repeat order is than an average first-time order. Almost always positive — repeat customers are warmer and add more to the basket.</p><div class='tt-divider'></div><p><strong>Caveats:</strong></p><p class='tt-muted'>This is a per-order signal. It misses two things repeat customers also do: (1) order more frequently, and (2) tend to have higher gross margin if they skip first-order discounts. The most complete measure is <strong>LTV:N-CAC</strong> (final column) — total lifetime revenue per customer relative to what you paid to acquire them.</p>">ⓘ</span> <span class="sort-arrow">▼</span></th>
             <th data-col="newCust" title="Customers placing their first-ever order">New Cust. <span class="sort-arrow">▼</span></th>
             <th data-col="repeat" title="Customers who have ordered before">Repeat <span class="sort-arrow">▼</span></th>
             <th data-col="meta" title="Total Meta (Facebook/Instagram) advertising spend">Meta Ad Spend <span class="sort-arrow">▼</span></th>
@@ -503,7 +504,7 @@
           </tr>
         </thead>
         <tbody id="perfTableBody">
-          <tr><td colspan="15" style="text-align:center;color:#52525b;padding:20px">Loading...</td></tr>
+          <tr><td colspan="16" style="text-align:center;color:#52525b;padding:20px">Loading...</td></tr>
         </tbody>
       </table>
     </div>
@@ -1215,7 +1216,7 @@ function aggregateTableData(period) {
     } else {
       key = row.report_date.substring(0, 7);
     }
-    if (!buckets[key]) buckets[key] = { revenue: 0, netProductRev: 0, adSpend: 0, meta: 0, google: 0, metaRev: 0, googleRev: 0, orders: 0, newCust: 0, repeat: 0, ordersFromReturning: 0 };
+    if (!buckets[key]) buckets[key] = { revenue: 0, netProductRev: 0, adSpend: 0, meta: 0, google: 0, metaRev: 0, googleRev: 0, orders: 0, newCust: 0, repeat: 0, ordersFromNew: 0, ordersFromReturning: 0, newRev: 0, retRev: 0 };
     const b = buckets[key];
     b.revenue += parseFloat(row.total_sales || 0);
     b.netProductRev += parseFloat(row.net_product_revenue || 0);
@@ -1227,7 +1228,10 @@ function aggregateTableData(period) {
     b.orders += parseInt(row.total_orders || 0);
     b.newCust += parseInt(row.new_customer_orders || 0);
     b.repeat += parseInt(row.returning_customer_orders || 0);
+    b.ordersFromNew += parseInt(row.orders_from_new || 0);
     b.ordersFromReturning += parseInt(row.orders_from_returning || 0);
+    b.newRev += parseFloat(row.new_customer_revenue || 0);
+    b.retRev += parseFloat(row.returning_customer_revenue || 0);
   }
   return buckets;
 }
@@ -1258,6 +1262,9 @@ function buildTableRows() {
     const roas = d.adSpend > 0 ? d.revenue / d.adSpend : 0;
     const aov = d.orders > 0 ? d.netProductRev / d.orders : 0;
     const repeatPct = d.orders > 0 ? (d.ordersFromReturning / d.orders * 100) : 0;
+    const newAov = d.ordersFromNew > 0 ? d.newRev / d.ordersFromNew : 0;
+    const retAov = d.ordersFromReturning > 0 ? d.retRev / d.ordersFromReturning : 0;
+    const aovUplift = (newAov > 0 && retAov > 0) ? ((retAov - newAov) / newAov * 100) : null;
     const ltv = tablePeriod === 'monthly' ? (ltvData[k] || 0) : 0;
     const ncac = d.newCust > 0 ? d.adSpend / d.newCust : 0;
     const ltvNcac = (ltv > 0 && ncac > 0) ? ltv / ncac : 0;
@@ -1271,7 +1278,7 @@ function buildTableRows() {
     }
     return {
       key: k, label, roas, revenue: d.revenue, adSpend: d.adSpend, meta: d.meta, google: d.google,
-      orders: d.orders, aov, newCust: d.newCust, repeat: d.repeat, repeatPct, ltv, ncac, ltvNcac,
+      orders: d.orders, aov, newCust: d.newCust, repeat: d.repeat, repeatPct, aovUplift, ltv, ncac, ltvNcac,
       growthPct: growthMap[k].revGrowth, spendGrowth: growthMap[k].spendGrowth,
     };
   });
@@ -1332,6 +1339,7 @@ function renderTable() {
       <td${isTopOrders ? ' class="highlight-best"' : ''}>${r.orders.toLocaleString()}</td>
       <td>\u00A3${Math.round(r.aov)}</td>
       <td>${r.repeatPct.toFixed(1)}%</td>
+      <td>${r.aovUplift === null ? '-' : (r.aovUplift >= 0 ? '+' : '') + r.aovUplift.toFixed(0) + '%'}</td>
       <td${isTopNewCust ? ' class="highlight-best"' : ''}>${r.newCust.toLocaleString()}</td>
       <td${isTopRepeat ? ' class="highlight-best"' : ''}>${r.repeat.toLocaleString()}</td>
       <td>\u00A3${Math.round(r.meta).toLocaleString()}</td>

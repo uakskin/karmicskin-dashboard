@@ -1106,9 +1106,13 @@ function updateChart(aggregated) {
           borderColor: ttBorder, borderWidth: 1, padding: 12,
           callbacks: {
             label: function(ctx) {
+              // The Breakeven ROAS overlay is pushed as an extra dataset and isn't in
+              // activeMetrics — fall back to the dataset's own label so the tooltip
+              // still renders (otherwise the whole tooltip silently dies).
               const metric = activeMetrics[ctx.datasetIndex];
               const cfg = METRIC_CONFIG[metric];
               const val = ctx.parsed.y;
+              if (!cfg) return ` ${ctx.dataset.label}: ${val.toFixed(2)}`;
               return ` ${cfg.label}: ${cfg.prefix}${val.toFixed(cfg.decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}${cfg.suffix || ''}`;
             }
           }

@@ -224,8 +224,23 @@
   .analytics-table .highlight-best { background: var(--highlight-bg); color: var(--highlight-text); font-weight: 700; }
   .analytics-table-scroll { max-height: 432px; }
   .info-tip { display: inline-block; font-size: 10px; opacity: 0.5; cursor: help; margin-left: 2px; }
-  .tooltip-popup { position: fixed; background: #111; color: #fff; font-size: 11px; padding: 5px 10px; border-radius: 6px; white-space: nowrap; pointer-events: none; font-weight: 400; text-transform: none; letter-spacing: 0; z-index: 9999; box-shadow: 0 2px 8px rgba(0,0,0,0.4); display: none; border: 1px solid #333; max-width: 90vw; white-space: normal; }
-  [data-theme="light"] .tooltip-popup { background: #1a1a1a; color: #fff; border-color: #333; }
+  .tooltip-popup {
+    position: fixed; display: none; pointer-events: none; z-index: 9999;
+    background: #1f2329; color: #f3f4f6;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    font-size: 12px; line-height: 1.55; font-weight: 400;
+    text-transform: none; letter-spacing: 0.1px;
+    padding: 10px 14px; border-radius: 8px; border: none;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.06);
+    max-width: 340px; white-space: normal;
+  }
+  [data-theme="light"] .tooltip-popup { background: #1f2329; color: #f3f4f6; }
+  .tooltip-popup strong { color: #fff; font-weight: 600; }
+  .tooltip-popup .tt-divider { height: 1px; background: rgba(255,255,255,0.10); margin: 8px 0; }
+  .tooltip-popup .tt-formula { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11.5px; color: #e5e7eb; }
+  .tooltip-popup .tt-muted { color: #9ca3af; }
+  .tooltip-popup p { margin: 0 0 6px 0; }
+  .tooltip-popup p:last-child { margin-bottom: 0; }
 
   @media (max-width: 768px) {
     .product-analytics-row { flex-direction: column; padding: 0 16px 16px; }
@@ -324,7 +339,7 @@
     <div class="benchmark" id="kpi-adspend-split" title="Meta spend · Google spend (with share %)">--</div>
   </div>
   <div class="kpi-card">
-    <div class="label">ROAS <span class="info-tip" data-tip="Return on Ad Spend: Total Shopify revenue ÷ Paid ad spend (Meta + Google). Note: this is paid-only — organic, influencer, affiliate, and agency fees are not included, so this is ROAS not true MER.">ⓘ</span></div>
+    <div class="label">ROAS <span class="info-tip" data-tip="<p><strong>ROAS</strong> = Total Shopify revenue (inc. VAT) &divide; Paid ad spend (Meta + Google).</p><p class='tt-muted'>Paid-only — organic, influencer, affiliate and agency fees are excluded, so this is ROAS, not true MER.</p><div class='tt-divider'></div><p><strong>Breakeven ROAS &asymp; 1.77</strong></p><p>Calculated as <span class='tt-formula'>1 &divide; contribution margin (inc. VAT)</span> = <span class='tt-formula'>1 &divide; 56.5% &asymp; 1.77</span></p><p class='tt-muted'>Contribution margin = what's left after variable costs (COGS 14.8% + Fulfilment 17.4% of ex-VAT revenue), expressed on the inc-VAT basis the dashboard uses. Above 1.77x, every extra &pound;1 of ad spend more than pays its share of variable costs and starts contributing to fixed costs (~&pound;944/mo) and profit.</p>">ⓘ</span></div>
     <div class="value" id="kpi-roas">--</div>
     <div class="benchmark" id="kpi-roas-be" title="Breakeven ROAS: the level where EBITDA = 0 at current period scale. Calculated from cost structure (variable 32.2%, fixed £944/mo prorated, VAT pass-through).">Breakeven --</div>
   </div>
@@ -1826,7 +1841,8 @@ document.addEventListener('mouseover', e => {
   const tip = e.target.closest('.info-tip');
   if (tip && tip.dataset.tip) {
     const rect = tip.getBoundingClientRect();
-    tooltipEl.textContent = tip.dataset.tip;
+    // data-tip values are author-controlled (no user input), so innerHTML is safe and lets us format with <strong>, <p>, dividers, etc.
+    tooltipEl.innerHTML = tip.dataset.tip;
     tooltipEl.style.display = 'block';
     let left = rect.left + rect.width / 2 - tooltipEl.offsetWidth / 2;
     let top = rect.top - tooltipEl.offsetHeight - 6;

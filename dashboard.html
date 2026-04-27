@@ -72,6 +72,14 @@
   .date-custom { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
   .date-custom label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
   .date-custom input[type="date"] { padding: 7px 10px; border-radius: 6px; border: 1px solid var(--border-hover); background: var(--bg-input); color: var(--text-primary); font-size: 13px; width: 100%; }
+  /* Make the native calendar-picker icon visible in dark theme */
+  [data-theme="dark"] .date-custom input[type="date"] { color-scheme: dark; }
+
+  /* Quick-access pill buttons for Today / Month to date — sit beside the Custom dropdown */
+  .date-quick-btn { padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border-hover); background: var(--bg-card); color: var(--text-primary); font-size: 13px; cursor: pointer; white-space: nowrap; font-family: inherit; }
+  .date-quick-btn:hover { border-color: var(--text-muted); }
+  .date-quick-btn.active { background: var(--bg-card-alt); border-color: var(--text-primary); font-weight: 600; }
+  .date-picker-btn.active { background: var(--bg-card-alt); border-color: var(--text-primary); font-weight: 600; }
   .date-custom .apply-btn { padding: 8px 16px; border-radius: 8px; border: none; background: var(--accent); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 4px; }
   .date-custom .apply-btn:hover { background: var(--accent-hover); }
 
@@ -284,16 +292,16 @@
   <div class="date-controls">
     <div style="text-align:right;margin-right:8px"><span style="font-size:10px;color:var(--text-muted);display:block">All figures include VAT</span><span class="last-updated" id="lastUpdated"></span></div>
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Switch theme">☀️</button>
+    <button class="date-quick-btn" id="quickToday" onclick="applyPreset('today')">Today</button>
+    <button class="date-quick-btn active" id="quickMtd" onclick="applyPreset('mtd')">Month to date</button>
     <div class="date-picker-wrap">
       <button class="date-picker-btn" id="datePickerBtn" onclick="toggleDatePicker()">
         <svg viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 1h10a1 1 0 011 1v1H4V5a1 1 0 011-1zm-1 4h12v7a1 1 0 01-1 1H5a1 1 0 01-1-1V8z"/></svg>
-        <span id="dateLabel">Month to date</span>
+        <span id="dateLabel">Custom</span>
         <svg viewBox="0 0 20 20" style="width:10px;height:10px"><path d="M10 13l-5-5h10z"/></svg>
       </button>
       <div class="date-dropdown" id="dateDropdown">
         <div class="date-presets">
-          <button class="date-preset" data-preset="today">Today</button>
-          <button class="date-preset active" data-preset="mtd">Month to date</button>
           <button class="date-preset" data-preset="ytd">Year to date</button>
           <button class="date-preset" data-preset="last7">Last 7 days</button>
           <button class="date-preset" data-preset="last30">Last 30 days</button>
@@ -730,17 +738,31 @@ function closeDatePicker() {
 
 document.getElementById('overlay').addEventListener('click', closeDatePicker);
 
+// Mutually-exclusive active state across the 3 controls (Today pill, MTD pill, Custom button).
+function syncPresetUI(preset) {
+  const isToday = preset === 'today';
+  const isMtd = preset === 'mtd';
+  document.getElementById('quickToday')?.classList.toggle('active', isToday);
+  document.getElementById('quickMtd')?.classList.toggle('active', isMtd);
+  // Dropdown items get .active only for non-quick presets (today/mtd were removed from the dropdown)
+  document.querySelectorAll('.date-presets .date-preset').forEach(b => {
+    b.classList.toggle('active', b.dataset.preset === preset);
+  });
+  // Custom button is "active" when neither pill represents the selection (i.e. dropdown preset OR custom dates)
+  document.getElementById('datePickerBtn').classList.toggle('active', !isToday && !isMtd);
+}
+
 function applyPreset(preset) {
   const dates = getPresetDates(preset);
   if (!dates) return;
   activePreset = preset;
-  document.querySelectorAll('.date-preset').forEach(b => b.classList.remove('active'));
-  document.querySelector(`[data-preset="${preset}"]`)?.classList.add('active');
+  syncPresetUI(preset);
   document.getElementById('dateFrom').value = dates.from;
   document.getElementById('dateTo').value = dates.to;
   document.getElementById('dateFrom').dataset.current = dates.from;
   document.getElementById('dateTo').dataset.current = dates.to;
-  document.getElementById('dateLabel').textContent = dates.label;
+  // Custom button label: "Custom" when a pill represents the selection, otherwise the preset name.
+  document.getElementById('dateLabel').textContent = (preset === 'today' || preset === 'mtd') ? 'Custom' : dates.label;
   closeDatePicker();
   fetchData();
 }
@@ -750,7 +772,7 @@ function applyCustomDates() {
   const to = document.getElementById('dateTo').value;
   if (!from || !to) return;
   activePreset = null;
-  document.querySelectorAll('.date-preset').forEach(b => b.classList.remove('active'));
+  syncPresetUI(null);
   document.getElementById('dateFrom').dataset.current = from;
   document.getElementById('dateTo').dataset.current = to;
   document.getElementById('dateLabel').textContent = fmtDisplay(from) + ' - ' + fmtDisplay(to);
@@ -769,12 +791,10 @@ let initDates = getPresetDates('mtd');
 if (initDates.from > initDates.to) {
   initPreset = 'lastMonth';
   initDates = getPresetDates('lastMonth');
-  activePreset = 'lastMonth';
-  document.getElementById('dateLabel').textContent = initDates.label;
-  document.querySelectorAll('.date-preset').forEach(b => {
-    b.classList.toggle('active', b.dataset.preset === 'lastMonth');
-  });
 }
+activePreset = initPreset;
+document.getElementById('dateLabel').textContent = (initPreset === 'today' || initPreset === 'mtd') ? 'Custom' : initDates.label;
+syncPresetUI(initPreset);
 document.getElementById('dateFrom').value = initDates.from;
 document.getElementById('dateTo').value = initDates.to;
 document.getElementById('dateFrom').dataset.current = initDates.from;

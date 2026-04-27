@@ -2091,34 +2091,25 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
   // Back to email handler
   backBtn.addEventListener('click', () => { pendingEmail = ''; showStep('email'); });
 
-  // Auth-state listener — also handles magic-link redirects.
-  // When the user clicks the link in their email, supabase-js detects the URL hash
-  // (#access_token=...&refresh_token=...) automatically because detectSessionInUrl is on
-  // by default. That fires SIGNED_IN, which we route through adoptSession to do the
-  // allowlist check + flush the boot queue.
+  // Single source of truth for auth state. Handles every event uniformly:
+  //   - INITIAL_SESSION (page load with persisted session in localStorage) -> adoptSession
+  //   - SIGNED_IN       (just logged in via magic link)                    -> adoptSession
+  //   - TOKEN_REFRESHED (background refresh)                                -> just update USER_JWT
+  //   - SIGNED_OUT or null session                                          -> show login overlay
+  // This avoids a race that previously left the user on the login screen
+  // even when their session was already in localStorage (getSession sometimes
+  // returns null before supabase-js finishes hydrating from storage).
   SB_AUTH.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'TOKEN_REFRESHED' && session) {
+    if (session) {
       USER_JWT = session.access_token;
-    } else if (event === 'SIGNED_IN' && session && !AUTH_READY) {
-      await adoptSession(session);
-    } else if (event === 'SIGNED_OUT') {
+      if (!AUTH_READY) await adoptSession(session);
+    } else {
       USER_JWT = SUPABASE_KEY;
       AUTH_READY = false;
       showOverlay();
       showStep('email');
     }
   });
-
-  // Boot: try to use a persisted session; otherwise show the login form
-  (async () => {
-    const { data: { session } } = await SB_AUTH.auth.getSession();
-    if (session) {
-      const ok = await adoptSession(session);
-      if (ok) return;
-    }
-    showOverlay();
-    showStep('email');
-  })();
 })();
 </script>
 </body>

@@ -260,55 +260,8 @@
     .product-analytics-row { flex-direction: column; padding: 0 16px 16px; }
   }
 </style>
-  <!-- Supabase Auth client (gates the dashboard behind email allowlist) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    /* Login overlay — full-screen gate shown until the user is authenticated and on the allowlist */
-    #authOverlay { position: fixed; inset: 0; background: var(--bg-page, #f7f7f8); display: flex; align-items: center; justify-content: center; z-index: 100000; padding: 20px; }
-    [data-theme="dark"] #authOverlay { background: #0a0b0d; }
-    #authOverlay .auth-card { background: var(--bg-card, #fff); border: 1px solid var(--border, #e4e4e7); border-radius: 14px; padding: 28px 26px; width: 100%; max-width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); }
-    [data-theme="dark"] #authOverlay .auth-card { background: #18191c; border-color: #2a2b2f; }
-    #authOverlay h1 { margin: 0 0 6px; font-size: 18px; font-weight: 700; color: var(--text-primary, #18191c); }
-    #authOverlay p.auth-sub { margin: 0 0 18px; font-size: 13px; color: var(--text-muted, #6b7280); line-height: 1.5; }
-    #authOverlay label { display: block; font-size: 11px; font-weight: 600; color: var(--text-muted, #6b7280); text-transform: uppercase; letter-spacing: 0.5px; margin: 14px 0 6px; }
-    #authOverlay input { width: 100%; padding: 9px 11px; border-radius: 8px; border: 1px solid var(--border-hover, #d4d4d8); background: var(--bg-input, #fff); color: var(--text-primary, #18191c); font-size: 14px; box-sizing: border-box; font-family: inherit; }
-    [data-theme="dark"] #authOverlay input { background: #0f1013; border-color: #2a2b2f; color: #f3f4f6; }
-    #authOverlay input:focus { outline: none; border-color: var(--accent, #2563eb); }
-    #authOverlay .auth-btn { width: 100%; padding: 10px; border-radius: 8px; border: none; background: var(--accent, #2563eb); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 14px; font-family: inherit; }
-    #authOverlay .auth-btn:hover { background: var(--accent-hover, #1d4ed8); }
-    #authOverlay .auth-btn:disabled { opacity: 0.55; cursor: not-allowed; }
-    #authOverlay .auth-msg { margin: 12px 0 0; font-size: 12.5px; line-height: 1.5; min-height: 18px; }
-    #authOverlay .auth-msg.error { color: #b91c1c; }
-    #authOverlay .auth-msg.info { color: var(--text-muted, #6b7280); }
-    #authOverlay .auth-back { margin-top: 10px; background: none; border: none; color: var(--text-muted, #6b7280); font-size: 12px; cursor: pointer; padding: 4px; text-decoration: underline; font-family: inherit; }
-    #authOverlay .auth-back:hover { color: var(--text-primary, #18191c); }
-    #authOverlay .auth-brand { font-size: 11px; font-weight: 600; color: var(--text-muted, #6b7280); text-transform: uppercase; letter-spacing: 1.4px; margin-bottom: 4px; }
-    .auth-hidden { display: none !important; }
-  </style>
 </head>
 <body>
-<div id="authOverlay">
-  <div class="auth-card">
-    <div class="auth-brand">Karmic Skin</div>
-    <h1>Analytics access</h1>
-    <p class="auth-sub" id="authSub">Enter your email to receive a one-time login code. Only authorised emails can sign in.</p>
-
-    <div id="authStepEmail">
-      <label for="authEmail">Email</label>
-      <input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com" />
-      <button class="auth-btn" id="authSendCode" type="button">Send login code</button>
-    </div>
-
-    <div id="authStepCode" class="auth-hidden">
-      <label for="authCode">6-digit code</label>
-      <input id="authCode" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="123456" />
-      <button class="auth-btn" id="authVerify" type="button">Verify and sign in</button>
-      <button class="auth-back" id="authBackToEmail" type="button">Use a different email</button>
-    </div>
-
-    <p class="auth-msg" id="authMsg"></p>
-  </div>
-</div>
 <div class="tooltip-popup" id="tooltipPopup"></div>
 
 <div id="monitorBanner" style="display:none;padding:10px 16px;font-size:13px;font-weight:500;border-bottom:1px solid rgba(0,0,0,0.1);text-align:center"></div>
@@ -672,19 +625,6 @@ const COST_STRUCTURE = {
 
 const SUPABASE_URL = 'https://unmkzatppwftnasafhlb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVubWt6YXRwcHdmdG5hc2FmaGxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDQ5OTIsImV4cCI6MjA4NjU4MDk5Mn0.SYQm1km08xwlJSIf9jq8DXH3Ijxbxqk_LpTRh0PZhD4';
-// Set after auth — used in Authorization header. Defaults to anon key for the brief moment before auth resolves
-// (those calls would fail RLS anyway since data tables are now authenticated+allowlist-only).
-let USER_JWT = SUPABASE_KEY;
-let AUTH_READY = false;
-const SB_AUTH = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: { persistSession: true, autoRefreshToken: true, storage: window.localStorage, storageKey: 'ks-dashboard-auth' }
-});
-// Auto-fetch calls scattered through the script funnel through bootRun(fn) so they only fire
-// AFTER the user has authenticated and passed the email allowlist. Pre-auth calls would 401
-// because the data-table RLS now requires authenticated + on-allowlist.
-const _bootQueue = [];
-function bootRun(fn) { if (AUTH_READY) { try { fn(); } catch(e) { console.error(e); } } else _bootQueue.push(fn); }
-function flushBootQueue() { AUTH_READY = true; while (_bootQueue.length) { try { _bootQueue.shift()(); } catch(e) { console.error(e); } } }
 
 const METRIC_CONFIG = {
   revenue:      { label: 'Revenue',         color: '#0d9488', prefix: '\u00A3', yAxis: 'y',  decimals: 0 },
@@ -902,7 +842,7 @@ document.getElementById('dateTo').dataset.current = initDates.to;
 // truncating the most recent rows. fetchAllPages handles this.
 async function fetchAllPages(baseUrl) {
   const PAGE = 1000;
-  const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${USER_JWT}` };
+  const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
   let all = [];
   let offset = 0;
   while (true) {
@@ -988,7 +928,7 @@ async function fetchAvgMonthlyRevenue() {
     const from = new Date(yesterday);
     from.setDate(from.getDate() - days + 1);
     const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.${fmtDate(from)}&report_date=lte.${fmtDate(yesterday)}&select=total_sales`;
-    const resp = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${USER_JWT}` } });
+    const resp = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } });
     const data = await resp.json();
     const total = data.reduce((s, r) => s + parseFloat(r.total_sales || 0), 0);
     const months = days / 30.44;
@@ -1033,7 +973,7 @@ async function fetchMultiPeriod() {
   for (const r of ranges) {
     try {
       const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.${r.from}&report_date=lte.${r.to}&select=total_sales,total_ad_spend`;
-      const resp = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${USER_JWT}` } });
+      const resp = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } });
       const rows = await resp.json();
       const rev = rows.reduce((s, x) => s + parseFloat(x.total_sales || 0), 0);
       const ads = rows.reduce((s, x) => s + parseFloat(x.total_ad_spend || 0), 0);
@@ -1061,8 +1001,8 @@ async function fetchMultiPeriod() {
     } catch(e) { console.error('Multi-period fetch error for ' + r.id, e); }
   }
 }
-bootRun(fetchMultiPeriod);
-bootRun(fetchAvgMonthlyRevenue);
+fetchMultiPeriod();
+fetchAvgMonthlyRevenue();
 
 function updateKPIs(data) {
   const t = data.reduce((a, d) => {
@@ -1323,7 +1263,7 @@ async function fetchTableData() {
   // Fetch LTV
   try {
     const ltvResp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_trailing_ltv_12m`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${USER_JWT}` },
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
       body: '{}'
     });
     const ltvRows = await ltvResp.json();
@@ -1512,15 +1452,15 @@ document.querySelectorAll('.perf-table-tab').forEach(btn => {
   });
 });
 
-bootRun(fetchTableData);
-bootRun(fetchData);
+fetchTableData();
+fetchData();
 
 // Webhook health banner — surfaces silent failures (HMAC mismatch, downtime).
 // Reads from monitor_status table populated by monitor-webhook-health Edge Fn (every 15 min).
 async function fetchMonitorStatus() {
   try {
     const resp = await fetch(`${SUPABASE_URL}/rest/v1/monitor_status?component=eq.shopify_webhook&select=status,message,last_checked_at`, {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${USER_JWT}` }
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
     });
     if (!resp.ok) return;
     const rows = await resp.json();
@@ -1544,7 +1484,7 @@ async function fetchMonitorStatus() {
     banner.style.display = 'block';
   } catch (e) { console.error('Monitor banner fetch failed:', e); }
 }
-bootRun(fetchMonitorStatus);
+fetchMonitorStatus();
 
 // Per-source data freshness — Shopify (webhook), Meta (30-min cron), Google (hourly script).
 // Fetches MAX(loaded_at) from each raw table so the user sees if any source has stalled.
@@ -1559,7 +1499,7 @@ async function fetchDataFreshness() {
   try {
     const results = await Promise.all(sources.map(async s => {
       const r = await fetch(`${SUPABASE_URL}/rest/v1/${s.table}?select=loaded_at&order=loaded_at.desc&limit=1`, {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${USER_JWT}` }
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
       });
       if (!r.ok) return { ...s, ts: null };
       const rows = await r.json();
@@ -1588,7 +1528,7 @@ async function fetchDataFreshness() {
     el.textContent = 'Data freshness unavailable';
   }
 }
-bootRun(fetchDataFreshness);
+fetchDataFreshness();
 
 // Auto-refresh every 5 minutes — reporting tables rebuild every 10 mins,
 // so this picks up the latest aggregations + multi-period strip values.
@@ -1665,7 +1605,7 @@ const PRODUCT_COLORS = {
 async function rpcCall(fnName, params) {
   const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fnName}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${USER_JWT}` },
+    headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
     body: JSON.stringify(params)
   });
   return resp.json();
@@ -1980,7 +1920,7 @@ fetchData = async function() {
 };
 
 // Initial load
-bootRun(fetchProductAnalytics);
+fetchProductAnalytics();
 
 // --- Tooltip popup for info-tip elements ---
 const tooltipEl = document.getElementById('tooltipPopup');
@@ -2012,127 +1952,6 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
   icon.addEventListener('focus', () => tip.style.display = 'block');
   icon.addEventListener('blur', () => tip.style.display = 'none');
 });
-
-// ============================================================
-// AUTH — magic-link OTP via Supabase Auth + email allowlist gate
-// ============================================================
-(function authBoot() {
-  const overlay = document.getElementById('authOverlay');
-  const stepEmail = document.getElementById('authStepEmail');
-  const stepCode = document.getElementById('authStepCode');
-  const emailInput = document.getElementById('authEmail');
-  const codeInput = document.getElementById('authCode');
-  const sendBtn = document.getElementById('authSendCode');
-  const verifyBtn = document.getElementById('authVerify');
-  const backBtn = document.getElementById('authBackToEmail');
-  const msgEl = document.getElementById('authMsg');
-  const subEl = document.getElementById('authSub');
-
-  let pendingEmail = '';
-
-  function setMsg(text, kind) {
-    msgEl.textContent = text || '';
-    msgEl.classList.remove('error', 'info');
-    if (kind) msgEl.classList.add(kind);
-  }
-  function showStep(step) {
-    stepEmail.classList.toggle('auth-hidden', step !== 'email');
-    stepCode.classList.toggle('auth-hidden', step !== 'code');
-    if (step === 'email') { setMsg(''); emailInput.focus(); }
-    if (step === 'code')  { setMsg(`Code sent to ${pendingEmail}. Check your inbox (also check Spam).`, 'info'); codeInput.focus(); }
-  }
-  function hideOverlay() { overlay.style.display = 'none'; }
-  function showOverlay() { overlay.style.display = 'flex'; }
-
-  // Verify the signed-in user's email is on the allowlist. If not, sign out and reject.
-  async function verifyAllowlist() {
-    const { data, error } = await SB_AUTH.from('allowed_emails').select('email').limit(1);
-    if (error) {
-      console.error('allowlist check error:', error);
-      return false;
-    }
-    return Array.isArray(data) && data.length > 0;
-  }
-
-  async function adoptSession(session) {
-    USER_JWT = session.access_token;
-    const ok = await verifyAllowlist();
-    if (!ok) {
-      await SB_AUTH.auth.signOut();
-      USER_JWT = SUPABASE_KEY;
-      showOverlay();
-      showStep('email');
-      setMsg('That email is not on the access list. Contact Uday to be added.', 'error');
-      return false;
-    }
-    hideOverlay();
-    flushBootQueue();
-    return true;
-  }
-
-  // Send-code handler
-  sendBtn.addEventListener('click', async () => {
-    const email = emailInput.value.trim().toLowerCase();
-    if (!email || !email.includes('@')) { setMsg('Please enter a valid email.', 'error'); return; }
-    sendBtn.disabled = true;
-    setMsg('Sending code…', 'info');
-    const { error } = await SB_AUTH.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: true }
-    });
-    sendBtn.disabled = false;
-    if (error) { setMsg(error.message || 'Failed to send code.', 'error'); return; }
-    pendingEmail = email;
-    showStep('code');
-  });
-
-  // Allow pressing Enter to submit
-  emailInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendBtn.click(); });
-  codeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') verifyBtn.click(); });
-
-  // Verify-code handler
-  verifyBtn.addEventListener('click', async () => {
-    const token = codeInput.value.trim();
-    if (!token) { setMsg('Enter the 6-digit code from your email.', 'error'); return; }
-    verifyBtn.disabled = true;
-    setMsg('Verifying…', 'info');
-    const { data, error } = await SB_AUTH.auth.verifyOtp({
-      email: pendingEmail,
-      token,
-      type: 'email'
-    });
-    verifyBtn.disabled = false;
-    if (error) { setMsg(error.message || 'Invalid or expired code.', 'error'); return; }
-    if (!data || !data.session) { setMsg('No session returned.', 'error'); return; }
-    await adoptSession(data.session);
-  });
-
-  // Back to email handler
-  backBtn.addEventListener('click', () => { codeInput.value = ''; pendingEmail = ''; showStep('email'); });
-
-  // Keep token fresh; if signed out elsewhere, fall back to login
-  SB_AUTH.auth.onAuthStateChange((event, session) => {
-    if ((event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') && session) {
-      USER_JWT = session.access_token;
-    } else if (event === 'SIGNED_OUT') {
-      USER_JWT = SUPABASE_KEY;
-      AUTH_READY = false;
-      showOverlay();
-      showStep('email');
-    }
-  });
-
-  // Boot: try to use a persisted session; otherwise show the login form
-  (async () => {
-    const { data: { session } } = await SB_AUTH.auth.getSession();
-    if (session) {
-      const ok = await adoptSession(session);
-      if (ok) return;
-    }
-    showOverlay();
-    showStep('email');
-  })();
-})();
 </script>
 </body>
 </html>

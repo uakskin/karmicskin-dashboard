@@ -306,7 +306,7 @@
 <div class="multi-period-strip" id="multiPeriodStrip">
   <div class="mp-card" title="Revenue ÷ Ad Spend = ROAS"><span class="mp-label">Yesterday</span><span class="mp-rev" id="mp-yest-rev">--</span><span class="mp-op">÷</span><span class="mp-ads" id="mp-yest-ads">--</span><span class="mp-op">=</span><span class="mp-mer" id="mp-yest-roas">--</span></div>
   <div class="mp-card" title="Revenue ÷ Ad Spend = ROAS"><span class="mp-label">Last 7</span><span class="mp-rev" id="mp-l7-rev">--</span><span class="mp-op">÷</span><span class="mp-ads" id="mp-l7-ads">--</span><span class="mp-op">=</span><span class="mp-mer" id="mp-l7-roas">--</span></div>
-  <div class="mp-card" title="Revenue ÷ Ad Spend = ROAS"><span class="mp-label">Prev 7 (8-14)</span><span class="mp-rev" id="mp-p7-rev">--</span><span class="mp-op">÷</span><span class="mp-ads" id="mp-p7-ads">--</span><span class="mp-op">=</span><span class="mp-mer" id="mp-p7-roas">--</span></div>
+  <div class="mp-card" title="Revenue ÷ Ad Spend = ROAS"><span class="mp-label" id="mp-p7-label">Prev 7</span><span class="mp-rev" id="mp-p7-rev">--</span><span class="mp-op">÷</span><span class="mp-ads" id="mp-p7-ads">--</span><span class="mp-op">=</span><span class="mp-mer" id="mp-p7-roas">--</span></div>
   <div class="mp-card" title="Revenue ÷ Ad Spend = ROAS"><span class="mp-label">Last 14</span><span class="mp-rev" id="mp-l14-rev">--</span><span class="mp-op">÷</span><span class="mp-ads" id="mp-l14-ads">--</span><span class="mp-op">=</span><span class="mp-mer" id="mp-l14-roas">--</span></div>
   <div class="mp-card" title="Revenue ÷ Ad Spend = ROAS"><span class="mp-label">Last 30</span><span class="mp-rev" id="mp-l30-rev">--</span><span class="mp-op">÷</span><span class="mp-ads" id="mp-l30-ads">--</span><span class="mp-op">=</span><span class="mp-mer" id="mp-l30-roas">--</span></div>
   <div class="mp-card" title="Revenue ÷ Ad Spend = ROAS"><span class="mp-label">Last 90</span><span class="mp-rev" id="mp-l90-rev">--</span><span class="mp-op">÷</span><span class="mp-ads" id="mp-l90-ads">--</span><span class="mp-op">=</span><span class="mp-mer" id="mp-l90-roas">--</span></div>
@@ -883,6 +883,21 @@ async function fetchMultiPeriod() {
     { id: 'l30',   days: 30, from: fmtDate(new Date(yest.getTime() - 29 * 86400000)), to: fmtDate(yest) },
     { id: 'l90',   days: 90, from: fmtDate(new Date(yest.getTime() - 89 * 86400000)), to: fmtDate(yest) },
   ];
+
+  // Show actual day-of-month numbers for Prev 7 (e.g. "13-19" today, not "8-14" days-ago).
+  const monthAbbr = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const p7 = ranges.find(r => r.id === 'p7');
+  if (p7) {
+    const fromD = new Date(p7.from + 'T00:00:00');
+    const toD = new Date(p7.to + 'T00:00:00');
+    const sameMonth = fromD.getMonth() === toD.getMonth();
+    // Same-month: just numbers ("13-19"). Cross-month: include month abbr to disambiguate.
+    const label = sameMonth
+      ? `Prev 7 (${fromD.getDate()}-${toD.getDate()})`
+      : `Prev 7 (${fromD.getDate()} ${monthAbbr[fromD.getMonth()]}-${toD.getDate()} ${monthAbbr[toD.getMonth()]})`;
+    const labelEl = document.getElementById('mp-p7-label');
+    if (labelEl) labelEl.textContent = label;
+  }
 
   // Pre-compute the contribution margin on TW (inc-VAT) basis, same as main KPI tile
   const cmTwBasis = COST_STRUCTURE.contributionMarginExVat / (1 + COST_STRUCTURE.vatRate);

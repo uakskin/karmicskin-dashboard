@@ -1181,7 +1181,7 @@ let tablePeriod = 'monthly';
 const VISIBLE_ROWS = 12;
 
 async function fetchTableData() {
-  const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.2024-01-01&report_date=lt.${fmtDate(new Date())}&order=report_date.asc&select=report_date,total_sales,net_product_revenue,total_ad_spend,meta_spend,google_spend,meta_revenue,google_revenue,total_orders,new_customer_orders,returning_customer_orders,ga4_sessions`;
+  const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.2024-01-01&report_date=lt.${fmtDate(new Date())}&order=report_date.asc&select=report_date,total_sales,net_product_revenue,total_ad_spend,meta_spend,google_spend,meta_revenue,google_revenue,total_orders,new_customer_orders,returning_customer_orders,orders_from_new,orders_from_returning,new_customer_revenue,returning_customer_revenue,ga4_sessions`;
   allDailyData = await fetchAllPages(url);
 
   // Fetch LTV

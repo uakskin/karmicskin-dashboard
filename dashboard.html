@@ -1794,15 +1794,16 @@ async function fetchDayOfWeek() {
       return `<span style="font-size:10px;color:${colour};margin-left:4px;font-weight:500;opacity:0.7">${formatted}</span>`;
     };
 
-    // Row-relative heatmap on the selected-period ROAS column.
-    // Highest ROAS across the 7 days of the chosen period = green tint, lowest = red tint,
-    // gradient through amber in between. Helps spot best/worst trading days at a glance.
+    // Row-relative REVERSE heatmap on the selected-period ROAS column.
+    // Highest ROAS across the 7 days = RED tint, lowest = GREEN tint, amber between.
+    // (Inverse to the conventional "high=good=green"; per user request.)
     const periodRoasVals = orderedPeriod.map(r => parseFloat(r.avg_roas) || 0).filter(v => v > 0);
     const minPRoas = periodRoasVals.length ? Math.min(...periodRoasVals) : 0;
     const maxPRoas = periodRoasVals.length ? Math.max(...periodRoasVals) : 0;
     function roasHeatStyle(val) {
       if (val <= 0 || maxPRoas === minPRoas) return '';
-      const t = (val - minPRoas) / (maxPRoas - minPRoas); // 0 (worst) -> 1 (best)
+      // Reverse: 0 = highest ROAS (red), 1 = lowest ROAS (green)
+      const t = 1 - (val - minPRoas) / (maxPRoas - minPRoas);
       // Red (220,38,38) -> Amber (217,119,6) -> Green (22,163,74)
       let r, g, b;
       if (t < 0.5) {

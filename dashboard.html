@@ -1794,6 +1794,31 @@ async function fetchDayOfWeek() {
       return `<span style="font-size:10px;color:${colour};margin-left:4px;font-weight:500;opacity:0.7">${formatted}</span>`;
     };
 
+    // Row-relative heatmap on the selected-period ROAS column.
+    // Highest ROAS across the 7 days of the chosen period = green tint, lowest = red tint,
+    // gradient through amber in between. Helps spot best/worst trading days at a glance.
+    const periodRoasVals = orderedPeriod.map(r => parseFloat(r.avg_roas) || 0).filter(v => v > 0);
+    const minPRoas = periodRoasVals.length ? Math.min(...periodRoasVals) : 0;
+    const maxPRoas = periodRoasVals.length ? Math.max(...periodRoasVals) : 0;
+    function roasHeatStyle(val) {
+      if (val <= 0 || maxPRoas === minPRoas) return '';
+      const t = (val - minPRoas) / (maxPRoas - minPRoas); // 0 (worst) -> 1 (best)
+      // Red (220,38,38) -> Amber (217,119,6) -> Green (22,163,74)
+      let r, g, b;
+      if (t < 0.5) {
+        const k = t * 2;
+        r = Math.round(220 + (217 - 220) * k);
+        g = Math.round( 38 + (119 -  38) * k);
+        b = Math.round( 38 + (  6 -  38) * k);
+      } else {
+        const k = (t - 0.5) * 2;
+        r = Math.round(217 + ( 22 - 217) * k);
+        g = Math.round(119 + (163 - 119) * k);
+        b = Math.round(  6 + ( 74 -   6) * k);
+      }
+      return `background-color: rgba(${r},${g},${b},0.18);`;
+    }
+
     let html = '';
     for (let i = 0; i < 7; i++) {
       const p = orderedPeriod[i];
@@ -1817,7 +1842,7 @@ async function fetchDayOfWeek() {
         <td>${lRoas > 0 ? lRoas.toFixed(2) : '\u2014'}</td>
         <td${lOrd === bestLast90Ord && lOrd > 0 ? ' class="highlight-best"' : ''}>${lOrd > 0 ? Math.round(lOrd) : '\u2014'}</td>
         <td${pRev === bestPeriodRev && pRev > 0 ? ' class="highlight-best"' : ''}>${pRev > 0 ? '\u00A3' + Math.round(pRev).toLocaleString() : '\u2014'}${deltaSpan(revDelta, true)}</td>
-        <td>${pRoas > 0 ? pRoas.toFixed(2) : '\u2014'}${deltaSpan(roasDelta, true)}</td>
+        <td style="${roasHeatStyle(pRoas)}">${pRoas > 0 ? pRoas.toFixed(2) : '\u2014'}${deltaSpan(roasDelta, true)}</td>
         <td${pOrd === bestPeriodOrd && pOrd > 0 ? ' class="highlight-best"' : ''}>${pOrd > 0 ? Math.round(pOrd) : '\u2014'}${deltaSpan(ordDelta, true)}</td>
       </tr>`;
     }

@@ -1763,13 +1763,12 @@ async function fetchDayOfWeek() {
     const bestPeriodRev = Math.max(...periodRevs);
     const bestPeriodOrd = Math.max(...periodOrds);
 
-    // Rank ROAS across the 7 days. 1st = purple highlight-best, 2nd = lighter purple, rest = none.
+    // Rank ROAS across the 7 days. Only the top day gets the purple highlight.
     const roasRanked = orderedPeriod
       .map((r, i) => ({ i, val: parseFloat(r.avg_roas) || 0 }))
       .filter(x => x.val > 0)
       .sort((a, b) => b.val - a.val);
-    const firstRoasIdx  = roasRanked[0]?.i;
-    const secondRoasIdx = roasRanked[1]?.i;
+    const firstRoasIdx = roasRanked[0]?.i;
 
     const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
@@ -1782,11 +1781,7 @@ async function fetchDayOfWeek() {
       const pRoas = parseFloat(p.avg_roas) || 0;
       const pOrd = parseFloat(p.avg_orders) || 0;
 
-      let roasCls = '';
-      if (pRoas > 0) {
-        if (i === firstRoasIdx) roasCls = ' class="highlight-best"';
-        else if (i === secondRoasIdx) roasCls = ' class="highlight-second"';
-      }
+      const roasCls = (pRoas > 0 && i === firstRoasIdx) ? ' class="highlight-best"' : '';
 
       html += `<tr>
         <td style="font-weight:600">${dayName}</td>

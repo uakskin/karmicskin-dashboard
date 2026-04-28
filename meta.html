@@ -329,6 +329,22 @@
 // ═════════════ SUPABASE CONFIG ═════════════
 const SUPABASE_URL = 'https://unmkzatppwftnasafhlb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVubWt6YXRwcHdmdG5hc2FmaGxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDQ5OTIsImV4cCI6MjA4NjU4MDk5Mn0.SYQm1km08xwlJSIf9jq8DXH3Ijxbxqk_LpTRh0PZhD4';
+// Auth piggyback: data tables now require an authed JWT from the allowlist.
+// The main dashboard.html handles login and stores the session under
+// 'ks-dashboard-auth'. We just read that and use the access token here.
+// If not signed in (or session expired), bounce to dashboard.html.
+let USER_JWT = SUPABASE_KEY;
+(function adoptDashboardSession() {
+  try {
+    const stored = JSON.parse(localStorage.getItem('ks-dashboard-auth') || 'null');
+    if (stored && stored.access_token && stored.expires_at && stored.expires_at > Math.floor(Date.now()/1000)) {
+      USER_JWT = stored.access_token;
+    } else {
+      // No valid session — send the user to the main dashboard to sign in.
+      window.location.href = 'dashboard.html';
+    }
+  } catch { window.location.href = 'dashboard.html'; }
+})();
 
 // ═════════════ STATE ═════════════
 let accountDaily = [];   // raw_meta_ads_daily rows in date range
@@ -436,7 +452,7 @@ document.querySelectorAll('.date-preset').forEach(btn => btn.addEventListener('c
 // ═════════════ DATA LOADING ═════════════
 async function sb(path){
   const r = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Accept-Profile':'public' }
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + USER_JWT, 'Accept-Profile':'public' }
   });
   if (!r.ok) throw new Error('Supabase ' + r.status + ': ' + await r.text());
   return r.json();

@@ -476,6 +476,17 @@
 <script>
 const SUPABASE_URL = 'https://unmkzatppwftnasafhlb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVubWt6YXRwcHdmdG5hc2FmaGxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDQ5OTIsImV4cCI6MjA4NjU4MDk5Mn0.SYQm1km08xwlJSIf9jq8DXH3Ijxbxqk_LpTRh0PZhD4';
+let USER_JWT = SUPABASE_KEY;
+(function adoptDashboardSession() {
+  try {
+    const stored = JSON.parse(localStorage.getItem('ks-dashboard-auth') || 'null');
+    if (stored && stored.access_token && stored.expires_at && stored.expires_at > Math.floor(Date.now()/1000)) {
+      USER_JWT = stored.access_token;
+    } else {
+      window.location.href = 'dashboard.html';
+    }
+  } catch { window.location.href = 'dashboard.html'; }
+})();
 
 const METRIC_CONFIG = {
   revenue:   { label: 'Revenue',         color: '#0d9488', prefix: '\u00A3', yAxis: 'y',  decimals: 0, type: 'bar' },
@@ -684,7 +695,7 @@ function buildDailyWithAds(salesData, adsMonthly) {
 // PostgREST defaults to 1000 rows. Paginate to avoid silently truncating as tables grow.
 async function fetchAllPages(baseUrl) {
   const PAGE = 1000;
-  const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
+  const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${USER_JWT}` };
   let all = [], offset = 0;
   while (true) {
     const sep = baseUrl.includes('?') ? '&' : '?';
@@ -1297,7 +1308,7 @@ fetchAllData();
     const from = new Date(yesterday);
     from.setDate(from.getDate() - days + 1);
     const url = `${SUPABASE_URL}/rest/v1/raw_amazon_sales_daily?report_date=gte.${fmtDate(from)}&report_date=lte.${fmtDate(yesterday)}&select=ordered_product_sales`;
-    const resp = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } });
+    const resp = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${USER_JWT}` } });
     const data = await resp.json();
     const total = data.reduce((s, r) => s + parseFloat(r.ordered_product_sales || 0), 0);
     const months = days / 30.44;

@@ -542,6 +542,17 @@
 // ══════════════════════════════════════════════════════
 const SUPABASE_URL = 'https://unmkzatppwftnasafhlb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVubWt6YXRwcHdmdG5hc2FmaGxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDQ5OTIsImV4cCI6MjA4NjU4MDk5Mn0.SYQm1km08xwlJSIf9jq8DXH3Ijxbxqk_LpTRh0PZhD4';
+let USER_JWT = SUPABASE_KEY;
+(function adoptDashboardSession() {
+  try {
+    const stored = JSON.parse(localStorage.getItem('ks-dashboard-auth') || 'null');
+    if (stored && stored.access_token && stored.expires_at && stored.expires_at > Math.floor(Date.now()/1000)) {
+      USER_JWT = stored.access_token;
+    } else {
+      window.location.href = 'dashboard.html';
+    }
+  } catch { window.location.href = 'dashboard.html'; }
+})();
 
 // All fetched data lives here
 let allData = [];
@@ -1049,7 +1060,7 @@ function renderAll(data) {
 // PostgREST defaults to 1000 rows. Paginate to avoid silently truncating.
 async function fetchAllPages(baseUrl) {
   const PAGE = 1000;
-  const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
+  const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + USER_JWT };
   let all = [], offset = 0;
   while (true) {
     const sep = baseUrl.includes('?') ? '&' : '?';

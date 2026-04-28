@@ -1014,15 +1014,16 @@ async function fetchMultiPeriod() {
     { id: 'l90',   days: 90, from: fmtDate(new Date(yest.getTime() - 89 * 86400000)), to: fmtDate(yest) },
   ];
 
-  // Prev 7 label: actual day-of-month + lowercase month abbr (e.g. "13apr-19apr"),
-  // consistent whether same-month or cross-month. Avoids the "8-14 days ago" misread.
+  // Prev 7 label stays as just "Prev 7" so the tile fits on narrower screens.
+  // The actual date range goes in a hover tooltip on the card.
   const monthAbbr = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
   const p7 = ranges.find(r => r.id === 'p7');
   if (p7) {
     const fromD = new Date(p7.from + 'T00:00:00');
     const toD = new Date(p7.to + 'T00:00:00');
-    const labelEl = document.getElementById('mp-p7-label');
-    if (labelEl) labelEl.textContent = `Prev 7 (${fromD.getDate()}${monthAbbr[fromD.getMonth()]}-${toD.getDate()}${monthAbbr[toD.getMonth()]})`;
+    const dateRange = `${fromD.getDate()}${monthAbbr[fromD.getMonth()]}-${toD.getDate()}${monthAbbr[toD.getMonth()]}`;
+    const card = document.getElementById('mp-p7-label')?.closest('.mp-card');
+    if (card) card.title = `Prev 7 (${dateRange}) — Revenue ÷ Ad Spend = ROAS`;
   }
 
   // Pre-compute the contribution margin on TW (inc-VAT) basis, same as main KPI tile

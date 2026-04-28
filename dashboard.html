@@ -236,6 +236,8 @@
   .analytics-table .negative { color: var(--negative); }
   .analytics-table .subtle { color: var(--text-muted); }
   .analytics-table .highlight-best { background: var(--highlight-bg); color: var(--highlight-text); font-weight: 700; }
+  .analytics-table .highlight-second { background: rgba(168, 85, 247, 0.04); color: var(--highlight-text); font-weight: 600; }
+  [data-theme="dark"] .analytics-table .highlight-second { background: rgba(228, 193, 249, 0.07); }
   .analytics-table-scroll { max-height: 432px; }
   .info-tip { display: inline-block; font-size: 10px; opacity: 0.5; cursor: help; margin-left: 2px; }
   .tooltip-popup {
@@ -610,20 +612,13 @@
       <table class="analytics-table" id="dowTable">
         <thead>
           <tr>
-            <th rowspan="2" style="vertical-align:bottom">Day</th>
-            <th colspan="3" style="text-align:center;border-bottom:1px solid var(--border)">Last 90 days <span style="font-weight:400;color:var(--text-muted);font-size:10px">(rolling)</span> <span class="info-tip" data-tip="Lookback window recommended by Sam Piliero's Moonlighter Blueprint M4">ⓘ</span></th>
-            <th colspan="3" style="text-align:center;border-bottom:1px solid var(--border)">Selected period</th>
-          </tr>
-          <tr>
-            <th>Avg Revenue</th>
-            <th>ROAS</th>
-            <th>Avg Orders</th>
+            <th>Day</th>
             <th>Avg Revenue</th>
             <th>ROAS</th>
             <th>Avg Orders</th>
           </tr>
         </thead>
-        <tbody id="dowBody"><tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
+        <tbody id="dowBody"><tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -1754,100 +1749,53 @@ document.querySelectorAll('#productPerfTable th[data-pcol]').forEach(th => {
 async function fetchDayOfWeek() {
   const dates = getProductAnalyticsDates();
 
-  // Last-90-days rolling window (today minus 90, exclusive of today)
-  const today = new Date();
-  const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
-  const ninetyAgo = new Date(today); ninetyAgo.setDate(today.getDate() - 90);
-  const last90Dates = { from_date: fmtDate(ninetyAgo), to_date: fmtDate(yesterday) };
-
   try {
-    const [period, last90] = await Promise.all([
-      rpcCall('get_day_of_week_performance', dates),
-      rpcCall('get_day_of_week_performance', last90Dates),
-    ]);
+    const period = await rpcCall('get_day_of_week_performance', dates);
 
     const dowEl = document.getElementById('dowDateRange');
     if (dowEl) dowEl.textContent = fmtDisplay(dates.from_date) + ' \u2013 ' + fmtDisplay(dates.to_date);
 
-    if (!Array.isArray(period) || !Array.isArray(last90)) return;
+    if (!Array.isArray(period)) return;
 
     const orderedPeriod = [0,1,2,3,4,5,6].map(d => period.find(r => r.day_num === d) || {});
-    const orderedLast90 = [0,1,2,3,4,5,6].map(d => last90.find(r => r.day_num === d) || {});
-
     const periodRevs = orderedPeriod.map(r => parseFloat(r.avg_revenue) || 0);
     const periodOrds = orderedPeriod.map(r => parseFloat(r.avg_orders) || 0);
-    const last90Revs = orderedLast90.map(r => parseFloat(r.avg_revenue) || 0);
-    const last90Ords = orderedLast90.map(r => parseFloat(r.avg_orders) || 0);
-
     const bestPeriodRev = Math.max(...periodRevs);
     const bestPeriodOrd = Math.max(...periodOrds);
-    const bestLast90Rev = Math.max(...last90Revs);
-    const bestLast90Ord = Math.max(...last90Ords);
+
+    // Rank ROAS across the 7 days. 1st = purple highlight-best, 2nd = lighter purple, rest = none.
+    const roasRanked = orderedPeriod
+      .map((r, i) => ({ i, val: parseFloat(r.avg_roas) || 0 }))
+      .filter(x => x.val > 0)
+      .sort((a, b) => b.val - a.val);
+    const firstRoasIdx  = roasRanked[0]?.i;
+    const secondRoasIdx = roasRanked[1]?.i;
 
     const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-
-    const deltaSpan = (val, isPct) => {
-      if (Math.abs(val) < 0.5) return '';
-      const sign = val > 0 ? '+' : '';
-      const colour = val > 0 ? 'var(--positive)' : 'var(--negative)';
-      const formatted = isPct ? `${sign}${val.toFixed(1)}%` : `${sign}${val.toFixed(2)}`;
-      return `<span style="font-size:10px;color:${colour};margin-left:4px;font-weight:500;opacity:0.7">${formatted}</span>`;
-    };
-
-    // Row-relative REVERSE heatmap on the selected-period ROAS column.
-    // Highest ROAS across the 7 days = RED tint, lowest = GREEN tint, amber between.
-    // (Inverse to the conventional "high=good=green"; per user request.)
-    const periodRoasVals = orderedPeriod.map(r => parseFloat(r.avg_roas) || 0).filter(v => v > 0);
-    const minPRoas = periodRoasVals.length ? Math.min(...periodRoasVals) : 0;
-    const maxPRoas = periodRoasVals.length ? Math.max(...periodRoasVals) : 0;
-    function roasHeatStyle(val) {
-      if (val <= 0 || maxPRoas === minPRoas) return '';
-      // Reverse: 0 = highest ROAS (red), 1 = lowest ROAS (green)
-      const t = 1 - (val - minPRoas) / (maxPRoas - minPRoas);
-      // Red (220,38,38) -> Amber (217,119,6) -> Green (22,163,74)
-      let r, g, b;
-      if (t < 0.5) {
-        const k = t * 2;
-        r = Math.round(220 + (217 - 220) * k);
-        g = Math.round( 38 + (119 -  38) * k);
-        b = Math.round( 38 + (  6 -  38) * k);
-      } else {
-        const k = (t - 0.5) * 2;
-        r = Math.round(217 + ( 22 - 217) * k);
-        g = Math.round(119 + (163 - 119) * k);
-        b = Math.round(  6 + ( 74 -   6) * k);
-      }
-      return `background-color: rgba(${r},${g},${b},0.18);`;
-    }
 
     let html = '';
     for (let i = 0; i < 7; i++) {
       const p = orderedPeriod[i];
-      const l = orderedLast90[i];
-      const dayName = p.day_name || l.day_name || dayNames[i];
+      const dayName = p.day_name || dayNames[i];
 
       const pRev = parseFloat(p.avg_revenue) || 0;
       const pRoas = parseFloat(p.avg_roas) || 0;
       const pOrd = parseFloat(p.avg_orders) || 0;
-      const lRev = parseFloat(l.avg_revenue) || 0;
-      const lRoas = parseFloat(l.avg_roas) || 0;
-      const lOrd = parseFloat(l.avg_orders) || 0;
 
-      const revDelta = lRev > 0 ? (pRev - lRev) / lRev * 100 : 0;
-      const ordDelta = lOrd > 0 ? (pOrd - lOrd) / lOrd * 100 : 0;
-      const roasDelta = lRoas > 0 ? (pRoas - lRoas) / lRoas * 100 : 0;
+      let roasCls = '';
+      if (pRoas > 0) {
+        if (i === firstRoasIdx) roasCls = ' class="highlight-best"';
+        else if (i === secondRoasIdx) roasCls = ' class="highlight-second"';
+      }
 
       html += `<tr>
         <td style="font-weight:600">${dayName}</td>
-        <td${lRev === bestLast90Rev && lRev > 0 ? ' class="highlight-best"' : ''}>${lRev > 0 ? '\u00A3' + Math.round(lRev).toLocaleString() : '\u2014'}</td>
-        <td>${lRoas > 0 ? lRoas.toFixed(2) : '\u2014'}</td>
-        <td${lOrd === bestLast90Ord && lOrd > 0 ? ' class="highlight-best"' : ''}>${lOrd > 0 ? Math.round(lOrd) : '\u2014'}</td>
-        <td${pRev === bestPeriodRev && pRev > 0 ? ' class="highlight-best"' : ''}>${pRev > 0 ? '\u00A3' + Math.round(pRev).toLocaleString() : '\u2014'}${deltaSpan(revDelta, true)}</td>
-        <td style="${roasHeatStyle(pRoas)}">${pRoas > 0 ? pRoas.toFixed(2) : '\u2014'}${deltaSpan(roasDelta, true)}</td>
-        <td${pOrd === bestPeriodOrd && pOrd > 0 ? ' class="highlight-best"' : ''}>${pOrd > 0 ? Math.round(pOrd) : '\u2014'}${deltaSpan(ordDelta, true)}</td>
+        <td${pRev === bestPeriodRev && pRev > 0 ? ' class="highlight-best"' : ''}>${pRev > 0 ? '\u00A3' + Math.round(pRev).toLocaleString() : '\u2014'}</td>
+        <td${roasCls}>${pRoas > 0 ? pRoas.toFixed(2) : '\u2014'}</td>
+        <td${pOrd === bestPeriodOrd && pOrd > 0 ? ' class="highlight-best"' : ''}>${pOrd > 0 ? Math.round(pOrd) : '\u2014'}</td>
       </tr>`;
     }
-    document.getElementById('dowBody').innerHTML = html || '<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">No data</td></tr>';
+    document.getElementById('dowBody').innerHTML = html || '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">No data</td></tr>';
   } catch(e) { console.error('Day of week error:', e); }
 }
 

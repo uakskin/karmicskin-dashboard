@@ -416,7 +416,6 @@
     <div class="value" id="kpi-aov">--</div>
     <div class="benchmark" id="kpi-aov-split" title="New customer AOV · Repeat customer AOV (in brackets: which is higher and by how much)">--</div>
   </div>
-  <div class="kpi-card"><div class="label">Repeat Orders % <span class="info-tip" data-tip="Orders from returning customers ÷ Total orders × 100. The share of orders placed by people who'd ordered before.">ⓘ</span></div><div class="value" id="kpi-repeat">--</div></div>
   <div class="kpi-card"><div class="label">Sessions <span class="info-tip" data-tip="GA4 sessions — total website visits tracked by Google Analytics">ⓘ</span></div><div class="value" id="kpi-sessions">--</div></div>
   <div class="kpi-card"><div class="label">CVR % <span class="info-tip" data-tip="Orders ÷ GA4 Sessions × 100 — uses GA4 sessions as the denominator">ⓘ</span></div><div class="value" id="kpi-cvr">--</div></div>
   <div class="kpi-card">
@@ -1136,19 +1135,18 @@ function updateKPIs(data) {
   document.getElementById('kpi-aov').textContent = '\u00A3' + (t.orders > 0 ? (t.revenue / t.orders).toFixed(0) : '--');
   document.getElementById('kpi-orders').textContent = t.orders.toLocaleString();
 
-  // Orders split: New customer orders / Repeat customer orders
+  // Orders split: New customer orders / Repeat customer orders (with share %)
   const splitOrdersEl = document.getElementById('kpi-orders-split');
   if (splitOrdersEl) {
-    if (t.ordersFromNew > 0 || t.ordersFromReturning > 0) {
-      splitOrdersEl.textContent = 'New ' + t.ordersFromNew.toLocaleString() + ' \u00B7 Repeat ' + t.ordersFromReturning.toLocaleString();
+    const totalAttr = t.ordersFromNew + t.ordersFromReturning;
+    if (totalAttr > 0) {
+      const newPct = Math.round((t.ordersFromNew / totalAttr) * 100);
+      const retPct = Math.round((t.ordersFromReturning / totalAttr) * 100);
+      splitOrdersEl.textContent = 'New ' + t.ordersFromNew.toLocaleString() + ' (' + newPct + '%) \u00B7 Repeat ' + t.ordersFromReturning.toLocaleString() + ' (' + retPct + '%)';
     } else {
       splitOrdersEl.textContent = '--';
     }
   }
-  // Cap at 3 digits: 100% (not 100.0%), but 26.9% / 5.4% keep 1 decimal.
-  document.getElementById('kpi-repeat').textContent = t.orders > 0
-    ? (() => { const p = (t.ordersFromReturning / t.orders) * 100; return (p >= 100 ? p.toFixed(0) : p.toFixed(1)) + '%'; })()
-    : '--';
   document.getElementById('kpi-cac').textContent = '\u00A3' + (t.newCustomers > 0 ? (t.adSpend / t.newCustomers).toFixed(0) : '--');
   // Blended CPA: ad spend / total orders
   document.getElementById('kpi-blended-cpa').textContent = '\u00A3' + (t.orders > 0 ? (t.adSpend / t.orders).toFixed(0) : '--');

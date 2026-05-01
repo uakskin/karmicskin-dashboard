@@ -243,6 +243,8 @@
           <button class="date-preset active" data-preset="mtd">Month to date</button>
           <button class="date-preset" data-preset="lastMonth">Last month</button>
           <button class="date-preset" data-preset="ytd">Year to date</button>
+          <button class="date-preset" data-preset="last12m">Last 12 months</button>
+          <button class="date-preset" data-preset="lastYear">Last year</button>
         </div>
         <div class="date-custom">
           <div><label>Starting</label><input type="date" id="dateFrom"></div>
@@ -408,14 +410,16 @@ function getPresetDates(preset) {
   const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
   switch(preset) {
     case 'yesterday': return { from:fmtDate(yesterday), to:fmtDate(yesterday), label:'Yesterday' };
-    case 'last7': { const f=new Date(today); f.setDate(today.getDate()-6); return {from:fmtDate(f), to:fmtDate(yesterday), label:'Last 7 days'}; }
-    case 'last14': { const f=new Date(today); f.setDate(today.getDate()-13); return {from:fmtDate(f), to:fmtDate(yesterday), label:'Last 14 days'}; }
-    case 'last30': { const f=new Date(today); f.setDate(today.getDate()-29); return {from:fmtDate(f), to:fmtDate(yesterday), label:'Last 30 days'}; }
-    case 'last60': { const f=new Date(today); f.setDate(today.getDate()-59); return {from:fmtDate(f), to:fmtDate(yesterday), label:'Last 60 days'}; }
-    case 'last90': { const f=new Date(today); f.setDate(today.getDate()-89); return {from:fmtDate(f), to:fmtDate(yesterday), label:'Last 90 days'}; }
-    case 'mtd': { const f=new Date(today.getFullYear(), today.getMonth(), 1); return {from:fmtDate(f), to:fmtDate(yesterday), label:'Month to date'}; }
+    case 'last7': { const f=new Date(yesterday); f.setDate(yesterday.getDate()-6); return {from:fmtDate(f), to:fmtDate(yesterday), label:'Last 7 days'}; }
+    case 'last14': { const f=new Date(yesterday); f.setDate(yesterday.getDate()-13); return {from:fmtDate(f), to:fmtDate(yesterday), label:'Last 14 days'}; }
+    case 'last30': { const f=new Date(yesterday); f.setDate(yesterday.getDate()-29); return {from:fmtDate(f), to:fmtDate(yesterday), label:'Last 30 days'}; }
+    case 'last60': { const f=new Date(yesterday); f.setDate(yesterday.getDate()-59); return {from:fmtDate(f), to:fmtDate(yesterday), label:'Last 60 days'}; }
+    case 'last90': { const f=new Date(yesterday); f.setDate(yesterday.getDate()-89); return {from:fmtDate(f), to:fmtDate(yesterday), label:'Last 90 days'}; }
+    case 'mtd': { const f=new Date(today.getFullYear(), today.getMonth(), 1); return {from:fmtDate(f), to:fmtDate(today), label:'Month to date'}; }
     case 'lastMonth': { const f=new Date(today.getFullYear(), today.getMonth()-1, 1); const t=new Date(today.getFullYear(), today.getMonth(), 0); return {from:fmtDate(f), to:fmtDate(t), label:'Last month'}; }
-    case 'ytd': { const f=new Date(today.getFullYear(), 0, 1); return {from:fmtDate(f), to:fmtDate(yesterday), label:'Year to date'}; }
+    case 'ytd': { const f=new Date(today.getFullYear(), 0, 1); return {from:fmtDate(f), to:fmtDate(today), label:'Year to date'}; }
+    case 'last12m': { const f=new Date(yesterday); f.setFullYear(yesterday.getFullYear()-1); f.setDate(f.getDate()+1); return {from:fmtDate(f), to:fmtDate(yesterday), label:'Last 12 months'}; }
+    case 'lastYear': { const f=new Date(today.getFullYear()-1, 0, 1); const t=new Date(today.getFullYear()-1, 11, 31); return {from:fmtDate(f), to:fmtDate(t), label:`${today.getFullYear()-1}`}; }
     default: return null;
   }
 }

@@ -95,8 +95,8 @@
   .period-pill:hover { color: var(--text-primary); }
   .period-pill.active { background: var(--pill-active-bg); color: var(--pill-active-text); }
 
-  /* KPI STRIP */
-  .kpi-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; padding: 16px 24px; }
+  /* KPI STRIP — Revenue + Ad Spend full width (1fr each); ROAS, Orders, AOV, Sessions, CVR are 25% narrower (0.75fr each) so all 7 tiles fit one row. */
+  .kpi-strip { display: grid; grid-template-columns: 1fr 1fr 0.75fr 0.75fr 0.75fr 0.75fr 0.75fr; gap: 8px; padding: 16px 24px; }
   .multi-period-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; padding: 8px 24px 0; }
   .mp-card { background: var(--bg-card-alt); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; display: flex; align-items: baseline; gap: 5px; flex-wrap: nowrap; overflow: hidden; }
   .mp-card .mp-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; flex-shrink: 0; margin-right: 2px; }
@@ -418,12 +418,6 @@
   </div>
   <div class="kpi-card"><div class="label">Sessions <span class="info-tip" data-tip="GA4 sessions — total website visits tracked by Google Analytics">ⓘ</span></div><div class="value" id="kpi-sessions">--</div></div>
   <div class="kpi-card"><div class="label">CVR % <span class="info-tip" data-tip="Orders ÷ GA4 Sessions × 100 — uses GA4 sessions as the denominator">ⓘ</span></div><div class="value" id="kpi-cvr">--</div></div>
-  <div class="kpi-card">
-    <div class="label">Blended CPA <span class="info-tip" data-tip="Ad Spend ÷ Total Orders. Average per-order ad cost across all orders (new + returning).">ⓘ</span></div>
-    <div class="value" id="kpi-blended-cpa">--</div>
-    <div class="benchmark" id="kpi-blended-cpa-be" title="Breakeven CPA: max ad cost per order at break-even (AOV × ~56.5% contribution margin). If Blended CPA exceeds this, the average order is unprofitable on its own — only justified by repeat purchases.">Breakeven --</div>
-  </div>
-  <div class="kpi-card"><div class="label">N-CAC <span class="info-tip" data-tip="Ad Spend (Meta + Google) ÷ New Unique Paying Customers">ⓘ</span></div><div class="value" id="kpi-cac">--</div></div>
 </div>
 
 <div class="dashboard-body">
@@ -1147,32 +1141,9 @@ function updateKPIs(data) {
       splitOrdersEl.textContent = '--';
     }
   }
-  document.getElementById('kpi-cac').textContent = '\u00A3' + (t.newCustomers > 0 ? (t.adSpend / t.newCustomers).toFixed(0) : '--');
-  // Blended CPA: ad spend / total orders
-  document.getElementById('kpi-blended-cpa').textContent = '\u00A3' + (t.orders > 0 ? (t.adSpend / t.orders).toFixed(0) : '--');
   document.getElementById('kpi-sessions').textContent = t.sessions.toLocaleString();
   document.getElementById('kpi-cvr').textContent = t.sessions > 0 ? ((t.orders / t.sessions) * 100).toFixed(2) + '%' : '--';
 
-  // Blended CPA vs Breakeven CPA — both per-order metrics, direct comparison.
-  // Breakeven CPA = AOV (inc-VAT) × contribution margin on TW basis (~56.5%)
-  const cmTwBasis = COST_STRUCTURE.contributionMarginExVat / (1 + COST_STRUCTURE.vatRate);
-  const aovIncVat = t.orders > 0 ? t.revenue / t.orders : 0;
-  const beCpa = aovIncVat * cmTwBasis;
-  const blendedCpa = t.orders > 0 ? t.adSpend / t.orders : 0;
-  const beCpaEl = document.getElementById('kpi-blended-cpa-be');
-  if (beCpa > 0 && blendedCpa > 0) {
-    const isUnder = blendedCpa <= beCpa; // lower per-order cost than breakeven = good
-    const arrow = isUnder ? '\u2193' : '\u2191';
-    beCpaEl.innerHTML = `<span class="be-arrow">${arrow}</span>vs Breakeven \u00A3${Math.round(beCpa)}`;
-    beCpaEl.classList.remove('above', 'below');
-    beCpaEl.classList.add(isUnder ? 'above' : 'below');
-  } else if (beCpa > 0) {
-    beCpaEl.textContent = 'Breakeven \u00A3' + Math.round(beCpa);
-    beCpaEl.classList.remove('above', 'below');
-  } else {
-    beCpaEl.textContent = 'Breakeven --';
-    beCpaEl.classList.remove('above', 'below');
-  }
 }
 
 function getActiveMetrics() {

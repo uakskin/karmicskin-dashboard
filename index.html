@@ -95,8 +95,10 @@
   .period-pill:hover { color: var(--text-primary); }
   .period-pill.active { background: var(--pill-active-bg); color: var(--pill-active-text); }
 
-  /* KPI STRIP — Revenue + Ad Spend full width (1fr each); ROAS, Orders, AOV, Sessions, CVR are narrower (0.825fr each = previous 0.75fr +10%). */
-  .kpi-strip { display: grid; grid-template-columns: 1fr 1fr 0.825fr 0.825fr 0.825fr 0.825fr 0.825fr; gap: 8px; padding: 16px 24px; }
+  /* KPI STRIP — 7 equal-width tiles, each = half the width of a multi-period card.
+     Multi-period cards are (100% - 5×8px gap)/6; halving gives (100% - 40px)/12 per KPI tile.
+     Strip itself is full-row with empty space at the right where the 7 tiles don't reach. */
+  .kpi-strip { display: grid; grid-template-columns: repeat(7, calc((100% - 5 * 8px) / 12)); gap: 8px; padding: 16px 24px; }
   .multi-period-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; padding: 8px 24px 0; }
   .mp-card { background: var(--bg-card-alt); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; display: flex; align-items: baseline; gap: 5px; flex-wrap: nowrap; overflow: hidden; }
   .mp-card .mp-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; flex-shrink: 0; margin-right: 2px; }

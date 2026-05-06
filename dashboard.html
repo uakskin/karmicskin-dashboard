@@ -239,6 +239,20 @@
   .analytics-table .highlight-second { background: rgba(168, 85, 247, 0.04); color: var(--highlight-text); font-weight: 600; }
   [data-theme="dark"] .analytics-table .highlight-second { background: rgba(228, 193, 249, 0.07); }
   .analytics-table-scroll { max-height: 432px; }
+
+  /* INSIGHTS ACCORDION — click an insight row to reveal its detail underneath. */
+  .insights-accordion .insight-row { cursor: pointer; }
+  .insights-accordion .insight-row td { white-space: normal; }
+  .insights-accordion .insight-row td.title-cell { text-align: left; font-weight: 600; color: var(--text-primary); padding-right: 16px; }
+  .insights-accordion .insight-row .chevron { display: inline-block; width: 14px; color: var(--text-muted); font-size: 10px; transition: transform 0.15s ease; margin-right: 6px; }
+  .insights-accordion .insight-row.open .chevron { transform: rotate(90deg); color: var(--accent, var(--text-primary)); }
+  .insights-accordion .insight-row.open td.title-cell { color: var(--text-primary); }
+  .insights-accordion .insight-detail-row td { padding: 0; background: var(--table-hover); border-bottom: 1px solid var(--table-border); }
+  .insights-accordion .insight-detail-body { padding: 16px 24px 20px 50px; line-height: 1.65; font-size: 13px; color: var(--text-secondary); white-space: normal; max-width: 920px; text-align: left; }
+  .insights-accordion .insight-detail-body p { margin: 0 0 10px; }
+  .insights-accordion .insight-detail-body p:last-child { margin-bottom: 0; }
+  /* Make .highlight-best on rank cell only — purple accent stays subtle on the # column, full row inherits hover */
+  .insights-accordion .insight-row.highlight-best td:first-child { background: var(--highlight-bg); color: var(--highlight-text); font-weight: 700; }
   .info-tip { display: inline-block; font-size: 10px; opacity: 0.5; cursor: help; margin-left: 2px; }
   .tooltip-popup {
     position: fixed; display: none; pointer-events: none; z-index: 9999;
@@ -655,15 +669,14 @@
       <span style="font-size:11px;color:var(--text-muted);font-weight:400">Sources: Shopify orders, Typeform skin quiz (n=27,529 full population, 20,053 unique emails), customer summary view</span>
     </div>
     <div class="analytics-table-scroll" style="overflow-x:auto">
-      <table class="analytics-table" id="insightsTable">
+      <table class="analytics-table insights-accordion" id="insightsTable">
         <thead>
           <tr>
-            <th style="width:32px">#</th>
-            <th>Insight</th>
-            <th>Detail</th>
-            <th style="text-align:center" title="Potential revenue / retention lift if executed (1–5)">Impact</th>
-            <th style="text-align:center" title="How quickly you can ship it (1–5)">Ease</th>
-            <th style="text-align:center" title="Impact × Ease — sorted desc">Score</th>
+            <th style="width:40px">#</th>
+            <th>Insight <span style="font-weight:400;color:var(--text-muted);font-size:11px;margin-left:6px">click to expand</span></th>
+            <th style="text-align:center;width:80px" title="Potential revenue / retention lift if executed (1–5)">Impact</th>
+            <th style="text-align:center;width:80px" title="How quickly you can ship it (1–5)">Ease</th>
+            <th style="text-align:center;width:80px" title="Impact × Ease — sorted desc">Score</th>
           </tr>
         </thead>
         <tbody id="insightsBody"></tbody>
@@ -680,63 +693,90 @@
 //   - Typeform Karmic Skin Quiz form bz7zv474 — full population pull (27,529 responses,
 //     20,053 unique emails) via sync-typeform-quiz Edge Function (refresh on demand).
 //   - raw_shopify_orders (paid+refunded+partially_refunded only, UK timezone).
+//
+// Detail is multi-paragraph longform (separated by \n\n). The accordion renderer
+// converts each paragraph break into a <p> tag so the expanded view reads as prose.
 const STRATEGIC_INSIGHTS = [
-  { title: 'Win-back to lapsed (181–365d)',
-    detail: '2,888 customers, £190K lifetime revenue dormant. Single email sequence to this segment is the highest-yield retention play available right now.',
+  { title: 'Win-back to lapsed customers (181–365 days since last order)',
+    detail: `You have 2,888 customers who haven't ordered in the last six to twelve months but who collectively represent £190K of lifetime revenue. These aren't churned customers — they're warm leads who already trust the brand, have a complete shipping address on file, and previously found something in your range worth paying for. The cost of getting them back is the cost of one email sequence plus a small incentive, which is dramatically lower than the £15–20 you'd typically spend acquiring a comparable new paying customer through Meta or Google.\n\nThe play is a multi-touch reactivation flow rather than a single "we miss you" email. Lead with a non-promotional opener that asks rather than sells — what stopped them, what changed for their skin, what would bring them back. Follow with a content email that addresses the most likely reason for the pause (routine fatigue, a specific concern they came in for that they think you didn't solve, a different product they've been using). Only the final email should carry an incentive, and only for those who haven't engaged with the first two. A 3–5% reactivation rate on this base is 90–145 customers brought back at AOV — roughly £4–7K of recovered revenue from one flow, before counting the second-order LTV those reactivated customers go on to deliver.`,
     impact: 5, ease: 4 },
-  { title: 'Optimise the Collections page quiz funnel — 59% of all quiz traffic',
-    detail: 'Typeform UTMs: 59% of 27,529 quiz starts came from /collections. Main menu 20%, homepage hero 11%. Single biggest acquisition entry point. Tighten pre-quiz hook copy, post-quiz reco UX, and exit-intent here before optimising any other surface.',
+  { title: 'Optimise the Collections page → quiz funnel — 59% of all quiz traffic',
+    detail: `The Typeform UTM data shows that 59% of every quiz start (about 16,200 of 27,529) comes from /collections pages. The main menu drives 20%, the homepage hero contributes 11%, and everything else combined — Instagram link-in-bio, Klaviyo emails, paid traffic — is the remaining 10%. This is a much more concentrated funnel than most brands have, which means the leverage from optimising it is unusually high. A small lift in completion rate at this volume is meaningful in absolute terms.\n\nThe action is to treat the collections-page-to-quiz path as the primary acquisition funnel and audit every step. What's the pre-click hook copy on the collections page? Is there a single CTA or competing CTAs? On the quiz itself, is the first screen asking the lowest-friction question (the rule of thumb is "easiest answer first")? On the post-quiz side, what's the recommendation reveal experience like, and do you capture email before or after showing results? Even a 5-percentage-point improvement at this volume is roughly 1,400 additional completed quizzes per year and, conservatively, 100–200 incremental customers depending on quiz-to-purchase conversion.`,
     impact: 4, ease: 4 },
-  { title: 'Bimodal win-back automation: day 45 + day 120',
-    detail: 'Of customers who repurchase, 47% return within 60 days, 40% return after 90 days. Two flow triggers (45d, 120d) capture both modes.',
+  { title: 'Bimodal win-back automation: day-45 + day-120 triggers',
+    detail: `Looking at customers who eventually buy a second time, 47% return within 60 days of their first order and another 40% return after 90 days. That's a clearly bimodal pattern — there are "quick refilers" who finish their first product and want more, and there are "considered returners" who try the product, see results over a full skin cycle, and come back. A single timed email at one cadence misses one of these groups entirely, no matter where you set the trigger.\n\nThe answer is two separate flows. The first triggers at day 45 post-first-order, designed for the refiler — assumes they liked it, recommends a complementary product, makes reordering frictionless. The second triggers at day 120, designed for the considered returner — leads with results-focused testimonials, addresses doubt ("if it didn't work for you, here's what we'd recommend instead"), and offers a more substantial reason to come back than just a discount. The day-45 flow is your higher-volume win because of how many customers are still inside the buying-window. The day-120 flow has lower send volume but typically a much higher per-email revenue, because those customers have had time for the product to actually do something.`,
     impact: 4, ease: 4 },
-  { title: 'Sensitive-skin positioning for ⅔ of customer base',
-    detail: 'Full quiz (n=27,529): 33% sometimes experience sensitivity, 11% often, 14% have a skin condition (eczema, rosacea, psoriasis) — combined ~60%. The 14% skin-condition cohort = ~3,880 people: build a dedicated post-quiz email sequence + "tested on sensitive skin" PDP badge.',
+  { title: 'Sensitive-skin positioning — ~60% of quiz takers are sensitivity-aware',
+    detail: `Across all 27,529 quiz responses, 33% sometimes experience skin sensitivity, 11% often experience redness or irritation, and 14% have a diagnosed skin condition (eczema, psoriasis, rosacea, or similar). Combined, around 60% of the people taking your quiz are meaningfully sensitivity-aware. The 14% with a clinical condition is roughly 3,880 individuals — a large enough cohort to deserve dedicated treatment, not just a generic "gentle" label tucked into the bottom of a PDP.\n\nThere are two parts to this. First, on PDPs and ad creative, lead with a "tested for sensitive skin" or equivalent signal that this is the brand for people who can't use most other skincare. That's a positioning advantage you currently aren't claiming clearly. Second, build a separate post-quiz email path for the 14% who declare a skin condition: their concerns and reservations are different from the general sensitive cohort, and your default-positioning emails will undersell what makes Karmic safe for them. As a side benefit, a one-off survey to this cohort asking "what do you usually have to avoid?" would seed product development for genuinely-sensitive routines, which is a category very few brands serve credibly.`,
     impact: 4, ease: 4 },
-  { title: 'Second-order push for one-and-dones',
-    detail: '8,833 one-and-done customers (76.5%) holding £435K in lifetime value. Avg LTV jumps from £49 → £147 when they place a 2nd order — 3× lift.',
+  { title: 'Second-order push for one-and-done customers (76% of base)',
+    detail: `Three-quarters of your customer base — 8,833 people — have ordered exactly once. Together they represent £435K of historical revenue, but more importantly they represent £435K of locked-up potential. The data shows that when a one-time customer becomes a repeat customer, their average lifetime value triples, jumping from £49 to £147. The basket size on a second order is roughly the same as the first; the lift comes entirely from order frequency over time.\n\nSo the leverage isn't in convincing one-time customers to spend more on their next order — it's in getting them to a second order at all. Practical levers: a personal "are you still using it?" check-in around day 30 that isn't promotional (just a how-to-layer guide for whatever they bought), a complementary-product cross-sell with a specific reason ("your Sunlight Serum pairs with…"), and a post-empty reminder timed to product-finish length (typically 6–8 weeks for serum, 4–6 weeks for cleanser). Even a 5-point lift in one-and-done conversion across the full base is 442 customers × £147 LTV = £65K of new lifetime revenue, recovering almost a third of what's currently dormant in this cohort.`,
     impact: 5, ease: 3 },
-  { title: 'VIP recognition program (5+ orders)',
-    detail: '302 customers (2.6%) drive 11.6% of revenue (£97K). Avg LTV £322. Handwritten note + early-access invite costs almost nothing and locks loyalty.',
+  { title: 'VIP recognition for the 302 customers who buy on autopilot',
+    detail: `You have 302 customers who've ordered five or more times. They're 2.6% of your base but drive 11.6% of revenue (£97K), with an average lifetime value of £322 — six and a half times the average. These are the people who buy from you on autopilot, who tell friends, who write reviews. They are also, currently, getting the same emails and the same treatment as someone who just bought their first cleanser yesterday.\n\nThe fix is cheap and the upside is high. Identify them in Klaviyo by lifetime order count >= 5 and tag them as VIPs. Send a no-discount, no-ask thank-you email — handwritten-feeling, signed by you. Offer early access to launches a week before everyone else. Send a small unannounced gift with their next order. None of this requires new infrastructure or a formal loyalty program; it's just consistent recognition. The real return isn't direct purchase uplift on this segment — they already buy — it's that you turn 300 high-LTV customers into 300 advocates, which compounds in word-of-mouth and reviews over a much longer time horizon than any retention email can.`,
     impact: 3, ease: 5 },
-  { title: 'Position around Combination + Dry skin',
-    detail: 'Full quiz (n=27,529): Combination 48.1% + Dry 30.8% = 79% of respondents. Product positioning, before/after photography, and review filters should default to these types. Oily is only 4.4% — deprioritise.',
+  { title: 'Default messaging to Combination + Dry skin (79% of quiz takers)',
+    detail: `In the full quiz population, 48.1% of respondents identify as Combination skin and 30.8% identify as Dry. Those two groups together are 79% of everyone who tells you what their skin is. Balanced/Normal is 17% and Oily is just 4.4%. Your customer is overwhelmingly someone with combination or dry skin, often experiencing some sensitivity, often concerned about wrinkles or pigmentation. This is a much narrower archetype than your current creative tends to assume.\n\nDefault everything to this customer. Lead-in copy on landing pages, hero photography, the visual age range in your imagery, the first products surfaced after the quiz — all of it should be tuned to combination/dry first, and treat oily-skin messaging as a secondary path rather than a parallel one. The 4.4% oily cohort is small enough that you don't need a dedicated product line or campaign for them; you just need to make sure your existing range has a credible answer when they ask. The opportunity cost of spreading messaging too thin across all four skin types is large at this distribution — you're effectively sending 79% of your audience generic content when you could be talking to them directly.`,
     impact: 3, ease: 5 },
   { title: 'Makeup-ready / makeup-recovery angle for the 43% who wear makeup regularly',
-    detail: 'Full quiz: Daily 25.1% + 3-5×/week 18.4% = 43.5% (~12,000 quiz takers). Distinct from concern-led messaging; positions cleansers, double-cleanse routines, and makeup-friendly actives.',
+    detail: `The quiz tells you that 25.1% of respondents wear makeup daily and 18.4% wear it 3–5 times a week. Together that's 43.5% — roughly 12,000 of your quiz takers — who have a daily-or-near-daily makeup routine. This is a defined audience with a defined need that your existing concern-led messaging (pigmentation, wrinkles, sensitivity) doesn't address head-on. None of those concerns are wrong, but they're not the only frame.\n\nA makeup-aware content angle gives you a different way into the same customer. Topics that work: how to prep skin so makeup sits better, the right cleanser for daily makeup wear (the case for double-cleansing), serums and moisturisers that don't pill under foundation, the case for an evening recovery routine. Your existing products almost certainly fit these talking points; what's missing is the frame. This works particularly well as Instagram and TikTok content (lifestyle-led, not concern-led) and as a post-quiz email path triggered for anyone who selects "daily" or "3–5 times a week" on the makeup question. Because the segment is 43% of all quiz respondents, even a modest engagement lift compounds quickly.`,
     impact: 3, ease: 4 },
-  { title: 'Convert quiz-takers who never bought',
-    detail: '20,053 unique quiz emails vs 11,580 paying customers — gap of ~8,500 people who told you their skin type and concerns but never bought. Build a quiz-result-personalised post-quiz email sequence with the right product recos for their answers.',
+  { title: 'Convert the 8,500 quiz-takers who never bought',
+    detail: `There are 20,053 unique email addresses in your Typeform quiz data and 11,580 paying Shopify customers. Even allowing for some overlap loss (people who used different emails on quiz vs checkout), you have a gap of roughly 8,000–8,500 people who took the quiz, told you their skin type, told you their main concern, told you whether they wear makeup — and never bought. They are the warmest unconverted leads you have access to anywhere.\n\nThe right structure here is a quiz-result-personalised post-quiz email sequence, not a generic welcome series. If someone says they have Combination skin and Pigmentation concerns, the first email shouldn't be a "welcome to Karmic Skin" overview — it should be "here's why combination skin gets pigmentation, and here's the specific routine we'd recommend for you." Three to five emails over two to three weeks, each addressing a worry that someone with that exact quiz profile actually has. A 5% conversion of 8,000 leads at £49 AOV is £19,600 in incremental first-order revenue, plus all the second-order LTV that follows. The hard part is the personalisation logic — you already have the data, you just need to design the email branches.`,
     impact: 4, ease: 3 },
-  { title: 'Cut blanket discount reliance',
-    detail: 'Discount-acquired customers retain 26% worse (20% vs 27% repeat) and have 16% lower LTV. NAMASTE15 alone gave away £15K in margin across 1,696 orders. Test discount-free acquisition for one quarter.',
+  { title: 'Cut blanket first-order discount reliance',
+    detail: `When you split your customer base by whether their first order used a discount code, the difference is meaningful: customers acquired with a discount have a 20% repeat rate, those acquired without a discount have a 27% repeat rate. The lifetime value gap is similar — £66 versus £78, a 16% difference. This isn't a small effect, and it's directionally consistent across most consumer brands' data.\n\nThe implication isn't "never use discounts." Discounts are a real tool — they recover an abandoned cart, win back a lapsed customer, move a slow-moving SKU. The implication is to be more deliberate about which customers see discounts and at what point in their journey. For first-touch acquisition specifically, your data suggests every £1 of discount given is buying a customer who's worse on both retention and LTV than someone who bought at full price. A worthwhile test: for one quarter, remove all blanket first-order discount codes from front-end placement (popups, banners) and measure whether the resulting drop in conversion rate offsets — or, more likely, doesn't offset — the LTV uplift on those who buy anyway. NAMASTE15 alone has given away £15.5K in margin across 1,696 orders; if those customers' LTV is 16% lower than the no-discount cohort, the opportunity cost is real.`,
     impact: 4, ease: 3 },
 ];
 
-// Compute score = impact * ease, sort desc, render
+// HTML-escape user-visible text (everything in our STRATEGIC_INSIGHTS is author-controlled,
+// but we still escape on render so any future content edits don't accidentally inject HTML).
+function escHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// Compute score = impact * ease, sort desc, render as accordion.
+// Each insight produces TWO <tr>s: a clickable summary row + a detail row that's hidden
+// by default. Click toggles the open class on the summary row and shows/hides the detail.
 function renderStrategicInsights() {
   const tbody = document.getElementById('insightsBody');
   if (!tbody) return;
   const rows = STRATEGIC_INSIGHTS
-    .map(r => ({...r, score: r.impact * r.ease}))
+    .map(r => ({ ...r, score: r.impact * r.ease }))
     .sort((a, b) => b.score - a.score);
   tbody.innerHTML = rows.map((r, i) => {
     const rank = i + 1;
-    // Top 3 insights highlighted with purple accent (matches day-of-week best-day style)
-    const rowCls = rank <= 3 ? ' class="highlight-best"' : '';
-    return `<tr${rowCls}>
-      <td style="font-weight:600">${rank}</td>
-      <td style="font-weight:600">${r.title}</td>
-      <td style="color:var(--text-secondary);font-size:12px">${r.detail}</td>
-      <td style="text-align:center;font-weight:600">${r.impact}</td>
-      <td style="text-align:center;font-weight:600">${r.ease}</td>
-      <td style="text-align:center;font-weight:700">${r.score}</td>
-    </tr>`;
+    // Top 3 (by score) get the purple highlight on the rank cell only.
+    const highlightCls = rank <= 3 ? ' highlight-best' : '';
+    const paragraphs = String(r.detail || '').split(/\n\n+/).map(p => `<p>${escHtml(p)}</p>`).join('');
+    return `
+      <tr class="insight-row${highlightCls}" data-idx="${i}">
+        <td>${rank}</td>
+        <td class="title-cell"><span class="chevron">▶</span>${escHtml(r.title)}</td>
+        <td>${r.impact}</td>
+        <td>${r.ease}</td>
+        <td style="font-weight:700">${r.score}</td>
+      </tr>
+      <tr class="insight-detail-row" data-idx="${i}" hidden>
+        <td colspan="5"><div class="insight-detail-body">${paragraphs}</div></td>
+      </tr>
+    `;
   }).join('');
+
+  // Delegated click handler — toggle the matching detail row by data-idx
+  tbody.addEventListener('click', (e) => {
+    const summary = e.target.closest('tr.insight-row');
+    if (!summary) return;
+    const idx = summary.getAttribute('data-idx');
+    const detail = tbody.querySelector(`tr.insight-detail-row[data-idx="${idx}"]`);
+    if (!detail) return;
+    const isOpen = summary.classList.toggle('open');
+    if (isOpen) detail.removeAttribute('hidden');
+    else detail.setAttribute('hidden', '');
+  });
 }
-// Render once on page load — these are static insights, no data fetch needed
+
 document.addEventListener('DOMContentLoaded', renderStrategicInsights);
-// Also render immediately if DOM is already ready (script runs after the table HTML)
 if (document.readyState !== 'loading') renderStrategicInsights();
 </script>
 

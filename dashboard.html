@@ -652,7 +652,7 @@
   <div class="analytics-card" style="flex:1">
     <div class="analytics-card-header" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <h3>Strategic Insights <span class="info-tip" data-tip="Synthesised from your customer data — Shopify (11,580 customers / £835K LTV) + Klaviyo skin quiz (18,599 respondents, 1,051 sampled). Impact = potential revenue/retention lift if executed (1–5). Ease = how quickly you can ship it given existing tools and team (1–5). Score = Impact × Ease. Sorted by Score desc.">ⓘ</span></h3>
-      <span style="font-size:11px;color:var(--text-muted);font-weight:400">Sources: Shopify orders, Klaviyo skin quiz (n=1,051 of 18,599), customer summary view</span>
+      <span style="font-size:11px;color:var(--text-muted);font-weight:400">Sources: Shopify orders, Typeform skin quiz (n=27,529 full population, 20,053 unique emails), customer summary view</span>
     </div>
     <div class="analytics-table-scroll" style="overflow-x:auto">
       <table class="analytics-table" id="insightsTable">
@@ -673,19 +673,25 @@
 </div>
 
 <script>
-// ── STRATEGIC INSIGHTS (static — synthesised from Shopify + Klaviyo + skin quiz data) ──
+// ── STRATEGIC INSIGHTS (static — synthesised from Shopify + Typeform skin quiz) ──
 // Update these manually when data changes meaningfully.
-// Sources: v_customer_summary (11,580 customers, £835K LTV), Klaviyo Skin Quiz Respondents
-// list RdbfN6 (18,599 profiles, sampled 1,051 to compute distributions), raw_shopify_orders.
+// Sources:
+//   - Shopify v_customer_summary (11,580 customers, £835K LTV)
+//   - Typeform Karmic Skin Quiz form bz7zv474 — full population pull (27,529 responses,
+//     20,053 unique emails) via sync-typeform-quiz Edge Function (refresh on demand).
+//   - raw_shopify_orders (paid+refunded+partially_refunded only, UK timezone).
 const STRATEGIC_INSIGHTS = [
   { title: 'Win-back to lapsed (181–365d)',
     detail: '2,888 customers, £190K lifetime revenue dormant. Single email sequence to this segment is the highest-yield retention play available right now.',
     impact: 5, ease: 4 },
-  { title: 'Lead with Pigmentation + Wrinkles in ads & PDP copy',
-    detail: 'Skin quiz: Wrinkles & Fine Lines (37%) and Pigmentation (36%) = 73% of respondents. Concern-led creative will out-perform generic skincare framing.',
-    impact: 4, ease: 5 },
+  { title: 'Optimise the Collections page quiz funnel — 59% of all quiz traffic',
+    detail: 'Typeform UTMs: 59% of 27,529 quiz starts came from /collections. Main menu 20%, homepage hero 11%. Single biggest acquisition entry point. Tighten pre-quiz hook copy, post-quiz reco UX, and exit-intent here before optimising any other surface.',
+    impact: 4, ease: 4 },
   { title: 'Bimodal win-back automation: day 45 + day 120',
     detail: 'Of customers who repurchase, 47% return within 60 days, 40% return after 90 days. Two flow triggers (45d, 120d) capture both modes.',
+    impact: 4, ease: 4 },
+  { title: 'Sensitive-skin positioning for ⅔ of customer base',
+    detail: 'Full quiz (n=27,529): 33% sometimes experience sensitivity, 11% often, 14% have a skin condition (eczema, rosacea, psoriasis) — combined ~60%. The 14% skin-condition cohort = ~3,880 people: build a dedicated post-quiz email sequence + "tested on sensitive skin" PDP badge.',
     impact: 4, ease: 4 },
   { title: 'Second-order push for one-and-dones',
     detail: '8,833 one-and-done customers (76.5%) holding £435K in lifetime value. Avg LTV jumps from £49 → £147 when they place a 2nd order — 3× lift.',
@@ -694,20 +700,17 @@ const STRATEGIC_INSIGHTS = [
     detail: '302 customers (2.6%) drive 11.6% of revenue (£97K). Avg LTV £322. Handwritten note + early-access invite costs almost nothing and locks loyalty.',
     impact: 3, ease: 5 },
   { title: 'Position around Combination + Dry skin',
-    detail: 'Quiz: Combination 49% + Dry 31% = 80% of respondents. Product positioning, before/after photography, and review filters should default to these types.',
+    detail: 'Full quiz (n=27,529): Combination 48.1% + Dry 30.8% = 79% of respondents. Product positioning, before/after photography, and review filters should default to these types. Oily is only 4.4% — deprioritise.',
     impact: 3, ease: 5 },
-  { title: 'Sensitive-skin positioning for ⅓ of customer base',
-    detail: 'Quiz: 60% experience some sensitivity, 13% have a skin condition (eczema, rosacea, psoriasis). Add "tested for sensitive skin" badge to PDPs and quiz reco engine.',
-    impact: 4, ease: 4 },
+  { title: 'Makeup-ready / makeup-recovery angle for the 43% who wear makeup regularly',
+    detail: 'Full quiz: Daily 25.1% + 3-5×/week 18.4% = 43.5% (~12,000 quiz takers). Distinct from concern-led messaging; positions cleansers, double-cleanse routines, and makeup-friendly actives.',
+    impact: 3, ease: 4 },
   { title: 'Convert quiz-takers who never bought',
-    detail: '18,599 quiz respondents vs 11,580 paying customers. Even a low conversion uplift on the gap is meaningful. Build a quiz-result-personalised post-quiz email sequence.',
+    detail: '20,053 unique quiz emails vs 11,580 paying customers — gap of ~8,500 people who told you their skin type and concerns but never bought. Build a quiz-result-personalised post-quiz email sequence with the right product recos for their answers.',
     impact: 4, ease: 3 },
   { title: 'Cut blanket discount reliance',
     detail: 'Discount-acquired customers retain 26% worse (20% vs 27% repeat) and have 16% lower LTV. NAMASTE15 alone gave away £15K in margin across 1,696 orders. Test discount-free acquisition for one quarter.',
     impact: 4, ease: 3 },
-  { title: 'Geo-targeted Meta lookalikes for South Asian diaspora hubs',
-    detail: 'Leicester, Birmingham, Harrow, Slough, Ilford over-index on revenue per capita. Build geo-radius lookalikes from these cities; expand London (£103K, 12% of UK) with similar profiles.',
-    impact: 3, ease: 4 },
 ];
 
 // Compute score = impact * ease, sort desc, render

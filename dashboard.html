@@ -647,6 +647,96 @@
   </div>
 </div>
 
+<!-- 5. Strategic Insights — synthesised from Shopify orders, Klaviyo skin quiz, and customer data -->
+<div class="product-analytics-row">
+  <div class="analytics-card" style="flex:1">
+    <div class="analytics-card-header" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <h3>Strategic Insights <span class="info-tip" data-tip="Synthesised from your customer data — Shopify (11,580 customers / £835K LTV) + Klaviyo skin quiz (18,599 respondents, 1,051 sampled). Impact = potential revenue/retention lift if executed (1–5). Ease = how quickly you can ship it given existing tools and team (1–5). Score = Impact × Ease. Sorted by Score desc.">ⓘ</span></h3>
+      <span style="font-size:11px;color:var(--text-muted);font-weight:400">Sources: Shopify orders, Klaviyo skin quiz (n=1,051 of 18,599), customer summary view</span>
+    </div>
+    <div class="analytics-table-scroll" style="overflow-x:auto">
+      <table class="analytics-table" id="insightsTable">
+        <thead>
+          <tr>
+            <th style="width:32px">#</th>
+            <th>Insight</th>
+            <th>Detail</th>
+            <th style="text-align:center" title="Potential revenue / retention lift if executed (1–5)">Impact</th>
+            <th style="text-align:center" title="How quickly you can ship it (1–5)">Ease</th>
+            <th style="text-align:center" title="Impact × Ease — sorted desc">Score</th>
+          </tr>
+        </thead>
+        <tbody id="insightsBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STRATEGIC INSIGHTS (static — synthesised from Shopify + Klaviyo + skin quiz data) ──
+// Update these manually when data changes meaningfully.
+// Sources: v_customer_summary (11,580 customers, £835K LTV), Klaviyo Skin Quiz Respondents
+// list RdbfN6 (18,599 profiles, sampled 1,051 to compute distributions), raw_shopify_orders.
+const STRATEGIC_INSIGHTS = [
+  { title: 'Win-back to lapsed (181–365d)',
+    detail: '2,888 customers, £190K lifetime revenue dormant. Single email sequence to this segment is the highest-yield retention play available right now.',
+    impact: 5, ease: 4 },
+  { title: 'Lead with Pigmentation + Wrinkles in ads & PDP copy',
+    detail: 'Skin quiz: Wrinkles & Fine Lines (37%) and Pigmentation (36%) = 73% of respondents. Concern-led creative will out-perform generic skincare framing.',
+    impact: 4, ease: 5 },
+  { title: 'Bimodal win-back automation: day 45 + day 120',
+    detail: 'Of customers who repurchase, 47% return within 60 days, 40% return after 90 days. Two flow triggers (45d, 120d) capture both modes.',
+    impact: 4, ease: 4 },
+  { title: 'Second-order push for one-and-dones',
+    detail: '8,833 one-and-done customers (76.5%) holding £435K in lifetime value. Avg LTV jumps from £49 → £147 when they place a 2nd order — 3× lift.',
+    impact: 5, ease: 3 },
+  { title: 'VIP recognition program (5+ orders)',
+    detail: '302 customers (2.6%) drive 11.6% of revenue (£97K). Avg LTV £322. Handwritten note + early-access invite costs almost nothing and locks loyalty.',
+    impact: 3, ease: 5 },
+  { title: 'Position around Combination + Dry skin',
+    detail: 'Quiz: Combination 49% + Dry 31% = 80% of respondents. Product positioning, before/after photography, and review filters should default to these types.',
+    impact: 3, ease: 5 },
+  { title: 'Sensitive-skin positioning for ⅓ of customer base',
+    detail: 'Quiz: 60% experience some sensitivity, 13% have a skin condition (eczema, rosacea, psoriasis). Add "tested for sensitive skin" badge to PDPs and quiz reco engine.',
+    impact: 4, ease: 4 },
+  { title: 'Convert quiz-takers who never bought',
+    detail: '18,599 quiz respondents vs 11,580 paying customers. Even a low conversion uplift on the gap is meaningful. Build a quiz-result-personalised post-quiz email sequence.',
+    impact: 4, ease: 3 },
+  { title: 'Cut blanket discount reliance',
+    detail: 'Discount-acquired customers retain 26% worse (20% vs 27% repeat) and have 16% lower LTV. NAMASTE15 alone gave away £15K in margin across 1,696 orders. Test discount-free acquisition for one quarter.',
+    impact: 4, ease: 3 },
+  { title: 'Geo-targeted Meta lookalikes for South Asian diaspora hubs',
+    detail: 'Leicester, Birmingham, Harrow, Slough, Ilford over-index on revenue per capita. Build geo-radius lookalikes from these cities; expand London (£103K, 12% of UK) with similar profiles.',
+    impact: 3, ease: 4 },
+];
+
+// Compute score = impact * ease, sort desc, render
+function renderStrategicInsights() {
+  const tbody = document.getElementById('insightsBody');
+  if (!tbody) return;
+  const rows = STRATEGIC_INSIGHTS
+    .map(r => ({...r, score: r.impact * r.ease}))
+    .sort((a, b) => b.score - a.score);
+  tbody.innerHTML = rows.map((r, i) => {
+    const rank = i + 1;
+    // Top 3 insights highlighted with purple accent (matches day-of-week best-day style)
+    const rowCls = rank <= 3 ? ' class="highlight-best"' : '';
+    return `<tr${rowCls}>
+      <td style="font-weight:600">${rank}</td>
+      <td style="font-weight:600">${r.title}</td>
+      <td style="color:var(--text-secondary);font-size:12px">${r.detail}</td>
+      <td style="text-align:center;font-weight:600">${r.impact}</td>
+      <td style="text-align:center;font-weight:600">${r.ease}</td>
+      <td style="text-align:center;font-weight:700">${r.score}</td>
+    </tr>`;
+  }).join('');
+}
+// Render once on page load — these are static insights, no data fetch needed
+document.addEventListener('DOMContentLoaded', renderStrategicInsights);
+// Also render immediately if DOM is already ready (script runs after the table HTML)
+if (document.readyState !== 'loading') renderStrategicInsights();
+</script>
+
 <script>
 // ── COST STRUCTURE CONSTANTS (from P&L analysis) ──
 // Used to compute Breakeven ROAS / Breakeven CPA from current period scale.

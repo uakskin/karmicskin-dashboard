@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Karmic Skin — UGC Creator Tracker</title>
+<link rel="icon" type="image/svg+xml" href="favicon-latest.svg">
+<style>
+  /* ========== THEME VARIABLES ========== */
+  :root {
+    --bg-page: #f8f9fa; --bg-card: #ffffff; --bg-card-alt: #f3f4f6; --bg-input: #ffffff;
+    --border: #e5e7eb; --border-hover: #d1d5db;
+    --text-primary: #111827; --text-secondary: #6b7280; --text-muted: #9ca3af; --text-heading: #374151;
+    --table-header-bg: #f9fafb; --table-border: #f3f4f6; --table-hover: #f9fafb;
+    --dropdown-shadow: 0 12px 40px rgba(0,0,0,0.1);
+    --accent: #0d9488; --accent-hover: #0f766e;
+    --positive: #16a34a; --negative: #dc2626;
+    --highlight-bg: rgba(168, 85, 247, 0.08); --highlight-text: #7c3aed;
+    --chip-bg: #eef2f6; --chip-text: #374151;
+    --chart-grid: #f3f4f6;
+    --tooltip-bg: #1f2937;
+    --modal-overlay: rgba(17, 24, 39, 0.55);
+  }
+  [data-theme="dark"] {
+    --bg-page: #0f1117; --bg-card: #18181b; --bg-card-alt: #1e1e22; --bg-input: #0f1117;
+    --border: #27272a; --border-hover: #3f3f46;
+    --text-primary: #f4f4f5; --text-secondary: #a1a1aa; --text-muted: #71717a; --text-heading: #e4e4e7;
+    --table-header-bg: #1e1e22; --table-border: #1f1f23; --table-hover: #1e1e22;
+    --dropdown-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    --accent: #34d399; --accent-hover: #6ee7b7;
+    --positive: #22c55e; --negative: #ef4444;
+    --highlight-bg: rgba(228, 193, 249, 0.15); --highlight-text: #E4C1F9;
+    --chip-bg: #27272a; --chip-text: #d4d4d8;
+    --chart-grid: #27272a;
+    --tooltip-bg: #27272a;
+    --modal-overlay: rgba(0, 0, 0, 0.7);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg-page); color: var(--text-primary); min-height: 100vh; transition: background 0.2s, color 0.2s; }
+
+  /* ========== PAGE NAV ========== */
+  .page-nav { display: flex; border-bottom: 1px solid var(--border); background: var(--bg-card); position: sticky; top: 0; z-index: 102; overflow-x: auto; }
+  .page-nav a { padding: 10px 20px; font-size: 13px; font-weight: 600; color: var(--text-muted); text-decoration: none; border-bottom: 2px solid transparent; transition: all 0.15s; white-space: nowrap; }
+  .page-nav a:hover { color: var(--text-primary); }
+  .page-nav a.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ========== HEADER ========== */
+  .header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; position: sticky; top: 38px; z-index: 101; background: var(--bg-page); }
+  .header-left h1 { font-size: 18px; font-weight: 600; color: var(--text-primary); display: inline; }
+  .header-left .brand { font-size: 11px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; }
+  .last-updated { font-size: 10px; color: var(--text-muted); font-weight: 400; }
+
+  .theme-toggle { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; cursor: pointer; font-size: 16px; line-height: 1; transition: all 0.15s; }
+  .theme-toggle:hover { border-color: var(--border-hover); }
+
+  .header-right { display: flex; align-items: center; gap: 12px; }
+
+  .view-toggle { display: flex; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card); overflow: hidden; }
+  .view-toggle button { padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--text-muted); background: none; border: none; cursor: pointer; transition: all 0.15s; }
+  .view-toggle button.active { background: var(--accent); color: #fff; }
+
+  /* ========== KPI STRIP ========== */
+  .kpi-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 16px 24px; }
+  .kpi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .kpi-card .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .kpi-card .value { font-size: 20px; font-weight: 700; color: var(--text-primary); }
+  .kpi-card .sub { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+
+  /* ========== FILTER BAR ========== */
+  .filter-bar { padding: 0 24px 16px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .filter-bar .filter-group { display: flex; flex-direction: column; gap: 3px; }
+  .filter-bar label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+  .filter-bar select, .filter-bar input[type="text"], .filter-bar input[type="number"] {
+    padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-hover); background: var(--bg-input);
+    color: var(--text-primary); font-size: 12px; min-width: 120px;
+  }
+  .filter-bar .clear-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-hover); background: var(--bg-card); color: var(--text-secondary); font-size: 12px; cursor: pointer; margin-top: 13px; }
+  .filter-bar .clear-btn:hover { color: var(--text-primary); border-color: var(--text-muted); }
+  .filter-bar .search-wrap { flex: 1; min-width: 200px; }
+  .filter-bar .search-wrap input { width: 100%; }
+
+  .results-summary { padding: 0 24px 8px; font-size: 12px; color: var(--text-muted); }
+
+  /* ========== CARD GRID ========== */
+  .card-grid { padding: 0 24px 24px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+  .creator-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.15s; display: flex; flex-direction: column; gap: 10px; }
+  .creator-card:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+  .creator-card-top { display: flex; gap: 12px; align-items: flex-start; }
+  .creator-links-inline { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .creator-avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--bg-card-alt); flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 20px; font-weight: 700; }
+  .creator-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .creator-name-wrap { flex: 1; min-width: 0; }
+  .creator-name { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .creator-handle { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .creator-location { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+  .creator-headline { font-size: 12px; color: var(--text-secondary); line-height: 1.4; max-height: 2.8em; overflow: hidden; }
+  .creator-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .chip { display: inline-block; font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 4px; background: var(--chip-bg); color: var(--chip-text); text-transform: lowercase; }
+  .chip-rate { background: rgba(13, 148, 136, 0.12); color: var(--accent); }
+  .chip-uk { background: rgba(168, 85, 247, 0.12); color: var(--highlight-text); }
+  .chip-age { background: rgba(99, 102, 241, 0.12); color: #6366f1; }
+  .chip-ethnicity { background: rgba(236, 72, 153, 0.12); color: #db2777; }
+
+  /* ========== STATE PILL / MENU ========== */
+  .state-wrap { position: relative; }
+  .state-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; border: 1px solid transparent; cursor: pointer; transition: all 0.15s; background: var(--bg-card-alt); color: var(--text-secondary); white-space: nowrap; }
+  .state-pill:hover { border-color: var(--border-hover); }
+  .state-pill .caret { opacity: 0.5; font-size: 9px; }
+  .state-pill .date { font-weight: 400; opacity: 0.7; margin-left: 4px; }
+  .state-not_contacted { background: rgba(156, 163, 175, 0.15); color: #6b7280; }
+  .state-contacted { background: rgba(59, 130, 246, 0.14); color: #2563eb; }
+  .state-in_progress { background: rgba(234, 179, 8, 0.18); color: #a16207; }
+  .state-payment_requested { background: rgba(220, 38, 38, 0.14); color: #dc2626; }
+  .state-complete { background: rgba(22, 163, 74, 0.14); color: var(--positive); }
+
+  .state-menu { position: absolute; top: calc(100% + 4px); right: 0; background: var(--bg-card); border: 1px solid var(--border-hover); border-radius: 8px; box-shadow: var(--dropdown-shadow); z-index: 150; min-width: 220px; display: none; padding: 4px 0; }
+  .state-menu.state-menu--up { top: auto; bottom: calc(100% + 4px); }
+  .state-menu.state-menu--left { right: auto; left: 0; }
+  .state-menu.open { display: block; }
+  .state-menu button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 14px; background: none; border: none; text-align: left; cursor: pointer; font-size: 12px; color: var(--text-primary); }
+  .state-menu button:hover { background: var(--bg-card-alt); }
+  .state-menu button.current { font-weight: 700; color: var(--accent); }
+  .state-menu button .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .state-menu .date-edit { border-top: 1px solid var(--border); padding: 10px 14px 10px; display: flex; flex-direction: column; gap: 6px; }
+  .state-menu .date-edit label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+  .state-menu .date-edit input[type="date"] { padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border-hover); background: var(--bg-input); color: var(--text-primary); font-size: 12px; width: 100%; }
+  .state-menu .dot-not_contacted { background: #6b7280; }
+  .state-menu .dot-contacted { background: #2563eb; }
+  .state-menu .dot-in_progress { background: #eab308; }
+  .state-menu .dot-payment_requested { background: #dc2626; }
+  .state-menu .dot-complete { background: var(--positive); }
+  .creator-meta { display: flex; gap: 14px; align-items: center; font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 10px; }
+  .creator-meta .meta-item { display: flex; gap: 4px; align-items: center; }
+  .creator-meta .meta-item strong { color: var(--text-secondary); font-weight: 600; }
+  .social-link { color: var(--text-muted); text-decoration: none; font-weight: 700; padding: 2px 6px; border-radius: 4px; font-size: 10px; border: 1px solid var(--border); }
+  .social-link:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* ========== TABLE VIEW ========== */
+  .table-section { padding: 0 24px 24px; display: none; }
+  .table-section.visible { display: block; }
+  .card-grid.hidden { display: none; }
+  .creators-table-wrap { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .creators-table-scroll { overflow-x: auto; }
+  .creators-table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+  .creators-table th { background: var(--table-header-bg); color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10px; padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; }
+  .creators-table th:hover { color: var(--text-secondary); }
+  .creators-table td { padding: 8px 12px; border-bottom: 1px solid var(--table-border); color: var(--text-secondary); }
+  .creators-table tr { cursor: pointer; }
+  .creators-table tr:hover td { background: var(--table-hover); }
+  .creators-table td:first-child { color: var(--text-primary); font-weight: 600; }
+
+  /* ========== MODAL ========== */
+  .modal-overlay { position: fixed; inset: 0; background: var(--modal-overlay); z-index: 200; display: none; align-items: flex-start; justify-content: center; padding: 40px 20px; overflow-y: auto; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; max-width: 780px; width: 100%; padding: 28px; box-shadow: var(--dropdown-shadow); }
+  .modal-head { display: flex; gap: 18px; align-items: flex-start; margin-bottom: 20px; }
+  .modal-head .creator-avatar { width: 80px; height: 80px; font-size: 28px; }
+  .modal-head h2 { font-size: 22px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+  .modal-close { position: absolute; top: 14px; right: 18px; background: none; border: none; font-size: 22px; color: var(--text-muted); cursor: pointer; }
+  .modal-close:hover { color: var(--text-primary); }
+  .modal { position: relative; }
+  .modal-body { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .modal-field { display: flex; flex-direction: column; gap: 4px; }
+  .modal-field label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+  .modal-field .val { font-size: 13px; color: var(--text-primary); word-break: break-word; }
+  .modal-field .val.muted { color: var(--text-muted); font-style: italic; font-size: 12px; }
+  .modal-field.full { grid-column: 1 / -1; }
+  .modal-footer { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--text-muted); }
+  .modal-footer a { color: var(--accent); text-decoration: none; margin-right: 12px; }
+  .modal-footer a:hover { text-decoration: underline; }
+
+  .empty-state { padding: 60px 20px; text-align: center; color: var(--text-muted); }
+  .empty-state h3 { font-size: 16px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 600; }
+  .empty-state p { font-size: 13px; line-height: 1.5; max-width: 480px; margin: 0 auto; }
+  .empty-state code { background: var(--bg-card-alt); padding: 2px 6px; border-radius: 4px; font-size: 12px; color: var(--text-primary); }
+
+  .data-source { text-align: center; padding: 16px 24px 24px; font-size: 11px; color: var(--text-muted); }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 900px) {
+    .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+    .modal-body { grid-template-columns: 1fr; }
+    .filter-bar .filter-group { min-width: calc(50% - 4px); }
+  }
+  @media (max-width: 600px) {
+    .header { flex-direction: column; align-items: flex-start; }
+    .page-nav { overflow-x: auto; }
+    .card-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== PAGE NAV ========== -->
+<nav class="page-nav">
+  <a href="index.html">Shopify</a>
+  <a href="amazon.html">Amazon</a>
+  <a href="pnl.html">P&L</a>
+  <a href="email.html">Email</a>
+  <a href="meta.html">Meta</a>
+  <a href="ugc.html" class="active">UGC</a>
+</nav>
+
+<!-- ========== HEADER ========== -->
+<header class="header">
+  <div class="header-left">
+    <div class="brand">KARMIC SKIN</div>
+    <h1>UGC Creator Tracker</h1>
+    <div class="last-updated" id="lastUpdated"></div>
+  </div>
+  <div class="header-right">
+    <div class="view-toggle">
+      <button id="viewCardsBtn" class="active" onclick="setView('cards')">Cards</button>
+      <button id="viewTableBtn" onclick="setView('table')">Table</button>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+  </div>
+</header>
+
+<!-- ========== KPI STRIP ========== -->
+<section class="kpi-strip">
+  <div class="kpi-card">
+    <div class="label">Total Creators</div>
+    <div class="value" id="kpiTotal">--</div>
+    <div class="sub" id="kpiTotalSub">&nbsp;</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">In Progress</div>
+    <div class="value" id="kpiActive">--</div>
+    <div class="sub">Projects live</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">Contacted</div>
+    <div class="value" id="kpiProspecting">--</div>
+    <div class="sub">Awaiting reply</div>
+  </div>
+</section>
+
+<!-- ========== FILTER BAR ========== -->
+<section class="filter-bar" id="filterBar">
+  <div class="filter-group search-wrap">
+    <label>Search</label>
+    <input type="text" id="filterSearch" placeholder="Name, handle, headline, past brand…" oninput="applyFilters()">
+  </div>
+  <div class="filter-group">
+    <label>State</label>
+    <select id="filterStatus" onchange="applyFilters()">
+      <option value="">All</option>
+      <option value="not_contacted">Not contacted</option>
+      <option value="contacted">Contacted</option>
+      <option value="in_progress">Project in progress</option>
+      <option value="payment_requested">Payment requested</option>
+      <option value="complete">Complete</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Country</label>
+    <select id="filterCountry" onchange="applyFilters()"><option value="">All</option></select>
+  </div>
+  <div class="filter-group">
+    <label>Ethnicity</label>
+    <select id="filterEthnicity" onchange="applyFilters()"><option value="">All</option></select>
+  </div>
+  <div class="filter-group">
+    <label>Age</label>
+    <select id="filterAge" onchange="applyFilters()">
+      <option value="">All</option>
+      <option value="18-24">18–24</option>
+      <option value="25-34">25–34</option>
+      <option value="35-44">35–44</option>
+      <option value="45-54">45–54</option>
+      <option value="55+">55+</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Max rate (GBP)</label>
+    <input type="number" id="filterMaxRate" placeholder="no limit" oninput="applyFilters()">
+  </div>
+  <button class="clear-btn" onclick="clearFilters()">Clear</button>
+</section>
+
+<div class="results-summary" id="resultsSummary">Loading…</div>
+
+<!-- ========== CARD GRID ========== -->
+<section class="card-grid" id="cardGrid"></section>
+
+<!-- ========== TABLE VIEW ========== -->
+<section class="table-section" id="tableSection">
+  <div class="creators-table-wrap">
+    <div class="creators-table-scroll">
+      <table class="creators-table" id="creatorsTable">
+        <thead>
+          <tr>
+            <th onclick="sortTable('name')">Name</th>
+            <th onclick="sortTable('handle')">Handle</th>
+            <th onclick="sortTable('country')">Country</th>
+            <th onclick="sortTable('niches')">Niches</th>
+            <th onclick="sortTable('instagram_followers')">IG Followers</th>
+            <th onclick="sortTable('rate_min_gbp')">Rate (GBP)</th>
+            <th onclick="sortTable('status')">Status</th>
+            <th onclick="sortTable('updated_at')">Updated</th>
+          </tr>
+        </thead>
+        <tbody id="creatorsTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ========== MODAL ========== -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOnOverlay(event)">
+  <div class="modal" id="modal"></div>
+</div>
+
+<div class="data-source">
+  Data live from Supabase <code>ugc_creators</code> · Writes via Claude in chat · <a href="https://github.com/uakskin/karmicskin-dashboard" style="color:var(--accent)">source</a>
+</div>
+
+<script>
+// ========== CONFIG ==========
+const SUPABASE_URL = 'https://unmkzatppwftnasafhlb.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVubWt6YXRwcHdmdG5hc2FmaGxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDQ5OTIsImV4cCI6MjA4NjU4MDk5Mn0.SYQm1km08xwlJSIf9jq8DXH3Ijxbxqk_LpTRh0PZhD4';
+
+let allCreators = [];
+let filteredCreators = [];
+let sortKey = 'updated_at';
+let sortDir = 'desc';
+let currentView = 'cards';
+
+// ========== THEME ==========
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? '' : 'dark');
+  document.querySelector('.theme-toggle').textContent = isDark ? '🌙' : '☀️';
+  localStorage.setItem('ks-theme', isDark ? 'light' : 'dark');
+}
+(function() {
+  const saved = localStorage.getItem('ks-theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const isDark = saved ? saved === 'dark' : prefersDark;
+  if (isDark) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+  window.addEventListener('DOMContentLoaded', () => {
+    document.querySelector('.theme-toggle').textContent = isDark ? '☀️' : '🌙';
+  });
+})();
+
+// ========== FETCH ==========
+async function fetchCreators() {
+  const url = `${SUPABASE_URL}/rest/v1/ugc_creators?select=*&order=updated_at.desc`;
+  try {
+    const resp = await fetch(url, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      }
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    allCreators = await resp.json();
+  } catch (err) {
+    console.error('Fetch failed', err);
+    document.getElementById('resultsSummary').textContent = `Failed to load creators: ${err.message}`;
+    return;
+  }
+  document.getElementById('lastUpdated').textContent = `Last loaded: ${new Date().toLocaleString('en-GB')}`;
+  populateFilterOptions();
+  renderKpis();
+  applyFilters();
+}
+
+// ========== FILTER OPTIONS ==========
+function uniqueFromArrayField(field) {
+  const set = new Set();
+  allCreators.forEach(c => {
+    const v = c[field];
+    if (Array.isArray(v)) v.forEach(x => x && set.add(x));
+    else if (v) set.add(v);
+  });
+  return Array.from(set).sort();
+}
+
+function populateFilterOptions() {
+  const fillSelect = (id, values) => {
+    const sel = document.getElementById(id);
+    const current = sel.value;
+    const keep = sel.querySelector('option[value=""]').outerHTML;
+    sel.innerHTML = keep + values.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+    sel.value = current;
+  };
+  fillSelect('filterCountry', uniqueFromArrayField('country'));
+  fillSelect('filterEthnicity', uniqueFromArrayField('ethnicity'));
+}
+
+// ========== KPIs ==========
+function renderKpis() {
+  const total = allCreators.length;
+  const active = allCreators.filter(c => c.status === 'in_progress').length;
+  const prospecting = allCreators.filter(c => c.status === 'contacted').length;
+  document.getElementById('kpiTotal').textContent = total;
+  document.getElementById('kpiTotalSub').textContent = total === 1 ? '1 creator in DB' : `${total} creators in DB`;
+  document.getElementById('kpiActive').textContent = active;
+  document.getElementById('kpiProspecting').textContent = prospecting;
+}
+
+// ========== FILTERS ==========
+function applyFilters() {
+  const q = document.getElementById('filterSearch').value.trim().toLowerCase();
+  const status = document.getElementById('filterStatus').value;
+  const country = document.getElementById('filterCountry').value;
+  const ethnicity = document.getElementById('filterEthnicity').value;
+  const age = document.getElementById('filterAge').value;
+  const maxRateRaw = document.getElementById('filterMaxRate').value;
+  const maxRate = maxRateRaw === '' ? null : Number(maxRateRaw);
+
+  filteredCreators = allCreators.filter(c => {
+    if (status && c.status !== status) return false;
+    if (country && c.country !== country) return false;
+    if (ethnicity && c.ethnicity !== ethnicity) return false;
+    if (age && !ageMatches(c, age)) return false;
+    if (maxRate != null && c.rate_min_gbp != null && Number(c.rate_min_gbp) > maxRate) return false;
+    if (q) {
+      const hay = [
+        c.name, c.handle, c.headline, c.location, c.country,
+        (c.past_brands || []).join(' '),
+        (c.niches || []).join(' '),
+        (c.bio_points || []).join(' '),
+        (c.vibe_keywords || []).join(' ')
+      ].join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  sortFiltered();
+  document.getElementById('resultsSummary').textContent =
+    filteredCreators.length === allCreators.length
+      ? `Showing all ${filteredCreators.length} creators`
+      : `Showing ${filteredCreators.length} of ${allCreators.length} creators`;
+  renderCurrentView();
+}
+
+function clearFilters() {
+  document.getElementById('filterSearch').value = '';
+  document.getElementById('filterStatus').value = '';
+  document.getElementById('filterCountry').value = '';
+  document.getElementById('filterEthnicity').value = '';
+  document.getElementById('filterAge').value = '';
+  document.getElementById('filterMaxRate').value = '';
+  applyFilters();
+}
+
+// Age filter: accept either an exact match on age_range, or a numeric `age` that falls in the range.
+function ageMatches(c, selected) {
+  if (!selected) return true;
+  if (c.age_range) {
+    if (c.age_range === selected) return true;
+    // Overlap check for numeric ranges like "25-45" vs selected "25-34"
+    const parse = s => {
+      if (s === '55+') return [55, 999];
+      const m = s.match(/^(\d+)-(\d+)$/);
+      return m ? [Number(m[1]), Number(m[2])] : null;
+    };
+    const a = parse(c.age_range);
+    const b = parse(selected);
+    if (a && b && a[0] <= b[1] && b[0] <= a[1]) return true;
+  }
+  if (c.age != null) {
+    if (selected === '55+') return c.age >= 55;
+    const m = selected.match(/^(\d+)-(\d+)$/);
+    if (m) return c.age >= Number(m[1]) && c.age <= Number(m[2]);
+  }
+  return false;
+}
+
+// ========== SORT ==========
+function sortTable(key) {
+  if (sortKey === key) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  else { sortKey = key; sortDir = 'asc'; }
+  applyFilters();
+}
+
+function sortFiltered() {
+  filteredCreators.sort((a, b) => {
+    let av = a[sortKey];
+    let bv = b[sortKey];
+    if (Array.isArray(av)) av = av.join(',');
+    if (Array.isArray(bv)) bv = bv.join(',');
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    if (typeof av === 'number' && typeof bv === 'number') return sortDir === 'asc' ? av - bv : bv - av;
+    return sortDir === 'asc' ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av));
+  });
+}
+
+// ========== VIEW SWITCH ==========
+function setView(v) {
+  currentView = v;
+  document.getElementById('viewCardsBtn').classList.toggle('active', v === 'cards');
+  document.getElementById('viewTableBtn').classList.toggle('active', v === 'table');
+  document.getElementById('cardGrid').classList.toggle('hidden', v !== 'cards');
+  document.getElementById('tableSection').classList.toggle('visible', v === 'table');
+  renderCurrentView();
+}
+
+function renderCurrentView() {
+  if (currentView === 'cards') renderCards();
+  else renderTable();
+}
+
+// ========== CARD RENDER ==========
+function renderCards() {
+  const grid = document.getElementById('cardGrid');
+  if (!filteredCreators.length) {
+    grid.innerHTML = renderEmpty();
+    return;
+  }
+  grid.innerHTML = filteredCreators.map((c, i) => {
+    const initials = (c.name || '?').split(/\s+/).map(s => s[0]).join('').slice(0, 2).toUpperCase();
+    const avatar = c.profile_image_url
+      ? `<img src="${escapeAttr(c.profile_image_url)}" alt="" onerror="this.style.display='none';this.parentElement.textContent='${initials}'">`
+      : initials;
+    const rateChip = renderRateChip(c);
+    const ageChip = (c.age_range || c.age) ? `<span class="chip chip-age">${escapeHtml(c.age_range || String(c.age))}</span>` : '';
+    const ethnicityChip = c.ethnicity ? `<span class="chip chip-ethnicity">${escapeHtml(shortEthnicity(c.ethnicity))}</span>` : '';
+    const ukChip = c.country === 'GB' || c.country === 'UK' ? '<span class="chip chip-uk">UK</span>' : '';
+    const followers = c.instagram_followers ? formatK(c.instagram_followers) : null;
+    const igMeta = followers ? `<span class="meta-item"><strong>IG</strong> ${followers}</span>` : '';
+    const location = cityOnly(c.location);
+    const socials = [
+      c.instagram_url ? `<a class="social-link" href="${escapeAttr(c.instagram_url)}" target="_blank" onclick="event.stopPropagation()">IG</a>` : '',
+      c.tiktok_url ? `<a class="social-link" href="${escapeAttr(c.tiktok_url)}" target="_blank" onclick="event.stopPropagation()">TT</a>` : '',
+      c.website_url ? `<a class="social-link" href="${escapeAttr(c.website_url)}" target="_blank" onclick="event.stopPropagation()">Web</a>` : '',
+      c.mandy_url ? `<a class="social-link" href="${escapeAttr(c.mandy_url)}" target="_blank" onclick="event.stopPropagation()">Mandy</a>` : ''
+    ].filter(Boolean).join('');
+
+    return `
+      <div class="creator-card" onclick="openModal('${c.id}')">
+        <div class="creator-card-top">
+          <div class="creator-avatar">${avatar}</div>
+          <div class="creator-name-wrap">
+            <div class="creator-name">${escapeHtml(c.name || 'Unnamed')}</div>
+            <div class="creator-handle">${c.handle ? '@' + escapeHtml(c.handle) : ''}</div>
+            ${location ? `<div class="creator-location">${escapeHtml(location)}</div>` : ''}
+            ${socials ? `<div class="creator-links-inline">${socials}</div>` : ''}
+          </div>
+        </div>
+        ${c.headline ? `<div class="creator-headline">${escapeHtml(c.headline)}</div>` : ''}
+        <div class="creator-chips">
+          ${ageChip}
+          ${ethnicityChip}
+          ${ukChip}
+          ${rateChip}
+        </div>
+        <div class="creator-meta">
+          ${renderStatePill(c, 'card')}
+          ${igMeta ? `<span style="margin-left:auto">${igMeta}</span>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Short-form ethnicity for chips (keep tiles clean; full text shows in modal)
+function shortEthnicity(e) {
+  if (!e) return '';
+  return e.replace(/Mixed \((.*)\)/, 'Mixed').replace(/South Asian \/ Indian/, 'South Asian');
+}
+
+// First comma-separated segment of a location string — the city, no country/region.
+function cityOnly(loc) {
+  if (!loc) return '';
+  return loc.split(',')[0].trim();
+}
+
+// ========== STATE PILL / MENU ==========
+const STATE_LABELS = {
+  not_contacted: 'Not contacted',
+  contacted: 'Contacted',
+  in_progress: 'Project in progress',
+  payment_requested: 'Payment requested',
+  complete: 'Complete'
+};
+const STATE_ORDER = ['not_contacted','contacted','in_progress','payment_requested','complete'];
+
+function renderStatePill(c, context) {
+  const state = c.status || 'not_contacted';
+  const date = stateDate(c, state);
+  const dateText = date ? ` <span class="date">· ${formatShortDate(date)}</span>` : '';
+  const dateIso = date ? new Date(date).toISOString().slice(0, 10) : '';
+  const editableState = state !== 'not_contacted';
+  // Card context: pill sits bottom-left, menu should open upward and align left so it doesn't clip.
+  const menuMods = context === 'card' ? ' state-menu--up state-menu--left' : '';
+  return `
+    <div class="state-wrap" onclick="event.stopPropagation(); toggleStateMenu('${context}-${c.id}', '${c.id}')">
+      <button class="state-pill state-${state}" type="button" aria-haspopup="true">
+        ${escapeHtml(STATE_LABELS[state] || state)}${dateText}
+        <span class="caret">▾</span>
+      </button>
+      <div class="state-menu${menuMods}" id="state-menu-${context}-${c.id}" onclick="event.stopPropagation()">
+        ${STATE_ORDER.map(s => `
+          <button type="button" class="${s === state ? 'current' : ''}" onclick="event.stopPropagation(); changeState('${c.id}', '${s}')">
+            <span class="dot dot-${s}"></span>${escapeHtml(STATE_LABELS[s])}
+          </button>
+        `).join('')}
+        ${editableState ? `
+          <div class="date-edit">
+            <label>${escapeHtml(STATE_LABELS[state])} date</label>
+            <input type="date" value="${dateIso}" onchange="event.stopPropagation(); changeStateDate('${c.id}', '${state}', this.value)">
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function stateDate(c, state) {
+  const map = {
+    contacted: c.contacted_at,
+    in_progress: c.in_progress_at,
+    payment_requested: c.payment_requested_at,
+    complete: c.complete_at
+  };
+  return map[state] || null;
+}
+
+function formatShortDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}
+
+function toggleStateMenu(menuKey, creatorId) {
+  document.querySelectorAll('.state-menu.open').forEach(m => {
+    if (m.id !== `state-menu-${menuKey}`) m.classList.remove('open');
+  });
+  const menu = document.getElementById(`state-menu-${menuKey}`);
+  if (menu) menu.classList.toggle('open');
+}
+
+document.addEventListener('click', () => {
+  document.querySelectorAll('.state-menu.open').forEach(m => m.classList.remove('open'));
+});
+
+async function changeState(id, newState) {
+  await callStateRpc('set_creator_state', { p_id: id, p_state: newState }, id);
+}
+
+async function changeStateDate(id, state, yyyyMmDd) {
+  if (!yyyyMmDd) return;
+  // Keep the current time-of-day if there was one, otherwise default to 12:00 so timezone rounding doesn't shift the date.
+  const row = allCreators.find(x => x.id === id);
+  const existing = row ? stateDate(row, state) : null;
+  const iso = existing
+    ? new Date(yyyyMmDd + 'T' + new Date(existing).toISOString().slice(11)).toISOString()
+    : new Date(yyyyMmDd + 'T12:00:00Z').toISOString();
+  await callStateRpc('set_creator_state_date', { p_id: id, p_state: state, p_date: iso }, id);
+}
+
+async function callStateRpc(fnName, body, creatorId) {
+  const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fnName}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(body)
+  });
+  if (!resp.ok) {
+    const txt = await resp.text();
+    alert(`Failed (${fnName}): ${resp.status} ${txt}`);
+    return;
+  }
+  const updated = await resp.json();
+  const newRow = Array.isArray(updated) ? updated[0] : updated;
+  const idx = allCreators.findIndex(x => x.id === creatorId);
+  if (idx >= 0 && newRow) allCreators[idx] = newRow;
+  document.querySelectorAll('.state-menu.open').forEach(m => m.classList.remove('open'));
+  renderKpis();
+  applyFilters();
+  if (document.getElementById('modalOverlay').classList.contains('open')) openModal(creatorId);
+}
+
+function renderRateChip(c) {
+  if (c.rate_min_gbp != null || c.rate_max_gbp != null) {
+    const min = c.rate_min_gbp != null ? Math.round(Number(c.rate_min_gbp)) : null;
+    const max = c.rate_max_gbp != null ? Math.round(Number(c.rate_max_gbp)) : null;
+    const label = min != null && max != null && min !== max ? `£${min}–£${max}`
+                : min != null ? `£${min}`
+                : `£${max}`;
+    return `<span class="chip chip-rate">${label}</span>`;
+  }
+  return '';
+}
+
+function formatK(n) {
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'k';
+  return String(n);
+}
+
+// ========== TABLE RENDER ==========
+function renderTable() {
+  const tbody = document.getElementById('creatorsTableBody');
+  if (!filteredCreators.length) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted)">No creators match the current filters.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = filteredCreators.map(c => `
+    <tr onclick="openModal('${c.id}')">
+      <td>${escapeHtml(c.name || '—')}</td>
+      <td>${c.handle ? '@' + escapeHtml(c.handle) : '—'}</td>
+      <td>${escapeHtml([c.location, c.country].filter(Boolean).join(' · ') || '—')}</td>
+      <td>${escapeHtml((c.niches || []).join(', ') || '—')}</td>
+      <td>${c.instagram_followers ? formatK(c.instagram_followers) : '—'}</td>
+      <td>${c.rate_min_gbp != null ? '£' + Math.round(Number(c.rate_min_gbp)) + (c.rate_max_gbp && c.rate_max_gbp !== c.rate_min_gbp ? '–£' + Math.round(Number(c.rate_max_gbp)) : '') : '—'}</td>
+      <td><span class="state-pill state-${c.status || 'not_contacted'}">${escapeHtml(STATE_LABELS[c.status || 'not_contacted'])}</span></td>
+      <td>${c.updated_at ? new Date(c.updated_at).toLocaleDateString('en-GB') : '—'}</td>
+    </tr>
+  `).join('');
+}
+
+// ========== MODAL ==========
+function openModal(id) {
+  const c = allCreators.find(x => x.id === id);
+  if (!c) return;
+  const initials = (c.name || '?').split(/\s+/).map(s => s[0]).join('').slice(0, 2).toUpperCase();
+  const avatar = c.profile_image_url
+    ? `<img src="${escapeAttr(c.profile_image_url)}" alt="" onerror="this.style.display='none';this.parentElement.textContent='${initials}'">`
+    : initials;
+
+  const field = (label, val, muted) => `
+    <div class="modal-field">
+      <label>${escapeHtml(label)}</label>
+      <div class="val${muted ? ' muted' : ''}">${val}</div>
+    </div>`;
+
+  const arr = (v) => (v && v.length) ? escapeHtml(v.join(', ')) : '<span class="val muted">—</span>';
+  const str = (v) => v ? escapeHtml(String(v)) : '<span class="val muted">—</span>';
+
+  const rate = (c.rate_min_gbp != null || c.rate_max_gbp != null)
+    ? `£${c.rate_min_gbp != null ? Math.round(Number(c.rate_min_gbp)) : '?'}${c.rate_max_gbp != null && c.rate_max_gbp !== c.rate_min_gbp ? '–£' + Math.round(Number(c.rate_max_gbp)) : ''} ${c.rate_currency || 'GBP'}${c.rate_notes ? ' · ' + escapeHtml(c.rate_notes) : ''}`
+    : '<span class="val muted">—</span>';
+
+  const ethnicity = c.ethnicity
+    ? `${escapeHtml(c.ethnicity)}${c.ethnicity_source === 'derived_from_photo' ? ' <span style="font-size:10px;color:var(--text-muted)">(inferred from photo)</span>' : ''}`
+    : '<span class="val muted">—</span>';
+
+  const links = [
+    c.instagram_url ? `<a href="${escapeAttr(c.instagram_url)}" target="_blank">Instagram</a>` : '',
+    c.tiktok_url ? `<a href="${escapeAttr(c.tiktok_url)}" target="_blank">TikTok</a>` : '',
+    c.website_url ? `<a href="${escapeAttr(c.website_url)}" target="_blank">Website</a>` : '',
+    c.mandy_url ? `<a href="${escapeAttr(c.mandy_url)}" target="_blank">Mandy</a>` : '',
+    c.email ? `<a href="mailto:${escapeAttr(c.email)}">${escapeHtml(c.email)}</a>` : '',
+    c.source_url ? `<a href="${escapeAttr(c.source_url)}" target="_blank">Source</a>` : ''
+  ].filter(Boolean).join('');
+
+  document.getElementById('modal').innerHTML = `
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <div class="modal-head">
+      <div class="creator-avatar">${avatar}</div>
+      <div style="flex:1">
+        <h2>${escapeHtml(c.name || 'Unnamed')}</h2>
+        <div class="creator-handle">${c.handle ? '@' + escapeHtml(c.handle) : ''}</div>
+        <div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:6px; align-items:center">
+          ${renderStatePill(c, 'modal')}
+          ${(c.age_range || c.age) ? `<span class="chip chip-age">${escapeHtml(c.age_range || String(c.age))}</span>` : ''}
+          ${c.ethnicity ? `<span class="chip chip-ethnicity">${escapeHtml(shortEthnicity(c.ethnicity))}</span>` : ''}
+          ${c.country === 'GB' || c.country === 'UK' ? '<span class="chip chip-uk">UK</span>' : ''}
+        </div>
+      </div>
+    </div>
+    <div class="modal-body">
+      ${field('Headline', str(c.headline), !c.headline)}
+      ${field('Location', str([c.location, c.country].filter(Boolean).join(' · ') || null), !c.location && !c.country)}
+      ${field('Age', str(c.age || c.age_range), !c.age && !c.age_range)}
+      ${field('Ethnicity', ethnicity, !c.ethnicity)}
+      ${field('Gender', str(c.gender), !c.gender)}
+      ${field('Languages', arr(c.languages), !(c.languages && c.languages.length))}
+      ${field('Rate', rate, !(c.rate_min_gbp || c.rate_max_gbp))}
+      ${field('IG Followers', c.instagram_followers ? formatK(c.instagram_followers) : '<span class="val muted">—</span>', !c.instagram_followers)}
+      ${field('TikTok Followers', c.tiktok_followers ? formatK(c.tiktok_followers) : '<span class="val muted">—</span>', !c.tiktok_followers)}
+      ${field('Engagement Rate', c.instagram_engagement_rate ? (Number(c.instagram_engagement_rate).toFixed(1) + '%') : '<span class="val muted">—</span>', !c.instagram_engagement_rate)}
+
+      <div class="modal-field full"><label>Bio points</label>
+        <div class="val">${(c.bio_points && c.bio_points.length) ? c.bio_points.map(b => '• ' + escapeHtml(b)).join('<br>') : '<span class="val muted">—</span>'}</div>
+      </div>
+      <div class="modal-field full"><label>Niches</label><div class="val">${arr(c.niches)}</div></div>
+      <div class="modal-field full"><label>Content styles</label><div class="val">${arr(c.content_styles)}</div></div>
+      <div class="modal-field full"><label>Vibe</label><div class="val">${arr(c.vibe_keywords)}</div></div>
+      <div class="modal-field"><label>Skin types</label><div class="val">${arr(c.skin_types)}</div></div>
+      <div class="modal-field"><label>Skin concerns</label><div class="val">${arr(c.skin_concerns)}</div></div>
+      <div class="modal-field full"><label>Past brands</label><div class="val">${arr(c.past_brands)}</div></div>
+      <div class="modal-field full"><label>Notes</label><div class="val">${c.notes ? escapeHtml(c.notes) : '<span class="val muted">—</span>'}</div></div>
+    </div>
+    <div class="modal-footer">
+      ${links || '<span class="val muted">No links</span>'}
+      <span style="margin-left:auto">Updated ${c.updated_at ? new Date(c.updated_at).toLocaleString('en-GB') : '—'}</span>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function closeModalOnOverlay(e) {
+  if (e.target.id === 'modalOverlay') closeModal();
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ========== EMPTY STATE ==========
+function renderEmpty() {
+  if (!allCreators.length) {
+    return `
+      <div class="empty-state" style="grid-column: 1 / -1">
+        <h3>No creators saved yet</h3>
+        <p>Paste a Mandy.com or Instagram profile URL in Claude and say <code>save this creator</code>. It'll appear here within a second.</p>
+      </div>`;
+  }
+  return `
+    <div class="empty-state" style="grid-column: 1 / -1">
+      <h3>No matches</h3>
+      <p>No creators match the current filters. Try clearing them.</p>
+    </div>`;
+}
+
+// ========== HELPERS ==========
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function escapeAttr(s) { return escapeHtml(s); }
+
+// ========== BOOT ==========
+fetchCreators();
+</script>
+</body>
+</html>

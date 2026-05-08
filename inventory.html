@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Karmic Skin — Inventory Dashboard</title>
+<link rel="icon" type="image/svg+xml" href="favicon-latest.svg">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<style>
+  :root {
+    --bg-page: #f8f9fa; --bg-card: #ffffff; --bg-card-alt: #f3f4f6; --bg-input: #ffffff;
+    --border: #e5e7eb; --border-hover: #d1d5db;
+    --text-primary: #111827; --text-secondary: #6b7280; --text-muted: #9ca3af; --text-heading: #374151;
+    --pill-bg: #f3f4f6; --pill-border: #e5e7eb; --pill-active-bg: #e5e7eb; --pill-text: #6b7280; --pill-active-text: #111827;
+    --table-header-bg: #f9fafb; --table-border: #f3f4f6; --table-hover: #f9fafb;
+    --accent: #0d9488; --accent-hover: #0f766e;
+    --positive: #16a34a; --negative: #dc2626;
+    --highlight-bg: rgba(168, 85, 247, 0.08); --highlight-text: #7c3aed;
+    --chart-grid: #f3f4f6; --chart-tick: #9ca3af;
+    --status-overdue-bg: rgba(220,38,38,0.12); --status-overdue: #dc2626;
+    --status-urgent-bg: rgba(234,88,12,0.12); --status-urgent: #ea580c;
+    --status-soon-bg: rgba(202,138,4,0.12); --status-soon: #ca8a04;
+    --status-ok-bg: rgba(13,148,136,0.12); --status-ok: #0d9488;
+  }
+  [data-theme="dark"] {
+    --bg-page: #0f1117; --bg-card: #18181b; --bg-card-alt: #1e1e22; --bg-input: #0f1117;
+    --border: #27272a; --border-hover: #3f3f46;
+    --text-primary: #f4f4f5; --text-secondary: #a1a1aa; --text-muted: #71717a; --text-heading: #e4e4e7;
+    --pill-bg: #18181b; --pill-border: #3f3f46; --pill-active-bg: #3f3f46; --pill-text: #a1a1aa; --pill-active-text: #fff;
+    --table-header-bg: #1e1e22; --table-border: #1f1f23; --table-hover: #1e1e22;
+    --accent: #34d399; --accent-hover: #6ee7b7;
+    --positive: #22c55e; --negative: #ef4444;
+    --highlight-bg: rgba(228, 193, 249, 0.15); --highlight-text: #E4C1F9;
+    --chart-grid: #27272a; --chart-tick: #52525b;
+    --status-overdue-bg: rgba(239,68,68,0.18); --status-overdue: #f87171;
+    --status-urgent-bg: rgba(251,146,60,0.18); --status-urgent: #fb923c;
+    --status-soon-bg: rgba(250,204,21,0.18); --status-soon: #facc15;
+    --status-ok-bg: rgba(45,212,191,0.18); --status-ok: #5eead4;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg-page); color: var(--text-primary); min-height: 100vh; }
+  a { color: inherit; text-decoration: none; }
+
+  /* TAB NAV */
+  .nav-bar { background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; gap: 4px; position: sticky; top: 0; z-index: 102; }
+  .nav-tab { padding: 10px 14px; font-size: 13px; color: var(--text-secondary); border-bottom: 2px solid transparent; cursor: pointer; transition: color 0.15s, border-color 0.15s; }
+  .nav-tab:hover { color: var(--text-primary); }
+  .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+
+  /* HEADER */
+  .header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; position: sticky; top: 38px; z-index: 101; background: var(--bg-page); }
+  .header-left h1 { font-size: 18px; font-weight: 600; display: inline; }
+  .header-left .brand { font-size: 11px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-right: 8px; }
+  .last-updated { font-size: 10px; color: var(--text-muted); font-weight: 400; margin-left: 8px; }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+  .icon-btn { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; cursor: pointer; font-size: 13px; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 6px; }
+  .icon-btn:hover { border-color: var(--border-hover); color: var(--text-primary); }
+  .icon-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .icon-btn svg { width: 14px; height: 14px; }
+  .icon-btn.spinning svg { animation: spin 0.6s linear infinite; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .theme-toggle { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; cursor: pointer; font-size: 16px; line-height: 1; }
+  .theme-toggle:hover { border-color: var(--border-hover); }
+
+  /* KPI STRIP */
+  .kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 16px 24px; }
+  .kpi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .kpi-card .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .kpi-card .value { font-size: 20px; font-weight: 700; }
+  .kpi-card .sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .kpi-card.urgent .value { color: var(--status-overdue); }
+  .kpi-card.warn .value { color: var(--status-urgent); }
+  .kpi-card.ok .value { color: var(--status-ok); }
+
+  /* MAIN BODY */
+  .body-section { padding: 0 24px 24px; }
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px 10px; flex-wrap: wrap; gap: 8px; }
+  .card-header h3 { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 0; }
+  .card-header .meta { font-size: 11px; color: var(--text-muted); }
+
+  /* TABLE */
+  .table-scroll { overflow-x: auto; }
+  table.inv-table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+  table.inv-table th { background: var(--table-header-bg); color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10px; padding: 8px 12px; text-align: right; border-bottom: 1px solid var(--border); user-select: none; }
+  table.inv-table th:first-child { text-align: left; }
+  table.inv-table th.sortable { cursor: pointer; }
+  table.inv-table th.sortable:hover { color: var(--text-secondary); }
+  table.inv-table th .sort-arrow { font-size: 9px; margin-left: 3px; opacity: 0.3; }
+  table.inv-table th.sorted .sort-arrow { opacity: 1; color: var(--accent); }
+  table.inv-table td { padding: 8px 12px; text-align: right; border-bottom: 1px solid var(--table-border); color: var(--text-secondary); }
+  table.inv-table td:first-child { text-align: left; font-weight: 600; color: var(--text-primary); }
+  table.inv-table tbody tr:hover td { background: var(--table-hover); }
+  table.inv-table tbody tr.muted td { color: var(--text-muted); }
+
+  /* STATUS PILL */
+  .pill { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 10px; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; }
+  .pill.overdue { background: var(--status-overdue-bg); color: var(--status-overdue); }
+  .pill.urgent  { background: var(--status-urgent-bg);  color: var(--status-urgent);  }
+  .pill.soon    { background: var(--status-soon-bg);    color: var(--status-soon);    }
+  .pill.ok      { background: var(--status-ok-bg);      color: var(--status-ok);      }
+
+  /* TINY SPARKLINE NUMBERS */
+  .trend-chip { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 8px; }
+  .trend-up { background: rgba(13,148,136,0.12); color: var(--status-ok); }
+  .trend-down { background: rgba(202,138,4,0.12); color: var(--status-soon); }
+  .trend-flat { background: var(--bg-card-alt); color: var(--text-muted); }
+
+  /* TREND CHART */
+  .chart-wrap { position: relative; height: 360px; padding: 16px 20px 20px; }
+
+  /* SKU TOGGLES */
+  .sku-toggles { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 20px 12px; }
+  .sku-toggle { background: var(--pill-bg); border: 1px solid var(--pill-border); border-radius: 8px; padding: 4px 10px; font-size: 11px; cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; gap: 4px; }
+  .sku-toggle .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .sku-toggle.active { color: var(--text-primary); border-color: var(--text-primary); }
+
+  /* INFO BLOCK */
+  .info-block { background: var(--bg-card-alt); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; font-size: 12px; line-height: 1.5; color: var(--text-secondary); }
+  .info-block h4 { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .info-block code { font-family: ui-monospace, SFMono-Regular, monospace; font-size: 11px; background: var(--bg-card); padding: 1px 4px; border-radius: 3px; }
+
+  /* AUTH OVERLAY */
+  .auth-overlay { position: fixed; inset: 0; background: rgba(15,17,23,0.95); display: none; align-items: center; justify-content: center; z-index: 1000; }
+  .auth-overlay.show { display: flex; }
+  .auth-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 32px; max-width: 380px; width: 90%; }
+  .auth-box h2 { font-size: 18px; margin-bottom: 8px; color: var(--text-primary); }
+  .auth-box p { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; }
+  .auth-box input { width: 100%; padding: 10px 12px; border: 1px solid var(--border-hover); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 14px; margin-bottom: 12px; }
+  .auth-box button { width: 100%; padding: 10px; border: none; border-radius: 8px; background: var(--accent); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .auth-box button:hover { background: var(--accent-hover); }
+  .auth-box .err { font-size: 12px; color: var(--negative); margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<!-- TAB NAV -->
+<div class="nav-bar">
+  <a class="nav-tab" href="dashboard.html">Shopify</a>
+  <a class="nav-tab" href="amazon.html">Amazon</a>
+  <a class="nav-tab" href="pnl.html">P&amp;L</a>
+  <a class="nav-tab" href="email.html">Email</a>
+  <a class="nav-tab" href="meta.html">Meta</a>
+  <a class="nav-tab active" href="inventory.html">Inventory</a>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <span class="brand">Karmic Skin</span>
+    <h1>Inventory Dashboard</h1>
+    <span class="last-updated" id="lastUpdated">Loading…</span>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" id="refreshBtn" title="Re-sync inventory from Shopify (≈3 sec)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+      <span>Refresh</span>
+    </button>
+    <button class="theme-toggle" id="themeToggle" title="Toggle theme">🌓</button>
+  </div>
+</div>
+
+<!-- AUTH OVERLAY -->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-box">
+    <h2>Sign in</h2>
+    <p>Enter the email on the allowlist. We'll send a magic link.</p>
+    <input type="email" id="authEmail" placeholder="you@karmicskin.com">
+    <button id="authSendBtn">Send magic link</button>
+    <div class="err" id="authErr"></div>
+  </div>
+</div>
+
+<!-- KPI SUMMARY -->
+<div class="kpi-strip">
+  <div class="kpi-card" id="kpi-next-po">
+    <div class="label">Next PO recommended</div>
+    <div class="value">—</div>
+    <div class="sub">SKU & lead-time-aware</div>
+  </div>
+  <div class="kpi-card" id="kpi-highest-risk">
+    <div class="label">Highest-risk SKU</div>
+    <div class="value">—</div>
+    <div class="sub">Lowest days of cover</div>
+  </div>
+  <div class="kpi-card" id="kpi-at-risk">
+    <div class="label">SKUs needing PO</div>
+    <div class="value">—</div>
+    <div class="sub">Within next 30 days</div>
+  </div>
+  <div class="kpi-card" id="kpi-data-fresh">
+    <div class="label">Data freshness</div>
+    <div class="value" style="font-size: 13px">—</div>
+    <div class="sub">Inventory snapshot age</div>
+  </div>
+</div>
+
+<!-- PER-SKU TABLE -->
+<div class="body-section">
+  <div class="card">
+    <div class="card-header">
+      <h3>Per-SKU forecast (lead time = 120 days)</h3>
+      <span class="meta">Bundle-aware. Sales rates include component allocation from bundle orders.</span>
+    </div>
+    <div class="table-scroll">
+      <table class="inv-table" id="invTable">
+        <thead>
+          <tr>
+            <th class="sortable" data-col="product_title">SKU <span class="sort-arrow">▲</span></th>
+            <th class="sortable" data-col="on_hand">Inventory <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-col="rate90" title="Average daily units sold over the trailing 90 days, including bundle component allocation.">90d / day <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-col="rate180" title="Same as 90d but over 180-day window. Compare to 90d to spot acceleration / slowdown.">180d / day <span class="sort-arrow">▼</span></th>
+            <th title="Trailing-trend change. ▲ = 90d rate is &gt;15% faster than 180d (demand accelerating). ▼ = 90d is &gt;15% slower (demand softening).">Trend</th>
+            <th class="sortable sorted" data-col="days_of_cover" title="Inventory ÷ daily rate. Uses the higher of 90d or a stockout-corrected rate to be safe.">Days cover <span class="sort-arrow">▲</span></th>
+            <th class="sortable" data-col="stockout_at" title="Today + days of cover.">Stockout date <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-col="po_due" title="Stockout date − 120 days. The latest you can place a PO and still receive it before stockout.">PO due <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-col="urgency_rank">Status <span class="sort-arrow">▼</span></th>
+          </tr>
+        </thead>
+        <tbody id="invBody"><tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:24px">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- TREND CHART -->
+<div class="body-section">
+  <div class="card">
+    <div class="card-header">
+      <h3>Weekly sales trend (last 26 weeks, bundle-decomposed)</h3>
+      <span class="meta">Click an SKU pill to toggle its line.</span>
+    </div>
+    <div class="sku-toggles" id="skuToggles"></div>
+    <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+  </div>
+</div>
+
+<!-- METHOD NOTES -->
+<div class="body-section">
+  <div class="info-block">
+    <h4>How this dashboard is calculated</h4>
+    <p style="margin-bottom: 10px"><strong>Sales rate per SKU</strong> = direct unit sales + bundle-component allocation (when a bundle is sold, each listed component's count goes up by the bundle's quantity). 90-day window is the primary forecast; 180-day shown alongside for trend comparison.</p>
+    <p style="margin-bottom: 10px"><strong>Days of cover</strong> = current Shopify on-hand ÷ daily rate. <strong>Stockout date</strong> = today + days of cover. <strong>PO due</strong> = stockout date − 120 days lead time. <strong>Status pill</strong> drives off PO due: <span class="pill overdue">Overdue</span> if PO due is in the past · <span class="pill urgent">Urgent</span> if within 30 days · <span class="pill soon">Soon</span> if within 60 days · <span class="pill ok">OK</span> otherwise.</p>
+    <p style="margin-bottom: 10px"><strong>Bundles tracked</strong> (1 bundle sold = 1 unit each component): The Heroes Kit, Dew It Right, Age Confidence, Bright Future, Mama's Glow, Soft Intentions, The Hair Affair Bundle. Component map is in the page source — see <code>BUNDLE_MAP</code> if you need to correct it. Bundle SKUs are hidden from this list per directive (you only see the underlying components).</p>
+    <p style="margin-bottom: 10px"><strong>Why some rates differ between 90d and 180d</strong>: a stockout in the window will lower the rate for that period (Sleepytime Gelly hit zero in late March), and recently-launched products (Featherweight, Maui Waui, Tropic Thunder, Espresso Bar, The One &amp; Only — all launched Sep 2025) won't have a meaningful 180d picture. The dashboard auto-uses the more conservative (faster) of the two when there's a strong divergence.</p>
+    <p><strong>Refresh cadence</strong>: inventory syncs from Shopify hourly via <code>sync-shopify-inventory</code>. Sales data updates with the next webhook + rebuild cycle (every 10 min). Click <strong>Refresh</strong> for an immediate Shopify pull (≈3 sec).</p>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──
+const SUPABASE_URL = 'https://unmkzatppwftnasafhlb.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVubWt6YXRwcHdmdG5hc2FmaGxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDQ5OTIsImV4cCI6MjA4NjU4MDk5Mn0.SYQm1km08xwlJSIf9jq8DXH3Ijxbxqk_LpTRh0PZhD4';
+const AUTH_STORAGE_KEY = 'ks-dashboard-auth';
+const LEAD_TIME_DAYS = 120;
+let USER_JWT = SUPABASE_KEY;
+
+// Bundle composition map. Each bundle sold deducts 1 unit of each component.
+// Sourced from product descriptions where explicit; inferred from name + price math otherwise.
+// EDITABLE — if you change a bundle's contents, update here and refresh.
+const BUNDLE_MAP = {
+  // Explicit in product description
+  'The Heroes Kit':   ['Sunlight Serum', 'Moonlight Serum', 'Pot of Gold'],
+  'Dew It Right':     ['Pot of Gold', 'Moonlight Serum', 'Richie Rich Rich'],
+  'Age Confidence':   ['Pot of Gold', 'Sunlight Serum', 'Moonlight Serum', 'Sleepytime Gelly'],
+  // Inferred from bundle name + price math
+  'Bright Future':    ['Pot of Gold', 'Sunlight Serum', 'Sleepytime Gelly', 'Top of the Morning'],
+  "Mama's Glow":      ['Pot of Gold', 'Sunlight Serum', 'Sleepytime Gelly', 'Richie Rich Rich'],
+  'Soft Intentions':  ['Ruby Dooby Doo', 'Richie Rich Rich', 'Top of the Morning'],
+  'The Hair Affair Bundle': ['Featherweight', 'Espresso Bar', 'The One & Only'],
+};
+// SKUs (component products) we track. Order = display preference (highest-volume first).
+const TRACKED_SKUS = [
+  'Sunlight Serum', 'Moonlight Serum', 'Pot of Gold', 'Sleepytime Gelly',
+  'Top of the Morning', 'Richie Rich Rich', 'Ruby Dooby Doo', 'Clean as a Whistle',
+  'Everyday. No Excuses!', 'Featherweight', 'Maui Waui', 'Tropic Thunder',
+  'The One & Only', 'Espresso Bar',
+];
+// Visual palette for the trend chart
+const SKU_COLORS = {
+  'Sunlight Serum': '#f59e0b',     'Moonlight Serum': '#8b5cf6',
+  'Pot of Gold': '#eab308',        'Sleepytime Gelly': '#3b82f6',
+  'Top of the Morning': '#06b6d4', 'Richie Rich Rich': '#ec4899',
+  'Ruby Dooby Doo': '#dc2626',     'Clean as a Whistle': '#10b981',
+  'Everyday. No Excuses!': '#f97316', 'Featherweight': '#a78bfa',
+  'Maui Waui': '#14b8a6',          'Tropic Thunder': '#22c55e',
+  'The One & Only': '#0ea5e9',     'Espresso Bar': '#92400e',
+};
+
+// ── AUTH (mirrors other dashboards) ──
+(function authBoot() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY) || 'null');
+    if (stored && stored.access_token && stored.expires_at && stored.expires_at > Math.floor(Date.now()/1000)) {
+      USER_JWT = stored.access_token;
+      return;
+    }
+  } catch {}
+  // No valid session — bounce to dashboard.html which has the full sign-in flow.
+  window.location.href = 'dashboard.html';
+})();
+
+// ── THEME ──
+function applyTheme(t) { document.documentElement.dataset.theme = t; localStorage.setItem('ks-theme', t); }
+applyTheme(localStorage.getItem('ks-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+document.getElementById('themeToggle').addEventListener('click', () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
+
+// ── DATA FETCHERS ──
+async function fetchInventory() {
+  const url = `${SUPABASE_URL}/rest/v1/mod_shopify_inventory?status=eq.ACTIVE&select=variant_id,product_title,on_hand,loaded_at`;
+  const r = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${USER_JWT}` } });
+  if (!r.ok) throw new Error(`inv ${r.status}`);
+  return r.json();
+}
+async function fetchSalesWeekly() {
+  const url = `${SUPABASE_URL}/rest/v1/rpc/get_sku_sales_weekly`;
+  const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${USER_JWT}` }, body: JSON.stringify({ weeks_back: 26 }) });
+  if (!r.ok) throw new Error(`sales ${r.status}`);
+  return r.json();
+}
+async function triggerInventorySync() {
+  await fetch(`${SUPABASE_URL}/functions/v1/sync-shopify-inventory`, { headers: { Authorization: `Bearer ${SUPABASE_KEY}` } });
+}
+
+// ── MATH ──
+function fmt(n, d=0) { return n == null || isNaN(n) ? '—' : Number(n).toLocaleString('en-GB', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+function fmtDate(d) { if (!d || !(d instanceof Date) || isNaN(d)) return '—'; return d.toISOString().slice(0,10); }
+function daysBetween(a, b) { return Math.round((b - a) / 86400000); }
+
+// Aggregate weekly sales rows into per-SKU totals for the last 90 / 180 days,
+// applying bundle decomposition: bundle sold → +1 each component.
+function computeRates(weekly) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const cutoff90 = new Date(today); cutoff90.setDate(today.getDate() - 90);
+  const cutoff180 = new Date(today); cutoff180.setDate(today.getDate() - 180);
+
+  // Sum direct units per lineitem_name
+  const direct90 = {}, direct180 = {};
+  for (const row of weekly) {
+    const week = new Date(row.week_start + 'T00:00:00');
+    if (week < cutoff180) continue;
+    const name = row.lineitem_name;
+    direct180[name] = (direct180[name] || 0) + row.units;
+    if (week >= cutoff90) direct90[name] = (direct90[name] || 0) + row.units;
+  }
+
+  // Build per-SKU totals = direct + bundle components
+  const sku90 = {}, sku180 = {};
+  for (const sku of TRACKED_SKUS) {
+    sku90[sku] = direct90[sku] || 0;
+    sku180[sku] = direct180[sku] || 0;
+  }
+  for (const [bundle, components] of Object.entries(BUNDLE_MAP)) {
+    const u90 = direct90[bundle] || 0;
+    const u180 = direct180[bundle] || 0;
+    for (const c of components) {
+      if (sku90[c] !== undefined) { sku90[c] += u90; sku180[c] += u180; }
+    }
+  }
+  return { sku90, sku180, direct90, direct180 };
+}
+
+// Build per-SKU forecast rows
+function buildForecast(inventory, rates) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const invMap = {};
+  for (const r of inventory) invMap[r.product_title] = r;
+
+  const rows = [];
+  for (const sku of TRACKED_SKUS) {
+    const inv = invMap[sku];
+    if (!inv) continue;
+    const u90 = rates.sku90[sku] || 0;
+    const u180 = rates.sku180[sku] || 0;
+    const rate90 = u90 / 90;
+    const rate180 = u180 / 180;
+
+    // Choose primary daily rate: 90d as base, but if 180d is materially higher (>15%)
+    // we use 180d to be safe (suggests recent stockout depressed 90d).
+    const useRate = (rate180 > rate90 * 1.15 && rate180 > 0) ? rate180 : rate90;
+
+    const daysCover = useRate > 0 ? Math.floor(inv.on_hand / useRate) : 99999;
+    const stockoutAt = new Date(today); stockoutAt.setDate(today.getDate() + daysCover);
+    const poDue = new Date(stockoutAt); poDue.setDate(stockoutAt.getDate() - LEAD_TIME_DAYS);
+    const daysToPo = daysBetween(today, poDue);
+
+    let status, urgencyRank;
+    if (daysToPo <= 0)      { status = 'overdue'; urgencyRank = 0; }
+    else if (daysToPo <= 30) { status = 'urgent';  urgencyRank = 1; }
+    else if (daysToPo <= 60) { status = 'soon';    urgencyRank = 2; }
+    else                     { status = 'ok';      urgencyRank = 3; }
+
+    // Trend: 90d rate vs 180d rate
+    let trend = 'flat', trendPct = 0;
+    if (rate180 > 0) {
+      trendPct = (rate90 / rate180 - 1) * 100;
+      if (trendPct > 15) trend = 'up';
+      else if (trendPct < -15) trend = 'down';
+    }
+
+    rows.push({
+      product_title: sku,
+      on_hand: inv.on_hand,
+      rate90, rate180,
+      use_rate: useRate,
+      use_rate_source: useRate === rate180 ? '180d (90d stockout-suppressed)' : '90d',
+      days_of_cover: daysCover,
+      stockout_at: stockoutAt,
+      po_due: poDue,
+      days_to_po: daysToPo,
+      status, urgency_rank: urgencyRank,
+      trend, trendPct,
+      units_90d: u90, units_180d: u180,
+    });
+  }
+  return rows;
+}
+
+// ── RENDER: KPI ──
+function renderKPIs(rows, inventoryMeta) {
+  // Next PO date = earliest po_due among all SKUs (or today if any overdue)
+  const sortedByPo = [...rows].sort((a,b) => a.po_due - b.po_due);
+  const earliest = sortedByPo[0];
+  const nextPoEl = document.getElementById('kpi-next-po');
+  if (earliest) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const daysAway = daysBetween(today, earliest.po_due);
+    let urgencyCls = 'ok';
+    if (daysAway <= 0) urgencyCls = 'urgent';
+    else if (daysAway <= 30) urgencyCls = 'urgent';
+    else if (daysAway <= 60) urgencyCls = 'warn';
+    nextPoEl.className = `kpi-card ${urgencyCls}`;
+    nextPoEl.querySelector('.value').textContent = fmtDate(earliest.po_due);
+    nextPoEl.querySelector('.sub').textContent = `${earliest.product_title} · ${daysAway >= 0 ? `in ${daysAway}d` : `${-daysAway}d overdue`}`;
+  }
+
+  // Highest risk = lowest days of cover
+  const sortedByCover = [...rows].sort((a,b) => a.days_of_cover - b.days_of_cover);
+  const lowest = sortedByCover[0];
+  const riskEl = document.getElementById('kpi-highest-risk');
+  if (lowest) {
+    riskEl.querySelector('.value').textContent = lowest.product_title;
+    riskEl.querySelector('.sub').textContent = `${lowest.days_of_cover} days · ${fmtDate(lowest.stockout_at)} stockout`;
+  }
+
+  // SKUs at risk = need PO within 30 days
+  const atRiskCount = rows.filter(r => r.urgency_rank <= 1).length;
+  const atRiskSoon = rows.filter(r => r.urgency_rank <= 2).length;
+  const atRiskEl = document.getElementById('kpi-at-risk');
+  atRiskEl.className = atRiskCount > 0 ? 'kpi-card urgent' : 'kpi-card ok';
+  atRiskEl.querySelector('.value').textContent = atRiskCount;
+  atRiskEl.querySelector('.sub').textContent = `${atRiskSoon} need PO within 60 days`;
+
+  // Data freshness
+  const freshEl = document.getElementById('kpi-data-fresh');
+  if (inventoryMeta) {
+    const ageMin = (Date.now() - new Date(inventoryMeta).getTime()) / 60000;
+    freshEl.querySelector('.value').textContent = ageMin < 1 ? '<1 min ago' : ageMin < 60 ? `${Math.round(ageMin)} min ago` : `${(ageMin/60).toFixed(1)} h ago`;
+  }
+}
+
+// ── RENDER: TABLE ──
+let tableSortCol = 'days_of_cover';
+let tableSortDir = 'asc';
+let cachedRows = [];
+
+function renderTable() {
+  const rows = [...cachedRows].sort((a, b) => {
+    let va = a[tableSortCol], vb = b[tableSortCol];
+    if (va instanceof Date) va = va.getTime();
+    if (vb instanceof Date) vb = vb.getTime();
+    if (typeof va === 'string') return tableSortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    return tableSortDir === 'asc' ? (va - vb) : (vb - va);
+  });
+
+  document.querySelectorAll('#invTable th[data-col]').forEach(th => {
+    const col = th.dataset.col;
+    th.classList.toggle('sorted', col === tableSortCol);
+    const arrow = th.querySelector('.sort-arrow');
+    if (arrow) arrow.textContent = (col === tableSortCol && tableSortDir === 'asc') ? '▲' : '▼';
+  });
+
+  const tbody = document.getElementById('invBody');
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:24px">No data — inventory may not have synced yet.</td></tr>';
+    return;
+  }
+  const html = rows.map(r => {
+    const trendArrow = r.trend === 'up' ? '▲' : r.trend === 'down' ? '▼' : '—';
+    const trendCls = r.trend === 'up' ? 'trend-up' : r.trend === 'down' ? 'trend-down' : 'trend-flat';
+    const trendText = r.trend === 'flat' ? '—' : `${trendArrow} ${Math.abs(r.trendPct).toFixed(0)}%`;
+    const statusLabel = { overdue: 'Overdue', urgent: 'Urgent', soon: 'Soon', ok: 'OK' }[r.status];
+    return `<tr title="Using ${r.use_rate_source}">
+      <td>${r.product_title}</td>
+      <td>${fmt(r.on_hand)}</td>
+      <td>${fmt(r.rate90, 1)}</td>
+      <td>${fmt(r.rate180, 1)}</td>
+      <td><span class="trend-chip ${trendCls}">${trendText}</span></td>
+      <td>${fmt(r.days_of_cover)}</td>
+      <td>${fmtDate(r.stockout_at)}</td>
+      <td>${fmtDate(r.po_due)}</td>
+      <td><span class="pill ${r.status}">${statusLabel}</span></td>
+    </tr>`;
+  }).join('');
+  tbody.innerHTML = html;
+}
+
+document.querySelectorAll('#invTable th.sortable').forEach(th => {
+  th.addEventListener('click', () => {
+    const col = th.dataset.col;
+    if (tableSortCol === col) tableSortDir = tableSortDir === 'asc' ? 'desc' : 'asc';
+    else { tableSortCol = col; tableSortDir = (col === 'product_title' ? 'asc' : (col === 'urgency_rank' || col === 'days_of_cover' ? 'asc' : 'desc')); }
+    renderTable();
+  });
+});
+
+// ── RENDER: TREND CHART ──
+let chartInst = null;
+const activeSkus = new Set();
+
+function renderTrend(weekly) {
+  // Build {sku → {weekStart → units}} including bundle decomposition
+  const skuByWeek = {};
+  for (const sku of TRACKED_SKUS) skuByWeek[sku] = {};
+  for (const row of weekly) {
+    const w = row.week_start;
+    if (skuByWeek[row.lineitem_name]) skuByWeek[row.lineitem_name][w] = (skuByWeek[row.lineitem_name][w] || 0) + row.units;
+  }
+  for (const [bundle, components] of Object.entries(BUNDLE_MAP)) {
+    for (const row of weekly) {
+      if (row.lineitem_name !== bundle) continue;
+      const w = row.week_start;
+      for (const c of components) {
+        if (skuByWeek[c] !== undefined) skuByWeek[c][w] = (skuByWeek[c][w] || 0) + row.units;
+      }
+    }
+  }
+
+  const allWeeks = [...new Set(weekly.map(r => r.week_start))].sort();
+  const datasets = TRACKED_SKUS.map(sku => ({
+    label: sku,
+    data: allWeeks.map(w => skuByWeek[sku][w] || 0),
+    borderColor: SKU_COLORS[sku] || '#6b7280',
+    backgroundColor: (SKU_COLORS[sku] || '#6b7280') + '20',
+    borderWidth: 2,
+    tension: 0.25,
+    pointRadius: 2,
+    hidden: !activeSkus.has(sku),
+  }));
+
+  const ctx = document.getElementById('trendChart').getContext('2d');
+  if (chartInst) chartInst.destroy();
+  const styles = getComputedStyle(document.documentElement);
+  const tickColor = styles.getPropertyValue('--chart-tick').trim();
+  const gridColor = styles.getPropertyValue('--chart-grid').trim();
+  chartInst = new Chart(ctx, {
+    type: 'line',
+    data: { labels: allWeeks, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { intersect: false, mode: 'index' },
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#111', titleColor: '#fff', bodyColor: '#d1d5db' } },
+      scales: {
+        x: { ticks: { color: tickColor, autoSkip: true, maxTicksLimit: 13 }, grid: { color: gridColor } },
+        y: { ticks: { color: tickColor }, grid: { color: gridColor }, beginAtZero: true },
+      },
+    },
+  });
+
+  // Toggles
+  const togWrap = document.getElementById('skuToggles');
+  togWrap.innerHTML = TRACKED_SKUS.map(sku => `
+    <div class="sku-toggle ${activeSkus.has(sku) ? 'active' : ''}" data-sku="${sku}">
+      <span class="dot" style="background:${SKU_COLORS[sku] || '#6b7280'}"></span>${sku}
+    </div>
+  `).join('');
+  togWrap.querySelectorAll('.sku-toggle').forEach(el => {
+    el.addEventListener('click', () => {
+      const sku = el.dataset.sku;
+      if (activeSkus.has(sku)) activeSkus.delete(sku); else activeSkus.add(sku);
+      renderTrend(weekly);
+    });
+  });
+}
+
+// ── BOOT ──
+async function load() {
+  try {
+    document.getElementById('lastUpdated').textContent = 'Loading…';
+    const [inventory, weekly] = await Promise.all([fetchInventory(), fetchSalesWeekly()]);
+    const rates = computeRates(weekly);
+    const rows = buildForecast(inventory, rates);
+    cachedRows = rows;
+    renderTable();
+    const latest = inventory.reduce((acc, r) => (r.loaded_at > acc ? r.loaded_at : acc), '');
+    renderKPIs(rows, latest);
+    // Default chart: top 4 SKUs by 90d units
+    if (activeSkus.size === 0) {
+      [...rows].sort((a,b) => b.units_90d - a.units_90d).slice(0, 4).forEach(r => activeSkus.add(r.product_title));
+    }
+    renderTrend(weekly);
+    document.getElementById('lastUpdated').textContent = `Refreshed ${new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+  } catch (e) {
+    console.error(e);
+    document.getElementById('lastUpdated').textContent = 'Load error — see console';
+  }
+}
+
+document.getElementById('refreshBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spinning'); btn.disabled = true;
+  try { await triggerInventorySync(); await load(); }
+  finally { btn.classList.remove('spinning'); btn.disabled = false; }
+});
+
+load();
+</script>
+</body>
+</html>

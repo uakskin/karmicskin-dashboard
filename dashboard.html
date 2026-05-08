@@ -240,6 +240,17 @@
   [data-theme="dark"] .analytics-table .highlight-second { background: rgba(228, 193, 249, 0.07); }
   .analytics-table-scroll { max-height: 432px; }
 
+  /* DISCOUNT CODE TABLE — segment-fit pill colors. */
+  .seg-pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; }
+  .seg-acq   { background: rgba(13,148,136,0.15);  color: #0d9488; }
+  .seg-2nd   { background: rgba(168,85,247,0.15);  color: #a855f7; }
+  .seg-loyal { background: rgba(217,119,6,0.15);   color: #d97706; }
+  .seg-mixed { background: rgba(100,116,139,0.15); color: var(--text-muted); }
+  [data-theme="dark"] .seg-acq   { background: rgba(45,212,191,0.18); color: #5eead4; }
+  [data-theme="dark"] .seg-2nd   { background: rgba(196,148,254,0.18); color: #c4b5fd; }
+  [data-theme="dark"] .seg-loyal { background: rgba(251,191,36,0.18); color: #fcd34d; }
+  [data-theme="dark"] .seg-mixed { background: rgba(148,163,184,0.18); color: var(--text-secondary); }
+
   /* INSIGHTS ACCORDION — click an insight row to reveal its detail underneath. */
   .insights-accordion .insight-row { cursor: pointer; }
   .insights-accordion .insight-row td { white-space: normal; }
@@ -329,7 +340,6 @@
 <nav class="page-nav">
   <a href="dashboard.html" class="active">Shopify</a>
   <a href="meta.html">Meta</a>
-  <a href="ugc.html">UGC</a>
   <a href="email.html">Email</a>
   <a href="amazon.html">Amazon</a>
   <a href="pnl.html">P&L</a>
@@ -662,7 +672,37 @@
   </div>
 </div>
 
-<!-- 5. Strategic Insights — synthesised from Shopify orders, Klaviyo skin quiz, and customer data -->
+<!-- 5. Discount Code Performance -->
+<div class="product-analytics-row">
+  <div class="analytics-card" style="flex:1">
+    <div class="analytics-card-header" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <h3>Discount Code Performance <span class="info-tip" data-tip="One row per discount code used in the selected period. Use the segment breakdown (New / 2nd / Loyal) to spot codes being used outside their intended audience. The Acq Repeat % column is the key acquisition-quality signal: of customers whose 1st-ever order used this code, what % came back. Higher = better channel quality.">ⓘ</span></h3>
+      <span style="font-size:11px;color:var(--text-muted);font-weight:400" id="discountDateRange"></span>
+    </div>
+    <div class="analytics-table-scroll" style="overflow-x:auto;max-height:520px;overflow-y:auto">
+      <table class="analytics-table" id="discountTable">
+        <thead>
+          <tr>
+            <th class="sortable" data-col="discount_code">Code <span class="sort-arrow">▲</span></th>
+            <th class="sortable" data-col="segment_fit" title="Auto-label based on usage distribution: a code is 'Acquisition' / '2nd order' / 'Loyalty' if &gt;70% of uses are in that bucket, otherwise 'Mixed'.">Segment fit</th>
+            <th class="sortable sorted" data-col="uses" title="Total orders that used this code in the period.">Uses <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-col="pct_new" title="% of uses where the customer had 0 prior orders (acquisition).">% New <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-col="pct_2nd" title="% of uses where the customer had exactly 1 prior order (re-engagement).">% 2nd <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-col="pct_loyal" title="% of uses where the customer had 2+ prior orders (loyalty).">% Loyal <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-col="aov" title="Avg post-refund order value for orders using this code.">AOV <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-col="revenue" title="Sum of post-refund order value (revenue this code drove).">Revenue <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-col="discount_given" title="Total £ given away as discount via this code.">Discount £ <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-col="discount_pct" title="Avg effective discount % = SUM(discount) ÷ SUM(pre-discount order total).">Discount % <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-col="acq_repeat_rate" title="Of customers whose 1st-ever order used this code, % who placed any later order. The single sharpest acquisition-quality signal. — = no acquisitions in period.">Acq Repeat % <span class="sort-arrow">▼</span></th>
+          </tr>
+        </thead>
+        <tbody id="discountBody"><tr><td colspan="11" style="text-align:center;color:var(--text-muted);padding:20px">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 6. Strategic Insights — synthesised from Shopify orders, Klaviyo skin quiz, and customer data -->
 <div class="product-analytics-row">
   <div class="analytics-card" style="flex:1">
     <div class="analytics-card-header" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
@@ -2038,6 +2078,99 @@ document.querySelectorAll('#categoryPerfTable th[data-ccol]').forEach(th => {
   });
 });
 
+// --- Section 5: Discount Code Performance ---
+let discountSortCol = 'uses';
+let discountSortDir = 'desc';
+let discountRows = [];
+
+function discountSegmentLabel(r) {
+  // Auto-classify: a code is "Acquisition" / "2nd order" / "Loyalty" if >70% of uses are
+  // in that bucket; otherwise "Mixed". Helps user spot codes used outside their intended pool.
+  const n = parseFloat(r.pct_new) || 0;
+  const s = parseFloat(r.pct_2nd) || 0;
+  const l = parseFloat(r.pct_loyal) || 0;
+  if (n >= 70) return { label: 'Acquisition', cls: 'seg-acq' };
+  if (s >= 70) return { label: '2nd order',   cls: 'seg-2nd' };
+  if (l >= 70) return { label: 'Loyalty',     cls: 'seg-loyal' };
+  return { label: 'Mixed', cls: 'seg-mixed' };
+}
+
+async function fetchDiscountCodePerformance() {
+  const dates = getProductAnalyticsDates();
+  try {
+    const range = document.getElementById('discountDateRange');
+    if (range) range.textContent = `${dates.from_date} → ${dates.to_date}`;
+    const data = await rpcCall('get_discount_code_performance', dates);
+    discountRows = Array.isArray(data) ? data.map(r => ({
+      ...r,
+      uses: parseInt(r.uses) || 0,
+      customers: parseInt(r.customers) || 0,
+      pct_new: parseFloat(r.pct_new) || 0,
+      pct_2nd: parseFloat(r.pct_2nd) || 0,
+      pct_loyal: parseFloat(r.pct_loyal) || 0,
+      aov: parseFloat(r.aov) || 0,
+      revenue: parseFloat(r.revenue) || 0,
+      discount_given: parseFloat(r.discount_given) || 0,
+      discount_pct: parseFloat(r.discount_pct) || 0,
+      acq_repeat_rate: r.acq_repeat_rate === null ? null : parseFloat(r.acq_repeat_rate),
+      _segment: discountSegmentLabel(r),
+    })) : [];
+    renderDiscountTable();
+  } catch (e) { console.error('Discount fetch error:', e); }
+}
+
+function renderDiscountTable() {
+  const rows = [...discountRows].sort((a, b) => {
+    let va = a[discountSortCol], vb = b[discountSortCol];
+    if (discountSortCol === 'segment_fit') { va = a._segment.label; vb = b._segment.label; }
+    if (va === null && vb === null) return 0;
+    if (va === null) return 1;   // nulls always sink to bottom
+    if (vb === null) return -1;
+    if (typeof va === 'string') return discountSortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    return discountSortDir === 'asc' ? (va - vb) : (vb - va);
+  });
+
+  document.querySelectorAll('#discountTable th[data-col]').forEach(th => {
+    const col = th.dataset.col;
+    th.classList.toggle('sorted', col === discountSortCol);
+    const arrow = th.querySelector('.sort-arrow');
+    if (arrow) arrow.textContent = (col === discountSortCol && discountSortDir === 'asc') ? '▲' : '▼';
+  });
+
+  const fmtPct = v => v.toFixed(0) + '%';
+  const fmtMoney = v => '£' + Math.round(v).toLocaleString();
+  let html = '';
+  for (const r of rows) {
+    const seg = r._segment;
+    const acqCell = r.acq_repeat_rate === null
+      ? '<span style="color:var(--text-muted)">—</span>'
+      : fmtPct(r.acq_repeat_rate);
+    html += `<tr>
+      <td style="text-align:left;font-weight:600;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px">${escHtml(r.discount_code)}</td>
+      <td><span class="seg-pill ${seg.cls}">${seg.label}</span></td>
+      <td>${r.uses.toLocaleString()}</td>
+      <td>${fmtPct(r.pct_new)}</td>
+      <td>${fmtPct(r.pct_2nd)}</td>
+      <td>${fmtPct(r.pct_loyal)}</td>
+      <td>${fmtMoney(r.aov)}</td>
+      <td>${fmtMoney(r.revenue)}</td>
+      <td>${fmtMoney(r.discount_given)}</td>
+      <td>${r.discount_pct.toFixed(1)}%</td>
+      <td>${acqCell}</td>
+    </tr>`;
+  }
+  document.getElementById('discountBody').innerHTML = html || '<tr><td colspan="11" style="text-align:center;color:var(--text-muted);padding:20px">No discount codes used in selected period</td></tr>';
+}
+
+document.querySelectorAll('#discountTable th.sortable').forEach(th => {
+  th.addEventListener('click', () => {
+    const col = th.dataset.col;
+    if (discountSortCol === col) discountSortDir = discountSortDir === 'desc' ? 'asc' : 'desc';
+    else { discountSortCol = col; discountSortDir = 'desc'; }
+    renderDiscountTable();
+  });
+});
+
 // --- Fetch all product analytics ---
 async function fetchProductAnalytics() {
   await Promise.all([
@@ -2046,6 +2179,7 @@ async function fetchProductAnalytics() {
     fetchCategoryPerformance(),
     fetchDayOfWeek(),
     fetchCohortRetention(),
+    fetchDiscountCodePerformance(),
   ]);
 }
 

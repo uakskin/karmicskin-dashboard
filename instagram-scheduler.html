@@ -443,7 +443,8 @@ tbody tr:hover { background: var(--surface-2); }
 // ====================================================================
 const SUPABASE_URL = 'https://unmkzatppwftnasafhlb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVubWt6YXRwcHdmdG5hc2FmaGxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDQ5OTIsImV4cCI6MjA4NjU4MDk5Mn0.SYQm1km08xwlJSIf9jq8DXH3Ijxbxqk_LpTRh0PZhD4';
-const AUTH_STORAGE_KEY = 'ig_studio_auth';
+// Same key the Karmic dashboards use — one portal login covers this page too.
+const AUTH_STORAGE_KEY = 'ks-dashboard-auth';
 const CAPTION_LIMIT = 2200;
 const POLL_MS = 15000;
 let USER_JWT = SUPABASE_KEY;

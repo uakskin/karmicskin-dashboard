@@ -182,30 +182,12 @@
   }
   .dd-cap { font-size:11.5px; color:var(--muted); line-height:1.5; }
 
-  /* grounds demo */
-  .grounds { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0; }
-  @media (max-width:620px){ .grounds { grid-template-columns:1fr; } }
-  .gd { border-radius:12px; padding:26px 24px; }
-  .gd.light { background:var(--porcelain); border:1px solid var(--line); }
-  .gd.dark  { background:var(--carbon); border:1px solid var(--line-dark); }
-  .gd .gd-h { font-family:'Domine',serif; font-size:21px; font-weight:600; }
-  .gd.light .gd-h { color:var(--carbon); }
-  .gd.dark  .gd-h { color:var(--porcelain); }
-  .gd .gd-b { font-size:13px; margin-top:7px; }
-  .gd.light .gd-b { color:var(--muted); }
-  .gd.dark  .gd-b { color:#A7A39A; }
-  .gd .gd-row { display:flex; gap:9px; align-items:center; margin-top:16px; flex-wrap:wrap; }
-  .mini-cta {
-    background:var(--red); color:#fff; font-family:'Montserrat',sans-serif;
-    font-weight:700; font-size:12.5px; padding:9px 18px; border-radius:9px; border:none;
-  }
-  .mini-badge {
-    background:var(--amber); color:var(--carbon); font-size:10px; font-weight:700;
-    letter-spacing:0.06em; text-transform:uppercase; padding:5px 10px; border-radius:100px;
-  }
-  .gd-cap { font-size:11.5px; margin-top:14px; }
-  .gd.light .gd-cap { color:var(--muted); }
-  .gd.dark  .gd-cap { color:#8E8A82; }
+  /* backgrounds trio */
+  .bg-trio { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:16px 0; }
+  @media (max-width:620px){ .bg-trio { grid-template-columns:1fr; } }
+  .bgp { border-radius:12px; padding:24px 22px; }
+  .bgp-h { font-family:'Domine',serif; font-size:20px; font-weight:600; }
+  .bgp-b { font-size:13px; margin-top:7px; line-height:1.55; }
 
   /* shared demo bits */
   .r-demo {
@@ -455,7 +437,7 @@ body { padding-left: 208px; }
       </div>
       <div class="pal-block">
         <div class="pal-swatch" style="background:#232526"><span class="hex on-dark">#232526</span></div>
-        <div class="pal-meta"><div class="nm">Carbon Black</div><div class="role"><b>Ink, and the dark ground.</b> The colour of the product itself — the matte cap.</div></div>
+        <div class="pal-meta"><div class="nm">Carbon Black</div><div class="role"><b>Ink — never a background.</b> All type, lines and icons. Also the product's own colour: the matte cap.</div></div>
       </div>
       <div class="pal-block">
         <div class="pal-swatch" style="background:#D8DAC1"><span class="hex on-light">#D8DAC1</span></div>
@@ -538,25 +520,25 @@ body { padding-left: 208px; }
         <p class="r-text">They never compete, because they work on different layers. <b>Carbon is foreground</b> — the detail you read. <b>Green is background</b> — the surface you read against. One is a pen; the other is a wall. Carbon also has the strongest contrast on Porcelain, which is why it earns every word of text. And green is kept to fields precisely so it stays rare — a green surface should feel like a deliberate moment, not wallpaper.</p>
       </div>
 
-      <!-- TWO GROUNDS -->
+      <!-- BACKGROUNDS -->
       <div class="rule">
-        <div class="r-label">Porcelain + Carbon Black · two grounds</div>
-        <h3>Two canvases — light, and the product's own black</h3>
-        <div class="grounds">
-          <div class="gd light">
-            <div class="gd-h">Porcelain</div>
-            <div class="gd-b">The default. Calm, warm, editorial. Most pages, most of the time.</div>
-            <div class="gd-row"><button class="mini-cta">Add to Cart</button><span class="mini-badge">Bestseller</span></div>
-            <div class="gd-cap">Carbon type · accents pop warm</div>
+        <div class="r-label">Porcelain · Sand Dune · Dark Green · the only backgrounds</div>
+        <h3>Three backgrounds — and Carbon is never one</h3>
+        <div class="bg-trio">
+          <div class="bgp" style="background:#F6F5F0; border:1px solid var(--line);">
+            <div class="bgp-h" style="color:var(--carbon);">Porcelain</div>
+            <div class="bgp-b" style="color:var(--muted);">The default. Calm and light — almost every surface, almost all of the time.</div>
           </div>
-          <div class="gd dark">
-            <div class="gd-h">Carbon Black</div>
-            <div class="gd-b">The alternate. Dramatic and product-forward — the matte-black cap, scaled up.</div>
-            <div class="gd-row"><button class="mini-cta">Add to Cart</button><span class="mini-badge">Bestseller</span></div>
-            <div class="gd-cap">Porcelain type · accents pop brighter</div>
+          <div class="bgp" style="background:#D8DAC1; border:1px solid #C9CBB3;">
+            <div class="bgp-h" style="color:var(--carbon);">Sand Dune</div>
+            <div class="bgp-b" style="color:#5F6353;">A tint. The occasional section band, to give a long page rhythm.</div>
+          </div>
+          <div class="bgp" style="background:#2F5350;">
+            <div class="bgp-h" style="color:var(--porcelain);">Dark Green</div>
+            <div class="bgp-b" style="color:#C7D2CD;">A field. A panel or section meant to feel unmistakably Karmic.</div>
           </div>
         </div>
-        <p class="r-text">Carbon is not only ink — it is a <b>full ground</b> in its own right. Because the product is matte black, a black canvas is the brand showing its own object. Use it for product-led and social work — Instagram especially. On Porcelain, type is Carbon; on Carbon, type flips to Porcelain. Red and amber carry across both. Green fields sit on either. The grounds are a choice of mood — light is the everyday, Carbon is the statement.</p>
+        <p class="r-text">Every surface is one of these three, and only these three. <b>Carbon Black is never a background.</b> It is ink — and it is the product's own colour, the matte-black cap. So Carbon is everywhere in the photography, as the product itself, but the canvas behind the product is always Porcelain, Sand or Green. Black is what you shoot, not what you shoot it on.</p>
       </div>
 
       <!-- RED -->
@@ -598,24 +580,24 @@ body { padding-left: 208px; }
         <p class="r-text">Amber works as a <b>mark</b> — an underline, a highlighter wash, a badge, a fill. Dark type sits on it, never in it. When you genuinely need gold on the letters themselves, that is the one job of <b>Deep Ochre</b> — and only at large display size.</p>
       </div>
 
-      <!-- RESTRAINT / 60-30-10 -->
+      <!-- RESTRAINT -->
       <div class="rule">
-        <div class="r-label">The balance · restraint made measurable</div>
-        <h3>Roughly 60 / 30 / 10</h3>
+        <div class="r-label">The balance · restraint, made visible</div>
+        <h3>Most of every page is Porcelain</h3>
         <div class="balance">
-          <div style="background:#F6F5F0; color:#232526; flex:60">60 · Ground</div>
-          <div style="background:#232526; color:#F6F5F0; flex:30">30 · Ink &amp; structure</div>
-          <div style="background:#2F5350; color:#F6F5F0; flex:7">7</div>
-          <div style="background:#B22222; flex:1.5"></div>
-          <div style="background:#EFA71D; flex:1.5"></div>
+          <div style="background:#F6F5F0; color:#232526; flex:72; border-right:1px solid var(--line)">72 · Porcelain</div>
+          <div style="background:#D8DAC1; color:#232526; flex:13">13 · Sand</div>
+          <div style="background:#2F5350; color:#F6F5F0; flex:11">11 · Green</div>
+          <div style="background:#B22222; flex:2"></div>
+          <div style="background:#EFA71D; flex:2"></div>
         </div>
         <div class="bl-key">
-          <span><i style="background:#F6F5F0;border:1px solid var(--line)"></i> Ground — Porcelain or Carbon</span>
-          <span><i style="background:#232526"></i> Ink &amp; structure — Carbon, lines, Sand</span>
-          <span><i style="background:#2F5350"></i> Brand green field</span>
-          <span><i style="background:#B22222"></i> + <i style="background:#EFA71D"></i> Accents</span>
+          <span><i style="background:#F6F5F0;border:1px solid var(--line)"></i> Porcelain — the default ground</span>
+          <span><i style="background:#D8DAC1"></i> Sand Dune — occasional tint bands</span>
+          <span><i style="background:#2F5350"></i> Dark Green — brand fields</span>
+          <span><i style="background:#B22222"></i> + <i style="background:#EFA71D"></i> Accents — slivers</span>
         </div>
-        <p class="r-text" style="margin-top:14px;">A guide, not a ruler. Most of any screen is neutral — ground and ink. The brand green is a small share, and the accents together are barely a sliver. If a layout feels loud, it has almost always crossed the 10.</p>
+        <p class="r-text" style="margin-top:14px;">This is the share of <b>surface</b> a typical layout gives each background. Porcelain dominates; Sand and Green are occasional; the accents are barely a sliver. Carbon is not on the bar — it is ink, layered over everything as type, never a surface of its own. If a layout feels loud, a colour has taken more than its share.</p>
       </div>
 
     </div>

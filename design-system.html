@@ -22,7 +22,6 @@
     --amber:      #EFA71D;
     --ochre:      #9A6F15;
     --line:       #E5E0D4;
-    --line-dark:  #3A3C3E;
     --muted:      #7C776B;
   }
 
@@ -54,7 +53,7 @@
     padding:4px 10px; border-radius:100px;
   }
   .sec-tag.locked { background:var(--green); color:var(--porcelain); }
-  .sec-tag.proposed { background:#FBEAC6; color:var(--ochre); }
+  .sec-tag.proposed { background:var(--sand); color:var(--ochre); }
   .section-title { font-size:clamp(26px,4vw,36px); margin-top:11px; }
   .accent-rule { width:48px; height:4px; background:var(--amber); border-radius:2px; margin-top:16px; }
   .section-intro { margin-top:17px; color:var(--muted); max-width:700px; font-size:15px; }
@@ -99,7 +98,7 @@
 
   /* ========== COLOUR PALETTE ========== */
   .pal-grid {
-    display:grid; grid-template-columns:repeat(auto-fill,minmax(158px,1fr)); gap:14px;
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:14px;
   }
   .pal-swatch {
     height:148px; border-radius:14px; border:1px solid rgba(0,0,0,0.06);
@@ -372,7 +371,7 @@ body { padding-left: 208px; }
     <p class="lead">The working reference for how Karmic Skin is built — colour, type, space, and the components every surface shares. Each rule is here so the same decision is made the same way every time.</p>
     <div class="legend">
       <span><i style="background:var(--green)"></i> Locked — settled, build to it</span>
-      <span><i style="background:#FBEAC6"></i> Proposed — recommended, awaiting sign-off</span>
+      <span><i style="background:var(--sand)"></i> Proposed — recommended, awaiting sign-off</span>
     </div>
   </div>
 </header>
@@ -391,8 +390,8 @@ body { padding-left: 208px; }
       <div class="tier">
         <div class="t-num">Tier 1</div>
         <h4>Neutrals build</h4>
-        <p>Porcelain, Carbon and Sand. They make the page — ground, ink and quiet bands. They carry no signal on their own; they are the stage.</p>
-        <div class="t-swatch"><span style="background:#F6F5F0"></span><span style="background:#D8DAC1"></span><span style="background:#232526"></span></div>
+        <p>The full neutral set — ground, surface, tint, hairline and two weights of ink. They make the page and carry no signal of their own; they are the stage.</p>
+        <div class="t-swatch"><span style="background:#F6F5F0"></span><span style="background:#FFFFFF"></span><span style="background:#D8DAC1"></span><span style="background:#E5E0D4"></span><span style="background:#7C776B"></span><span style="background:#232526"></span></div>
       </div>
       <div class="tier">
         <div class="t-num">Tier 2</div>
@@ -424,7 +423,7 @@ body { padding-left: 208px; }
   <div class="wrap">
     <div class="section-head">
       <div class="eyebrow-row"><span class="eyebrow">02 · Colour</span><span class="sec-tag locked">Locked</span></div>
-      <h2 class="section-title">Seven colours, sorted by what they do</h2>
+      <h2 class="section-title">Ten colours, sorted by what they do</h2>
       <div class="accent-rule"></div>
       <p class="section-intro">Grouped by tier, not by hue. The tier a colour sits in tells you how to use it before you ever reach for a hex.</p>
     </div>
@@ -436,12 +435,24 @@ body { padding-left: 208px; }
         <div class="pal-meta"><div class="nm">Porcelain</div><div class="role"><b>Ground.</b> The default light canvas.</div></div>
       </div>
       <div class="pal-block">
-        <div class="pal-swatch" style="background:#232526"><span class="hex on-dark">#232526</span></div>
-        <div class="pal-meta"><div class="nm">Carbon Black</div><div class="role"><b>Ink — never a background.</b> All type, lines and icons. Also the product's own colour: the matte cap.</div></div>
+        <div class="pal-swatch" style="background:#FFFFFF"><span class="hex on-light">#FFFFFF</span></div>
+        <div class="pal-meta"><div class="nm">White</div><div class="role"><b>Surface.</b> Cards and panels that lift off the Porcelain ground.</div></div>
       </div>
       <div class="pal-block">
         <div class="pal-swatch" style="background:#D8DAC1"><span class="hex on-light">#D8DAC1</span></div>
-        <div class="pal-meta"><div class="nm">Sand Dune</div><div class="role"><b>Tint.</b> Quiet bands that give a long page rhythm.</div></div>
+        <div class="pal-meta"><div class="nm">Sand Dune</div><div class="role"><b>Tint.</b> Quiet section bands that give a long page rhythm.</div></div>
+      </div>
+      <div class="pal-block">
+        <div class="pal-swatch" style="background:#E5E0D4"><span class="hex on-light">#E5E0D4</span></div>
+        <div class="pal-meta"><div class="nm">Line</div><div class="role"><b>Hairline.</b> Borders and dividers — structure without shadow.</div></div>
+      </div>
+      <div class="pal-block">
+        <div class="pal-swatch" style="background:#7C776B"><span class="hex on-dark">#7C776B</span></div>
+        <div class="pal-meta"><div class="nm">Muted</div><div class="role"><b>Secondary text.</b> Intros, captions and labels — what steps back from the headline. Lightens on Sand and Green fields to hold contrast.</div></div>
+      </div>
+      <div class="pal-block">
+        <div class="pal-swatch" style="background:#232526"><span class="hex on-dark">#232526</span></div>
+        <div class="pal-meta"><div class="nm">Carbon Black</div><div class="role"><b>Ink — never a background.</b> All type, lines and icons. Also the product's own colour: the matte cap.</div></div>
       </div>
     </div>
 
@@ -469,6 +480,7 @@ body { padding-left: 208px; }
       </div>
     </div>
 
+    <p class="retired-note">Hover &amp; pressed states — Brick Red and Dark Green darken to <b>#8E1B1B</b> and <b>#233F3D</b>. With the field-adjusted Muted noted above, those are the only tones the system uses beyond the ten colours here.</p>
     <p class="retired-note">Retired — burgundy <b>#8B1A2B</b> and teal <b>#0D9488</b>. One red is enough, and the system carries no colour without a job.</p>
   </div>
 </section>

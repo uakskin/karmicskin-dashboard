@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Karmic Skin · Instagram Studio</title>
+<style>
+/* ========== THEME ========== */
+:root {
+  --bg: #f4f4ef; --surface: #ffffff; --surface-2: #faf9f5;
+  --text: #2a2a2a; --muted: #8a8a82; --border: #e7e6df;
+  --brand: #2F5350; --brand-2: #3d6d68; --accent: #c79a3e;
+  --blue: #3060c5; --green: #2d7a3e; --red: #c5403a; --amber: #b9842b; --purple: #6a4ca8;
+  --shadow: 0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.04);
+}
+html[data-theme="dark"] {
+  --bg: #15201f; --surface: #1e2c2a; --surface-2: #233331;
+  --text: #e9e9e3; --muted: #97a3a0; --border: #324340;
+  --brand: #6db3aa; --brand-2: #5aa098; --accent: #d8b35e;
+  --shadow: 0 1px 3px rgba(0,0,0,.3);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5;
+}
+button { font-family: inherit; cursor: pointer; }
+input, textarea, select { font-family: inherit; font-size: 14px; }
+a { color: var(--brand); }
+
+/* ========== AUTH OVERLAY ========== */
+#authOverlay {
+  position: fixed; inset: 0; background: var(--bg); z-index: 1000;
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+}
+.auth-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  box-shadow: var(--shadow); padding: 36px 32px; width: 100%; max-width: 380px; text-align: center;
+}
+.auth-card h1 { font-size: 19px; color: var(--brand); margin-bottom: 6px; }
+.auth-card p.sub { color: var(--muted); font-size: 13px; margin-bottom: 22px; }
+.auth-card input {
+  width: 100%; padding: 11px 13px; border: 1px solid var(--border); border-radius: 9px;
+  background: var(--surface-2); color: var(--text); margin-bottom: 12px;
+}
+.btn-primary {
+  background: var(--brand); color: #fff; border: none; border-radius: 9px;
+  padding: 11px 18px; font-weight: 600; font-size: 14px;
+}
+.btn-primary:hover { background: var(--brand-2); }
+.btn-primary:disabled { opacity: .55; cursor: default; }
+.auth-card .btn-primary { width: 100%; }
+#authMsg { font-size: 12.5px; margin-top: 12px; min-height: 18px; }
+#authMsg.error { color: var(--red); }
+#authMsg.info  { color: var(--muted); }
+.auth-hidden { display: none !important; }
+.link-btn { background: none; border: none; color: var(--brand); font-size: 12.5px; text-decoration: underline; margin-top: 10px; }
+
+/* ========== SHELL ========== */
+#app { display: none; }
+header {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 12px 22px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  position: sticky; top: 0; z-index: 50;
+}
+header .brand { font-weight: 700; color: var(--brand); font-size: 16px; }
+header .acct { color: var(--muted); font-size: 12.5px; }
+header .spacer { flex: 1; }
+.icon-btn {
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 7px 11px; color: var(--text); font-size: 12.5px;
+}
+.icon-btn:hover { border-color: var(--brand); }
+.tabs { display: flex; gap: 4px; padding: 10px 18px 0; background: var(--surface); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.tab {
+  background: none; border: none; padding: 9px 15px; font-size: 13.5px; font-weight: 600;
+  color: var(--muted); border-bottom: 2.5px solid transparent;
+}
+.tab.active { color: var(--brand); border-bottom-color: var(--brand); }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 22px; }
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ========== CARDS / FORM ========== */
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: var(--shadow); padding: 18px; margin-bottom: 16px;
+}
+.card h2 { font-size: 15px; color: var(--brand); margin-bottom: 4px; }
+.card .hint { color: var(--muted); font-size: 12.5px; margin-bottom: 14px; }
+label.field { display: block; margin-bottom: 14px; position: relative; }
+label.field > .lbl { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 5px; }
+label.field > .lbl-row { display: flex; justify-content: space-between; align-items: center; }
+input[type=text], input[type=datetime-local], textarea, select {
+  width: 100%; padding: 9px 11px; border: 1px solid var(--border); border-radius: 8px;
+  background: var(--surface-2); color: var(--text);
+}
+textarea { resize: vertical; min-height: 70px; }
+.row { display: flex; gap: 12px; flex-wrap: wrap; }
+.row > * { flex: 1; min-width: 200px; }
+.hidden { display: none !important; }
+
+/* segmented toggle */
+.seg { display: inline-flex; background: var(--surface-2); border: 1px solid var(--border); border-radius: 9px; padding: 3px; gap: 3px; flex-wrap: wrap; }
+.seg button { background: none; border: none; padding: 7px 14px; border-radius: 7px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.seg button.on { background: var(--brand); color: #fff; }
+.seg.type button.on { background: var(--accent); color: #1a1a1a; }
+
+.mode-note { font-size: 12.5px; padding: 9px 12px; border-radius: 8px; margin: 6px 0 14px; }
+.mode-note.api { background: rgba(48,96,197,.09); color: var(--blue); }
+.mode-note.manual { background: rgba(106,76,168,.1); color: var(--purple); }
+
+/* media dropzone */
+.dropzone {
+  border: 2px dashed var(--border); border-radius: 10px; padding: 22px; text-align: center;
+  color: var(--muted); font-size: 13px; background: var(--surface-2); cursor: pointer;
+}
+.dropzone:hover, .dropzone.drag { border-color: var(--brand); color: var(--brand); }
+.thumbs { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+.thumb { position: relative; width: 100px; height: 100px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); background: var(--surface-2); }
+.thumb img, .thumb video { width: 100%; height: 100%; object-fit: cover; }
+.thumb .rm { position: absolute; top: 3px; right: 3px; background: rgba(0,0,0,.62); color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; line-height: 1; }
+.thumb .ord { position: absolute; top: 3px; left: 3px; background: rgba(0,0,0,.62); color: #fff; font-size: 9.5px; border-radius: 4px; padding: 1px 5px; font-weight: 700; }
+.thumb .mvbar { position: absolute; bottom: 0; left: 0; right: 0; display: flex; }
+.thumb .mvbar button { flex: 1; background: rgba(0,0,0,.62); color: #fff; border: none; font-size: 11px; padding: 3px 0; }
+.thumb .mvbar button:disabled { opacity: .3; }
+
+/* chips */
+.chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.chip { background: var(--surface-2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; font-size: 12px; display: inline-flex; gap: 5px; align-items: center; }
+.chip button { background: none; border: none; color: var(--muted); font-size: 13px; }
+.counter { font-size: 11.5px; color: var(--muted); text-align: right; margin-top: 3px; }
+.counter.over { color: var(--red); }
+.help { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+
+/* emoji */
+.emoji-trigger { background: var(--surface-2); border: 1px solid var(--border); border-radius: 7px; padding: 2px 8px; font-size: 13px; }
+.emoji-trigger:hover { border-color: var(--brand); }
+.emoji-pop { position: fixed; z-index: 300; width: 296px; background: var(--surface); border: 1px solid var(--border); border-radius: 11px; box-shadow: 0 10px 36px rgba(0,0,0,.28); padding: 10px; }
+.emoji-pop input { width: 100%; margin-bottom: 8px; }
+.emoji-grid { display: grid; grid-template-columns: repeat(8,1fr); gap: 1px; max-height: 216px; overflow-y: auto; }
+.emoji-grid button { background: none; border: none; font-size: 19px; padding: 4px 0; border-radius: 6px; line-height: 1; }
+.emoji-grid button:hover { background: var(--surface-2); }
+.emoji-empty { grid-column: 1/-1; color: var(--muted); font-size: 12px; padding: 16px; text-align: center; }
+
+/* location results */
+.loc-results { border: 1px solid var(--border); border-radius: 8px; margin-top: 4px; max-height: 180px; overflow-y: auto; background: var(--surface); position: relative; z-index: 20; }
+.loc-results div { padding: 7px 11px; font-size: 13px; cursor: pointer; border-bottom: 1px solid var(--border); }
+.loc-results div:hover { background: var(--surface-2); }
+
+/* badges */
+.badge { display: inline-block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; padding: 2px 7px; border-radius: 5px; }
+.b-draft{background:#e8e8e2;color:#666;} .b-scheduled{background:rgba(48,96,197,.13);color:var(--blue);}
+.b-processing{background:rgba(185,132,43,.15);color:var(--amber);} .b-published{background:rgba(45,122,62,.13);color:var(--green);}
+.b-failed{background:rgba(197,64,58,.13);color:var(--red);} .b-cancelled{background:#e8e8e2;color:#999;}
+.b-planned{background:rgba(106,76,168,.13);color:var(--purple);}
+.b-api{background:rgba(48,96,197,.1);color:var(--blue);} .b-manual{background:rgba(106,76,168,.12);color:var(--purple);}
+html[data-theme="dark"] .b-draft,html[data-theme="dark"] .b-cancelled{background:#33403e;color:#aab;}
+
+/* ========== GRID PLANNER ========== */
+.grid-head { display: flex; gap: 16px; flex-wrap: wrap; align-items: baseline; margin-bottom: 6px; }
+.grid-head h2 { font-size: 15px; color: var(--brand); }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11.5px; color: var(--muted); margin-bottom: 12px; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.swatch { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+.ig-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 3px; max-width: 540px; }
+.cell { position: relative; aspect-ratio: 1; background: var(--surface-2); border: 1px solid var(--border); overflow: hidden; cursor: pointer; }
+.cell img, .cell video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ph { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 28px; color: var(--muted); }
+.cell.sched-api { outline: 3px solid var(--blue); outline-offset: -3px; }
+.cell.sched-manual { outline: 3px solid var(--purple); outline-offset: -3px; }
+.cell .when { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(transparent, rgba(0,0,0,.78)); color: #fff; font-size: 10px; font-weight: 700; padding: 14px 5px 4px; }
+.cell .tcorner { position: absolute; top: 4px; right: 6px; color: #fff; font-size: 13px; text-shadow: 0 1px 4px rgba(0,0,0,.9); }
+.cell .failmark { position: absolute; top: 4px; left: 5px; background: var(--red); color: #fff; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 4px; }
+
+/* post list rows */
+.section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin: 20px 0 8px; }
+.post-row { display: flex; gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; cursor: pointer; }
+.post-row:hover { border-color: var(--brand); }
+.post-row .pic { width: 54px; height: 54px; border-radius: 7px; object-fit: cover; background: var(--surface-2); flex-shrink: 0; border: 1px solid var(--border); }
+.post-row .meta { flex: 1; min-width: 0; }
+.post-row .cap { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; }
+.post-row .sub { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+.post-row .tags { display: flex; gap: 5px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+
+/* library grid */
+.grid-lib { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); gap: 12px; }
+.libcard { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; cursor: pointer; }
+.libcard:hover { border-color: var(--brand); }
+.libcard .pic { width: 100%; aspect-ratio: 1; object-fit: cover; background: var(--surface-2); display: block; }
+.libcard .body { padding: 8px 9px; }
+.libcard .cap { font-size: 11.5px; height: 32px; overflow: hidden; }
+.libcard .sub { font-size: 10.5px; color: var(--muted); margin-top: 4px; }
+
+/* table */
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+th, td { padding: 8px 10px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { font-size: 11px; text-transform: uppercase; color: var(--muted); cursor: pointer; user-select: none; }
+th:hover { color: var(--brand); }
+tbody tr:hover { background: var(--surface-2); }
+.kpis { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; flex: 1; min-width: 130px; }
+.kpi .k-lbl { font-size: 10.5px; text-transform: uppercase; color: var(--muted); letter-spacing: .4px; }
+.kpi .k-val { font-size: 20px; font-weight: 700; color: var(--brand); margin-top: 2px; }
+
+/* modal */
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 200; display: none; align-items: flex-start; justify-content: center; padding: 30px 16px; overflow-y: auto; }
+.modal-bg.open { display: flex; }
+.modal { background: var(--surface); border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,.3); width: 100%; max-width: 540px; }
+.modal-head { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.modal-head h3 { font-size: 15px; color: var(--brand); flex: 1; }
+.modal-body { padding: 18px 20px; }
+.modal-foot { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; flex-wrap: wrap; }
+.copy-row { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 10px; }
+.copy-row pre { flex: 1; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 9px 11px; font-size: 12px; white-space: pre-wrap; word-break: break-word; font-family: inherit; max-height: 160px; overflow-y: auto; }
+.btn { border: 1px solid var(--border); background: var(--surface-2); color: var(--text); border-radius: 8px; padding: 8px 13px; font-size: 13px; font-weight: 600; }
+.btn:hover { border-color: var(--brand); }
+.btn.danger { color: var(--red); }
+.btn.go { background: var(--brand); color: #fff; border-color: var(--brand); }
+.reschedule { display: flex; gap: 8px; align-items: center; margin: 12px 0; padding: 10px; background: var(--surface-2); border-radius: 8px; }
+.reschedule input { flex: 1; }
+
+/* toast */
+#toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: #222; color: #fff; padding: 11px 20px; border-radius: 9px; font-size: 13px; z-index: 500; opacity: 0; transition: opacity .25s; pointer-events: none; max-width: 90vw; }
+#toast.show { opacity: 1; }
+#toast.err { background: var(--red); }
+.empty { text-align: center; color: var(--muted); padding: 40px 20px; font-size: 13px; }
+.spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid var(--border); border-top-color: var(--brand); border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -2px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- ========== AUTH OVERLAY ========== -->
+<div id="authOverlay">
+  <div class="auth-card">
+    <h1>Instagram Studio</h1>
+    <p class="sub">Karmic Skin · @karmic.skin</p>
+    <div id="authStepEmail">
+      <input id="authEmail" type="email" placeholder="you@karmicskin.com" autocomplete="email">
+      <button id="authSendCode" class="btn-primary">Email me a sign-in link</button>
+    </div>
+    <div id="authStepSent" class="auth-hidden">
+      <p style="font-size:13px">Check your inbox and click the sign-in link.</p>
+      <button id="authBackToEmail" class="link-btn">Use a different email</button>
+    </div>
+    <div id="authMsg"></div>
+  </div>
+</div>
+
+<!-- ========== APP ========== -->
+<div id="app">
+  <header>
+    <span class="brand">Instagram Studio</span>
+    <span class="acct" id="acctLabel">@karmic.skin</span>
+    <span class="spacer"></span>
+    <button class="icon-btn" id="refreshBtn">Refresh</button>
+    <button class="icon-btn" id="themeBtn">Dark</button>
+    <button class="icon-btn" id="signOutBtn">Sign out</button>
+  </header>
+  <nav class="tabs">
+    <button class="tab" data-tab="compose">Compose</button>
+    <button class="tab active" data-tab="grid">Grid</button>
+    <button class="tab" data-tab="queue">Queue</button>
+    <button class="tab" data-tab="library">Library</button>
+    <button class="tab" data-tab="performance">Performance</button>
+  </nav>
+  <div class="wrap">
+
+    <!-- ===== COMPOSE ===== -->
+    <section class="panel" id="panel-compose">
+      <div class="card">
+        <h2 id="composerTitle">New post</h2>
+        <p class="hint">Compose a post, then either let the tool publish it automatically or save it to copy-paste into the Instagram app yourself.</p>
+
+        <label class="field"><span class="lbl">Publish mode</span>
+          <div class="seg" id="modeToggle">
+            <button data-mode="api" class="on">Auto-publish (API)</button>
+            <button data-mode="manual">Manual (copy-paste)</button>
+          </div>
+        </label>
+        <div class="mode-note api" id="noteApi">The tool publishes this for you at the scheduled time. No trending audio (Instagram restricts that to the app).</div>
+        <div class="mode-note manual hidden" id="noteManual">The tool stores everything; you post it in the Instagram app at your planned time — so you can add trending audio. Nothing publishes automatically.</div>
+
+        <label class="field"><span class="lbl">Post type</span>
+          <div class="seg type" id="typeToggle">
+            <button data-type="photo" class="on">Photo</button>
+            <button data-type="carousel">Carousel</button>
+            <button data-type="reel">Reel</button>
+            <button data-type="story">Story</button>
+          </div>
+        </label>
+
+        <label class="field"><span class="lbl" id="mediaLabel">Media</span>
+          <div class="dropzone" id="dropzone">Click or drag files here</div>
+          <input type="file" id="fileInput" accept="image/*,video/*" multiple style="display:none">
+          <div class="thumbs" id="thumbs"></div>
+          <div class="help" id="mediaHelp">Instagram needs JPEG images and MP4/MOV video. For carousels, the first tile is your grid cover — reorder with the arrows.</div>
+        </label>
+
+        <label class="field hidden" id="fldCover"><span class="lbl">Reel cover (optional)</span>
+          <div class="dropzone" id="coverZone" style="padding:14px">Click to upload a cover image</div>
+          <input type="file" id="coverInput" accept="image/*" style="display:none">
+          <div class="thumbs" id="coverThumb"></div>
+          <div class="help">This image represents the Reel on your feed grid.</div>
+        </label>
+
+        <label class="field" id="fldCaption">
+          <span class="lbl lbl-row">Caption
+            <button type="button" class="emoji-trigger" data-emoji-target="caption">😊 Emoji</button>
+          </span>
+          <textarea id="caption" placeholder="Write the caption…"></textarea>
+          <div class="counter" id="capCount">0 / 2200</div>
+        </label>
+
+        <label class="field" id="fldHashtags"><span class="lbl">Hashtags (added after the caption)</span>
+          <textarea id="hashtags" placeholder="#karmicskin #skincare …" style="min-height:48px"></textarea>
+        </label>
+
+        <label class="field" id="fldLocation"><span class="lbl">Location</span>
+          <input type="text" id="locationInput" placeholder="Search a place…" autocomplete="off">
+          <div class="loc-results hidden" id="locResults"></div>
+          <div class="chips" id="locChip"></div>
+        </label>
+
+        <div class="row">
+          <label class="field" id="fldUserTags"><span class="lbl">Tag people</span>
+            <input type="text" id="userTagInput" placeholder="@username then Enter">
+            <div class="chips" id="userTagChips"></div>
+          </label>
+          <label class="field" id="fldCollab"><span class="lbl">Collaborators</span>
+            <input type="text" id="collabInput" placeholder="@username then Enter">
+            <div class="chips" id="collabChips"></div>
+          </label>
+        </div>
+
+        <label class="field hidden" id="fldAudioName"><span class="lbl">Original audio name</span>
+          <input type="text" id="audioName" placeholder="Name your Reel's original audio (optional)">
+        </label>
+        <label class="field hidden" id="fldAudioNote"><span class="lbl">Trending sound to use</span>
+          <input type="text" id="audioNote" placeholder="e.g. &quot;Aesthetic — xyz&quot; or paste the audio link">
+          <div class="help">A reminder for you — you'll add this sound in the Instagram app.</div>
+        </label>
+
+        <label class="field hidden" id="fldShareFeed"><span class="lbl">Reel options</span>
+          <span style="font-size:13px"><input type="checkbox" id="shareToFeed" checked> Also show this Reel on the main feed grid</span>
+        </label>
+
+        <label class="field" id="fldFirstComment">
+          <span class="lbl lbl-row">First comment (optional)
+            <button type="button" class="emoji-trigger" data-emoji-target="firstComment">😊 Emoji</button>
+          </span>
+          <textarea id="firstComment" placeholder="Posted as the first comment right after publishing" style="min-height:48px"></textarea>
+        </label>
+
+        <label class="field" id="fldSchedule"><span class="lbl" id="scheduleLabel">Publish at</span>
+          <input type="datetime-local" id="scheduledFor">
+          <div class="help" id="scheduleHelp">Leave blank to keep it as a draft.</div>
+        </label>
+
+        <label class="field"><span class="lbl">Internal notes (optional)</span>
+          <input type="text" id="notes" placeholder="Just for you — not posted">
+        </label>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+          <button class="btn go" id="saveSchedule">Schedule post</button>
+          <button class="btn" id="saveDraft">Save as draft</button>
+          <button class="btn" id="composerReset">Clear</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== GRID PLANNER ===== -->
+    <section class="panel active" id="panel-grid">
+      <div class="grid-head">
+        <h2>Feed grid preview</h2>
+        <span class="help" id="gridSummary"></span>
+      </div>
+      <p class="help" style="margin-bottom:10px">Top-left is your newest post. Scheduled posts (outlined) sit above what is already live — this is how the grid will look once they publish. Change a post's date and it moves here.</p>
+      <div class="legend">
+        <span><i class="swatch" style="background:var(--blue)"></i> Auto-publish scheduled</span>
+        <span><i class="swatch" style="background:var(--purple)"></i> Manual planned</span>
+        <span><i class="swatch" style="background:var(--surface-2);border:1px solid var(--border)"></i> Already on Instagram</span>
+      </div>
+      <div id="gridBody"><div class="empty">Loading…</div></div>
+    </section>
+
+    <!-- ===== QUEUE ===== -->
+    <section class="panel" id="panel-queue">
+      <div id="queueBody"><div class="empty">Loading…</div></div>
+    </section>
+
+    <!-- ===== LIBRARY ===== -->
+    <section class="panel" id="panel-library">
+      <div class="card" style="padding:14px">
+        <div class="row">
+          <input type="text" id="librarySearch" placeholder="Search captions, hashtags…" style="flex:2">
+          <select id="libraryType" style="flex:1"><option value="">All types</option><option value="photo">Photo</option><option value="carousel">Carousel</option><option value="reel">Reel</option><option value="story">Story</option></select>
+          <select id="libraryMode" style="flex:1"><option value="">All modes</option><option value="api">Auto-publish</option><option value="manual">Manual</option></select>
+        </div>
+      </div>
+      <div id="libraryBody"><div class="empty">Loading…</div></div>
+    </section>
+
+    <!-- ===== PERFORMANCE ===== -->
+    <section class="panel" id="panel-performance">
+      <div class="kpis" id="perfKpis"></div>
+      <div class="card" style="overflow-x:auto">
+        <div id="perfBody"><div class="empty">Loading…</div></div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<!-- ========== MODALS ========== -->
+<div class="modal-bg" id="postModal">
+  <div class="modal">
+    <div class="modal-head"><h3 id="pmTitle">Post</h3><button class="icon-btn" onclick="closeModal('postModal')">Close</button></div>
+    <div class="modal-body" id="pmBody"></div>
+    <div class="modal-foot" id="pmFoot"></div>
+  </div>
+</div>
+<div class="modal-bg" id="linkModal">
+  <div class="modal">
+    <div class="modal-head"><h3>Link to the Instagram post</h3><button class="icon-btn" onclick="closeModal('linkModal')">Close</button></div>
+    <div class="modal-body" id="linkBody"></div>
+  </div>
+</div>
+
+<!-- ========== EMOJI PICKER ========== -->
+<div class="emoji-pop hidden" id="emojiPop">
+  <input type="text" id="emojiSearch" placeholder="Search emoji…">
+  <div class="emoji-grid" id="emojiGrid"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ====================================================================
+// CONFIG
+// ====================================================================
+const SUPABASE_URL = 'https://unmkzatppwftnasafhlb.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVubWt6YXRwcHdmdG5hc2FmaGxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDQ5OTIsImV4cCI6MjA4NjU4MDk5Mn0.SYQm1km08xwlJSIf9jq8DXH3Ijxbxqk_LpTRh0PZhD4';
+const AUTH_STORAGE_KEY = 'ig_studio_auth';
+const CAPTION_LIMIT = 2200;
+const POLL_MS = 15000;
+let USER_JWT = SUPABASE_KEY;
+
+// ====================================================================
+// UTIL
+// ====================================================================
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(msg, isErr) {
+  const t = $('toast'); t.textContent = msg; t.className = isErr ? 'err show' : 'show';
+  clearTimeout(t._t); t._t = setTimeout(() => t.className = '', 3200);
+}
+function fmtDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+function fmtShort(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+function toLocalInput(iso) {
+  if (!iso) return '';
+  const d = new Date(iso); const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function num(n) { return n == null ? '—' : Number(n).toLocaleString('en-GB'); }
+function closeModal(id) { $(id).classList.remove('open'); }
+async function copyText(text, label) {
+  try { await navigator.clipboard.writeText(text || ''); toast((label || 'Copied') + ' to clipboard'); }
+  catch { toast('Could not copy — select the text manually', true); }
+}
+const TYPE_ICON = { photo: '🖼', carousel: '▦', reel: '▶', story: '◐' };
+
+// ====================================================================
+// API HELPERS — direct REST against Supabase (no supabase-js)
+// ====================================================================
+function headers(extra) {
+  return Object.assign({ apikey: SUPABASE_KEY, Authorization: 'Bearer ' + USER_JWT }, extra || {});
+}
+async function dbSelect(query) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${query}`, { headers: headers() });
+  if (!r.ok) throw new Error('Load failed (' + r.status + ')');
+  return r.json();
+}
+async function dbInsert(table, row) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST', headers: headers({ 'Content-Type': 'application/json', Prefer: 'return=representation' }),
+    body: JSON.stringify(row),
+  });
+  if (!r.ok) throw new Error('Save failed: ' + (await r.text()));
+  return (await r.json())[0];
+}
+async function dbUpdate(table, id, patch) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'PATCH', headers: headers({ 'Content-Type': 'application/json', Prefer: 'return=representation' }),
+    body: JSON.stringify(patch),
+  });
+  if (!r.ok) throw new Error('Update failed: ' + (await r.text()));
+  return (await r.json())[0];
+}
+async function dbDelete(table, id) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, { method: 'DELETE', headers: headers() });
+  if (!r.ok) throw new Error('Delete failed (' + r.status + ')');
+}
+async function uploadMedia(file) {
+  const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const path = `composer/${crypto.randomUUID()}/${Date.now()}-${safe}`;
+  const r = await fetch(`${SUPABASE_URL}/storage/v1/object/ig-media/${path}`, {
+    method: 'POST', headers: headers({ 'Content-Type': file.type || 'application/octet-stream', 'x-upsert': 'true' }),
+    body: file,
+  });
+  if (!r.ok) throw new Error('Upload failed: ' + (await r.text()));
+  return {
+    storage_path: path,
+    public_url: `${SUPABASE_URL}/storage/v1/object/public/ig-media/${path}`,
+    type: (file.type || '').startsWith('video') ? 'video' : 'image',
+  };
+}
+async function searchLocation(query) {
+  const r = await fetch(`${SUPABASE_URL}/functions/v1/ig-location-search`, {
+    method: 'POST', headers: headers({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ query }),
+  });
+  if (!r.ok) return [];
+  return (await r.json()).results || [];
+}
+
+// ====================================================================
+// STATE
+// ====================================================================
+let POSTS = [];
+const composer = {
+  editingId: null, mode: 'api', postType: 'photo',
+  media: [], coverUrl: null, coverPath: null,
+  locationId: null, locationName: null, userTags: [], collaborators: [],
+};
+
+// ====================================================================
+// EMOJI PICKER
+// ====================================================================
+const EMOJI = [
+  '😀 grin happy smile face','😃 happy smile joy face','😄 happy laugh joy','😁 grin beam happy',
+  '😆 laugh haha happy','😅 sweat laugh nervous','😂 joy tears laugh lol','🤣 rofl rolling laugh lol',
+  '🙂 slight smile','🙃 upside down silly','😉 wink','😊 blush smile happy warm cute',
+  '😇 innocent angel halo','🥰 love hearts adore smile','😍 heart eyes love','🤩 star struck wow amazing',
+  '😘 kiss blow love','😗 kiss','😚 kiss closed','😙 kiss smile','😋 yum tasty delicious',
+  '😛 tongue','😜 wink tongue silly','🤪 zany crazy goofy','😝 tongue squint','🤗 hug warm',
+  '🤭 giggle hand mouth oops','🤫 shush quiet secret','🤔 thinking hmm','🤨 raised eyebrow skeptical',
+  '😐 neutral','😑 expressionless','😶 no mouth speechless','😏 smirk','😒 unamused meh',
+  '🙄 eye roll','😬 grimace awkward','😌 relieved calm content','😔 pensive sad','😪 sleepy tired',
+  '😴 sleep zzz','😷 mask sick','🤒 sick ill thermometer','🤕 hurt bandage','🤢 nauseated gross',
+  '🤧 sneeze','🥵 hot heat sweat','🥶 cold freezing','🥴 woozy dizzy','😵 dizzy','🤯 mind blown shocked',
+  '🥳 party celebrate hat','😎 cool sunglasses','🤓 nerd geek','🧐 monocle inspect curious',
+  '😕 confused','😟 worried','🙁 frown sad','😮 wow surprise','😯 hushed surprise','😲 astonished shocked',
+  '😳 flushed embarrassed','🥺 pleading puppy eyes please cute','😨 fearful scared','😰 anxious sweat',
+  '😢 cry sad tear','😭 sob crying bawl','😱 scream shock','😩 weary tired','😫 tired exhausted',
+  '🥱 yawn bored','😤 huff frustrated','😠 angry mad','😡 angry rage mad','🤬 cursing angry',
+  '👋 wave hello hi bye','🤚 raised hand','✋ stop high five','🖐 hand fingers','🖖 vulcan spock',
+  '👌 ok perfect nice','🤌 pinched italian chef kiss','🤏 pinch small tiny','✌️ peace victory',
+  '🤞 fingers crossed luck hope','🤟 love you','🤘 rock horns','🤙 call shaka','👈 left point',
+  '👉 right point','👆 up point','👇 down point','☝️ up index','👍 thumbs up like yes good',
+  '👎 thumbs down dislike no','✊ fist raised','👊 fist bump punch','🤛 left fist','🤜 right fist',
+  '👏 clap applause bravo','🙌 raise hands celebrate praise','👐 open hands','🤲 palms up',
+  '🙏 pray thanks please namaste grateful','✍️ writing hand','💅 nails manicure beauty self care',
+  '🤝 handshake deal partner','💪 muscle strong flex','🦵 leg','👀 eyes look see','👁 eye',
+  '👄 mouth lips','👅 tongue','🦷 tooth','👃 nose','👂 ear','🧠 brain mind smart',
+  '💁 info tip sassy','🙋 raise hand question','🤷 shrug dunno','🤦 facepalm',
+  '💆 massage spa relax self care','💇 haircut salon','🧖 spa sauna steam self care','🚶 walk',
+  '🏃 run','💃 dance','🧘 yoga meditate calm zen','👰 bride','🤰 pregnant','👶 baby',
+  '👩 woman','👨 man','🧑 person','👵 elder old woman','👧 girl child',
+  '❤️ red heart love','🧡 orange heart','💛 yellow heart','💚 green heart','💙 blue heart',
+  '💜 purple heart','🖤 black heart','🤍 white heart','🤎 brown heart','💔 broken heart',
+  '❣️ heart exclamation','💕 two hearts love','💞 revolving hearts','💓 beating heart',
+  '💗 growing heart','💖 sparkle heart','💘 heart arrow cupid','💝 heart gift','💟 heart decoration',
+  '💋 kiss lips mark','💌 love letter','♥️ heart suit','💯 hundred perfect score',
+  '🌸 cherry blossom flower spring pink','💐 bouquet flowers','🌷 tulip flower','🌹 rose flower love',
+  '🥀 wilted flower','🌺 hibiscus flower tropical','🌻 sunflower','🌼 daisy flower','🌾 wheat grain',
+  '🌿 herb leaf botanical natural','🍀 four leaf clover luck','☘️ shamrock','🌱 seedling sprout grow',
+  '🪴 potted plant','🌳 tree','🌴 palm tree tropical','🌵 cactus','🍃 leaves wind nature',
+  '🍂 fallen leaves autumn','🍁 maple leaf autumn','🌎 earth globe world','🌍 earth globe',
+  '🐝 bee honey','🦋 butterfly','🐞 ladybug','🌙 moon crescent night','⭐ star',
+  '🌟 glowing star sparkle','✨ sparkles shine glitter magic','💫 dizzy star','☀️ sun sunny',
+  '🌤 sun behind cloud','⛅ partly cloudy','🌈 rainbow','☁️ cloud','🌧 rain','❄️ snowflake cold winter',
+  '💧 droplet water drop','🌊 wave ocean sea','🔥 fire flame lit hot trending','⚡ lightning bolt energy',
+  '🌞 sun face bright','🌝 full moon face',
+  '🧴 lotion bottle skincare serum cream moisturiser','🧼 soap cleanse wash','🛁 bathtub bath',
+  '🛀 bath relax self care','🪞 mirror reflection','💄 lipstick makeup beauty','💎 gem diamond precious',
+  '👑 crown queen royal best','🎀 ribbon bow','🕯 candle calm cosy','🫧 bubbles clean','🧖‍♀️ spa woman',
+  '📦 package box parcel shipping','🎁 gift present','🛍 shopping bags','🛒 cart shopping',
+  '💳 card payment','🏷 tag label price','📸 camera photo','📷 camera','🎥 video camera film',
+  '🔗 link url','📍 pin location place','🗓 calendar schedule','📅 calendar date','⏰ alarm clock time',
+  '⌛ hourglass time','🔔 bell notification','✏️ pencil write edit','📝 memo note write',
+  '📌 pushpin','🔍 search magnify look','💡 idea bulb tip light','🎨 art palette creative',
+  '🪄 magic wand','📲 phone mobile','💻 laptop computer','🔑 key',
+  '🍓 strawberry fruit','🍒 cherries fruit','🍑 peach fruit','🥭 mango fruit tropical',
+  '🍊 orange fruit citrus','🍋 lemon citrus','🍌 banana fruit','🍍 pineapple tropical',
+  '🥥 coconut','🥑 avocado','🫐 blueberries','🍵 tea green matcha','☕ coffee','🫖 teapot',
+  '🍯 honey jar sweet','🍫 chocolate','🧊 ice cube cold','🥂 cheers champagne celebrate',
+  '🍷 wine glass','🥕 carrot veg','🥜 peanut nut',
+  '✅ check tick done yes complete','☑️ checkbox checked','✔️ check mark','❌ cross x no wrong',
+  '⭕ circle','❗ exclamation important','❓ question','‼️ double exclamation','⚠️ warning caution',
+  '♻️ recycle eco green sustainable','🆕 new','🆒 cool','🔝 top up best','💥 boom collision',
+  '💦 sweat splash water droplets','💨 dash wind fast','🎉 party tada celebrate','🎊 confetti celebrate',
+  '🪩 disco ball party','🏆 trophy win award','🥇 gold medal first','🎯 target bullseye goal',
+  '➡️ right arrow','⬆️ up arrow','🔆 brightness bright glow','🌐 globe web',
+];
+const EMOJI_PARSED = EMOJI.map((s) => { const i = s.indexOf(' '); return { e: s.slice(0, i), k: s.slice(i + 1) }; })
+  .filter((x) => x.e);
+let emojiTarget = 'caption';
+
+function renderEmojiGrid(filter) {
+  const f = (filter || '').toLowerCase().trim();
+  const list = f ? EMOJI_PARSED.filter((x) => x.k.includes(f)) : EMOJI_PARSED;
+  $('emojiGrid').innerHTML = list.length
+    ? list.map((x) => `<button type="button" onclick="insertEmoji('${x.e}')">${x.e}</button>`).join('')
+    : '<div class="emoji-empty">No emoji match that search.</div>';
+}
+function openEmojiPicker(btn) {
+  emojiTarget = btn.dataset.emojiTarget;
+  const pop = $('emojiPop'), r = btn.getBoundingClientRect();
+  pop.classList.remove('hidden');
+  let left = Math.min(r.left, window.innerWidth - 308);
+  pop.style.left = Math.max(8, left) + 'px';
+  pop.style.top = Math.min(r.bottom + 4, window.innerHeight - 290) + 'px';
+  $('emojiSearch').value = '';
+  renderEmojiGrid('');
+  $('emojiSearch').focus();
+}
+function insertEmoji(char) {
+  const ta = $(emojiTarget);
+  const s = ta.selectionStart ?? ta.value.length, e = ta.selectionEnd ?? ta.value.length;
+  ta.value = ta.value.slice(0, s) + char + ta.value.slice(e);
+  ta.selectionStart = ta.selectionEnd = s + char.length;
+  ta.focus();
+  if (emojiTarget === 'caption') $('caption').dispatchEvent(new Event('input'));
+}
+document.querySelectorAll('.emoji-trigger').forEach((b) =>
+  b.addEventListener('click', (ev) => { ev.stopPropagation(); openEmojiPicker(b); }));
+$('emojiSearch').addEventListener('input', (e) => renderEmojiGrid(e.target.value));
+document.addEventListener('click', (e) => {
+  if (!$('emojiPop').classList.contains('hidden') &&
+      !e.target.closest('#emojiPop') && !e.target.closest('.emoji-trigger')) {
+    $('emojiPop').classList.add('hidden');
+  }
+});
+
+// ====================================================================
+// TABS + THEME + REFRESH
+// ====================================================================
+document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.panel').forEach((p) => p.classList.toggle('active', p.id === 'panel-' + name));
+  renderActiveTab();
+}
+function renderActiveTab() {
+  const t = document.querySelector('.tab.active');
+  if (!t) return;
+  const n = t.dataset.tab;
+  if (n === 'grid') renderGrid();
+  if (n === 'queue') renderQueue();
+  if (n === 'library') renderLibrary();
+  if (n === 'performance') renderPerformance();
+}
+$('themeBtn').addEventListener('click', () => {
+  setTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+});
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  $('themeBtn').textContent = t === 'dark' ? 'Light' : 'Dark';
+  localStorage.setItem('ig_studio_theme', t);
+}
+setTheme(localStorage.getItem('ig_studio_theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+$('refreshBtn').addEventListener('click', async () => {
+  $('refreshBtn').innerHTML = '<span class="spinner"></span>';
+  try { await loadPosts(); toast('Refreshed'); } catch (e) { toast(e.message, true); }
+  $('refreshBtn').textContent = 'Refresh';
+});
+
+// ====================================================================
+// COMPOSER
+// ====================================================================
+function syncComposerFields() {
+  const { mode, postType } = composer;
+  $('noteApi').classList.toggle('hidden', mode !== 'api');
+  $('noteManual').classList.toggle('hidden', mode !== 'manual');
+  const isStory = postType === 'story', isReel = postType === 'reel', isPhoto = postType === 'photo';
+  ['fldCaption','fldHashtags','fldLocation','fldCollab','fldFirstComment'].forEach((id) => $(id).classList.toggle('hidden', isStory));
+  $('fldUserTags').classList.toggle('hidden', isStory || !isPhoto);
+  $('fldCover').classList.toggle('hidden', !isReel);
+  $('fldShareFeed').classList.toggle('hidden', !isReel);
+  $('fldAudioName').classList.toggle('hidden', !(isReel && mode === 'api'));
+  $('fldAudioNote').classList.toggle('hidden', mode !== 'manual');
+  $('mediaLabel').textContent = postType === 'carousel' ? 'Media (2–10 images)'
+    : isReel ? 'Video' : isStory ? 'Photo or video' : 'Photo';
+  $('fileInput').accept = isReel ? 'video/*' : (isStory ? 'image/*,video/*' : 'image/*');
+  $('fileInput').multiple = postType === 'carousel';
+  $('scheduleLabel').textContent = mode === 'api' ? 'Publish at' : 'Planned date';
+  $('scheduleHelp').textContent = mode === 'api'
+    ? 'When the tool will auto-publish it. Leave blank to keep as a draft.'
+    : 'A reminder for when you plan to post it. Leave blank to keep as a draft.';
+  $('saveSchedule').textContent = mode === 'api' ? 'Schedule post' : 'Save to plan';
+}
+$('modeToggle').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  composer.mode = b.dataset.mode;
+  $('modeToggle').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
+  syncComposerFields();
+});
+$('typeToggle').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (composer.postType !== b.dataset.type && composer.media.length) { composer.media = []; renderThumbs(); }
+  composer.postType = b.dataset.type;
+  $('typeToggle').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
+  syncComposerFields();
+});
+$('caption').addEventListener('input', () => {
+  const n = $('caption').value.length;
+  $('capCount').textContent = n + ' / ' + CAPTION_LIMIT;
+  $('capCount').classList.toggle('over', n > CAPTION_LIMIT);
+});
+
+// --- media upload + reorder ---
+$('dropzone').addEventListener('click', () => $('fileInput').click());
+$('dropzone').addEventListener('dragover', (e) => { e.preventDefault(); $('dropzone').classList.add('drag'); });
+$('dropzone').addEventListener('dragleave', () => $('dropzone').classList.remove('drag'));
+$('dropzone').addEventListener('drop', (e) => { e.preventDefault(); $('dropzone').classList.remove('drag'); handleFiles(e.dataTransfer.files); });
+$('fileInput').addEventListener('change', (e) => handleFiles(e.target.files));
+// Extract a poster frame from a video file (client-side) so Reels get a grid cover.
+function extractPoster(file) {
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = (blob) => { if (!done) { done = true; resolve(blob); } };
+    try {
+      const v = document.createElement('video');
+      v.muted = true; v.preload = 'metadata'; v.playsInline = true;
+      const url = URL.createObjectURL(file);
+      v.src = url;
+      v.addEventListener('loadeddata', () => {
+        try { v.currentTime = Math.min(0.5, (v.duration || 2) / 3); } catch { finish(null); }
+      });
+      v.addEventListener('seeked', () => {
+        try {
+          const cv = document.createElement('canvas');
+          cv.width = v.videoWidth || 720; cv.height = v.videoHeight || 1280;
+          cv.getContext('2d').drawImage(v, 0, 0, cv.width, cv.height);
+          cv.toBlob((b) => { URL.revokeObjectURL(url); finish(b); }, 'image/jpeg', 0.82);
+        } catch { finish(null); }
+      });
+      v.addEventListener('error', () => finish(null));
+      setTimeout(() => finish(null), 9000);
+    } catch { finish(null); }
+  });
+}
+async function handleFiles(fileList) {
+  const files = [...fileList];
+  if (!files.length) return;
+  $('dropzone').textContent = 'Uploading…';
+  try {
+    for (const f of files) {
+      if (composer.postType !== 'carousel' && composer.media.length >= 1) composer.media = [];
+      if (composer.postType === 'carousel' && composer.media.length >= 10) { toast('Carousels allow up to 10 items', true); break; }
+      composer.media.push(await uploadMedia(f));
+    }
+    renderThumbs();
+    // Reels: auto-generate a grid cover from the first video frame (unless one is set).
+    if (composer.postType === 'reel' && composer.media.length && !composer.coverUrl && files[0]) {
+      $('dropzone').textContent = 'Creating cover…';
+      const poster = await extractPoster(files[0]);
+      if (poster) {
+        const cm = await uploadMedia(new File([poster], 'reel-cover.jpg', { type: 'image/jpeg' }));
+        composer.coverUrl = cm.public_url; composer.coverPath = cm.storage_path;
+        renderCover();
+      }
+    }
+  } catch (e) { toast(e.message, true); }
+  $('dropzone').textContent = 'Click or drag files here';
+  $('fileInput').value = '';
+}
+function moveMedia(i, dir) {
+  const j = i + dir, m = composer.media;
+  if (j < 0 || j >= m.length) return;
+  [m[i], m[j]] = [m[j], m[i]];
+  renderThumbs();
+}
+function renderThumbs() {
+  const isCar = composer.postType === 'carousel';
+  $('thumbs').innerHTML = composer.media.map((m, i) => `
+    <div class="thumb">
+      ${m.type === 'video' ? `<video src="${esc(m.public_url)}" muted preload="metadata"></video>` : `<img src="${esc(m.public_url)}">`}
+      <button class="rm" title="Remove" onclick="composer.media.splice(${i},1);renderThumbs()">×</button>
+      ${isCar ? `<span class="ord">${i === 0 ? 'Cover' : i + 1}</span>` : ''}
+      ${isCar && composer.media.length > 1 ? `<div class="mvbar">
+        <button title="Move left" onclick="moveMedia(${i},-1)" ${i === 0 ? 'disabled' : ''}>◀</button>
+        <button title="Move right" onclick="moveMedia(${i},1)" ${i === composer.media.length - 1 ? 'disabled' : ''}>▶</button>
+      </div>` : ''}
+    </div>`).join('');
+}
+$('coverZone').addEventListener('click', () => $('coverInput').click());
+$('coverInput').addEventListener('change', async (e) => {
+  if (!e.target.files[0]) return;
+  $('coverZone').textContent = 'Uploading…';
+  try { const m = await uploadMedia(e.target.files[0]); composer.coverUrl = m.public_url; composer.coverPath = m.storage_path; renderCover(); }
+  catch (err) { toast(err.message, true); }
+  $('coverZone').textContent = 'Click to upload a cover image';
+});
+function renderCover() {
+  $('coverThumb').innerHTML = composer.coverUrl
+    ? `<div class="thumb"><img src="${esc(composer.coverUrl)}"><button class="rm" onclick="composer.coverUrl=null;composer.coverPath=null;renderCover()">×</button></div>` : '';
+}
+
+// --- chips ---
+function chipArr(chipId) { return chipId === 'userTagChips' ? composer.userTags : composer.collaborators; }
+function renderChips(chipId) {
+  const arr = chipArr(chipId);
+  $(chipId).innerHTML = arr.map((v, i) =>
+    `<span class="chip">@${esc(v)}<button onclick="chipArr('${chipId}').splice(${i},1);renderChips('${chipId}')">×</button></span>`).join('');
+}
+function wireChips(inputId, chipId) {
+  $(inputId).addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    const v = e.target.value.trim().replace(/^@+/, ''), arr = chipArr(chipId);
+    if (v && !arr.includes(v)) arr.push(v);
+    e.target.value = '';
+    renderChips(chipId);
+  });
+}
+wireChips('userTagInput', 'userTagChips');
+wireChips('collabInput', 'collabChips');
+
+// --- location ---
+let locTimer = null, LOC_RESULTS = [];
+$('locationInput').addEventListener('input', (e) => {
+  clearTimeout(locTimer);
+  const q = e.target.value.trim();
+  if (q.length < 2) { $('locResults').classList.add('hidden'); return; }
+  locTimer = setTimeout(async () => {
+    LOC_RESULTS = await searchLocation(q);
+    $('locResults').innerHTML = LOC_RESULTS.length
+      ? LOC_RESULTS.map((r, i) => `<div onclick="pickLocation(${i})">${esc(r.name)}${r.city ? ' · ' + esc(r.city) : ''}</div>`).join('')
+      : '<div style="color:var(--muted)">No matching places</div>';
+    $('locResults').classList.remove('hidden');
+  }, 350);
+});
+function pickLocation(i) {
+  const r = LOC_RESULTS[i]; if (!r) return;
+  composer.locationId = r.id; composer.locationName = r.name;
+  $('locResults').classList.add('hidden'); $('locationInput').value = '';
+  $('locChip').innerHTML = `<span class="chip">📍 ${esc(r.name)}<button onclick="composer.locationId=null;composer.locationName=null;$('locChip').innerHTML=''">×</button></span>`;
+}
+
+// --- save / reset / load ---
+function resetComposer() {
+  composer.editingId = null; composer.mode = 'api'; composer.postType = 'photo';
+  composer.media = []; composer.coverUrl = null; composer.coverPath = null;
+  composer.locationId = null; composer.locationName = null;
+  composer.userTags.length = 0; composer.collaborators.length = 0;
+  ['caption','hashtags','firstComment','audioName','audioNote','notes','locationInput','scheduledFor','userTagInput','collabInput'].forEach((id) => $(id).value = '');
+  $('shareToFeed').checked = true;
+  $('composerTitle').textContent = 'New post';
+  $('modeToggle').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x.dataset.mode === 'api'));
+  $('typeToggle').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x.dataset.type === 'photo'));
+  $('locChip').innerHTML = ''; $('capCount').textContent = '0 / ' + CAPTION_LIMIT; $('capCount').classList.remove('over');
+  renderThumbs(); renderCover(); renderChips('userTagChips'); renderChips('collabChips');
+  syncComposerFields();
+}
+$('composerReset').addEventListener('click', resetComposer);
+$('saveDraft').addEventListener('click', () => saveComposer('draft'));
+$('saveSchedule').addEventListener('click', () => saveComposer('schedule'));
+
+function validateComposer(action) {
+  const t = composer.postType;
+  if (t === 'carousel' && composer.media.length < 2) return 'A carousel needs at least 2 items.';
+  if (t !== 'carousel' && composer.media.length < 1) return 'Add a ' + (t === 'reel' ? 'video' : 'media file') + '.';
+  if (composer.media.length > 10) return 'Maximum 10 items.';
+  if ($('caption').value.length > CAPTION_LIMIT) return 'Caption is over the 2200-character limit.';
+  if (action === 'schedule' && !$('scheduledFor').value) return 'Pick a date/time, or use "Save as draft".';
+  return null;
+}
+async function saveComposer(action) {
+  const err = validateComposer(action);
+  if (err) { toast(err, true); return; }
+  const mode = composer.mode, t = composer.postType;
+  let status = 'draft';
+  if (action === 'schedule') status = mode === 'api' ? 'scheduled' : 'planned';
+  const schedVal = $('scheduledFor').value ? new Date($('scheduledFor').value).toISOString() : null;
+  const row = {
+    publish_mode: mode, post_type: t, status, scheduled_for: schedVal,
+    caption: t === 'story' ? '' : $('caption').value,
+    hashtags: t === 'story' ? null : ($('hashtags').value || null),
+    location_id: t === 'story' ? null : composer.locationId,
+    location_name: t === 'story' ? null : composer.locationName,
+    user_tags: (t === 'photo') ? composer.userTags.map((u) => ({ username: u, x: 0.5, y: 0.5 })) : [],
+    collaborators: t === 'story' ? [] : composer.collaborators.slice(),
+    cover_url: t === 'reel' ? composer.coverUrl : null,
+    share_to_feed: t === 'reel' ? $('shareToFeed').checked : true,
+    audio_name: (t === 'reel' && mode === 'api') ? ($('audioName').value || null) : null,
+    audio_note: mode === 'manual' ? ($('audioNote').value || null) : null,
+    first_comment: t === 'story' ? null : ($('firstComment').value || null),
+    media: composer.media.map((m, i) => ({ ...m, order: i })),
+    notes: $('notes').value || null, error_message: null,
+  };
+  try {
+    if (composer.editingId) { await dbUpdate('ig_posts', composer.editingId, row); toast('Post updated'); }
+    else { await dbInsert('ig_posts', row); toast(status === 'draft' ? 'Saved as draft' : (mode === 'api' ? 'Scheduled' : 'Saved to plan')); }
+    resetComposer();
+    await loadPosts();
+    switchTab('grid');
+  } catch (e) { toast(e.message, true); }
+}
+function loadIntoComposer(p, asNew) {
+  resetComposer();
+  composer.editingId = asNew ? null : p.id;
+  composer.mode = p.publish_mode; composer.postType = p.post_type;
+  composer.media = (p.media || []).slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+  composer.coverUrl = p.cover_url || null;
+  composer.locationId = p.location_id || null; composer.locationName = p.location_name || null;
+  composer.userTags.push(...(p.user_tags || []).map((u) => u.username).filter(Boolean));
+  composer.collaborators.push(...(p.collaborators || []));
+  $('caption').value = p.caption || ''; $('hashtags').value = p.hashtags || '';
+  $('firstComment').value = p.first_comment || ''; $('audioName').value = p.audio_name || '';
+  $('audioNote').value = p.audio_note || ''; $('notes').value = p.notes || '';
+  $('shareToFeed').checked = p.share_to_feed !== false;
+  $('scheduledFor').value = asNew ? '' : toLocalInput(p.scheduled_for);
+  $('composerTitle').textContent = asNew ? 'New post (copied)' : 'Edit post';
+  $('modeToggle').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x.dataset.mode === composer.mode));
+  $('typeToggle').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x.dataset.type === composer.postType));
+  if (composer.locationName) $('locChip').innerHTML = `<span class="chip">📍 ${esc(composer.locationName)}<button onclick="composer.locationId=null;composer.locationName=null;$('locChip').innerHTML=''">×</button></span>`;
+  $('caption').dispatchEvent(new Event('input'));
+  renderThumbs(); renderCover(); renderChips('userTagChips'); renderChips('collabChips');
+  syncComposerFields();
+  switchTab('compose');
+}
+
+// ====================================================================
+// DATA LOAD + POLLING
+// ====================================================================
+async function loadPosts() {
+  POSTS = await dbSelect('ig_posts?select=*,ig_media_insights(reach,likes,comments,saved,shares,total_interactions,views,captured_at)&order=created_at.desc&limit=2000');
+  renderActiveTab();
+}
+function startPolling() {
+  setInterval(() => {
+    if (document.hidden) return;
+    loadPosts().catch(() => {});
+  }, POLL_MS);
+}
+function latestInsight(p) {
+  const ins = p.ig_media_insights || [];
+  if (!ins.length) return null;
+  return ins.slice().sort((a, b) => new Date(b.captured_at) - new Date(a.captured_at))[0];
+}
+function postThumb(p) {
+  const c = gridCover(p);
+  return c.url;
+}
+// The image (or video frame) that represents a post on the feed grid.
+function gridCover(p) {
+  if (p.post_type === 'reel' && p.cover_url) return { url: p.cover_url, isVideo: false };
+  const m = (p.media || []).slice().sort((a, b) => (a.order || 0) - (b.order || 0))[0];
+  if (!m || !m.public_url) return { url: '', isVideo: false };
+  return { url: m.public_url, isVideo: m.type === 'video' };
+}
+function coverTag(p, cls) {
+  const c = gridCover(p);
+  cls = cls || '';
+  if (c.url && !c.isVideo) return `<img class="${cls}" src="${esc(c.url)}">`;
+  // A video with no image cover (or a post with no media yet) — clean placeholder.
+  return `<div class="${cls} ph">${p.post_type === 'reel' ? '▶' : (TYPE_ICON[p.post_type] || '•')}</div>`;
+}
+
+// ====================================================================
+// GRID PLANNER
+// ====================================================================
+function renderGrid() {
+  const scheduled = POSTS
+    .filter((p) => ['scheduled', 'processing', 'planned', 'failed'].includes(p.status) && p.scheduled_for && p.post_type !== 'story')
+    .sort((a, b) => new Date(b.scheduled_for) - new Date(a.scheduled_for));
+  const posted = POSTS
+    .filter((p) => p.status === 'published' && p.published_at && p.post_type !== 'story')
+    .sort((a, b) => new Date(b.published_at) - new Date(a.published_at))
+    .slice(0, 15);
+  $('gridSummary').textContent = `${scheduled.length} scheduled · last ${posted.length} posted`;
+  const cells = [...scheduled, ...posted];
+  if (!cells.length) { $('gridBody').innerHTML = `<div class="empty">Nothing to show yet. Schedule a post, or your posted history appears here once the daily sync runs.</div>`; return; }
+  $('gridBody').innerHTML = `<div class="ig-grid">` + cells.map((p) => {
+    const isSched = ['scheduled', 'processing', 'planned', 'failed'].includes(p.status);
+    const cls = isSched ? (p.publish_mode === 'manual' ? 'sched-manual' : 'sched-api') : 'posted';
+    const corner = p.post_type === 'carousel' ? '▦' : p.post_type === 'reel' ? '▶' : p.post_type === 'story' ? '◐' : '';
+    return `<div class="cell ${cls}" onclick="openPost('${p.id}')">
+      ${coverTag(p)}
+      ${corner ? `<span class="tcorner">${corner}</span>` : ''}
+      ${p.status === 'failed' ? `<span class="failmark">FAILED</span>` : ''}
+      ${isSched && p.scheduled_for ? `<div class="when">${esc(fmtShort(p.scheduled_for))}</div>` : ''}
+    </div>`;
+  }).join('') + `</div>`;
+}
+
+// ====================================================================
+// QUEUE
+// ====================================================================
+function postRow(p) {
+  return `<div class="post-row" onclick="openPost('${p.id}')">
+    ${coverTag(p, 'pic')}
+    <div class="meta">
+      <div class="cap">${esc((p.caption || '').slice(0, 90)) || '<span style="color:var(--muted)">No caption</span>'}</div>
+      <div class="sub">${TYPE_ICON[p.post_type] || ''} ${p.post_type} · ${p.scheduled_for ? fmtDate(p.scheduled_for) : 'no date'}${p.error_message ? ' · <span style="color:var(--red)">' + esc(p.error_message.slice(0, 80)) + '</span>' : ''}</div>
+    </div>
+    <div class="tags">
+      <span class="badge b-${p.publish_mode}">${p.publish_mode === 'api' ? 'Auto' : 'Manual'}</span>
+      <span class="badge b-${p.status}">${p.status}</span>
+    </div>
+  </div>`;
+}
+function renderQueue() {
+  const failed = POSTS.filter((p) => p.status === 'failed');
+  const upcoming = POSTS.filter((p) => ['scheduled', 'processing', 'planned'].includes(p.status))
+    .sort((a, b) => new Date(a.scheduled_for || 0) - new Date(b.scheduled_for || 0));
+  const drafts = POSTS.filter((p) => p.status === 'draft');
+  let html = '';
+  if (failed.length) html += `<div class="section-title" style="color:var(--red)">Needs attention</div>` + failed.map(postRow).join('');
+  html += `<div class="section-title">Upcoming</div>` + (upcoming.length ? upcoming.map(postRow).join('') : `<div class="empty">Nothing scheduled. Compose a post to get started.</div>`);
+  if (drafts.length) html += `<div class="section-title">Drafts</div>` + drafts.map(postRow).join('');
+  $('queueBody').innerHTML = html;
+}
+
+// ====================================================================
+// LIBRARY
+// ====================================================================
+['librarySearch', 'libraryType', 'libraryMode'].forEach((id) => $(id).addEventListener('input', renderLibrary));
+function renderLibrary() {
+  const q = $('librarySearch').value.toLowerCase().trim();
+  const ft = $('libraryType').value, fm = $('libraryMode').value;
+  const list = POSTS.filter((p) => {
+    if (ft && p.post_type !== ft) return false;
+    if (fm && p.publish_mode !== fm) return false;
+    if (q && !((p.caption || '') + ' ' + (p.hashtags || '') + ' ' + (p.notes || '')).toLowerCase().includes(q)) return false;
+    return true;
+  });
+  if (!list.length) { $('libraryBody').innerHTML = `<div class="empty">No posts match. The full archive fills in once the daily sync has run.</div>`; return; }
+  $('libraryBody').innerHTML = `<div class="grid-lib">` + list.map((p) => {
+    return `<div class="libcard" onclick="openPost('${p.id}')">
+      ${coverTag(p, 'pic')}
+      <div class="body">
+        <div class="cap">${esc((p.caption || '').slice(0, 70)) || '<span style="color:var(--muted)">No caption</span>'}</div>
+        <div class="sub"><span class="badge b-${p.status}">${p.status}</span> · ${p.post_type}</div>
+      </div></div>`;
+  }).join('') + `</div>`;
+}
+
+// ====================================================================
+// PERFORMANCE
+// ====================================================================
+let perfSort = { key: 'published_at', dir: -1 };
+function renderPerformance() {
+  const pub = POSTS.filter((p) => p.status === 'published').map((p) => {
+    const ins = latestInsight(p) || {};
+    const eng = (ins.likes || 0) + (ins.comments || 0) + (ins.saved || 0) + (ins.shares || 0);
+    return { p, reach: ins.reach, likes: ins.likes, comments: ins.comments, saved: ins.saved, shares: ins.shares, views: ins.views, eng,
+      engRate: ins.reach ? (eng / ins.reach * 100) : null };
+  });
+  if (!pub.length) { $('perfBody').innerHTML = `<div class="empty">No published posts yet. Insights appear after the daily sync, or run the one-time history backfill (see HANDOFF).</div>`; $('perfKpis').innerHTML = ''; return; }
+  const withReach = pub.filter((x) => x.reach != null);
+  const avgReach = withReach.length ? Math.round(withReach.reduce((s, x) => s + x.reach, 0) / withReach.length) : null;
+  const rates = pub.filter((x) => x.engRate != null);
+  const avgRate = rates.length ? (rates.reduce((s, x) => s + x.engRate, 0) / rates.length) : null;
+  const best = pub.slice().sort((a, b) => (b.reach || 0) - (a.reach || 0))[0];
+  $('perfKpis').innerHTML = `
+    <div class="kpi"><div class="k-lbl">Published posts</div><div class="k-val">${pub.length}</div></div>
+    <div class="kpi"><div class="k-lbl">Avg reach</div><div class="k-val">${avgReach != null ? num(avgReach) : '—'}</div></div>
+    <div class="kpi"><div class="k-lbl">Avg engagement rate</div><div class="k-val">${avgRate != null ? avgRate.toFixed(1) + '%' : '—'}</div></div>
+    <div class="kpi"><div class="k-lbl">Top reach</div><div class="k-val">${best.reach != null ? num(best.reach) : '—'}</div></div>`;
+  const k = perfSort.key, dir = perfSort.dir;
+  pub.sort((a, b) => {
+    const va = k === 'published_at' ? new Date(a.p.published_at || 0) : (a[k] == null ? -1 : a[k]);
+    const vb = k === 'published_at' ? new Date(b.p.published_at || 0) : (b[k] == null ? -1 : b[k]);
+    return va < vb ? -dir : va > vb ? dir : 0;
+  });
+  const th = (key, label) => `<th onclick="setPerfSort('${key}')">${label}${perfSort.key === key ? (perfSort.dir < 0 ? ' ▾' : ' ▴') : ''}</th>`;
+  $('perfBody').innerHTML = `<table><thead><tr>
+    <th>Post</th><th>Type</th>${th('published_at', 'Date')}${th('reach', 'Reach')}${th('views', 'Views')}
+    ${th('likes', 'Likes')}${th('comments', 'Comments')}${th('saved', 'Saves')}${th('shares', 'Shares')}${th('engRate', 'Eng. rate')}
+    </tr></thead><tbody>` + pub.map((x) => {
+    const c = gridCover(x.p);
+    return `<tr onclick="openPost('${x.p.id}')" style="cursor:pointer">
+      <td><div style="display:flex;gap:8px;align-items:center">${c.url && !c.isVideo ? `<img src="${esc(c.url)}" style="width:34px;height:34px;border-radius:5px;object-fit:cover">` : `<span style="font-size:18px">${TYPE_ICON[x.p.post_type] || '•'}</span>`}<span style="max-width:200px;overflow:hidden;text-overflow:ellipsis;display:inline-block;white-space:nowrap">${esc((x.p.caption || 'No caption').slice(0, 40))}</span></div></td>
+      <td>${x.p.post_type}</td><td>${x.p.published_at ? fmtDate(x.p.published_at).split(',')[0] : '—'}</td>
+      <td>${num(x.reach)}</td><td>${num(x.views)}</td><td>${num(x.likes)}</td><td>${num(x.comments)}</td>
+      <td>${num(x.saved)}</td><td>${num(x.shares)}</td><td>${x.engRate != null ? x.engRate.toFixed(1) + '%' : '—'}</td></tr>`;
+  }).join('') + `</tbody></table>`;
+}
+function setPerfSort(key) {
+  if (perfSort.key === key) perfSort.dir *= -1; else { perfSort.key = key; perfSort.dir = -1; }
+  renderPerformance();
+}
+
+// ====================================================================
+// POST DETAIL MODAL
+// ====================================================================
+let MODAL_POST = null;
+function copyCaption() {
+  if (!MODAL_POST) return;
+  copyText([(MODAL_POST.caption || '').trim(), (MODAL_POST.hashtags || '').trim()].filter(Boolean).join('\n\n'), 'Caption');
+}
+function copyFirstComment() { if (MODAL_POST) copyText(MODAL_POST.first_comment || '', 'First comment'); }
+function openPost(id) {
+  const p = POSTS.find((x) => x.id === id); if (!p) return;
+  MODAL_POST = p;
+  $('pmTitle').textContent = (p.post_type[0].toUpperCase() + p.post_type.slice(1)) + ' · ' + p.status;
+  const media = (p.media || []).slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+  const ins = latestInsight(p);
+  const fullCaption = [(p.caption || '').trim(), (p.hashtags || '').trim()].filter(Boolean).join('\n\n');
+  let body = '';
+  if (media.length) body += `<div class="thumbs" style="margin-bottom:14px">` + media.map((m) =>
+    `<div class="thumb" style="width:110px;height:110px">${m.type === 'video' ? `<video src="${esc(m.public_url)}" controls></video>` : `<img src="${esc(m.public_url)}">`}
+     <a class="ord" href="${esc(m.public_url)}" download target="_blank" style="text-decoration:none">Download</a></div>`).join('') + `</div>`;
+  body += `<p style="margin-bottom:10px"><span class="badge b-${p.publish_mode}">${p.publish_mode === 'api' ? 'Auto-publish' : 'Manual'}</span>
+    <span class="badge b-${p.status}">${p.status}</span>
+    ${p.scheduled_for ? `<span style="color:var(--muted);font-size:12px"> · ${esc(fmtDate(p.scheduled_for))}</span>` : ''}</p>`;
+  if (p.error_message) body += `<p style="color:var(--red);font-size:12.5px;margin-bottom:10px">⚠ ${esc(p.error_message)}</p>`;
+  if (['scheduled', 'planned', 'processing'].includes(p.status)) body += `<div class="reschedule">
+    <input type="datetime-local" id="pmReschedule" value="${esc(toLocalInput(p.scheduled_for))}">
+    <button class="btn" onclick="quickReschedule('${p.id}')">Update time</button></div>`;
+  if (fullCaption) body += `<div class="copy-row"><pre>${esc(fullCaption)}</pre><button class="btn" onclick="copyCaption()">Copy</button></div>`;
+  if (p.first_comment) body += `<div class="copy-row"><pre>${esc(p.first_comment)}</pre><button class="btn" onclick="copyFirstComment()">Copy</button></div>`;
+  if (p.audio_note) body += `<p style="font-size:12.5px;margin-bottom:8px">🎵 <b>Sound:</b> ${esc(p.audio_note)}</p>`;
+  if (p.location_name) body += `<p style="font-size:12.5px;margin-bottom:8px">📍 ${esc(p.location_name)}</p>`;
+  if (p.collaborators && p.collaborators.length) body += `<p style="font-size:12.5px;margin-bottom:8px">🤝 ${p.collaborators.map((c) => '@' + esc(c)).join(', ')}</p>`;
+  if (p.ig_permalink) body += `<p style="font-size:12.5px;margin-bottom:8px"><a href="${esc(p.ig_permalink)}" target="_blank">View on Instagram ↗</a></p>`;
+  if (ins) body += `<div class="kpis" style="margin-top:12px">
+    ${['reach', 'views', 'likes', 'comments', 'saved', 'shares'].map((k) => `<div class="kpi" style="min-width:84px;padding:9px 12px"><div class="k-lbl">${k}</div><div class="k-val" style="font-size:16px">${num(ins[k])}</div></div>`).join('')}</div>`;
+  $('pmBody').innerHTML = body;
+
+  const acts = [];
+  const editable = ['draft', 'scheduled', 'planned', 'failed'].includes(p.status);
+  if (editable) acts.push(`<button class="btn go" onclick="closeModal('postModal');loadIntoComposer(POSTS.find(x=>x.id==='${p.id}'),false)">Edit</button>`);
+  acts.push(`<button class="btn" onclick="closeModal('postModal');loadIntoComposer(POSTS.find(x=>x.id==='${p.id}'),true)">Duplicate</button>`);
+  if (p.publish_mode === 'api' && ['draft', 'scheduled', 'failed'].includes(p.status))
+    acts.push(`<button class="btn go" onclick="publishNow('${p.id}')">Publish now</button>`);
+  if (p.publish_mode === 'manual' && ['draft', 'planned'].includes(p.status)) {
+    acts.push(`<button class="btn go" onclick="markPosted('${p.id}')">Mark as posted</button>`);
+    acts.push(`<button class="btn" onclick="openLinkModal('${p.id}')">Link to IG post</button>`);
+  }
+  if (['scheduled', 'planned', 'processing'].includes(p.status))
+    acts.push(`<button class="btn danger" onclick="setStatus('${p.id}','cancelled')">Cancel</button>`);
+  if (['draft', 'cancelled', 'failed'].includes(p.status))
+    acts.push(`<button class="btn danger" onclick="deletePost('${p.id}')">Delete</button>`);
+  $('pmFoot').innerHTML = acts.join('');
+  $('postModal').classList.add('open');
+}
+async function quickReschedule(id) {
+  const v = $('pmReschedule').value;
+  if (!v) { toast('Pick a date/time', true); return; }
+  try { await dbUpdate('ig_posts', id, { scheduled_for: new Date(v).toISOString() }); toast('Rescheduled'); closeModal('postModal'); await loadPosts(); }
+  catch (e) { toast(e.message, true); }
+}
+async function publishNow(id) {
+  try {
+    await dbUpdate('ig_posts', id, { status: 'scheduled', scheduled_for: new Date().toISOString(), error_message: null });
+    toast('Publishing — it goes live within ~2 minutes');
+    closeModal('postModal'); await loadPosts();
+  } catch (e) { toast(e.message, true); }
+}
+async function setStatus(id, status) {
+  try { await dbUpdate('ig_posts', id, { status }); toast('Post ' + status); closeModal('postModal'); await loadPosts(); }
+  catch (e) { toast(e.message, true); }
+}
+async function markPosted(id) {
+  try { await dbUpdate('ig_posts', id, { status: 'published', published_at: new Date().toISOString() }); toast('Marked as posted'); closeModal('postModal'); await loadPosts(); }
+  catch (e) { toast(e.message, true); }
+}
+async function deletePost(id) {
+  if (!confirm('Delete this post permanently?')) return;
+  try { await dbDelete('ig_posts', id); toast('Deleted'); closeModal('postModal'); await loadPosts(); }
+  catch (e) { toast(e.message, true); }
+}
+function openLinkModal(manualId) {
+  closeModal('postModal');
+  const synced = POSTS.filter((p) => p.source === 'synced' && p.status === 'published')
+    .sort((a, b) => new Date(b.published_at || 0) - new Date(a.published_at || 0)).slice(0, 24);
+  $('linkBody').innerHTML = synced.length
+    ? `<p class="help" style="margin-bottom:10px">Pick the Instagram post this matches — its insights will attach to your planned post.</p><div class="grid-lib">`
+      + synced.map((s) => { const c = gridCover(s);
+        return `<div class="libcard" onclick="doLink('${manualId}','${s.id}')">
+          ${c.url && !c.isVideo ? `<img class="pic" src="${esc(c.url)}">` : `<div class="pic" style="display:flex;align-items:center;justify-content:center;font-size:26px">${TYPE_ICON[s.post_type] || '•'}</div>`}
+          <div class="body"><div class="cap">${esc((s.caption || '').slice(0, 60))}</div><div class="sub">${s.published_at ? fmtDate(s.published_at).split(',')[0] : ''}</div></div></div>`; }).join('') + `</div>`
+    : `<div class="empty">No synced Instagram posts yet. The daily sync mirrors your account first — try again after it runs.</div>`;
+  $('linkModal').classList.add('open');
+}
+async function doLink(manualId, syncedId) {
+  const synced = POSTS.find((p) => p.id === syncedId);
+  if (!synced) return;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/ig_media_insights?post_id=eq.${syncedId}`, {
+      method: 'PATCH', headers: headers({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ post_id: manualId }),
+    });
+    await dbDelete('ig_posts', syncedId);
+    await dbUpdate('ig_posts', manualId, {
+      status: 'published', ig_media_id: synced.ig_media_id, ig_permalink: synced.ig_permalink,
+      published_at: synced.published_at, media: synced.media,
+    });
+    toast('Linked to Instagram post');
+    closeModal('linkModal'); await loadPosts();
+  } catch (e) { toast(e.message, true); }
+}
+
+// ====================================================================
+// AUTH — magic-link via Supabase Auth REST + allowlist gate
+// ====================================================================
+(function authBoot() {
+  const overlay = $('authOverlay'), stepEmail = $('authStepEmail'), stepSent = $('authStepSent');
+  const emailInput = $('authEmail'), sendBtn = $('authSendCode'), msgEl = $('authMsg');
+  let refreshTimer = null;
+  const setMsg = (t, k) => { msgEl.textContent = t || ''; msgEl.className = k || ''; };
+  const showStep = (s) => { stepEmail.classList.toggle('auth-hidden', s !== 'email'); stepSent.classList.toggle('auth-hidden', s !== 'sent'); };
+  const readStored = () => { try { return JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY) || 'null'); } catch { return null; } };
+  const saveStored = (s) => localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(s));
+  const clearStored = () => localStorage.removeItem(AUTH_STORAGE_KEY);
+  const isExpired = (s) => !s || !s.expires_at || s.expires_at <= Math.floor(Date.now() / 1000);
+
+  async function verifyAllowlist(token) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/allowed_emails?select=email&limit=1`, { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + token } });
+    if (!r.ok) return false;
+    const d = await r.json();
+    return Array.isArray(d) && d.length > 0;
+  }
+  async function refreshToken(rt) {
+    const r = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+      method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: rt }),
+    });
+    if (!r.ok) throw new Error('refresh failed');
+    return r.json();
+  }
+  async function sendMagicLink(email) {
+    const redirectTo = window.location.origin + window.location.pathname;
+    const r = await fetch(`${SUPABASE_URL}/auth/v1/otp?redirect_to=${encodeURIComponent(redirectTo)}`, {
+      method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, create_user: true, gotrue_meta_security: {} }),
+    });
+    if (!r.ok) { let m = 'Failed to send link.'; try { const e = await r.json(); m = e.msg || e.error_description || m; } catch {} throw new Error(m); }
+  }
+  function scheduleRefresh(s) {
+    if (refreshTimer) clearTimeout(refreshTimer);
+    const ms = Math.max(15000, (s.expires_at * 1000) - Date.now() - 60000);
+    refreshTimer = setTimeout(async () => {
+      try { const r = await refreshToken(s.refresh_token); USER_JWT = r.access_token; saveStored(r); scheduleRefresh(r); }
+      catch { clearStored(); location.reload(); }
+    }, ms);
+  }
+  async function adoptSession(s) {
+    USER_JWT = s.access_token;
+    if (!(await verifyAllowlist(s.access_token))) {
+      clearStored(); USER_JWT = SUPABASE_KEY;
+      overlay.style.display = 'flex'; showStep('email');
+      setMsg('That email is not on the access list. Contact Uday to be added.', 'error');
+      return false;
+    }
+    saveStored(s); scheduleRefresh(s);
+    overlay.style.display = 'none'; $('app').style.display = 'block';
+    init();
+    return true;
+  }
+  sendBtn.addEventListener('click', async () => {
+    const email = emailInput.value.trim().toLowerCase();
+    if (!email || !email.includes('@')) { setMsg('Enter a valid email.', 'error'); return; }
+    sendBtn.disabled = true; setMsg('Sending…', 'info');
+    try { await sendMagicLink(email); showStep('sent'); setMsg('Link sent to ' + email + '. Check your inbox (and spam).', 'info'); }
+    catch (e) { setMsg(e.message, 'error'); }
+    sendBtn.disabled = false;
+  });
+  emailInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendBtn.click(); });
+  $('authBackToEmail').addEventListener('click', () => { showStep('email'); setMsg(''); });
+  $('signOutBtn').addEventListener('click', () => { clearStored(); location.reload(); });
+
+  (async () => {
+    if (window.location.hash.includes('access_token')) {
+      const pr = new URLSearchParams(window.location.hash.slice(1));
+      const at = pr.get('access_token'), rt = pr.get('refresh_token');
+      const ea = parseInt(pr.get('expires_at') || '0', 10), ei = parseInt(pr.get('expires_in') || '0', 10);
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+      if (at && rt) { if (await adoptSession({ access_token: at, refresh_token: rt, expires_at: ea || Math.floor(Date.now() / 1000) + ei })) return; }
+    }
+    const stored = readStored();
+    if (stored && stored.access_token) {
+      if (!isExpired(stored)) { if (await adoptSession(stored)) return; }
+      else if (stored.refresh_token) {
+        try { const r = await refreshToken(stored.refresh_token); if (await adoptSession(r)) return; } catch { clearStored(); }
+      }
+    }
+    overlay.style.display = 'flex'; showStep('email');
+  })();
+})();
+
+// ====================================================================
+// BOOT
+// ====================================================================
+let BOOTED = false;
+async function init() {
+  if (BOOTED) return;
+  BOOTED = true;
+  resetComposer();
+  try { await loadPosts(); } catch (e) { toast('Could not load posts: ' + e.message, true); }
+  startPolling();
+}
+</script>
+</body>
+</html>

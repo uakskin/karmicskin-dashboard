@@ -1148,14 +1148,22 @@ function renderPerformance() {
   const pub = POSTS.filter((p) => p.status === 'published').map((p) => {
     const ins = latestInsight(p) || {};
     const eng = (ins.likes || 0) + (ins.comments || 0) + (ins.saved || 0) + (ins.shares || 0);
+    // Engagement rate needs sound reach. Older posts come back from the API with
+    // broken (tiny) reach; when engagement exceeds reach the figure is unusable,
+    // so the rate is dropped rather than shown as an impossible value over 100%.
+    const reachOk = ins.reach != null && ins.reach > 0 && eng <= ins.reach;
     return { p, reach: ins.reach, likes: ins.likes, comments: ins.comments, saved: ins.saved, shares: ins.shares, views: ins.views, eng,
-      engRate: ins.reach ? (eng / ins.reach * 100) : null };
+      engRate: reachOk ? (eng / ins.reach * 100) : null };
   });
   if (!pub.length) { $('perfBody').innerHTML = `<div class="empty">No published posts yet. Insights appear after the daily sync, or run the one-time history backfill (see HANDOFF).</div>`; $('perfKpis').innerHTML = ''; return; }
   const withReach = pub.filter((x) => x.reach != null);
   const avgReach = withReach.length ? Math.round(withReach.reduce((s, x) => s + x.reach, 0) / withReach.length) : null;
-  const rates = pub.filter((x) => x.engRate != null);
-  const avgRate = rates.length ? (rates.reduce((s, x) => s + x.engRate, 0) / rates.length) : null;
+  // Account engagement rate = total engagement / total reach over posts with usable
+  // reach data. A plain mean of per-post rates is skewed by tiny-reach posts.
+  const rated = pub.filter((x) => x.engRate != null);
+  const totEng = rated.reduce((s, x) => s + x.eng, 0);
+  const totReach = rated.reduce((s, x) => s + x.reach, 0);
+  const avgRate = totReach ? (totEng / totReach * 100) : null;
   const best = pub.slice().sort((a, b) => (b.reach || 0) - (a.reach || 0))[0];
   $('perfKpis').innerHTML = `
     <div class="kpi"><div class="k-lbl">Published posts</div><div class="k-val">${pub.length}</div></div>
@@ -1169,7 +1177,7 @@ function renderPerformance() {
     return va < vb ? -dir : va > vb ? dir : 0;
   });
   const th = (key, label) => `<th onclick="setPerfSort('${key}')">${label}${perfSort.key === key ? (perfSort.dir < 0 ? ' ▾' : ' ▴') : ''}</th>`;
-  $('perfBody').innerHTML = `<table><thead><tr>
+  $('perfBody').innerHTML = `<div class="help" style="margin-bottom:8px">Engagement rate = (likes + comments + saves + shares) &divide; reach. Posts where Instagram no longer reports reliable reach show no rate.</div><table><thead><tr>
     <th>Post</th><th>Type</th>${th('published_at', 'Date')}${th('reach', 'Reach')}${th('views', 'Views')}
     ${th('likes', 'Likes')}${th('comments', 'Comments')}${th('saved', 'Saves')}${th('shares', 'Shares')}${th('engRate', 'Eng. rate')}
     </tr></thead><tbody>` + pub.map((x) => {

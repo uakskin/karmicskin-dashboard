@@ -63,8 +63,9 @@
   .header-left .brand { font-size: 11px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; }
 
   /* THEME TOGGLE */
-  .theme-toggle { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; cursor: pointer; font-size: 16px; line-height: 1; transition: all 0.15s; }
+  .theme-toggle { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; cursor: pointer; line-height: 1; transition: all 0.15s; display: inline-flex; align-items: center; justify-content: center; }
   .theme-toggle:hover { border-color: var(--border-hover); }
+  .theme-toggle svg { width: 16px; height: 16px; fill: var(--text-primary); display: block; }
 
   /* FY PILLS */
   .fy-pills { display: flex; gap: 2px; background: var(--pill-bg); border: 1px solid var(--pill-border); border-radius: 8px; padding: 2px; }
@@ -231,7 +232,7 @@ body { padding-left: 208px; }
   </div>
   <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
     <div style="text-align:right;margin-right:8px"><span style="font-size:10px;color:var(--text-muted);display:block">All figures exclude VAT</span></div>
-    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Switch theme">&#9728;&#65039;</button>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Switch theme" aria-label="Switch theme"></button>
     <div class="fy-pills">
       <button class="fy-pill" data-fy="fy2025" onclick="switchFY('fy2025')">FY2025 (Jun 24 - May 25)</button>
       <button class="fy-pill active" data-fy="fy2026" onclick="switchFY('fy2026')">FY2026 (Jun 25 - May 26)</button>
@@ -376,17 +377,33 @@ function sum(arr, n) { return arr.slice(0, n).reduce((a, b) => a + b, 0); }
 function pct(num, den) { return den !== 0 ? (num / den) * 100 : 0; }
 
 // ─── THEME ──────────────────────────────────────────────────────────────────
+// Monochrome theme icons \u2014 picks up colour from var(--text-primary) via CSS fill.
+const THEME_ICON_SUN = '<svg viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 000-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/></svg>';
+const THEME_ICON_MOON = '<svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 109 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 01-4.4 2.26 5.403 5.403 0 01-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>';
+function setThemeIcon(isDark) {
+  document.getElementById('themeToggle').innerHTML = isDark ? THEME_ICON_SUN : THEME_ICON_MOON;
+}
 function toggleTheme() {
-  const d = document.documentElement;
-  const next = d.getAttribute('data-theme') === 'dark' ? null : 'dark';
-  if (next) { d.setAttribute('data-theme', 'dark'); } else { d.removeAttribute('data-theme'); }
-  document.getElementById('themeToggle').textContent = next ? '\u{1F319}' : '\u2600\uFE0F';
-  localStorage.setItem('ks-theme', next || 'light');
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? '' : 'dark');
+  setThemeIcon(!isDark);
+  localStorage.setItem('ks-theme', isDark ? 'light' : 'dark');
   rebuildCharts();
 }
-(function initTheme() {
+(function() {
   const saved = localStorage.getItem('ks-theme');
-  if (saved === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); document.getElementById('themeToggle').textContent = '\u{1F319}'; }
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const isDark = saved ? saved === 'dark' : prefersDark;
+  if (isDark) document.documentElement.setAttribute('data-theme', 'dark');
+  setThemeIcon(isDark);
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+    if (!localStorage.getItem('ks-theme')) {
+      document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : '');
+      setThemeIcon(e.matches);
+      rebuildCharts();
+    }
+  });
 })();
 
 // ─── FY SWITCH ──────────────────────────────────────────────────────────────

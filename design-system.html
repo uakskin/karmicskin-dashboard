@@ -9,27 +9,27 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Domine:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  /* ========== DESIGN TOKENS (proposed v0.1) ========== */
+  /* ========== DESIGN TOKENS (v0.2) ========== */
   :root {
-    --bone:        #F6F5F0;
-    --white:       #FFFFFF;
-    --ink:         #222526;
-    --green:       #2F5350;
-    --green-deep:  #233F3D;
-    --saffron:     #FEB74A;
-    --burgundy:    #8B1A2B;
-    --sage:        #D8DAC1;
-    --mint:        #E4F3EC;
-    --line:        #E5E0D4;
-    --muted:       #7C776B;
-    --teal-retired:#0D9488;
+    --porcelain:  #F6F5F0;
+    --white:      #FFFFFF;
+    --sand:       #D8DAC1;
+    --green:      #2F5350;
+    --green-deep: #233F3D;
+    --carbon:     #232526;
+    --red:        #B22222;
+    --red-deep:   #8E1B1B;
+    --amber:      #EFA71D;
+    --ochre:      #9A6F15;
+    --line:       #E5E0D4;
+    --muted:      #7C776B;
   }
 
   /* ========== BASE ========== */
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
-    background:var(--bone);
-    color:var(--ink);
+    background:var(--porcelain);
+    color:var(--carbon);
     font-family:'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     line-height:1.65;
     -webkit-font-smoothing:antialiased;
@@ -40,6 +40,7 @@
   /* ========== LAYOUT ========== */
   .wrap { max-width:1080px; margin:0 auto; padding:0 clamp(16px,4vw,40px); }
   .section { border-top:1px solid var(--line); }
+  .section.tint { background:var(--sand); border-top-color:#C9CBB3; }
   .section .wrap { padding-top:clamp(34px,5vw,58px); padding-bottom:clamp(34px,5vw,58px); }
   .section-head { margin-bottom:24px; }
   .eyebrow {
@@ -47,39 +48,39 @@
     text-transform:uppercase; color:var(--green);
   }
   .section-title { font-size:clamp(24px,4vw,33px); color:var(--green); margin-top:9px; }
-  .accent-rule { width:46px; height:3px; background:var(--saffron); border-radius:2px; margin-top:14px; }
-  .section-intro { margin-top:16px; color:var(--muted); max-width:660px; font-size:15px; }
+  .accent-rule { width:46px; height:4px; background:var(--amber); border-radius:2px; margin-top:14px; }
+  .section-intro { margin-top:16px; color:var(--muted); max-width:680px; font-size:15px; }
 
   /* ========== MASTHEAD ========== */
   .masthead .wrap { padding-top:clamp(42px,7vw,78px); padding-bottom:clamp(30px,4vw,46px); }
-  .masthead .eyebrow { color:var(--burgundy); }
+  .masthead .eyebrow { color:var(--ochre); }
   .masthead h1 {
     font-size:clamp(40px,8vw,68px); color:var(--green);
     font-weight:700; line-height:1.03; margin:15px 0 18px;
   }
   .status-pill {
-    display:inline-block; background:var(--mint); color:var(--green-deep);
+    display:inline-block; background:var(--sand); color:var(--green-deep);
     font-size:12px; font-weight:600; letter-spacing:0.02em;
-    padding:6px 14px; border-radius:100px; border:1px solid #CBE3D8;
+    padding:6px 14px; border-radius:100px; border:1px solid #C7C9B0;
   }
-  .lead { margin-top:21px; max-width:680px; font-size:16px; }
+  .lead { margin-top:21px; max-width:690px; font-size:16px; }
 
   /* ========== SURFACE AUDIT ========== */
   .surfaces {
     display:grid; grid-template-columns:repeat(auto-fill,minmax(238px,1fr));
     gap:16px;
   }
-  .surface, .swatch, .principle, .specimen, .comp-card, .fork-panel {
+  .surface, .swatch, .principle, .specimen, .rule {
     transition:transform .15s ease, box-shadow .15s ease;
   }
   .surface {
     background:var(--white); border:1px solid var(--line);
     border-radius:14px; padding:20px;
   }
-  .surface:hover, .swatch:hover, .principle:hover {
+  .surface:hover, .swatch:hover, .principle:hover, .rule:hover {
     transform:translateY(-2px); box-shadow:0 6px 20px rgba(34,37,38,0.06);
   }
-  .surface h3 { font-size:17px; color:var(--ink); }
+  .surface h3 { font-size:17px; color:var(--carbon); }
   .surface .role { font-size:12px; color:var(--muted); margin-top:2px; }
   .chips {
     display:flex; border-radius:8px; overflow:hidden;
@@ -94,17 +95,17 @@
     display:inline-block; margin-top:14px; font-size:10.5px; font-weight:700;
     letter-spacing:0.05em; text-transform:uppercase; padding:4px 9px; border-radius:6px;
   }
-  .tag.on { background:var(--mint); color:var(--green-deep); }
-  .tag.off { background:#F3E6E3; color:var(--burgundy); }
+  .tag.on { background:var(--sand); color:var(--green-deep); }
+  .tag.off { background:#F2E2E0; color:var(--red); }
   .tag.neutral { background:#ECE8DC; color:var(--muted); }
 
   /* ========== CALLOUT ========== */
   .callout {
-    margin-top:26px; background:var(--green); color:var(--bone);
+    margin-top:26px; background:var(--green); color:var(--porcelain);
     border-radius:16px; padding:clamp(26px,4vw,42px); text-align:center;
   }
-  .callout h3 { font-size:clamp(21px,3.4vw,30px); color:var(--bone); }
-  .callout p { color:#C7D2CD; margin-top:10px; font-size:14.5px; max-width:620px; margin-left:auto; margin-right:auto; }
+  .callout h3 { font-size:clamp(21px,3.4vw,30px); color:var(--porcelain); }
+  .callout p { color:#C7D2CD; margin-top:10px; font-size:14.5px; max-width:640px; margin-left:auto; margin-right:auto; }
 
   /* ========== PALETTE ========== */
   .palette {
@@ -115,17 +116,93 @@
     background:var(--white); border:1px solid var(--line);
     border-radius:14px; overflow:hidden;
   }
-  .swatch .chip { height:120px; display:flex; align-items:flex-end; padding:12px; }
+  .swatch .chip { height:116px; display:flex; align-items:flex-end; padding:12px; }
   .swatch .chip .hex { font-size:12px; font-weight:600; letter-spacing:0.04em; }
-  .hex--dark  { color:var(--ink); }
-  .hex--light { color:var(--bone); }
+  .hex--dark  { color:var(--carbon); }
+  .hex--light { color:var(--porcelain); }
   .swatch .meta { padding:13px 16px 16px; }
-  .swatch .meta .name { font-family:'Domine',serif; font-size:16px; color:var(--ink); }
-  .swatch .meta .use { font-size:12px; color:var(--muted); margin-top:4px; line-height:1.5; }
-  .swatch.retired .chip { opacity:0.5; }
-  .swatch.retired .meta .name { text-decoration:line-through; color:var(--muted); }
-  .split-chip { display:flex; }
-  .split-chip > div { flex:1; }
+  .swatch .meta .name { font-family:'Domine',serif; font-size:16px; color:var(--carbon); }
+  .swatch .meta .use { font-size:12px; color:var(--muted); margin-top:4px; line-height:1.55; }
+  .swatch .meta .use b { color:var(--green); font-weight:700; }
+  .retired-note { margin-top:20px; font-size:12.5px; color:var(--muted); }
+
+  /* ========== COLOUR IN USE — RULES ========== */
+  .rules { display:flex; flex-direction:column; gap:16px; }
+  .rule {
+    background:var(--white); border:1px solid var(--line);
+    border-radius:16px; padding:clamp(22px,3.5vw,30px);
+  }
+  .rule .r-label {
+    font-size:11px; font-weight:700; letter-spacing:0.14em;
+    text-transform:uppercase; color:var(--muted);
+  }
+  .rule h3 { font-size:21px; color:var(--green); margin-top:5px; }
+  .r-demo {
+    background:var(--porcelain); border:1px solid var(--line);
+    border-radius:12px; padding:clamp(22px,3vw,30px); margin:16px 0;
+  }
+  .r-demo.center { text-align:center; }
+  .r-text { font-size:14px; color:var(--carbon); max-width:660px; }
+  .r-text b { color:var(--green); font-weight:600; }
+  .demo-cap { font-size:12px; color:var(--muted); margin-top:14px; }
+
+  /* buttons */
+  .btn-line { display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:center; }
+  .cta {
+    background:var(--red); color:#fff; font-family:'Montserrat',sans-serif;
+    font-weight:700; font-size:15px; padding:15px 32px; border-radius:12px;
+    border:none; cursor:pointer; transition:background .15s;
+  }
+  .cta:hover { background:var(--red-deep); }
+  .btn-2 {
+    background:var(--green); color:var(--porcelain); font-family:'Montserrat',sans-serif;
+    font-weight:600; font-size:14px; padding:13px 24px; border-radius:12px;
+    border:none; cursor:pointer;
+  }
+  .btn-ghost {
+    background:transparent; color:var(--green); font-family:'Montserrat',sans-serif;
+    font-weight:600; font-size:14px; padding:13px 24px; border-radius:12px;
+    border:1.5px solid var(--green); cursor:pointer;
+  }
+
+  /* amber marks */
+  .demo-line {
+    font-family:'Domine',serif; font-size:clamp(17px,2.4vw,20px);
+    color:var(--carbon); line-height:1.75; margin-bottom:16px;
+  }
+  .demo-line:last-child { margin-bottom:0; }
+  .u-amber { background-image:linear-gradient(to top, var(--amber) 0.26em, transparent 0.26em); }
+  .hl-amber {
+    background:var(--amber); color:var(--carbon); padding:2px 7px; border-radius:3px;
+    -webkit-box-decoration-break:clone; box-decoration-break:clone;
+  }
+  .badge {
+    display:inline-block; background:var(--amber); color:var(--carbon);
+    font-size:11px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase;
+    padding:5px 11px; border-radius:100px;
+  }
+  .em-green { color:var(--green); font-weight:600; }
+  .ochre-display {
+    font-family:'Domine',serif; font-size:clamp(30px,5vw,46px);
+    color:var(--ochre); font-weight:700; line-height:1.12;
+  }
+
+  /* do / don't */
+  .dd { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+  @media (max-width:560px){ .dd { grid-template-columns:1fr; } }
+  .dd-panel {
+    background:var(--porcelain); border:1px solid var(--line);
+    border-radius:10px; padding:20px 18px; text-align:center;
+  }
+  .dd-label { font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; }
+  .dd-no { color:var(--red); }
+  .dd-yes { color:var(--green); }
+  .dd-eg { font-family:'Domine',serif; font-size:19px; margin:12px 0 9px; }
+  .dd-cap { font-size:11.5px; color:var(--muted); line-height:1.5; }
+
+  /* neutral strip */
+  .neutral-strip { display:flex; border-radius:10px; overflow:hidden; border:1px solid var(--line); }
+  .neutral-strip div { flex:1; height:72px; }
 
   /* ========== TYPOGRAPHY ========== */
   .type-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
@@ -143,10 +220,10 @@
     color:var(--green); line-height:1.12; margin-top:10px; font-weight:600;
   }
   .spec-sub {
-    font-family:'Domine',serif; font-size:21px; color:var(--ink);
+    font-family:'Domine',serif; font-size:21px; color:var(--carbon);
     margin-top:18px; font-weight:500;
   }
-  .spec-body { font-size:14.5px; color:var(--ink); margin-top:14px; }
+  .spec-body { font-size:14.5px; color:var(--carbon); margin-top:14px; }
   .spec-weights { font-size:12.5px; color:var(--muted); margin-top:16px; }
   .scale { list-style:none; margin-top:14px; }
   .scale li {
@@ -156,7 +233,7 @@
   .scale li:first-child { border-top:none; }
   .scale li span:last-child { color:var(--muted); }
 
-  /* ========== PRINCIPLES & COMPONENTS ========== */
+  /* ========== PRINCIPLES ========== */
   .principles {
     display:grid; grid-template-columns:repeat(auto-fill,minmax(252px,1fr));
     gap:14px;
@@ -166,67 +243,10 @@
     border-radius:14px; padding:19px 21px;
   }
   .principle .num {
-    font-family:'Domine',serif; font-size:13px; font-weight:700; color:var(--saffron);
+    font-family:'Domine',serif; font-size:13px; font-weight:700; color:var(--ochre);
   }
-  .principle h4 { font-size:16px; color:var(--ink); margin-top:5px; }
+  .principle h4 { font-size:16px; color:var(--carbon); margin-top:5px; }
   .principle p { font-size:13px; color:var(--muted); margin-top:6px; }
-
-  .components { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:20px; }
-  @media (max-width:680px){ .components { grid-template-columns:1fr; } }
-  .comp-card {
-    background:var(--white); border:1px solid var(--line);
-    border-radius:14px; padding:24px;
-  }
-  .comp-card .label-sm {
-    font-size:11px; font-weight:700; letter-spacing:0.13em;
-    text-transform:uppercase; color:var(--muted); margin-bottom:16px;
-  }
-  .btn-row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
-  .btn {
-    font-family:'Montserrat',sans-serif; font-weight:600; font-size:14px;
-    padding:13px 26px; border-radius:12px; cursor:pointer;
-    border:1.5px solid transparent; transition:all .15s;
-  }
-  .btn-primary { background:var(--green); color:var(--bone); }
-  .btn-primary:hover { background:var(--green-deep); }
-  .btn-ghost { background:transparent; color:var(--green); border-color:var(--green); }
-  .btn-ghost:hover { background:var(--green); color:var(--bone); }
-  .kpi-demo {
-    background:var(--bone); border:1px solid var(--line);
-    border-radius:12px; padding:18px 20px; display:inline-block; min-width:180px;
-  }
-  .kpi-demo .lab {
-    font-size:11px; font-weight:700; letter-spacing:0.1em;
-    text-transform:uppercase; color:var(--muted);
-  }
-  .kpi-demo .val {
-    font-family:'Domine',serif; font-size:30px; font-weight:700;
-    color:var(--green); margin-top:6px;
-  }
-  .kpi-demo .delta { font-size:12px; color:var(--green); font-weight:600; margin-top:2px; }
-  .comp-note { font-size:12.5px; color:var(--muted); margin-top:16px; }
-
-  /* ========== THE FORK ========== */
-  .fork { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
-  @media (max-width:680px){ .fork { grid-template-columns:1fr; } }
-  .fork-panel {
-    background:var(--white); border:1px solid var(--line);
-    border-radius:16px; padding:24px; position:relative;
-  }
-  .fork-panel.rec { border:2px solid var(--green); }
-  .rec-tag {
-    position:absolute; top:-12px; left:24px; background:var(--green);
-    color:var(--bone); font-size:10.5px; font-weight:700; letter-spacing:0.07em;
-    text-transform:uppercase; padding:5px 13px; border-radius:100px;
-  }
-  .fork-panel h3 { font-size:20px; color:var(--ink); }
-  .fork-strip { display:flex; height:48px; border-radius:9px; overflow:hidden; margin:15px 0; border:1px solid var(--line); }
-  .fork-strip span { flex:1; }
-  .fork-panel p { font-size:13.5px; color:var(--muted); }
-  .fork-foot {
-    margin-top:20px; text-align:center; font-family:'Domine',serif;
-    font-size:clamp(16px,2.4vw,20px); color:var(--green); font-style:italic;
-  }
 
   /* ========== FOOTER ========== */
   .footer { border-top:1px solid var(--line); background:var(--white); }
@@ -242,12 +262,12 @@
   .next-list li::before {
     content:counter(step); position:absolute; left:0; top:8px;
     width:26px; height:26px; border-radius:50%;
-    background:var(--green); color:var(--bone);
+    background:var(--green); color:var(--porcelain);
     font-family:'Domine',serif; font-size:13px; font-weight:700;
     display:flex; align-items:center; justify-content:center;
   }
   .minor-note {
-    margin-top:24px; padding:16px 18px; background:var(--bone);
+    margin-top:24px; padding:16px 18px; background:var(--porcelain);
     border:1px solid var(--line); border-radius:12px;
     font-size:12.5px; color:var(--muted);
   }
@@ -315,8 +335,8 @@ body { padding-left: 208px; }
   <div class="wrap">
     <div class="eyebrow">Karmic Skin · Brand</div>
     <h1>Design System</h1>
-    <span class="status-pill">v0.1 · Working draft · 16 May 2026</span>
-    <p class="lead">Karmic Skin has never had a written design system — only choices, made one surface at a time. This page gathers every one of those choices, looks at them honestly, and proposes a single system the whole brand can stand on. It is a working draft. Nothing here is locked yet.</p>
+    <span class="status-pill">v0.2 · Palette set · 16 May 2026</span>
+    <p class="lead">Karmic Skin's first written design system. The colour direction is now set: a warm, heritage palette led by deep green, with brick red kept back for action and amber carrying the glow. This is the reference every Karmic surface should be built from — the website, the landing pages, the emails, and these dashboards.</p>
   </div>
 </header>
 
@@ -325,9 +345,9 @@ body { padding-left: 208px; }
   <div class="wrap">
     <div class="section-head">
       <div class="eyebrow">01 · The audit</div>
-      <h2 class="section-title">Four surfaces, four design systems</h2>
+      <h2 class="section-title">Where we started: four surfaces, four systems</h2>
       <div class="accent-rule"></div>
-      <p class="section-intro">Every place the brand shows up was designed on its own. Here they are side by side, with the colours and type each one actually uses today.</p>
+      <p class="section-intro">Every place the brand shows up was designed on its own. This is the scatter the system exists to end — kept here as the before picture.</p>
     </div>
 
     <div class="surfaces">
@@ -336,7 +356,7 @@ body { padding-left: 208px; }
         <div class="role">karmicskin.com — live storefront</div>
         <div class="chips">
           <span style="background:#2F5350"></span>
-          <span style="background:#FEB74A"></span>
+          <span style="background:#EFA71D"></span>
           <span style="background:#F6F5F0"></span>
           <span style="background:#232526"></span>
         </div>
@@ -418,83 +438,173 @@ body { padding-left: 208px; }
 
     <div class="callout">
       <h3>Three brand colours. Four type pairings. One brand.</h3>
-      <p>Your storefront is green. Your landing pages and emails are burgundy. Your dashboards are teal. Nothing was wrong — there was just never a system to be right against.</p>
+      <p>The storefront was green, the landing pages and emails burgundy, the dashboards teal. Nothing was wrong — there was just never a system to be right against. The rest of this page is that system.</p>
     </div>
   </div>
 </section>
 
-<!-- ========== 02 · COLOUR ========== -->
+<!-- ========== 02 · THE PALETTE ========== -->
 <section class="section">
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow">02 · Colour</div>
-      <h2 class="section-title">One palette, built from the truest surface</h2>
+      <div class="eyebrow">02 · The palette</div>
+      <h2 class="section-title">Six colours, each with one job</h2>
       <div class="accent-rule"></div>
-      <p class="section-intro">The website is the most brand-true thing we have — deep Ayurvedic green, saffron and warm bone. The recommendation is to promote it, refine it, and let every other surface come home to it.</p>
+      <p class="section-intro">Built from the website — deep green, warm porcelain — with brick red and amber added for the two things the brand had no colour for: a way to drive action, and a way to glow. Nothing here is decorative. Every colour earns its place.</p>
     </div>
 
     <div class="palette">
       <div class="swatch">
         <div class="chip" style="background:#F6F5F0"><span class="hex hex--dark">#F6F5F0</span></div>
         <div class="meta">
-          <div class="name">Canvas</div>
-          <div class="use">Every background. Warm bone, never cold grey.</div>
+          <div class="name">Porcelain</div>
+          <div class="use"><b>Canvas.</b> Every background and surface. Warm, never cold grey.</div>
         </div>
       </div>
       <div class="swatch">
-        <div class="chip" style="background:#222526"><span class="hex hex--light">#222526</span></div>
+        <div class="chip" style="background:#D8DAC1"><span class="hex hex--dark">#D8DAC1</span></div>
         <div class="meta">
-          <div class="name">Ink</div>
-          <div class="use">Body text. A warm near-black, not pure black.</div>
+          <div class="name">Sand Dune</div>
+          <div class="use"><b>Section tint.</b> Soft bands that give a long page rhythm.</div>
         </div>
       </div>
       <div class="swatch">
         <div class="chip" style="background:#2F5350"><span class="hex hex--light">#2F5350</span></div>
         <div class="meta">
-          <div class="name">Brand</div>
-          <div class="use">Headlines, key UI, the considered brand colour.</div>
+          <div class="name">Dark Slate Grey</div>
+          <div class="use"><b>Brand.</b> Headlines, key UI, logo — and emphasised words.</div>
         </div>
       </div>
       <div class="swatch">
-        <div class="chip" style="background:#FEB74A"><span class="hex hex--dark">#FEB74A</span></div>
+        <div class="chip" style="background:#232526"><span class="hex hex--light">#232526</span></div>
         <div class="meta">
-          <div class="name">Glow</div>
-          <div class="use">Saffron. Highlights, underlines, illustration, warmth.</div>
+          <div class="name">Carbon Black</div>
+          <div class="use"><b>Ink.</b> Every word of body text. Warm near-black, never pure black.</div>
         </div>
       </div>
       <div class="swatch">
-        <div class="chip" style="background:#8B1A2B"><span class="hex hex--light">#8B1A2B</span></div>
+        <div class="chip" style="background:#B22222"><span class="hex hex--light">#B22222</span></div>
         <div class="meta">
-          <div class="name">Depth</div>
-          <div class="use">Burgundy. A deep, seasonal accent — emotion, campaigns.</div>
+          <div class="name">Brick Red</div>
+          <div class="use"><b>Action.</b> The Add to Cart button. Held back so it always pops.</div>
         </div>
       </div>
       <div class="swatch">
-        <div class="chip split-chip">
-          <div style="background:#D8DAC1"></div>
-          <div style="background:#E4F3EC; display:flex; align-items:flex-end; padding:12px;"><span class="hex hex--dark">Sage / Mint</span></div>
-        </div>
+        <div class="chip" style="background:#EFA71D"><span class="hex hex--dark">#EFA71D</span></div>
         <div class="meta">
-          <div class="name">Tints</div>
-          <div class="use">#D8DAC1 &amp; #E4F3EC. Soft section backgrounds.</div>
+          <div class="name">Amber Honey</div>
+          <div class="use"><b>Glow.</b> Highlights, underlines, badges, fills. A mark, never text.</div>
         </div>
       </div>
-      <div class="swatch retired">
-        <div class="chip" style="background:#0D9488"><span class="hex hex--light">#0D9488</span></div>
+      <div class="swatch">
+        <div class="chip" style="background:#9A6F15"><span class="hex hex--light">#9A6F15</span></div>
         <div class="meta">
-          <div class="name">Teal</div>
-          <div class="use">Carried no brand meaning. Retired from the system.</div>
+          <div class="name">Deep Ochre</div>
+          <div class="use"><b>Amber, text-safe.</b> Gold display text only — large and bold.</div>
         </div>
       </div>
+    </div>
+
+    <p class="retired-note">Retired — burgundy <b>#8B1A2B</b> and teal <b>#0D9488</b>. Both folded out: one red is enough, and the system carries no colour without a job.</p>
+  </div>
+</section>
+
+<!-- ========== 03 · COLOUR IN USE ========== -->
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">03 · Colour in use</div>
+      <h2 class="section-title">A colour is its job, not its hex</h2>
+      <div class="accent-rule"></div>
+      <p class="section-intro">A palette is only as strong as its rules. Here is how each accent earns its place — what it does, and the one place it must never go.</p>
+    </div>
+
+    <div class="rules">
+
+      <!-- RED -->
+      <div class="rule">
+        <div class="r-label">Brick Red · #B22222</div>
+        <h3>Red is action, and only action</h3>
+        <div class="r-demo center">
+          <div class="btn-line">
+            <button class="cta">Add to Cart · £29.00</button>
+            <button class="btn-2">Explore the ritual</button>
+            <button class="btn-ghost">Read her story</button>
+          </div>
+          <div class="demo-cap">One red action per screen. Secondary buttons stay green — filled or outline.</div>
+        </div>
+        <p class="r-text">Red carries one message: <b>take this action</b>. The Add to Cart button, the checkout — the single most important tap on a page. It is never a heading, never decoration, never a text colour. Its power is scarcity: hold it back to one thing per screen and the eye goes straight to it. Bright red pops against every other colour in the palette precisely because nothing else competes with it.</p>
+      </div>
+
+      <!-- AMBER -->
+      <div class="rule">
+        <div class="r-label">Amber Honey · #EFA71D</div>
+        <h3>Amber is the glow — a mark, never text</h3>
+        <div class="r-demo">
+          <p class="demo-line">Your skin has a memory. Give it something <span class="u-amber">worth remembering</span>.</p>
+          <p class="demo-line">A clean, nourished canvas is the <span class="hl-amber">foundation of every ritual</span>.</p>
+          <p class="demo-line"><span class="badge">Bestseller</span> &nbsp; <span class="badge">New in</span> &nbsp; <span class="badge">Pregnancy safe</span></p>
+        </div>
+        <div class="dd">
+          <div class="dd-panel">
+            <span class="dd-label dd-no">Don't</span>
+            <p class="dd-eg" style="color:#EFA71D;">Amber as a text colour</p>
+            <span class="dd-cap">1.8:1 contrast on Porcelain — well under the 4.5:1 text needs. It washes out.</span>
+          </div>
+          <div class="dd-panel">
+            <span class="dd-label dd-yes">Do</span>
+            <p class="dd-eg"><span class="hl-amber">Amber behind the words</span></p>
+            <span class="dd-cap">Dark Carbon ink on an amber mark — warm, and fully legible.</span>
+          </div>
+        </div>
+        <p class="r-text">Amber is warmth and emphasis — the glow the brand had no colour for. It works as a <b>mark</b>: a highlighter wash, an underline, a badge, a fill. Dark text always sits on it or beside it. It is never the text itself. A warm highlighter swipe is also more on-brand for Karmic than coloured text would ever be — editorial, and a little hand-made.</p>
+      </div>
+
+      <!-- GREEN EMPHASIS -->
+      <div class="rule">
+        <div class="r-label">Dark Slate Grey · #2F5350</div>
+        <h3>Green carries emphasis in text</h3>
+        <div class="r-demo center">
+          <p class="demo-line" style="margin:0;">Not anti-ageing. <span class="em-green">Pro you.</span></p>
+          <div class="demo-cap">When a word must carry weight, colour it green — about 7:1 contrast on Porcelain.</div>
+        </div>
+        <p class="r-text">When a single word in a line needs to stand out, colour it <b>green</b>. It is fully legible on Porcelain and, because it is the brand colour, the emphasis reads as considered rather than loud. This is the answer whenever you are tempted to colour text amber — reach for green instead.</p>
+      </div>
+
+      <!-- OCHRE -->
+      <div class="rule">
+        <div class="r-label">Deep Ochre · #9A6F15</div>
+        <h3>Ochre is gold you can actually read</h3>
+        <div class="r-demo center">
+          <div class="ochre-display">A gift for us.</div>
+          <div class="demo-cap">The text-safe tone of the amber — for large, bold display type only.</div>
+        </div>
+        <p class="r-text">When you want gold on the word <em>itself</em> — not a mark behind it — use the <b>deep ochre</b>. It is the amber darkened until it clears the contrast bar, so it holds up as large, bold display type. Never use it for body text; at small sizes it muddies. One hue, two tones: bright amber to mark, deep ochre to write.</p>
+      </div>
+
+      <!-- NEUTRALS -->
+      <div class="rule">
+        <div class="r-label">Porcelain · Sand Dune · Carbon</div>
+        <h3>The neutrals do the quiet work</h3>
+        <div class="r-demo">
+          <div class="neutral-strip">
+            <div style="background:#F6F5F0"></div>
+            <div style="background:#D8DAC1"></div>
+            <div style="background:#232526"></div>
+          </div>
+        </div>
+        <p class="r-text">Porcelain is every background. Sand Dune tints the occasional section so a long page has rhythm — the band this page sits a section on further down. Carbon is every word of body copy. They are calm on purpose: it is what keeps the three accents rare, and rare is what makes them land.</p>
+      </div>
+
     </div>
   </div>
 </section>
 
-<!-- ========== 03 · TYPOGRAPHY ========== -->
+<!-- ========== 04 · TYPOGRAPHY ========== -->
 <section class="section">
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow">03 · Typography</div>
+      <div class="eyebrow">04 · Typography</div>
       <h2 class="section-title">Domine leads. Montserrat carries.</h2>
       <div class="accent-rule"></div>
       <p class="section-intro">The website's pairing, adopted as the system. Georgia and bare system fonts were only ever fallbacks of convenience.</p>
@@ -522,21 +632,21 @@ body { padding-left: 208px; }
   </div>
 </section>
 
-<!-- ========== 04 · PRINCIPLES & COMPONENTS ========== -->
-<section class="section">
+<!-- ========== 05 · PRINCIPLES ========== -->
+<section class="section tint">
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow">04 · Principles</div>
-      <h2 class="section-title">How it should feel</h2>
+      <div class="eyebrow">05 · Principles</div>
+      <h2 class="section-title">Six things the system holds to</h2>
       <div class="accent-rule"></div>
-      <p class="section-intro">Six principles, and the first components drawn in the proposed system.</p>
+      <p class="section-intro">The colour and type rules above all come back to these. (And this section sits on a Sand Dune tint — the neutral doing its job.)</p>
     </div>
 
     <div class="principles">
       <div class="principle">
         <div class="num">01</div>
         <h4>Warm, never stark</h4>
-        <p>Grounds are bone and cream. Cold grey is retired alongside the teal.</p>
+        <p>Grounds are Porcelain and Sand. Cold grey has no place here.</p>
       </div>
       <div class="principle">
         <div class="num">02</div>
@@ -555,88 +665,30 @@ body { padding-left: 208px; }
       </div>
       <div class="principle">
         <div class="num">05</div>
-        <h4>Soft edges, solid buttons</h4>
-        <p>12–16px radius. Confident, filled buttons. No hairline timidity.</p>
+        <h4>One red, one job</h4>
+        <p>Brick red means action, and nothing else. Reserved, so it always pops.</p>
       </div>
       <div class="principle">
         <div class="num">06</div>
-        <h4>Saffron is the glow</h4>
-        <p>Used sparingly — a highlight, a warmth. Never a wall of yellow.</p>
+        <h4>Amber glows, never speaks</h4>
+        <p>Amber is a mark — an underline, a wash, a badge. Never the text itself.</p>
       </div>
     </div>
-
-    <div class="components">
-      <div class="comp-card">
-        <div class="label-sm">Buttons</div>
-        <div class="btn-row">
-          <button class="btn btn-primary">Begin the ritual</button>
-          <button class="btn btn-ghost">Read her story</button>
-        </div>
-        <p class="comp-note">Primary fills with Brand green; secondary is a green outline. 12px radius, Montserrat 600.</p>
-      </div>
-      <div class="comp-card">
-        <div class="label-sm">Dashboard tile, re-skinned</div>
-        <div class="kpi-demo">
-          <div class="lab">Revenue</div>
-          <div class="val">£48.2k</div>
-          <div class="delta">▲ 12.4% vs prior</div>
-        </div>
-        <p class="comp-note">The same KPI card these dashboards use, in the new palette and type. Value is illustrative.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ========== 05 · THE DECISION ========== -->
-<section class="section">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="eyebrow">05 · The decision</div>
-      <h2 class="section-title">The one fork that changes everything</h2>
-      <div class="accent-rule"></div>
-      <p class="section-intro">Green-led or burgundy-led. Most of the system follows from this single call — so it is yours to make.</p>
-    </div>
-
-    <div class="fork">
-      <div class="fork-panel rec">
-        <span class="rec-tag">Recommended · v0.1</span>
-        <h3>Green-led</h3>
-        <div class="fork-strip">
-          <span style="background:#2F5350"></span>
-          <span style="background:#FEB74A"></span>
-          <span style="background:#F6F5F0"></span>
-          <span style="background:#8B1A2B; flex:0.4"></span>
-        </div>
-        <p>The website's own identity, refined. Distinctly Ayurvedic — herbal, grounded, quietly premium. Burgundy stays, but as the deep seasonal accent. This is what is drawn throughout this page.</p>
-      </div>
-      <div class="fork-panel">
-        <h3>Burgundy-led</h3>
-        <div class="fork-strip">
-          <span style="background:#8B1A2B"></span>
-          <span style="background:#B8860B"></span>
-          <span style="background:#FDF8F0"></span>
-          <span style="background:#2F5350; flex:0.4"></span>
-        </div>
-        <p>The identity your emails and landing pages already carry. Warmer and richer, closer to conventional luxury beauty. Green would step back to a supporting role. Real equity here — it is not a wrong answer.</p>
-      </div>
-    </div>
-
-    <p class="fork-foot">Send your inspiration, and we lock the direction.</p>
   </div>
 </section>
 
 <!-- ========== FOOTER ========== -->
 <footer class="footer">
   <div class="wrap">
-    <h4>This is v0.1</h4>
-    <p class="sub">A working draft, not a verdict. It will change as we shape it together.</p>
+    <h4>v0.2 — the palette is set</h4>
+    <p class="sub">Colour and type are settled. What follows is rolling them out.</p>
     <ol class="next-list">
-      <li>You send inspiration, or call the green / burgundy fork.</li>
-      <li>We shape this page into the locked design system.</li>
-      <li>Every surface in the audit is rebuilt to match — website, landing pages, emails, and these dashboards.</li>
+      <li>This page stays the reference every Karmic surface is built from.</li>
+      <li>The website, landing pages and emails are re-grounded on the palette — brick red for action, amber for the glow.</li>
+      <li>The dashboards drop the teal and adopt the system, this one included.</li>
     </ol>
     <div class="minor-note">
-      Not yet drawn: spacing scale, full component library, iconography, motion, and a dashboard dark mode. Those come once the direction is locked.
+      Still to define: spacing scale, full component library, iconography, motion. Colour and type are locked; structure comes next.
     </div>
   </div>
 </footer>

@@ -71,6 +71,10 @@ header .spacer { flex: 1; }
   padding: 7px 11px; color: var(--text); font-size: 12.5px;
 }
 .icon-btn:hover { border-color: var(--brand); }
+.portal-nav { display: flex; gap: 2px; flex-wrap: wrap; background: var(--surface-2); border-bottom: 1px solid var(--border); padding: 0 14px; }
+.portal-nav a { padding: 9px 13px; font-size: 12.5px; font-weight: 600; color: var(--muted); text-decoration: none; border-bottom: 2px solid transparent; }
+.portal-nav a:hover { color: var(--text); }
+.portal-nav a.active { color: var(--brand); border-bottom-color: var(--brand); }
 .tabs { display: flex; gap: 4px; padding: 10px 18px 0; background: var(--surface); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
 .tab {
   background: none; border: none; padding: 9px 15px; font-size: 13.5px; font-weight: 600;
@@ -251,6 +255,16 @@ tbody tr:hover { background: var(--surface-2); }
 
 <!-- ========== APP ========== -->
 <div id="app">
+  <nav class="portal-nav">
+    <a href="dashboard.html">Shopify</a>
+    <a href="meta.html">Meta</a>
+    <a href="email.html">Email</a>
+    <a href="inventory.html">Inventory</a>
+    <a href="amazon.html">Amazon</a>
+    <a href="pnl.html">P&amp;L</a>
+    <a href="worklist.html">Work List</a>
+    <a href="instagram-scheduler.html" class="active">Instagram</a>
+  </nav>
   <header>
     <span class="brand">Instagram Studio</span>
     <span class="acct" id="acctLabel">@karmic.skin</span>

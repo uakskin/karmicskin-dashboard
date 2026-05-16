@@ -11,18 +11,17 @@
 <style>
   /* ========== TOKENS ========== */
   :root {
-    --porcelain:  #F6F5F0;
-    --white:      #FFFFFF;
-    --sand:       #D8DAC1;
-    --green:      #2F5350;
-    --green-deep: #233F3D;
-    --carbon:     #232526;
-    --red:        #B22222;
-    --red-deep:   #8E1B1B;
-    --amber:      #EFA71D;
-    --ochre:      #9A6F15;
-    --line:       #E5E0D4;
-    --muted:      #7C776B;
+    /* The seven — the whole system. Nothing else is a colour. */
+    --porcelain:  #F6F5F0;   /* Tier 1 · ground  */
+    --sand:       #D8DAC1;   /* Tier 1 · tint    */
+    --carbon:     #232526;   /* Tier 1 · ink     */
+    --green:      #2F5350;   /* Tier 2 · brand field   */
+    --red:        #B22222;   /* Tier 3 · action        */
+    --amber:      #EFA71D;   /* Tier 3 · highlight     */
+    --ochre:      #9A6F15;   /* Tier 3 · gold display  */
+    /* Derived — Carbon ink at reduced strength. Not new colours. */
+    --line:       rgba(35,37,38,0.13);  /* hairline — Carbon, softened    */
+    --muted:      rgba(35,37,38,0.62);  /* secondary text — Carbon, stepped back */
   }
 
   /* ========== BASE ========== */
@@ -40,7 +39,7 @@
   /* ========== LAYOUT ========== */
   .wrap { max-width:1080px; margin:0 auto; padding:0 clamp(16px,4vw,40px); }
   .section { border-top:1px solid var(--line); }
-  .section.tint { background:var(--sand); border-top-color:#C9CBB3; }
+  .section.tint { background:var(--sand); }
   .section .wrap { padding-top:clamp(38px,5vw,64px); padding-bottom:clamp(38px,5vw,64px); }
   .section-head { margin-bottom:28px; }
   .eyebrow-row { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
@@ -78,18 +77,18 @@
   .tiers { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
   @media (max-width:720px){ .tiers { grid-template-columns:1fr; } }
   .tier {
-    background:var(--white); border:1px solid var(--line);
+    background:var(--porcelain); border:1px solid var(--line);
     border-radius:14px; padding:22px;
   }
   .tier .t-num { font-family:'Domine',serif; font-size:13px; font-weight:700; color:var(--ochre); }
   .tier h4 { font-size:17px; margin-top:4px; }
   .tier p { font-size:13px; color:var(--muted); margin-top:7px; }
   .tier .t-swatch { display:flex; gap:5px; margin-top:14px; }
-  .tier .t-swatch span { height:22px; flex:1; border-radius:4px; border:1px solid rgba(0,0,0,0.06); }
+  .tier .t-swatch span { height:22px; flex:1; border-radius:4px; border:1px solid var(--line); }
 
   .principles { display:grid; grid-template-columns:repeat(auto-fill,minmax(248px,1fr)); gap:14px; }
   .principle {
-    background:var(--white); border:1px solid var(--line);
+    background:var(--porcelain); border:1px solid var(--line);
     border-radius:14px; padding:20px 22px;
   }
   .principle .num { font-family:'Domine',serif; font-size:13px; font-weight:700; color:var(--ochre); }
@@ -101,7 +100,7 @@
     display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:14px;
   }
   .pal-swatch {
-    height:148px; border-radius:14px; border:1px solid rgba(0,0,0,0.06);
+    height:148px; border-radius:14px; border:1px solid var(--line);
     display:flex; align-items:flex-end; padding:14px;
   }
   .pal-swatch .hex { font-size:13px; font-weight:700; letter-spacing:0.05em; }
@@ -116,7 +115,7 @@
   /* ========== COLOUR IN USE ========== */
   .rules { display:flex; flex-direction:column; gap:16px; }
   .rule {
-    background:var(--white); border:1px solid var(--line);
+    background:var(--porcelain); border:1px solid var(--line);
     border-radius:16px; padding:clamp(22px,3.5vw,32px);
   }
   .rule.feature { border:2px solid var(--green); }
@@ -142,7 +141,7 @@
     font-family:'Domine',serif; font-size:clamp(16px,2.4vw,20px);
     margin-top:10px; color:var(--porcelain); line-height:1.5;
   }
-  .testbox .tb-q b { color:#fff; font-weight:700; }
+  .testbox .tb-q b { color:var(--porcelain); font-weight:700; }
 
   /* ink-or-field two-up */
   .iorf { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0; }
@@ -155,7 +154,7 @@
   .iorf-panel.field .ip-h { color:var(--porcelain); }
   .iorf-panel .ip-b { font-size:13px; margin-top:8px; }
   .iorf-panel.ink .ip-b { color:var(--carbon); }
-  .iorf-panel.field .ip-b { color:#C7D2CD; }
+  .iorf-panel.field .ip-b { color:rgba(246,245,240,0.72); }
   .iorf-panel .ip-tag {
     display:inline-block; margin-top:16px; font-size:10.5px; font-weight:700;
     letter-spacing:0.1em; text-transform:uppercase;
@@ -196,16 +195,16 @@
   .r-demo.center { text-align:center; }
   .btn-line { display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:center; }
   .cta {
-    background:var(--red); color:#fff; font-family:'Montserrat',sans-serif;
+    background:var(--red); color:var(--porcelain); font-family:'Montserrat',sans-serif;
     font-weight:700; font-size:15px; padding:15px 32px; border-radius:12px;
-    border:none; cursor:pointer; transition:background .15s;
+    border:none; cursor:pointer; transition:filter .15s;
   }
-  .cta:hover { background:var(--red-deep); }
+  .cta:hover { filter:brightness(0.9); }
   .btn-2 {
     background:var(--green); color:var(--porcelain); font-family:'Montserrat',sans-serif;
     font-weight:600; font-size:14px; padding:13px 24px; border-radius:12px; border:none; cursor:pointer;
   }
-  .btn-2:hover { background:var(--green-deep); }
+  .btn-2:hover { filter:brightness(0.9); }
   .btn-ghost {
     background:transparent; color:var(--carbon); font-family:'Montserrat',sans-serif;
     font-weight:600; font-size:14px; padding:13px 24px; border-radius:12px;
@@ -243,7 +242,7 @@
   /* ========== TYPOGRAPHY ========== */
   .type-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
   @media (max-width:760px){ .type-grid { grid-template-columns:1fr; } }
-  .specimen { background:var(--white); border:1px solid var(--line); border-radius:14px; padding:clamp(20px,3.5vw,30px); }
+  .specimen { background:var(--porcelain); border:1px solid var(--line); border-radius:14px; padding:clamp(20px,3.5vw,30px); }
   .font-tag { font-size:11px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--muted); }
   .spec-xl { font-family:'Domine',serif; font-size:clamp(28px,4.4vw,40px); color:var(--carbon); line-height:1.12; margin-top:10px; font-weight:600; }
   .spec-sub { font-family:'Domine',serif; font-size:21px; color:var(--carbon); margin-top:18px; font-weight:500; }
@@ -263,20 +262,20 @@
   .space-meta span { color:var(--muted); }
   .radius-row { display:flex; gap:16px; flex-wrap:wrap; }
   .radius-chip {
-    width:96px; height:96px; background:var(--white); border:1.5px solid var(--carbon);
+    width:96px; height:96px; background:var(--porcelain); border:1.5px solid var(--carbon);
     display:flex; align-items:flex-end; justify-content:center; padding-bottom:8px;
     font-size:11.5px; color:var(--muted); font-weight:600;
   }
   .shape-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
   @media (max-width:680px){ .shape-grid { grid-template-columns:1fr; } }
-  .shape-card { background:var(--white); border:1px solid var(--line); border-radius:14px; padding:24px; }
+  .shape-card { background:var(--porcelain); border:1px solid var(--line); border-radius:14px; padding:24px; }
   .shape-card h4 { font-size:15px; }
   .shape-card p { font-size:13px; color:var(--muted); margin-top:6px; }
 
   /* ========== COMPONENTS ========== */
   .comp-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
   @media (max-width:760px){ .comp-grid { grid-template-columns:1fr; } }
-  .comp { background:var(--white); border:1px solid var(--line); border-radius:16px; padding:24px; }
+  .comp { background:var(--porcelain); border:1px solid var(--line); border-radius:16px; padding:24px; }
   .comp .c-label { font-size:11px; font-weight:700; letter-spacing:0.13em; text-transform:uppercase; color:var(--muted); margin-bottom:18px; }
   .comp-stage {
     background:var(--porcelain); border:1px solid var(--line); border-radius:12px;
@@ -284,16 +283,16 @@
   }
   .comp p.c-note { font-size:12.5px; color:var(--muted); margin-top:14px; }
   .demo-input {
-    background:var(--white); border:1px solid var(--line); border-radius:10px;
+    background:var(--porcelain); border:1px solid var(--line); border-radius:10px;
     padding:13px 15px; font-family:'Montserrat',sans-serif; font-size:14px; color:var(--carbon);
     width:100%; max-width:280px;
   }
   .demo-input::placeholder { color:var(--muted); }
-  .demo-card { background:var(--white); border:1px solid var(--line); border-radius:14px; padding:20px; max-width:260px; text-align:left; }
+  .demo-card { background:var(--porcelain); border:1px solid var(--line); border-radius:14px; padding:20px; max-width:260px; text-align:left; }
   .demo-card .dc-eyebrow { font-size:10.5px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); }
   .demo-card h4 { font-size:17px; margin-top:6px; }
   .demo-card p { font-size:13px; color:var(--muted); margin-top:6px; }
-  .kpi-tile { background:var(--white); border:1px solid var(--line); border-radius:12px; padding:18px 20px; min-width:170px; text-align:left; }
+  .kpi-tile { background:var(--porcelain); border:1px solid var(--line); border-radius:12px; padding:18px 20px; min-width:170px; text-align:left; }
   .kpi-tile .kl { font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); }
   .kpi-tile .kv { font-family:'Domine',serif; font-size:28px; font-weight:700; color:var(--carbon); margin-top:5px; }
   .kpi-tile .kd { font-size:12px; color:var(--muted); font-weight:600; margin-top:2px; }
@@ -302,7 +301,7 @@
   .footer { border-top:1px solid var(--line); background:var(--green); }
   .footer .wrap { padding-top:42px; padding-bottom:48px; }
   .footer h4 { font-size:22px; color:var(--porcelain); }
-  .footer p { color:#BBCCC7; font-size:14px; margin-top:8px; max-width:640px; }
+  .footer p { color:rgba(246,245,240,0.72); font-size:14px; margin-top:8px; max-width:640px; }
   .footer .foot-tag { margin-top:18px; font-size:11px; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:var(--amber); }
 </style>
 </head>
@@ -390,8 +389,8 @@ body { padding-left: 208px; }
       <div class="tier">
         <div class="t-num">Tier 1</div>
         <h4>Neutrals build</h4>
-        <p>The full neutral set — ground, surface, tint, hairline and two weights of ink. They make the page and carry no signal of their own; they are the stage.</p>
-        <div class="t-swatch"><span style="background:#F6F5F0"></span><span style="background:#FFFFFF"></span><span style="background:#D8DAC1"></span><span style="background:#E5E0D4"></span><span style="background:#7C776B"></span><span style="background:#232526"></span></div>
+        <p>Three neutrals — ground, tint and ink. They make the page and carry no signal of their own; they are the stage.</p>
+        <div class="t-swatch"><span style="background:#F6F5F0"></span><span style="background:#D8DAC1"></span><span style="background:#232526"></span></div>
       </div>
       <div class="tier">
         <div class="t-num">Tier 2</div>
@@ -423,7 +422,7 @@ body { padding-left: 208px; }
   <div class="wrap">
     <div class="section-head">
       <div class="eyebrow-row"><span class="eyebrow">02 · Colour</span><span class="sec-tag locked">Locked</span></div>
-      <h2 class="section-title">Ten colours, sorted by what they do</h2>
+      <h2 class="section-title">Seven colours, sorted by what they do</h2>
       <div class="accent-rule"></div>
       <p class="section-intro">Grouped by tier, not by hue. The tier a colour sits in tells you how to use it before you ever reach for a hex.</p>
     </div>
@@ -432,27 +431,15 @@ body { padding-left: 208px; }
     <div class="pal-grid">
       <div class="pal-block">
         <div class="pal-swatch" style="background:#F6F5F0"><span class="hex on-light">#F6F5F0</span></div>
-        <div class="pal-meta"><div class="nm">Porcelain</div><div class="role"><b>Ground.</b> The default light canvas.</div></div>
-      </div>
-      <div class="pal-block">
-        <div class="pal-swatch" style="background:#FFFFFF"><span class="hex on-light">#FFFFFF</span></div>
-        <div class="pal-meta"><div class="nm">White</div><div class="role"><b>Surface.</b> Cards and panels that lift off the Porcelain ground.</div></div>
+        <div class="pal-meta"><div class="nm">Porcelain</div><div class="role"><b>Ground.</b> The default light canvas — almost every surface.</div></div>
       </div>
       <div class="pal-block">
         <div class="pal-swatch" style="background:#D8DAC1"><span class="hex on-light">#D8DAC1</span></div>
         <div class="pal-meta"><div class="nm">Sand Dune</div><div class="role"><b>Tint.</b> Quiet section bands that give a long page rhythm.</div></div>
       </div>
       <div class="pal-block">
-        <div class="pal-swatch" style="background:#E5E0D4"><span class="hex on-light">#E5E0D4</span></div>
-        <div class="pal-meta"><div class="nm">Line</div><div class="role"><b>Hairline.</b> Borders and dividers — structure without shadow.</div></div>
-      </div>
-      <div class="pal-block">
-        <div class="pal-swatch" style="background:#7C776B"><span class="hex on-dark">#7C776B</span></div>
-        <div class="pal-meta"><div class="nm">Muted</div><div class="role"><b>Secondary text.</b> Intros, captions and labels — what steps back from the headline. Lightens on Sand and Green fields to hold contrast.</div></div>
-      </div>
-      <div class="pal-block">
         <div class="pal-swatch" style="background:#232526"><span class="hex on-dark">#232526</span></div>
-        <div class="pal-meta"><div class="nm">Carbon Black</div><div class="role"><b>Ink — never a background.</b> All type, lines and icons. Also the product's own colour: the matte cap.</div></div>
+        <div class="pal-meta"><div class="nm">Carbon Black</div><div class="role"><b>Ink — never a background.</b> All type, lines and icons. Secondary text and hairlines are the same ink, simply set lighter. Also the product's own colour: the matte cap.</div></div>
       </div>
     </div>
 
@@ -480,7 +467,7 @@ body { padding-left: 208px; }
       </div>
     </div>
 
-    <p class="retired-note">Hover &amp; pressed states — Brick Red and Dark Green darken to <b>#8E1B1B</b> and <b>#233F3D</b>. With the field-adjusted Muted noted above, those are the only tones the system uses beyond the ten colours here.</p>
+    <p class="retired-note">Seven colours, and only seven. Hover and pressed states are the same colour, briefly dimmed — not a new tone. Secondary text and hairlines are Carbon ink, set lighter — not a new grey.</p>
     <p class="retired-note">Retired — burgundy <b>#8B1A2B</b> and teal <b>#0D9488</b>. One red is enough, and the system carries no colour without a job.</p>
   </div>
 </section>
@@ -541,13 +528,13 @@ body { padding-left: 208px; }
             <div class="bgp-h" style="color:var(--carbon);">Porcelain</div>
             <div class="bgp-b" style="color:var(--muted);">The default. Calm and light — almost every surface, almost all of the time.</div>
           </div>
-          <div class="bgp" style="background:#D8DAC1; border:1px solid #C9CBB3;">
+          <div class="bgp" style="background:#D8DAC1; border:1px solid var(--line);">
             <div class="bgp-h" style="color:var(--carbon);">Sand Dune</div>
-            <div class="bgp-b" style="color:#5F6353;">A tint. The occasional section band, to give a long page rhythm.</div>
+            <div class="bgp-b" style="color:var(--muted);">A tint. The occasional section band, to give a long page rhythm.</div>
           </div>
           <div class="bgp" style="background:#2F5350;">
             <div class="bgp-h" style="color:var(--porcelain);">Dark Green</div>
-            <div class="bgp-b" style="color:#C7D2CD;">A field. A panel or section meant to feel unmistakably Karmic.</div>
+            <div class="bgp-b" style="color:rgba(246,245,240,0.72);">A field. A panel or section meant to feel unmistakably Karmic.</div>
           </div>
         </div>
         <p class="r-text">Every surface is one of these three, and only these three. <b>Carbon Black is never a background.</b> It is ink — and it is the product's own colour, the matte-black cap. So Carbon is everywhere in the photography, as the product itself, but the canvas behind the product is always Porcelain, Sand or Green. Black is what you shoot, not what you shoot it on.</p>
@@ -686,7 +673,7 @@ body { padding-left: 208px; }
       </div>
       <div class="shape-card">
         <h4>Soft edges, hairline borders</h4>
-        <p>White cards on Porcelain, separated by a 1px warm line rather than heavy shadow. Lift only on hover.</p>
+        <p>Cards are Porcelain, set off by a 1px hairline of softened Carbon rather than heavy shadow. Lift only on hover.</p>
       </div>
     </div>
   </div>
@@ -726,7 +713,7 @@ body { padding-left: 208px; }
         <div class="comp-stage">
           <input class="demo-input" type="text" placeholder="Your email address">
         </div>
-        <p class="c-note">White surface, 1px warm line, 12px radius. Green focus ring when active.</p>
+        <p class="c-note">Porcelain surface, 1px hairline, 12px radius. Green focus ring when active.</p>
       </div>
       <div class="comp">
         <div class="c-label">Product card</div>
@@ -737,7 +724,7 @@ body { padding-left: 208px; }
             <p>Saffron and oil-soluble Vitamin C for even, lit-from-within tone.</p>
           </div>
         </div>
-        <p class="c-note">White card, hairline border, 14–16px radius. Domine heading, Montserrat body — both Carbon.</p>
+        <p class="c-note">Porcelain card, hairline border, 14–16px radius. Domine heading, Montserrat body — both Carbon.</p>
       </div>
       <div class="comp">
         <div class="c-label">Dashboard tile</div>

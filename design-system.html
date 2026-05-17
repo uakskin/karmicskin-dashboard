@@ -12,7 +12,7 @@
   /* ========== TOKENS ========== */
   :root {
     --porcelain: #F6F5F0;   /* background, default        */
-    --sand:      #D8DAC1;   /* background, section tint   */
+    --citron:    #CAD183;   /* background, section tint   */
     --carbon:    #232526;   /* text, icons and borders    */
     --green:     #2F5350;   /* branded background         */
     --red:       #B22222;   /* main action button         */
@@ -34,7 +34,7 @@
 
   /* ========== LAYOUT ========== */
   .wrap { max-width:1080px; margin:0 auto; padding:0 clamp(16px,4vw,40px); }
-  .section.tint { background:var(--sand); }
+  .section.tint { background:var(--citron); }
   .section .wrap { padding-top:clamp(38px,5vw,64px); padding-bottom:clamp(38px,5vw,64px); }
   .section-head { margin-bottom:28px; }
   .eyebrow {
@@ -112,7 +112,7 @@
   .iorf { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0; }
   @media (max-width:620px){ .iorf { grid-template-columns:1fr; } }
   .iorf-panel { border-radius:12px; padding:26px 24px; }
-  .iorf-panel.ink { background:var(--sand); }
+  .iorf-panel.ink { background:var(--citron); }
   .iorf-panel.field { background:var(--green); }
   .iorf-panel .ip-h { font-family:'Domine',serif; font-size:23px; font-weight:600; }
   .iorf-panel.ink .ip-h { color:var(--carbon); }
@@ -131,7 +131,7 @@
   .dd { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0; }
   @media (max-width:560px){ .dd { grid-template-columns:1fr; } }
   .dd-panel {
-    background:var(--sand); border-radius:10px;
+    background:var(--citron); border-radius:10px;
     padding:20px 18px; text-align:center;
   }
   .dd-label { font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--carbon); }
@@ -152,7 +152,7 @@
 
   /* shared demo bits */
   .r-demo {
-    background:var(--sand); border-radius:12px;
+    background:var(--citron); border-radius:12px;
     padding:clamp(22px,3vw,30px); margin:16px 0;
   }
   .r-demo.center { text-align:center; }
@@ -239,7 +239,7 @@
   .comp { padding:6px 0; }
   .comp .c-label { font-size:11px; font-weight:700; letter-spacing:0.13em; text-transform:uppercase; color:var(--carbon); margin-bottom:18px; }
   .comp-stage {
-    background:var(--sand); border-radius:12px;
+    background:var(--citron); border-radius:12px;
     padding:26px 22px; display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:center;
   }
   .comp p.c-note { font-size:12.5px; color:var(--carbon); margin-top:14px; }
@@ -368,8 +368,8 @@ body { padding-left: 208px; }
         <div class="pal-meta"><div class="nm">Porcelain</div><div class="role">The default background. Use it for almost every page and surface.</div></div>
       </div>
       <div class="pal-block">
-        <div class="pal-swatch" style="background:#D8DAC1"><span class="hex on-light">#D8DAC1</span></div>
-        <div class="pal-meta"><div class="nm">Sand Dune</div><div class="role">A soft background tint. Use it for the occasional section, to break up a long page.</div></div>
+        <div class="pal-swatch" style="background:#CAD183"><span class="hex on-light">#CAD183</span></div>
+        <div class="pal-meta"><div class="nm">Citron</div><div class="role">A soft background tint. Use it for the occasional section, to break up a long page.</div></div>
       </div>
       <div class="pal-block">
         <div class="pal-swatch" style="background:#232526"><span class="hex on-dark">#232526</span></div>
@@ -421,7 +421,7 @@ body { padding-left: 208px; }
         <h3>Carbon Black is for text. Dark Green is for backgrounds.</h3>
         <div class="testbox">
           <div class="tb-label">Quick check</div>
-          <div class="tb-q">Text, icons and borders are <b>always Carbon Black</b>.<br>Backgrounds and panels are <b>Porcelain, Sand Dune or Dark Green</b>.<br>Dark Green is never used for text.</div>
+          <div class="tb-q">Text, icons and borders are <b>always Carbon Black</b>.<br>Backgrounds and panels are <b>Porcelain, Citron or Dark Green</b>.<br>Dark Green is never used for text.</div>
         </div>
         <div class="iorf">
           <div class="iorf-panel ink">
@@ -459,8 +459,8 @@ body { padding-left: 208px; }
             <div class="bgp-h" style="color:var(--carbon);">Porcelain</div>
             <div class="bgp-b" style="color:var(--carbon);">The default. Use it for almost every background.</div>
           </div>
-          <div class="bgp" style="background:#D8DAC1; border:1px solid var(--carbon);">
-            <div class="bgp-h" style="color:var(--carbon);">Sand Dune</div>
+          <div class="bgp" style="background:#CAD183; border:1px solid var(--carbon);">
+            <div class="bgp-h" style="color:var(--carbon);">Citron</div>
             <div class="bgp-b" style="color:var(--carbon);">A soft tint. Use it for the occasional section, to add rhythm to a long page.</div>
           </div>
           <div class="bgp" style="background:#2F5350;">
@@ -535,18 +535,18 @@ body { padding-left: 208px; }
         <h3>Most of every page is Porcelain</h3>
         <div class="balance">
           <div style="background:#F6F5F0; color:#232526; flex:72; border-right:1px solid var(--carbon)">72 · Porcelain</div>
-          <div style="background:#D8DAC1; color:#232526; flex:13">13 · Sand</div>
+          <div style="background:#CAD183; color:#232526; flex:13">13 · Citron</div>
           <div style="background:#2F5350; color:#F6F5F0; flex:11">11 · Green</div>
           <div style="background:#B22222; flex:2"></div>
           <div style="background:#EFA71D; flex:2"></div>
         </div>
         <div class="bl-key">
           <span><i style="background:#F6F5F0;border:1px solid var(--carbon)"></i> Porcelain — the default background</span>
-          <span><i style="background:#D8DAC1"></i> Sand Dune — occasional sections</span>
+          <span><i style="background:#CAD183"></i> Citron — occasional sections</span>
           <span><i style="background:#2F5350"></i> Dark Green — branded panels</span>
           <span><i style="background:#B22222"></i> + <i style="background:#EFA71D"></i> Red and Amber — small accents</span>
         </div>
-        <p class="r-text" style="margin-top:14px;">This bar shows roughly how much of a typical page each background should cover. Porcelain is most of it. Sand Dune and Dark Green appear occasionally. Brick Red and Amber together are only a few percent. If a page feels loud, one colour has taken more than its share.</p>
+        <p class="r-text" style="margin-top:14px;">This bar shows roughly how much of a typical page each background should cover. Porcelain is most of it. Citron and Dark Green appear occasionally. Brick Red and Amber together are only a few percent. If a page feels loud, one colour has taken more than its share.</p>
       </div>
 
     </div>

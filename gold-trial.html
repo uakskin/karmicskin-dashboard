@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Karmic Skin — Gold Type Trial</title>
+<link rel="icon" href="favicon-latest.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Domine:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --porcelain:#F6F5F0; --citron:#CAD183; --carbon:#232526;
+    --green:#2F5350; --red:#B22222; --amber:#EFA71D; --ochre:#9A6F15;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:var(--porcelain); color:var(--carbon);
+    font-family:'Montserrat',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    line-height:1.65; -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3 { font-family:'Domine',Georgia,serif; font-weight:600; line-height:1.18; }
+  .wrap { max-width:1000px; margin:0 auto; padding:0 clamp(18px,4vw,40px); }
+  .eyebrow { font-size:12px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; }
+
+  .masthead { padding:clamp(40px,6vw,72px) 0 clamp(28px,4vw,40px); }
+  .masthead h1 { font-size:clamp(40px,7vw,64px); margin:12px 0 18px; }
+  .masthead .lead { max-width:660px; font-size:16px; }
+  .masthead .note { max-width:660px; font-size:13.5px; margin-top:14px;
+    background:var(--citron); border-radius:12px; padding:14px 18px; }
+
+  .sec-head { padding:clamp(36px,5vw,52px) 0 6px; }
+  .sec-head h2 { font-size:clamp(24px,3.4vw,32px); }
+  .sec-head p { font-size:14.5px; max-width:660px; margin-top:9px; }
+
+  /* ===== candidate specimens ===== */
+  .cands { display:flex; flex-direction:column; gap:clamp(40px,6vw,68px); margin-top:24px; }
+  .cand-tag { font-size:13px; font-weight:700; letter-spacing:0.04em;
+    display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .cand-tag .sw { width:30px; height:30px; border-radius:7px; border:1px solid var(--carbon); flex-shrink:0; }
+  .cand-tag .hex { font-weight:600; opacity:0.7; }
+  .cand-grounds { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:640px){ .cand-grounds { grid-template-columns:1fr; } }
+  .ground { border-radius:14px; padding:clamp(22px,3vw,32px); }
+  .ground.light { background:var(--porcelain); border:1px solid var(--carbon); }
+  .ground.dark  { background:var(--green); }
+  .g-head { font-family:'Domine',serif; font-weight:600; font-size:clamp(26px,3.6vw,40px); line-height:1.15; }
+  .g-meta { font-size:13px; margin-top:14px; }
+  .g-meta b { font-weight:700; font-size:15px; }
+  .ground.light .g-meta { color:var(--carbon); }
+  .ground.dark  .g-meta { color:var(--porcelain); }
+  .cand-sentence { font-family:'Domine',serif; font-size:clamp(17px,2.2vw,21px);
+    margin-top:14px; color:var(--carbon); }
+
+  .finding { background:var(--citron); border-radius:12px; padding:16px 20px;
+    font-size:14px; max-width:760px; margin-top:30px; }
+
+  /* ===== toggle mock ===== */
+  .swatch-row { display:flex; gap:10px; flex-wrap:wrap; margin:20px 0 22px; }
+  .swatch-btn { cursor:pointer; border:1px solid var(--carbon); border-radius:12px;
+    background:var(--porcelain); padding:8px 8px 9px; display:flex; flex-direction:column;
+    gap:7px; width:138px; font-family:'Montserrat',sans-serif; }
+  .swatch-btn .sw { height:34px; border-radius:7px; }
+  .swatch-btn .sw-name { font-size:11px; font-weight:700; text-transform:uppercase;
+    letter-spacing:0.04em; text-align:left; }
+  .swatch-btn.active { outline:3px solid var(--carbon); outline-offset:2px; }
+  .mock { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:640px){ .mock { grid-template-columns:1fr; } }
+  .mock-panel { border-radius:16px; padding:clamp(26px,3.5vw,40px); }
+  .mock-panel.light { background:var(--porcelain); border:1px solid var(--carbon); }
+  .mock-panel.dark  { background:var(--green); }
+  .mock-panel .mp-eyebrow { font-size:11px; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; }
+  .mock-panel.light .mp-eyebrow { color:var(--carbon); }
+  .mock-panel.dark  .mp-eyebrow { color:var(--porcelain); }
+  .mock-panel h3 { font-size:clamp(26px,3.4vw,36px); margin:10px 0 12px; }
+  .mock-panel .mp-body { font-family:'Domine',serif; font-size:17px; }
+  .mock-panel.light .mp-body { color:var(--carbon); }
+  .mock-panel.dark  .mp-body { color:var(--porcelain); }
+  .mock-now { font-size:13px; margin-top:16px; }
+  .mock-now b { font-weight:700; }
+
+  footer { padding:46px 0 60px; font-size:12.5px; }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Karmic Skin</div>
+    <h1>Deep Ochre — Trial</h1>
+    <p class="lead">Trialling a replacement for Deep Ochre — the gold the system uses for <em>type</em>: gold headings, and the occasional highlighted word. Nothing in the live design system has changed.</p>
+    <p class="note"><b>Why this trial works differently:</b> a text colour lives or dies on contrast. Each gold below is shown as real type on the two grounds it might sit on — Porcelain and Dark Green — with the measured contrast ratio. A heading needs about 3:1 to hold up; smaller text needs 4.5:1. (A light tint like Citron behaves like Porcelain.)</p>
+  </div>
+</header>
+
+<div class="sec-head"><div class="wrap">
+  <h2>Each gold as type</h2>
+  <p>The same heading set in each gold, on Porcelain and on Dark Green, with its contrast ratio. Below each, the gold used to lift a word inside a sentence — the other thing Deep Ochre does.</p>
+</div></div>
+
+<div class="wrap">
+  <div class="cands" id="cands"></div>
+  <div class="finding" id="finding"></div>
+</div>
+
+<div class="sec-head"><div class="wrap">
+  <h2>Apply one</h2>
+  <p>Click a gold to set it across a mock — a heading on Porcelain and a heading on a Dark Green panel at once.</p>
+</div></div>
+<div class="wrap">
+  <div class="swatch-row" id="swatchRow"></div>
+  <div class="mock">
+    <div class="mock-panel light">
+      <div class="mp-eyebrow">On Porcelain</div>
+      <h3 class="gold-live">A considered ritual</h3>
+      <div class="mp-body">Made for skin that is <span class="gold-live" style="font-weight:700">cared for</span>, not just covered.</div>
+    </div>
+    <div class="mock-panel dark">
+      <div class="mp-eyebrow">On Dark Green</div>
+      <h3 class="gold-live">A considered ritual</h3>
+      <div class="mp-body">A gold heading on a branded panel.</div>
+    </div>
+  </div>
+  <div class="mock-now">Showing: <b id="mockNow">Deep Ochre</b></div>
+</div>
+
+<footer><div class="wrap">Trial page only — the live design system is unchanged. Pick a winner and it gets applied properly.</div></footer>
+
+<script>
+// ========== THE GOLDS ==========
+const GOLDS = [
+  { name:'Deep Ochre',     hex:'#9A6F15', tag:'in use now' },
+  { name:'Goldenrod',      hex:'#DAA63E', tag:'' },
+  { name:'Mango',          hex:'#FFC92B', tag:'' },
+  { name:'Mustard Yellow', hex:'#E1AD01', tag:'' },
+  { name:'Sunflower',      hex:'#FCCE00', tag:'' }
+];
+const PORCELAIN = '#F6F5F0', GREEN = '#2F5350';
+
+// ========== CONTRAST (WCAG) ==========
+function lum(hex) {
+  const ch = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255)
+    .map(v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
+  return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+}
+function contrast(a, b) {
+  const l1 = lum(a), l2 = lum(b), hi = Math.max(l1, l2), lo = Math.min(l1, l2);
+  return (hi + 0.05) / (lo + 0.05);
+}
+function verdict(r) {
+  if (r >= 4.5) return 'reads at any size';
+  if (r >= 3)   return 'headings &amp; display only';
+  return 'too low to read as type';
+}
+
+// ========== RENDER SPECIMENS ==========
+document.getElementById('cands').innerHTML = GOLDS.map(g => {
+  const cP = contrast(g.hex, PORCELAIN), cG = contrast(g.hex, GREEN);
+  return `
+    <div class="cand">
+      <div class="cand-tag">
+        <span class="sw" style="background:${g.hex}"></span>
+        ${g.name} <span class="hex">· ${g.hex}${g.tag ? ' · ' + g.tag : ''}</span>
+      </div>
+      <div class="cand-grounds">
+        <div class="ground light">
+          <div class="g-head" style="color:${g.hex}">A considered ritual</div>
+          <div class="g-meta"><b>${cP.toFixed(1)}:1</b> on Porcelain — ${verdict(cP)}</div>
+        </div>
+        <div class="ground dark">
+          <div class="g-head" style="color:${g.hex}">A considered ritual</div>
+          <div class="g-meta"><b>${cG.toFixed(1)}:1</b> on Dark Green — ${verdict(cG)}</div>
+        </div>
+      </div>
+      <div class="cand-sentence">Made for skin that is <span style="color:${g.hex};font-weight:700">cared for</span>, not just covered.</div>
+    </div>`;
+}).join('');
+
+document.getElementById('finding').innerHTML =
+  '<b>The catch:</b> no single gold here reads well on both grounds. Deep Ochre is dark enough for Porcelain but disappears on Dark Green; the brighter golds are the reverse — strong on Dark Green, illegible as type on Porcelain. Worth deciding which ground gold type actually needs to work on.';
+
+// ========== TOGGLE MOCK ==========
+const live = document.querySelectorAll('.gold-live');
+const nowLabel = document.getElementById('mockNow');
+function applyGold(g, btn) {
+  live.forEach(el => el.style.color = g.hex);
+  nowLabel.textContent = g.name;
+  document.querySelectorAll('.swatch-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+const row = document.getElementById('swatchRow');
+GOLDS.forEach((g, i) => {
+  const btn = document.createElement('button');
+  btn.className = 'swatch-btn';
+  btn.innerHTML = `<div class="sw" style="background:${g.hex}"></div><div class="sw-name">${g.name}</div>`;
+  btn.addEventListener('click', () => applyGold(g, btn));
+  row.appendChild(btn);
+  if (i === 0) applyGold(g, btn);
+});
+</script>
+</body>
+</html>

@@ -11,17 +11,13 @@
 <style>
   /* ========== TOKENS ========== */
   :root {
-    /* The brand palette — seven colours, three tiers. The brand IS these. */
-    --porcelain:  #F6F5F0;   /* Tier 1 · ground  */
-    --sand:       #D8DAC1;   /* Tier 1 · tint    */
-    --carbon:     #232526;   /* Tier 1 · ink     */
-    --green:      #2F5350;   /* Tier 2 · brand field, and every border  */
-    --red:        #B22222;   /* Tier 3 · action        */
-    --amber:      #EFA71D;   /* Tier 3 · highlight     */
-    --ochre:      #9A6F15;   /* Tier 3 · gold display  */
-    /* One functional tone beyond the seven — muted text.
-       Carbon ink stepped back to a fixed, contrast-checked value. */
-    --ink-2:      #666664;
+    --porcelain: #F6F5F0;   /* background, default        */
+    --sand:      #D8DAC1;   /* background, section tint   */
+    --carbon:    #232526;   /* text, icons and borders    */
+    --green:     #2F5350;   /* branded background         */
+    --red:       #B22222;   /* main action button         */
+    --amber:     #EFA71D;   /* highlight mark             */
+    --ochre:     #9A6F15;   /* large gold display text    */
   }
 
   /* ========== BASE ========== */
@@ -41,63 +37,41 @@
   .section.tint { background:var(--sand); }
   .section .wrap { padding-top:clamp(38px,5vw,64px); padding-bottom:clamp(38px,5vw,64px); }
   .section-head { margin-bottom:28px; }
-  .eyebrow-row { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
   .eyebrow {
     font-size:12px; font-weight:700; letter-spacing:0.2em;
-    text-transform:uppercase; color:var(--ink-2);
+    text-transform:uppercase; color:var(--carbon);
   }
-  .sec-tag {
-    font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase;
-    padding:4px 10px; border-radius:100px;
-  }
-  .sec-tag.locked { background:var(--green); color:var(--porcelain); }
-  .sec-tag.proposed { background:var(--sand); color:var(--ochre); }
   .section-title { font-size:clamp(26px,4vw,36px); margin-top:11px; }
   .accent-rule { width:48px; height:4px; background:var(--amber); border-radius:2px; margin-top:16px; }
-  .section-intro { margin-top:17px; color:var(--ink-2); max-width:700px; font-size:15px; }
+  .section-intro { margin-top:17px; color:var(--carbon); max-width:700px; font-size:15px; }
   .block-label {
     font-size:11px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase;
-    color:var(--ink-2); margin:32px 0 14px;
+    color:var(--carbon); margin:32px 0 14px;
   }
 
   /* ========== MASTHEAD ========== */
   .masthead .wrap { padding-top:clamp(46px,7vw,86px); padding-bottom:clamp(34px,4vw,50px); }
-  .masthead .eyebrow { color:var(--ink-2); }
   .masthead h1 {
     font-size:clamp(46px,9vw,80px); font-weight:700;
     line-height:1.02; margin:14px 0 20px;
   }
   .lead { max-width:660px; font-size:16.5px; }
-  .legend { display:flex; gap:18px; flex-wrap:wrap; margin-top:24px; }
-  .legend span { font-size:11.5px; color:var(--ink-2); display:flex; align-items:center; gap:8px; }
-  .legend i { width:11px; height:11px; border-radius:3px; display:inline-block; }
 
-  /* ========== FOUNDATIONS ========== */
-  .tiers { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
-  @media (max-width:720px){ .tiers { grid-template-columns:1fr; } }
-  .tier {
-    background:var(--porcelain); border-radius:14px; padding:22px;
-  }
-  .tier .t-num { font-family:'Domine',serif; font-size:13px; font-weight:700; color:var(--ochre); }
-  .tier h4 { font-size:17px; margin-top:4px; }
-  .tier p { font-size:13px; color:var(--ink-2); margin-top:7px; }
-  .tier .t-swatch { display:flex; gap:5px; margin-top:14px; }
-  .tier .t-swatch span { height:22px; flex:1; border-radius:4px; border:1px solid var(--green); }
-
+  /* ========== PRINCIPLES ========== */
   .principles { display:grid; grid-template-columns:repeat(auto-fill,minmax(248px,1fr)); gap:14px; }
   .principle {
     background:var(--porcelain); border-radius:14px; padding:20px 22px;
   }
-  .principle .num { font-family:'Domine',serif; font-size:13px; font-weight:700; color:var(--ochre); }
+  .principle .num { font-family:'Domine',serif; font-size:13px; font-weight:700; color:var(--carbon); }
   .principle h4 { font-size:16px; margin-top:5px; }
-  .principle p { font-size:13px; color:var(--ink-2); margin-top:6px; }
+  .principle p { font-size:13px; color:var(--carbon); margin-top:6px; }
 
   /* ========== COLOUR PALETTE ========== */
   .pal-grid {
     display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:14px;
   }
   .pal-swatch {
-    height:148px; border-radius:14px; border:1px solid var(--green);
+    height:148px; border-radius:14px; border:1px solid var(--carbon);
     display:flex; align-items:flex-end; padding:14px;
   }
   .pal-swatch .hex { font-size:13px; font-weight:700; letter-spacing:0.05em; }
@@ -105,38 +79,36 @@
   .on-dark  { color:var(--porcelain); }
   .pal-meta { padding:11px 2px 0; }
   .pal-meta .nm { font-family:'Domine',serif; font-size:15px; }
-  .pal-meta .role { font-size:11.5px; color:var(--ink-2); margin-top:3px; line-height:1.5; }
-  .pal-meta .role b { color:var(--green); font-weight:700; }
-  .retired-note { margin-top:22px; font-size:12.5px; color:var(--ink-2); }
+  .pal-meta .role { font-size:11.5px; color:var(--carbon); margin-top:3px; line-height:1.5; }
 
-  /* ========== COLOUR IN USE ========== */
+  /* ========== USING COLOUR ========== */
   .rules { display:flex; flex-direction:column; gap:clamp(34px,5vw,48px); }
   .rule { padding:6px 0; }
   .rule .r-label {
     font-size:11px; font-weight:700; letter-spacing:0.14em;
-    text-transform:uppercase; color:var(--ink-2);
+    text-transform:uppercase; color:var(--carbon);
   }
   .rule h3 { font-size:clamp(20px,3vw,25px); margin-top:6px; }
   .r-text { font-size:14px; color:var(--carbon); max-width:680px; }
-  .r-text b { color:var(--green); font-weight:600; }
-  .demo-cap { font-size:12px; color:var(--ink-2); margin-top:13px; }
+  .r-text b { color:var(--carbon); font-weight:700; }
+  .demo-cap { font-size:12px; color:var(--carbon); margin-top:13px; }
 
-  /* the test callout */
+  /* quick-check callout */
   .testbox {
     background:var(--green); color:var(--porcelain);
     border-radius:12px; padding:22px 26px; margin:18px 0;
   }
   .testbox .tb-label {
     font-size:11px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase;
-    color:var(--amber);
+    color:var(--porcelain);
   }
   .testbox .tb-q {
     font-family:'Domine',serif; font-size:clamp(16px,2.4vw,20px);
-    margin-top:10px; color:var(--porcelain); line-height:1.5;
+    margin-top:10px; color:var(--porcelain); line-height:1.55;
   }
   .testbox .tb-q b { color:var(--porcelain); font-weight:700; }
 
-  /* ink-or-field two-up */
+  /* colour two-up */
   .iorf { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0; }
   @media (max-width:620px){ .iorf { grid-template-columns:1fr; } }
   .iorf-panel { border-radius:12px; padding:26px 24px; }
@@ -152,8 +124,8 @@
     display:inline-block; margin-top:16px; font-size:10.5px; font-weight:700;
     letter-spacing:0.1em; text-transform:uppercase;
   }
-  .iorf-panel.ink .ip-tag { color:var(--ink-2); }
-  .iorf-panel.field .ip-tag { color:var(--amber); }
+  .iorf-panel.ink .ip-tag { color:var(--carbon); }
+  .iorf-panel.field .ip-tag { color:var(--porcelain); }
 
   /* do / don't */
   .dd { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0; }
@@ -162,16 +134,14 @@
     background:var(--sand); border-radius:10px;
     padding:20px 18px; text-align:center;
   }
-  .dd-label { font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; }
-  .dd-no { color:var(--red); }
-  .dd-yes { color:var(--green); }
+  .dd-label { font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--carbon); }
   .dd-eg { font-family:'Domine',serif; font-size:19px; margin:12px 0 9px; }
   .dd-field {
     display:inline-block; background:var(--green); color:var(--porcelain);
     font-family:'Domine',serif; font-size:17px; padding:8px 16px; border-radius:8px;
     margin:8px 0;
   }
-  .dd-cap { font-size:11.5px; color:var(--ink-2); line-height:1.5; }
+  .dd-cap { font-size:11.5px; color:var(--carbon); line-height:1.5; }
 
   /* backgrounds trio */
   .bg-trio { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:16px 0; }
@@ -201,9 +171,9 @@
   .btn-ghost {
     background:transparent; color:var(--carbon); font-family:'Montserrat',sans-serif;
     font-weight:600; font-size:14px; padding:13px 24px; border-radius:12px;
-    border:1.5px solid var(--green); cursor:pointer;
+    border:1.5px solid var(--carbon); cursor:pointer;
   }
-  .btn-ghost:hover { background:var(--green); color:var(--porcelain); }
+  .btn-ghost:hover { background:var(--carbon); color:var(--porcelain); }
   .demo-line {
     font-family:'Domine',serif; font-size:clamp(17px,2.4vw,20px);
     color:var(--carbon); line-height:1.75; margin-bottom:16px;
@@ -219,31 +189,29 @@
     font-size:11px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase;
     padding:5px 11px; border-radius:100px;
   }
-  .ochre-display { font-family:'Domine',serif; font-size:clamp(26px,4vw,38px); color:var(--ochre); font-weight:700; }
 
   /* balance bar */
   .balance {
     display:flex; height:54px; border-radius:10px; overflow:hidden;
-    margin:16px 0 10px;
+    border:1px solid var(--carbon); margin:16px 0 10px;
   }
   .balance div { display:flex; align-items:center; justify-content:center;
     font-size:11px; font-weight:700; letter-spacing:0.04em; }
   .bl-key { display:flex; gap:18px; flex-wrap:wrap; }
-  .bl-key span { font-size:12px; color:var(--ink-2); display:flex; align-items:center; gap:7px; }
+  .bl-key span { font-size:12px; color:var(--carbon); display:flex; align-items:center; gap:7px; }
   .bl-key i { width:11px; height:11px; border-radius:3px; }
 
   /* ========== TYPOGRAPHY ========== */
   .type-grid { display:grid; grid-template-columns:1fr 1fr; gap:clamp(22px,4vw,44px); }
   @media (max-width:760px){ .type-grid { grid-template-columns:1fr; } }
   .specimen { padding:6px 0; }
-  .font-tag { font-size:11px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--ink-2); }
+  .font-tag { font-size:11px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--carbon); }
   .spec-xl { font-family:'Domine',serif; font-size:clamp(28px,4.4vw,40px); color:var(--carbon); line-height:1.12; margin-top:10px; font-weight:600; }
   .spec-sub { font-family:'Domine',serif; font-size:21px; color:var(--carbon); margin-top:18px; font-weight:500; }
   .spec-body { font-size:14.5px; color:var(--carbon); margin-top:14px; }
-  .spec-weights { font-size:12.5px; color:var(--ink-2); margin-top:16px; }
+  .spec-weights { font-size:12.5px; color:var(--carbon); margin-top:16px; }
   .scale { list-style:none; margin-top:14px; }
   .scale li { display:flex; justify-content:space-between; gap:14px; padding:7px 0; font-size:13px; }
-  .scale li span:last-child { color:var(--ink-2); }
 
   /* ========== SPACING & SHAPE ========== */
   .space-list { display:flex; flex-direction:column; gap:10px; }
@@ -251,50 +219,50 @@
   .space-bar { background:var(--carbon); height:18px; border-radius:3px; flex-shrink:0; }
   .space-meta { font-size:13px; }
   .space-meta b { color:var(--carbon); font-weight:700; }
-  .space-meta span { color:var(--ink-2); }
+  .space-meta span { color:var(--carbon); }
   .radius-row { display:flex; gap:16px; flex-wrap:wrap; }
   .radius-chip {
-    width:96px; height:96px; background:var(--porcelain); border:1.5px solid var(--green);
+    width:96px; height:96px; background:var(--porcelain); border:1.5px solid var(--carbon);
     display:flex; align-items:flex-end; justify-content:center; padding-bottom:8px;
-    font-size:11.5px; color:var(--ink-2); font-weight:600;
+    font-size:11.5px; color:var(--carbon); font-weight:600;
   }
   .shape-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
   @media (max-width:680px){ .shape-grid { grid-template-columns:1fr; } }
   .shape-card { background:var(--porcelain); border-radius:14px; padding:24px; }
   .shape-card h4 { font-size:15px; }
-  .shape-card p { font-size:13px; color:var(--ink-2); margin-top:6px; }
+  .shape-card p { font-size:13px; color:var(--carbon); margin-top:6px; }
 
   /* ========== COMPONENTS ========== */
   .comp-grid { display:grid; grid-template-columns:1fr 1fr; gap:clamp(20px,3.5vw,38px); }
   @media (max-width:760px){ .comp-grid { grid-template-columns:1fr; } }
   .comp { padding:6px 0; }
-  .comp .c-label { font-size:11px; font-weight:700; letter-spacing:0.13em; text-transform:uppercase; color:var(--ink-2); margin-bottom:18px; }
+  .comp .c-label { font-size:11px; font-weight:700; letter-spacing:0.13em; text-transform:uppercase; color:var(--carbon); margin-bottom:18px; }
   .comp-stage {
     background:var(--sand); border-radius:12px;
     padding:26px 22px; display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:center;
   }
-  .comp p.c-note { font-size:12.5px; color:var(--ink-2); margin-top:14px; }
+  .comp p.c-note { font-size:12.5px; color:var(--carbon); margin-top:14px; }
   .demo-input {
-    background:var(--porcelain); border:1px solid var(--green); border-radius:10px;
+    background:var(--porcelain); border:1px solid var(--carbon); border-radius:10px;
     padding:13px 15px; font-family:'Montserrat',sans-serif; font-size:14px; color:var(--carbon);
     width:100%; max-width:280px;
   }
-  .demo-input::placeholder { color:var(--ink-2); }
+  .demo-input::placeholder { color:var(--carbon); }
   .demo-card { background:var(--porcelain); border-radius:14px; padding:20px; max-width:260px; text-align:left; }
-  .demo-card .dc-eyebrow { font-size:10.5px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-2); }
+  .demo-card .dc-eyebrow { font-size:10.5px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--carbon); }
   .demo-card h4 { font-size:17px; margin-top:6px; }
-  .demo-card p { font-size:13px; color:var(--ink-2); margin-top:6px; }
+  .demo-card p { font-size:13px; color:var(--carbon); margin-top:6px; }
   .kpi-tile { background:var(--porcelain); border-radius:12px; padding:18px 20px; min-width:170px; text-align:left; }
-  .kpi-tile .kl { font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-2); }
+  .kpi-tile .kl { font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--carbon); }
   .kpi-tile .kv { font-family:'Domine',serif; font-size:28px; font-weight:700; color:var(--carbon); margin-top:5px; }
-  .kpi-tile .kd { font-size:12px; color:var(--ink-2); font-weight:600; margin-top:2px; }
+  .kpi-tile .kd { font-size:12px; color:var(--carbon); font-weight:600; margin-top:2px; }
 
   /* ========== FOOTER ========== */
   .footer { background:var(--green); }
   .footer .wrap { padding-top:42px; padding-bottom:48px; }
   .footer h4 { font-size:22px; color:var(--porcelain); }
   .footer p { color:var(--porcelain); font-size:14px; margin-top:8px; max-width:640px; }
-  .footer .foot-tag { margin-top:18px; font-size:11px; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:var(--amber); }
+  .footer .foot-tag { margin-top:18px; font-size:11px; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:var(--porcelain); }
 </style>
 </head>
 <body>
@@ -359,52 +327,25 @@ body { padding-left: 208px; }
   <div class="wrap">
     <div class="eyebrow">Karmic Skin</div>
     <h1>Design System</h1>
-    <p class="lead">The working reference for how Karmic Skin is built — colour, type, space, and the components every surface shares. Each rule is here so the same decision is made the same way every time.</p>
-    <div class="legend">
-      <span><i style="background:var(--green)"></i> Locked — settled, build to it</span>
-      <span><i style="background:var(--sand)"></i> Proposed — recommended, awaiting sign-off</span>
-    </div>
+    <p class="lead">This document defines how Karmic Skin looks. Use it whenever you build something for the brand — a web page, an email, a social post, a dashboard, packaging — so every piece is consistent. Colour, type, spacing and components are set out in the sections below.</p>
   </div>
 </header>
 
-<!-- ========== 01 · FOUNDATIONS ========== -->
+<!-- ========== 01 · PRINCIPLES ========== -->
 <section class="section tint">
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow-row"><span class="eyebrow">01 · Foundations</span><span class="sec-tag locked">Locked</span></div>
-      <h2 class="section-title">The rules the system runs on</h2>
+      <div class="eyebrow">01 · Principles</div>
+      <h2 class="section-title">Four principles behind every page</h2>
       <div class="accent-rule"></div>
-      <p class="section-intro">A design system is only useful if it removes guesswork. Every colour sits in one of three tiers, and a colour never does a job from another tier. That single idea is what keeps the system clear.</p>
+      <p class="section-intro">Read these first. Every rule in this document follows from them.</p>
     </div>
 
-    <div class="tiers">
-      <div class="tier">
-        <div class="t-num">Tier 1</div>
-        <h4>Neutrals build</h4>
-        <p>Three neutrals — ground, tint and ink. They make the page and carry no signal of their own; they are the stage.</p>
-        <div class="t-swatch"><span style="background:#F6F5F0"></span><span style="background:#D8DAC1"></span><span style="background:#232526"></span></div>
-      </div>
-      <div class="tier">
-        <div class="t-num">Tier 2</div>
-        <h4>The brand signals</h4>
-        <p>One colour — Dark Green. Applied as a field to make a surface feel unmistakably Karmic. Used with restraint, so it always means something.</p>
-        <div class="t-swatch"><span style="background:#2F5350"></span></div>
-      </div>
-      <div class="tier">
-        <div class="t-num">Tier 3</div>
-        <h4>Accents flag</h4>
-        <p>Brick Red and Amber. Tiny, rare, loud. Red flags an action; amber flags a highlight. Never more than a sliver of any screen.</p>
-        <div class="t-swatch"><span style="background:#B22222"></span><span style="background:#EFA71D"></span></div>
-      </div>
-    </div>
-
-    <div class="block-label">Five principles</div>
     <div class="principles">
-      <div class="principle"><div class="num">01</div><h4>Intentional</h4><p>Every colour, size and space has one job. If you cannot name what it is for, it does not belong on the page.</p></div>
-      <div class="principle"><div class="num">02</div><h4>Contrast sets hierarchy</h4><p>What matters most carries the most contrast. Carbon on Porcelain for what must be read; everything else steps back.</p></div>
-      <div class="principle"><div class="num">03</div><h4>Restraint is the point</h4><p>Few colours, used rarely, hit hardest. A colour spread everywhere stops meaning anything at all.</p></div>
-      <div class="principle"><div class="num">04</div><h4>Three tiers, never crossed</h4><p>Neutrals build, the brand colour signals, accents flag. A colour never borrows another tier's job.</p></div>
-      <div class="principle"><div class="num">05</div><h4>One system, every surface</h4><p>The same rules on the website, the emails, the dashboards and the feed. Consistency is what makes it a system.</p></div>
+      <div class="principle"><div class="num">01</div><h4>Everything has a job</h4><p>Every colour, size and space is here for a reason. If you cannot say what something is for, leave it out.</p></div>
+      <div class="principle"><div class="num">02</div><h4>Use as few colours as possible</h4><p>The fewer colours on a page, the more considered it looks. Most of any Karmic page is Porcelain with Carbon Black text. Add another colour only when it has a clear job.</p></div>
+      <div class="principle"><div class="num">03</div><h4>Build hierarchy with size and weight</h4><p>To make something stand out, make it larger or bolder — not a different colour. All text is one colour.</p></div>
+      <div class="principle"><div class="num">04</div><h4>One system, every surface</h4><p>Use these rules everywhere Karmic appears: the website, emails, dashboards, social posts and packaging. Consistency is what makes it a brand.</p></div>
     </div>
   </div>
 </section>
@@ -413,159 +354,148 @@ body { padding-left: 208px; }
 <section class="section">
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow-row"><span class="eyebrow">02 · Colour</span><span class="sec-tag locked">Locked</span></div>
-      <h2 class="section-title">Seven brand colours, sorted by what they do</h2>
+      <div class="eyebrow">02 · Colour</div>
+      <h2 class="section-title">The seven brand colours</h2>
       <div class="accent-rule"></div>
-      <p class="section-intro">Grouped by tier, not by hue — the tier a colour sits in tells you how to use it before you ever reach for a hex. Seven brand colours in three tiers, and beyond them a single functional tone, for muted text.</p>
+      <p class="section-intro">Karmic Skin uses seven colours, and only these seven. They fall into three groups. The group a colour belongs to tells you how to use it.</p>
     </div>
 
-    <div class="block-label">Tier 1 — Neutrals · build the page</div>
+    <div class="block-label">Neutrals — used to build every page</div>
     <div class="pal-grid">
       <div class="pal-block">
         <div class="pal-swatch" style="background:#F6F5F0"><span class="hex on-light">#F6F5F0</span></div>
-        <div class="pal-meta"><div class="nm">Porcelain</div><div class="role"><b>Ground.</b> The default light canvas — almost every surface.</div></div>
+        <div class="pal-meta"><div class="nm">Porcelain</div><div class="role">The default background. Use it for almost every page and surface.</div></div>
       </div>
       <div class="pal-block">
         <div class="pal-swatch" style="background:#D8DAC1"><span class="hex on-light">#D8DAC1</span></div>
-        <div class="pal-meta"><div class="nm">Sand Dune</div><div class="role"><b>Tint.</b> Quiet section bands that give a long page rhythm.</div></div>
+        <div class="pal-meta"><div class="nm">Sand Dune</div><div class="role">A soft background tint. Use it for the occasional section, to break up a long page.</div></div>
       </div>
       <div class="pal-block">
         <div class="pal-swatch" style="background:#232526"><span class="hex on-dark">#232526</span></div>
-        <div class="pal-meta"><div class="nm">Carbon Black</div><div class="role"><b>Ink — never a background.</b> Every word of type, and every icon. Also the product's own colour: the matte cap.</div></div>
+        <div class="pal-meta"><div class="nm">Carbon Black</div><div class="role">All text, all icons, all borders. Never use it as a background. It is also the colour of the product itself — the matte-black cap.</div></div>
       </div>
     </div>
 
-    <div class="block-label">Tier 2 — Brand · signals Karmic</div>
+    <div class="block-label">Brand colour — used for branded backgrounds</div>
     <div class="pal-grid">
       <div class="pal-block">
         <div class="pal-swatch" style="background:#2F5350"><span class="hex on-dark">#2F5350</span></div>
-        <div class="pal-meta"><div class="nm">Dark Green</div><div class="role"><b>The brand colour.</b> Applied as a field — never as type. The Ayurvedic green the brand grew from.</div></div>
+        <div class="pal-meta"><div class="nm">Dark Green</div><div class="role">The brand colour. Use it as a background for panels and sections that should feel distinctly Karmic. Never use it for text.</div></div>
       </div>
     </div>
 
-    <div class="block-label">Tier 3 — Accents · flag one thing</div>
+    <div class="block-label">Accents — used rarely, one job each</div>
     <div class="pal-grid">
       <div class="pal-block">
         <div class="pal-swatch" style="background:#B22222"><span class="hex on-dark">#B22222</span></div>
-        <div class="pal-meta"><div class="nm">Brick Red</div><div class="role"><b>Action.</b> The Add to Cart button, and nothing else.</div></div>
+        <div class="pal-meta"><div class="nm">Brick Red</div><div class="role">The main action only. Use it for the most important button on a screen — Add to Cart, checkout — and nothing else.</div></div>
       </div>
       <div class="pal-block">
         <div class="pal-swatch" style="background:#EFA71D"><span class="hex on-light">#EFA71D</span></div>
-        <div class="pal-meta"><div class="nm">Amber Honey</div><div class="role"><b>Glow.</b> A highlight mark — underline, wash, badge. Never type.</div></div>
+        <div class="pal-meta"><div class="nm">Amber Honey</div><div class="role">A highlight only. Use it as a mark behind text — a highlight, an underline, a badge. Never as a text colour.</div></div>
       </div>
       <div class="pal-block">
         <div class="pal-swatch" style="background:#9A6F15"><span class="hex on-dark">#9A6F15</span></div>
-        <div class="pal-meta"><div class="nm">Deep Ochre</div><div class="role"><b>Amber, text-safe.</b> The one way to set gold type — large display only.</div></div>
+        <div class="pal-meta"><div class="nm">Deep Ochre</div><div class="role">A darker gold that is safe to use as text. Use it only for large gold headings — never for body text.</div></div>
       </div>
     </div>
-
-    <div class="block-label">Beyond the seven — one functional tone</div>
-    <div class="pal-grid">
-      <div class="pal-block">
-        <div class="pal-swatch" style="background:#666664"><span class="hex on-dark">#666664</span></div>
-        <div class="pal-meta"><div class="nm">Ink Secondary</div><div class="role"><b>Muted text.</b> Intros, captions and labels — what steps back from the headline. Carbon ink, stepped back to a fixed, contrast-checked value. Not a brand colour — the one working tone the interface needs.</div></div>
-      </div>
-    </div>
-
-    <p class="retired-note">One tone beyond the seven brand colours — <b>Ink Secondary</b>, for muted text. Everything else the interface needs is already in the palette: a border, where one is genuinely needed, is <b>Dark Green</b>; hover and pressed states are a brightness shift on the colour beneath. No greys, no extra tokens.</p>
-    <p class="retired-note">Retired — burgundy <b>#8B1A2B</b> and teal <b>#0D9488</b>. One red is enough, and the system carries no colour without a job.</p>
   </div>
 </section>
 
-<!-- ========== 03 · COLOUR IN USE ========== -->
+<!-- ========== 03 · USING COLOUR ========== -->
 <section class="section">
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow-row"><span class="eyebrow">03 · Colour in use</span><span class="sec-tag locked">Locked</span></div>
-      <h2 class="section-title">Where each colour goes, and where it never does</h2>
+      <div class="eyebrow">03 · Using colour</div>
+      <h2 class="section-title">Where each colour goes</h2>
       <div class="accent-rule"></div>
-      <p class="section-intro">The palette is the easy part. These are the rules that make it hold together — starting with the one that has caused the most confusion.</p>
+      <p class="section-intro">The palette is short. These rules make sure it is used the same way every time.</p>
     </div>
 
     <div class="rules">
 
-      <!-- THE BIG ONE: CARBON vs GREEN -->
-      <div class="rule feature">
-        <div class="r-label">Carbon Black + Dark Green · the rule that ends the confusion</div>
-        <h3>Carbon is ink. Green is a field.</h3>
+      <!-- CARBON & GREEN -->
+      <div class="rule">
+        <div class="r-label">Carbon Black and Dark Green</div>
+        <h3>Carbon Black is for text. Dark Green is for backgrounds.</h3>
         <div class="testbox">
-          <div class="tb-label">The test — works every time</div>
-          <div class="tb-q">Is it <b>type or an icon</b>? &nbsp;&rarr;&nbsp; Carbon Black.<br>Is it a <b>surface or a field</b>? &nbsp;&rarr;&nbsp; Dark Green.</div>
+          <div class="tb-label">Quick check</div>
+          <div class="tb-q">Text, icons and borders are <b>always Carbon Black</b>.<br>Backgrounds and panels are <b>Porcelain, Sand Dune or Dark Green</b>.<br>Dark Green is never used for text.</div>
         </div>
         <div class="iorf">
           <div class="iorf-panel ink">
-            <div class="ip-h">Skin, tended</div>
-            <div class="ip-b">Carbon writes. Every heading, every line of body, every label and icon — on a light ground, it is always Carbon.</div>
-            <div class="ip-tag">Carbon — ink</div>
+            <div class="ip-h">Carbon Black</div>
+            <div class="ip-b">Every heading, every line of body text, every icon and every border is set in Carbon Black.</div>
+            <div class="ip-tag">Text and detail</div>
           </div>
           <div class="iorf-panel field">
-            <div class="ip-h">Skin, tended</div>
-            <div class="ip-b">Green holds. A panel, a band, a card, the sidebar — a field of green is how a surface says "this is Karmic."</div>
-            <div class="ip-tag">Green — field</div>
+            <div class="ip-h">Dark Green</div>
+            <div class="ip-b">Dark Green is a background. Place it behind a panel or section to make it feel Karmic.</div>
+            <div class="ip-tag">Backgrounds</div>
           </div>
         </div>
         <div class="dd">
           <div class="dd-panel">
-            <span class="dd-label dd-no">Don't</span>
-            <p class="dd-eg" style="color:#2F5350;">A heading set in green</p>
-            <span class="dd-cap">Green as type loses contrast and spends the brand signal on something small. Green is not an ink.</span>
+            <span class="dd-label">Don't</span>
+            <p class="dd-eg" style="color:#2F5350;">A heading coloured green</p>
+            <span class="dd-cap">Green text is hard to read and weakens the brand colour. Headings stay Carbon Black.</span>
           </div>
           <div class="dd-panel">
-            <span class="dd-label dd-yes">Do</span>
-            <span class="dd-field">A heading on a green field</span>
-            <span class="dd-cap">Want a heading to feel branded? Put it on a green field with Porcelain type — not green letters.</span>
+            <span class="dd-label">Do</span>
+            <span class="dd-field">A heading on a green background</span>
+            <span class="dd-cap">To make a heading feel branded, place it on a Dark Green background with Porcelain text.</span>
           </div>
         </div>
-        <p class="r-text">They never compete, because they work on different layers. <b>Carbon is foreground</b> — the detail you read. <b>Green is background</b> — the surface you read against. One is a pen; the other is a wall. Carbon also has the strongest contrast on Porcelain, which is why it earns every word of text. And green is kept to fields precisely so it stays rare — a green surface should feel like a deliberate moment, not wallpaper.</p>
+        <p class="r-text">Carbon Black and Dark Green never clash, because they are used for different things — one for text, one for backgrounds. Carbon Black on Porcelain is the most readable pairing in the system, so all text uses it. Dark Green stays on backgrounds so it keeps its meaning: a green panel should feel deliberate, not used everywhere.</p>
       </div>
 
       <!-- BACKGROUNDS -->
       <div class="rule">
-        <div class="r-label">Porcelain · Sand Dune · Dark Green · the only backgrounds</div>
-        <h3>Three backgrounds — and Carbon is never one</h3>
+        <div class="r-label">Backgrounds</div>
+        <h3>Three background colours, and only three</h3>
         <div class="bg-trio">
-          <div class="bgp" style="background:#F6F5F0; border:1px solid var(--green);">
+          <div class="bgp" style="background:#F6F5F0; border:1px solid var(--carbon);">
             <div class="bgp-h" style="color:var(--carbon);">Porcelain</div>
-            <div class="bgp-b" style="color:var(--ink-2);">The default. Calm and light — almost every surface, almost all of the time.</div>
+            <div class="bgp-b" style="color:var(--carbon);">The default. Use it for almost every background.</div>
           </div>
-          <div class="bgp" style="background:#D8DAC1; border:1px solid var(--green);">
+          <div class="bgp" style="background:#D8DAC1; border:1px solid var(--carbon);">
             <div class="bgp-h" style="color:var(--carbon);">Sand Dune</div>
-            <div class="bgp-b" style="color:var(--ink-2);">A tint. The occasional section band, to give a long page rhythm.</div>
+            <div class="bgp-b" style="color:var(--carbon);">A soft tint. Use it for the occasional section, to add rhythm to a long page.</div>
           </div>
           <div class="bgp" style="background:#2F5350;">
             <div class="bgp-h" style="color:var(--porcelain);">Dark Green</div>
-            <div class="bgp-b" style="color:var(--porcelain);">A field. A panel or section meant to feel unmistakably Karmic.</div>
+            <div class="bgp-b" style="color:var(--porcelain);">A branded background, for a panel or section that should feel distinctly Karmic.</div>
           </div>
         </div>
-        <p class="r-text">Every surface is one of these three, and only these three. <b>Carbon Black is never a background.</b> It is ink — and it is the product's own colour, the matte-black cap. So Carbon is everywhere in the photography, as the product itself, but the canvas behind the product is always Porcelain, Sand or Green. Black is what you shoot, not what you shoot it on.</p>
+        <p class="r-text">Every background in Karmic Skin is one of these three. Carbon Black is never used as a background — it is only for text, icons and borders.</p>
       </div>
 
       <!-- BORDERS -->
       <div class="rule">
-        <div class="r-label">Borders · used sparingly</div>
-        <h3>Space separates. A border is for a control.</h3>
-        <p class="r-text">Content is set apart by whitespace and the ground beneath it — Porcelain, Sand, a green field — <b>never by a box</b>. A border earns its place only on something you act on: an input, a select, an outline button. When a border is used, it is <b>Dark Green</b> by default. The test: if you are drawing a box to group content, use space instead.</p>
+        <div class="r-label">Borders</div>
+        <h3>Separate things with space, not boxes</h3>
+        <p class="r-text">Do not put a box around content to group it. Use space and background colour instead. A border belongs only on something a user interacts with — an input field, a dropdown, an outline button. When you use a border, make it Carbon Black and 1px wide.</p>
       </div>
 
       <!-- RED -->
       <div class="rule">
-        <div class="r-label">Brick Red · #B22222</div>
-        <h3>Red is action, and only action</h3>
+        <div class="r-label">Brick Red</div>
+        <h3>Red is for the main action — nothing else</h3>
         <div class="r-demo center">
           <div class="btn-line">
             <button class="cta">Add to Cart · £29.00</button>
             <button class="btn-2">Secondary</button>
             <button class="btn-ghost">Ghost</button>
           </div>
-          <div class="demo-cap">One red action per screen. Secondary is a green field; ghost is a green outline.</div>
+          <div class="demo-cap">One red button per screen. The secondary button uses a Dark Green background; the ghost button uses a Carbon Black outline.</div>
         </div>
-        <p class="r-text">Red carries one message: <b>take this action</b>. The Add to Cart button, the checkout. Never a heading, never decoration, never a text colour. Its power is scarcity — hold it to one thing per screen and the eye goes straight to it.</p>
+        <p class="r-text">Use Brick Red for the single most important action on a screen — the Add to Cart button, the checkout button. Never use it for a heading, a background or a text colour. Its strength comes from being rare: one red element per screen, and the eye goes straight to it.</p>
       </div>
 
       <!-- AMBER -->
       <div class="rule">
-        <div class="r-label">Amber Honey · #EFA71D</div>
-        <h3>Amber is the glow — a mark, never type</h3>
+        <div class="r-label">Amber Honey</div>
+        <h3>Amber is a highlight — never text</h3>
         <div class="r-demo">
           <p class="demo-line">Your skin has a memory. Give it something <span class="u-amber">worth remembering</span>.</p>
           <p class="demo-line">A clean, nourished canvas is the <span class="hl-amber">foundation of every ritual</span>.</p>
@@ -573,37 +503,37 @@ body { padding-left: 208px; }
         </div>
         <div class="dd">
           <div class="dd-panel">
-            <span class="dd-label dd-no">Don't</span>
-            <p class="dd-eg" style="color:#EFA71D;">Amber as a text colour</p>
-            <span class="dd-cap">1.8:1 on Porcelain — far below the 4.5:1 type needs. It washes out.</span>
+            <span class="dd-label">Don't</span>
+            <p class="dd-eg" style="color:#EFA71D;">Amber used as text</p>
+            <span class="dd-cap">Amber on Porcelain is too low in contrast to read. It fails accessibility standards for text.</span>
           </div>
           <div class="dd-panel">
-            <span class="dd-label dd-yes">Do</span>
-            <p class="dd-eg"><span class="hl-amber">Amber behind the words</span></p>
-            <span class="dd-cap">Dark Carbon ink on an amber mark — warm, and fully legible.</span>
+            <span class="dd-label">Do</span>
+            <p class="dd-eg"><span class="hl-amber">Text on an amber mark</span></p>
+            <span class="dd-cap">Place Carbon Black text on top of an amber highlight. It stays warm and fully readable.</span>
           </div>
         </div>
-        <p class="r-text">Amber works as a <b>mark</b> — an underline, a highlighter wash, a badge, a fill. Dark type sits on it, never in it. When you genuinely need gold on the letters themselves, that is the one job of <b>Deep Ochre</b> — and only at large display size.</p>
+        <p class="r-text">Use Amber Honey as a mark behind or beneath text — a highlight, an underline, a badge. Always put Carbon Black text on top of it; never colour the text amber. If you need gold lettering, use Deep Ochre instead, and only at large heading sizes.</p>
       </div>
 
-      <!-- RESTRAINT -->
+      <!-- BALANCE -->
       <div class="rule">
-        <div class="r-label">The balance · restraint, made visible</div>
+        <div class="r-label">Colour balance</div>
         <h3>Most of every page is Porcelain</h3>
         <div class="balance">
-          <div style="background:#F6F5F0; color:#232526; flex:72; border-right:1px solid var(--green)">72 · Porcelain</div>
+          <div style="background:#F6F5F0; color:#232526; flex:72; border-right:1px solid var(--carbon)">72 · Porcelain</div>
           <div style="background:#D8DAC1; color:#232526; flex:13">13 · Sand</div>
           <div style="background:#2F5350; color:#F6F5F0; flex:11">11 · Green</div>
           <div style="background:#B22222; flex:2"></div>
           <div style="background:#EFA71D; flex:2"></div>
         </div>
         <div class="bl-key">
-          <span><i style="background:#F6F5F0;border:1px solid var(--green)"></i> Porcelain — the default ground</span>
-          <span><i style="background:#D8DAC1"></i> Sand Dune — occasional tint bands</span>
-          <span><i style="background:#2F5350"></i> Dark Green — brand fields</span>
-          <span><i style="background:#B22222"></i> + <i style="background:#EFA71D"></i> Accents — slivers</span>
+          <span><i style="background:#F6F5F0;border:1px solid var(--carbon)"></i> Porcelain — the default background</span>
+          <span><i style="background:#D8DAC1"></i> Sand Dune — occasional sections</span>
+          <span><i style="background:#2F5350"></i> Dark Green — branded panels</span>
+          <span><i style="background:#B22222"></i> + <i style="background:#EFA71D"></i> Red and Amber — small accents</span>
         </div>
-        <p class="r-text" style="margin-top:14px;">This is the share of <b>surface</b> a typical layout gives each background. Porcelain dominates; Sand and Green are occasional; the accents are barely a sliver. Carbon is not on the bar — it is ink, layered over everything as type, never a surface of its own. If a layout feels loud, a colour has taken more than its share.</p>
+        <p class="r-text" style="margin-top:14px;">This bar shows roughly how much of a typical page each background should cover. Porcelain is most of it. Sand Dune and Dark Green appear occasionally. Brick Red and Amber together are only a few percent. If a page feels loud, one colour has taken more than its share.</p>
       </div>
 
     </div>
@@ -614,22 +544,22 @@ body { padding-left: 208px; }
 <section class="section">
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow-row"><span class="eyebrow">04 · Typography</span><span class="sec-tag locked">Locked</span></div>
-      <h2 class="section-title">Domine leads. Montserrat carries.</h2>
+      <div class="eyebrow">04 · Typography</div>
+      <h2 class="section-title">Two typefaces</h2>
       <div class="accent-rule"></div>
-      <p class="section-intro">Two typefaces, one job each. A warm serif for what matters; a clean sans for everything that carries it. Type is always Carbon — hierarchy comes from size and weight, not colour.</p>
+      <p class="section-intro">Karmic Skin uses two typefaces: Domine for headings, Montserrat for body text and interface. All text is Carbon Black. Make text stand out with size and weight, not with colour.</p>
     </div>
 
     <div class="type-grid">
       <div class="specimen">
-        <div class="font-tag">Domine · Display &amp; headlines</div>
+        <div class="font-tag">Domine — headings</div>
         <div class="spec-xl">Skin is a relationship to be tended.</div>
         <div class="spec-sub">Ancient wisdom for modern people</div>
-        <div class="spec-weights">A warm, sturdy serif with real presence at size. Weights 400 · 500 · 600 · 700.</div>
+        <div class="spec-weights">A warm serif with presence at large sizes. Use it for display text and headings. Weights: 400, 500, 600, 700.</div>
       </div>
       <div class="specimen">
-        <div class="font-tag">Montserrat · Body &amp; interface</div>
-        <p class="spec-body">Montserrat carries everything Domine does not need to say out loud — body copy, labels, navigation and data. Clean and geometric, quiet enough to let the serif lead, and legible down to the smallest dashboard figure.</p>
+        <div class="font-tag">Montserrat — body and interface</div>
+        <p class="spec-body">Montserrat is used for body text, labels, navigation and data. It is clean, even, and easy to read down to small sizes.</p>
         <ul class="scale">
           <li><span>Display</span><span>Domine · 46–80px</span></li>
           <li><span>Headline</span><span>Domine · 26–36px</span></li>
@@ -646,22 +576,22 @@ body { padding-left: 208px; }
 <section class="section tint">
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow-row"><span class="eyebrow">05 · Spacing &amp; shape</span><span class="sec-tag proposed">Proposed</span></div>
-      <h2 class="section-title">A rhythm everything sits on</h2>
+      <div class="eyebrow">05 · Spacing &amp; shape</div>
+      <h2 class="section-title">Spacing, radius and layout</h2>
       <div class="accent-rule"></div>
-      <p class="section-intro">A proposed 4-point spacing scale and a small set of corner radii. One rhythm, used everywhere, is what makes a page feel unhurried instead of crowded.</p>
+      <p class="section-intro">All spacing uses one scale, built on multiples of 4 pixels. Using the same set of gaps everywhere keeps layouts even and calm.</p>
     </div>
 
-    <div class="block-label">Spacing scale — multiples of 4</div>
+    <div class="block-label">Spacing scale — multiples of 4 pixels</div>
     <div class="space-list">
-      <div class="space-item"><div class="space-bar" style="width:4px"></div><div class="space-meta"><b>4</b> &nbsp;<span>xs · hairline gaps</span></div></div>
-      <div class="space-item"><div class="space-bar" style="width:8px"></div><div class="space-meta"><b>8</b> &nbsp;<span>sm · within a component</span></div></div>
-      <div class="space-item"><div class="space-bar" style="width:12px"></div><div class="space-meta"><b>12</b> &nbsp;<span>md · label to value</span></div></div>
-      <div class="space-item"><div class="space-bar" style="width:16px"></div><div class="space-meta"><b>16</b> &nbsp;<span>lg · default gap between cards</span></div></div>
-      <div class="space-item"><div class="space-bar" style="width:24px"></div><div class="space-meta"><b>24</b> &nbsp;<span>xl · card padding</span></div></div>
-      <div class="space-item"><div class="space-bar" style="width:32px"></div><div class="space-meta"><b>32</b> &nbsp;<span>2xl · block separation</span></div></div>
-      <div class="space-item"><div class="space-bar" style="width:48px"></div><div class="space-meta"><b>48</b> &nbsp;<span>3xl · section breathing room</span></div></div>
-      <div class="space-item"><div class="space-bar" style="width:64px"></div><div class="space-meta"><b>64</b> &nbsp;<span>4xl · top and tail of a section</span></div></div>
+      <div class="space-item"><div class="space-bar" style="width:4px"></div><div class="space-meta"><b>4</b> &nbsp;<span>Smallest gaps</span></div></div>
+      <div class="space-item"><div class="space-bar" style="width:8px"></div><div class="space-meta"><b>8</b> &nbsp;<span>Inside a component</span></div></div>
+      <div class="space-item"><div class="space-bar" style="width:12px"></div><div class="space-meta"><b>12</b> &nbsp;<span>Label to value</span></div></div>
+      <div class="space-item"><div class="space-bar" style="width:16px"></div><div class="space-meta"><b>16</b> &nbsp;<span>Default gap between items</span></div></div>
+      <div class="space-item"><div class="space-bar" style="width:24px"></div><div class="space-meta"><b>24</b> &nbsp;<span>Padding inside a panel</span></div></div>
+      <div class="space-item"><div class="space-bar" style="width:32px"></div><div class="space-meta"><b>32</b> &nbsp;<span>Between blocks</span></div></div>
+      <div class="space-item"><div class="space-bar" style="width:48px"></div><div class="space-meta"><b>48</b> &nbsp;<span>Breathing room within a section</span></div></div>
+      <div class="space-item"><div class="space-bar" style="width:64px"></div><div class="space-meta"><b>64</b> &nbsp;<span>Top and bottom of a section</span></div></div>
     </div>
 
     <div class="block-label">Corner radius</div>
@@ -675,12 +605,12 @@ body { padding-left: 208px; }
     <div class="block-label">Layout</div>
     <div class="shape-grid">
       <div class="shape-card">
-        <h4>Generous, never tight</h4>
-        <p>Content holds to a ~1080px column with wide gutters. White space is a feature — the layouts breathe, nothing is crowded.</p>
+        <h4>Keep layouts generous</h4>
+        <p>Hold content to a single column about 1080px wide, with wide margins. Leave plenty of empty space. A page should feel calm, never crowded.</p>
       </div>
       <div class="shape-card">
-        <h4>Space, not boxes</h4>
-        <p>Content is set apart by whitespace and the ground beneath it — not by boxing it in. A panel that must read as separate sits on Sand or a green field; borders are kept for the things you act on.</p>
+        <h4>Separate with space, not boxes</h4>
+        <p>Group content with space and background colour, not borders. Only the things a user interacts with — inputs, buttons — carry a border.</p>
       </div>
     </div>
   </div>
@@ -690,10 +620,10 @@ body { padding-left: 208px; }
 <section class="section">
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow-row"><span class="eyebrow">06 · Components</span><span class="sec-tag proposed">Proposed</span></div>
+      <div class="eyebrow">06 · Components</div>
       <h2 class="section-title">The building blocks</h2>
       <div class="accent-rule"></div>
-      <p class="section-intro">The recurring pieces, drawn only from the colour, type and spacing above. Proposed as the starting set.</p>
+      <p class="section-intro">The recurring pieces, each built from the colour, type and spacing rules above.</p>
     </div>
 
     <div class="comp-grid">
@@ -704,23 +634,23 @@ body { padding-left: 208px; }
           <button class="btn-2">Secondary</button>
           <button class="btn-ghost">Ghost</button>
         </div>
-        <p class="c-note">Primary is the one red action. Secondary is a green field. Ghost is a green outline — type stays Carbon.</p>
+        <p class="c-note">Primary: a Brick Red background, for the main action — one per screen. Secondary: a Dark Green background. Ghost: a Carbon Black outline.</p>
       </div>
       <div class="comp">
-        <div class="c-label">Badges &amp; pills</div>
+        <div class="c-label">Badges</div>
         <div class="comp-stage">
           <span class="badge">Bestseller</span>
           <span class="badge">New in</span>
           <span class="badge">Pregnancy safe</span>
         </div>
-        <p class="c-note">Amber fill, Carbon type, fully rounded. The glow doing small, useful work.</p>
+        <p class="c-note">A short label on an Amber Honey background, with Carbon Black text. Use for status words only.</p>
       </div>
       <div class="comp">
         <div class="c-label">Input field</div>
         <div class="comp-stage">
           <input class="demo-input" type="text" placeholder="Your email address">
         </div>
-        <p class="c-note">A control, so it carries a border — 1px Dark Green, 12px radius. Green focus ring when active.</p>
+        <p class="c-note">A form field carries a 1px Carbon Black border, because a user interacts with it. 12px corner radius.</p>
       </div>
       <div class="comp">
         <div class="c-label">Product card</div>
@@ -731,7 +661,7 @@ body { padding-left: 208px; }
             <p>Saffron and oil-soluble Vitamin C for even, lit-from-within tone.</p>
           </div>
         </div>
-        <p class="c-note">Porcelain, no border — it lifts off its ground by tone, not a box. 14–16px radius. Domine heading, Montserrat body — both Carbon.</p>
+        <p class="c-note">No border. The card is Porcelain and stands apart by space, not a box. Heading in Domine, body in Montserrat.</p>
       </div>
       <div class="comp">
         <div class="c-label">Dashboard tile</div>
@@ -742,14 +672,14 @@ body { padding-left: 208px; }
             <div class="kd">&#9650; 12.4% vs prior</div>
           </div>
         </div>
-        <p class="c-note">Carbon figures — the value is type, so it is ink, not green. Value shown is illustrative.</p>
+        <p class="c-note">Used on dashboards. The figure is large Domine; the label above is small Montserrat. The number shown is an example.</p>
       </div>
       <div class="comp">
-        <div class="c-label">Section field</div>
+        <div class="c-label">Branded section</div>
         <div class="comp-stage" style="background:var(--green);">
-          <span style="font-family:'Domine',serif; color:var(--porcelain); font-size:18px;">A green field</span>
+          <span style="font-family:'Domine',serif; color:var(--porcelain); font-size:18px;">A green background</span>
         </div>
-        <p class="c-note">Green behind a stretch of content, Porcelain type on top — a deliberate brand moment.</p>
+        <p class="c-note">A stretch of Dark Green background with Porcelain text on top. Use it to give a section a clear Karmic moment.</p>
       </div>
     </div>
   </div>
@@ -759,8 +689,8 @@ body { padding-left: 208px; }
 <footer class="footer">
   <div class="wrap">
     <h4>The Karmic Skin Design System</h4>
-    <p>One reference, so every surface is built the same way. Colour and type are locked; spacing and components are proposed and awaiting sign-off. Logo guidance is being defined separately.</p>
-    <div class="foot-tag">Living document · May 2026</div>
+    <p>Build every Karmic Skin surface to this reference — the website, emails, dashboards, social posts and packaging — so the brand looks like one brand everywhere.</p>
+    <div class="foot-tag">May 2026</div>
   </div>
 </footer>
 

@@ -229,7 +229,7 @@
 <nav class="ksb-section">
 <button type="button" class="ksb-head">Analytics<span class="ksb-chev">&#9662;</span></button>
 <div class="ksb-links">
-<a href="dashboard.html" data-page="dashboard">Shopify</a>
+<a href="index.html" data-page="dashboard">Shopify</a>
 <a href="meta.html" data-page="meta">Meta</a>
 <a href="email.html" data-page="email">Email</a>
 <a href="amazon.html" data-page="amazon">Amazon</a>
@@ -278,7 +278,7 @@ body { padding-left: 208px; }
 })();
 </script>
 <nav class="page-nav">
-  <a href="dashboard.html">Shopify</a>
+  <a href="index.html">Shopify</a>
   <a href="meta.html">Meta</a>
   <a href="email.html" class="active">Email</a>
   <a href="inventory.html">Inventory</a>
@@ -606,9 +606,9 @@ let USER_JWT = SUPABASE_KEY;
     if (stored && stored.access_token && stored.expires_at && stored.expires_at > Math.floor(Date.now()/1000)) {
       USER_JWT = stored.access_token;
     } else {
-      window.location.href = 'dashboard.html';
+      window.location.href = 'index.html';
     }
-  } catch { window.location.href = 'dashboard.html'; }
+  } catch { window.location.href = 'index.html'; }
 })();
 
 // All fetched data lives here

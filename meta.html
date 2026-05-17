@@ -214,7 +214,7 @@
 <nav class="ksb-section">
 <button type="button" class="ksb-head">Analytics<span class="ksb-chev">&#9662;</span></button>
 <div class="ksb-links">
-<a href="dashboard.html" data-page="dashboard">Shopify</a>
+<a href="index.html" data-page="dashboard">Shopify</a>
 <a href="meta.html" data-page="meta">Meta</a>
 <a href="email.html" data-page="email">Email</a>
 <a href="amazon.html" data-page="amazon">Amazon</a>
@@ -263,7 +263,7 @@ body { padding-left: 208px; }
 })();
 </script>
 <nav class="page-nav">
-  <a href="dashboard.html">Shopify</a>
+  <a href="index.html">Shopify</a>
   <a href="meta.html" class="active">Meta</a>
   <a href="email.html">Email</a>
   <a href="inventory.html">Inventory</a>
@@ -389,9 +389,9 @@ body { padding-left: 208px; }
 const SUPABASE_URL = 'https://unmkzatppwftnasafhlb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVubWt6YXRwcHdmdG5hc2FmaGxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDQ5OTIsImV4cCI6MjA4NjU4MDk5Mn0.SYQm1km08xwlJSIf9jq8DXH3Ijxbxqk_LpTRh0PZhD4';
 // Auth piggyback: data tables now require an authed JWT from the allowlist.
-// The main dashboard.html handles login and stores the session under
+// The main index.html handles login and stores the session under
 // 'ks-dashboard-auth'. We just read that and use the access token here.
-// If not signed in (or session expired), bounce to dashboard.html.
+// If not signed in (or session expired), bounce to index.html.
 let USER_JWT = SUPABASE_KEY;
 (function adoptDashboardSession() {
   try {
@@ -400,9 +400,9 @@ let USER_JWT = SUPABASE_KEY;
       USER_JWT = stored.access_token;
     } else {
       // No valid session — send the user to the main dashboard to sign in.
-      window.location.href = 'dashboard.html';
+      window.location.href = 'index.html';
     }
-  } catch { window.location.href = 'dashboard.html'; }
+  } catch { window.location.href = 'index.html'; }
 })();
 
 // ═════════════ STATE ═════════════

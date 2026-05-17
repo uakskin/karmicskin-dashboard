@@ -38,7 +38,6 @@
 
   /* ========== LAYOUT ========== */
   .wrap { max-width:1080px; margin:0 auto; padding:0 clamp(16px,4vw,40px); }
-  .section { border-top:1px solid var(--green); }
   .section.tint { background:var(--sand); }
   .section .wrap { padding-top:clamp(38px,5vw,64px); padding-bottom:clamp(38px,5vw,64px); }
   .section-head { margin-bottom:28px; }
@@ -77,8 +76,7 @@
   .tiers { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
   @media (max-width:720px){ .tiers { grid-template-columns:1fr; } }
   .tier {
-    background:var(--porcelain); border:1px solid var(--green);
-    border-radius:14px; padding:22px;
+    background:var(--porcelain); border-radius:14px; padding:22px;
   }
   .tier .t-num { font-family:'Domine',serif; font-size:13px; font-weight:700; color:var(--ochre); }
   .tier h4 { font-size:17px; margin-top:4px; }
@@ -88,8 +86,7 @@
 
   .principles { display:grid; grid-template-columns:repeat(auto-fill,minmax(248px,1fr)); gap:14px; }
   .principle {
-    background:var(--porcelain); border:1px solid var(--green);
-    border-radius:14px; padding:20px 22px;
+    background:var(--porcelain); border-radius:14px; padding:20px 22px;
   }
   .principle .num { font-family:'Domine',serif; font-size:13px; font-weight:700; color:var(--ochre); }
   .principle h4 { font-size:16px; margin-top:5px; }
@@ -113,12 +110,8 @@
   .retired-note { margin-top:22px; font-size:12.5px; color:var(--ink-2); }
 
   /* ========== COLOUR IN USE ========== */
-  .rules { display:flex; flex-direction:column; gap:16px; }
-  .rule {
-    background:var(--porcelain); border:1px solid var(--green);
-    border-radius:16px; padding:clamp(22px,3.5vw,32px);
-  }
-  .rule.feature { border:2px solid var(--green); }
+  .rules { display:flex; flex-direction:column; gap:clamp(34px,5vw,48px); }
+  .rule { padding:6px 0; }
   .rule .r-label {
     font-size:11px; font-weight:700; letter-spacing:0.14em;
     text-transform:uppercase; color:var(--ink-2);
@@ -146,9 +139,9 @@
   /* ink-or-field two-up */
   .iorf { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0; }
   @media (max-width:620px){ .iorf { grid-template-columns:1fr; } }
-  .iorf-panel { border-radius:12px; padding:26px 24px; border:1px solid var(--green); }
-  .iorf-panel.ink { background:var(--porcelain); }
-  .iorf-panel.field { background:var(--green); border-color:var(--green); }
+  .iorf-panel { border-radius:12px; padding:26px 24px; }
+  .iorf-panel.ink { background:var(--sand); }
+  .iorf-panel.field { background:var(--green); }
   .iorf-panel .ip-h { font-family:'Domine',serif; font-size:23px; font-weight:600; }
   .iorf-panel.ink .ip-h { color:var(--carbon); }
   .iorf-panel.field .ip-h { color:var(--porcelain); }
@@ -166,8 +159,8 @@
   .dd { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0; }
   @media (max-width:560px){ .dd { grid-template-columns:1fr; } }
   .dd-panel {
-    background:var(--porcelain); border:1px solid var(--green);
-    border-radius:10px; padding:20px 18px; text-align:center;
+    background:var(--sand); border-radius:10px;
+    padding:20px 18px; text-align:center;
   }
   .dd-label { font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; }
   .dd-no { color:var(--red); }
@@ -189,8 +182,8 @@
 
   /* shared demo bits */
   .r-demo {
-    background:var(--porcelain); border:1px solid var(--green);
-    border-radius:12px; padding:clamp(22px,3vw,30px); margin:16px 0;
+    background:var(--sand); border-radius:12px;
+    padding:clamp(22px,3vw,30px); margin:16px 0;
   }
   .r-demo.center { text-align:center; }
   .btn-line { display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:center; }
@@ -208,9 +201,9 @@
   .btn-ghost {
     background:transparent; color:var(--carbon); font-family:'Montserrat',sans-serif;
     font-weight:600; font-size:14px; padding:13px 24px; border-radius:12px;
-    border:1.5px solid var(--carbon); cursor:pointer;
+    border:1.5px solid var(--green); cursor:pointer;
   }
-  .btn-ghost:hover { background:var(--carbon); color:var(--porcelain); }
+  .btn-ghost:hover { background:var(--green); color:var(--porcelain); }
   .demo-line {
     font-family:'Domine',serif; font-size:clamp(17px,2.4vw,20px);
     color:var(--carbon); line-height:1.75; margin-bottom:16px;
@@ -231,7 +224,7 @@
   /* balance bar */
   .balance {
     display:flex; height:54px; border-radius:10px; overflow:hidden;
-    border:1px solid var(--green); margin:16px 0 10px;
+    margin:16px 0 10px;
   }
   .balance div { display:flex; align-items:center; justify-content:center;
     font-size:11px; font-weight:700; letter-spacing:0.04em; }
@@ -240,17 +233,16 @@
   .bl-key i { width:11px; height:11px; border-radius:3px; }
 
   /* ========== TYPOGRAPHY ========== */
-  .type-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .type-grid { display:grid; grid-template-columns:1fr 1fr; gap:clamp(22px,4vw,44px); }
   @media (max-width:760px){ .type-grid { grid-template-columns:1fr; } }
-  .specimen { background:var(--porcelain); border:1px solid var(--green); border-radius:14px; padding:clamp(20px,3.5vw,30px); }
+  .specimen { padding:6px 0; }
   .font-tag { font-size:11px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--ink-2); }
   .spec-xl { font-family:'Domine',serif; font-size:clamp(28px,4.4vw,40px); color:var(--carbon); line-height:1.12; margin-top:10px; font-weight:600; }
   .spec-sub { font-family:'Domine',serif; font-size:21px; color:var(--carbon); margin-top:18px; font-weight:500; }
   .spec-body { font-size:14.5px; color:var(--carbon); margin-top:14px; }
   .spec-weights { font-size:12.5px; color:var(--ink-2); margin-top:16px; }
   .scale { list-style:none; margin-top:14px; }
-  .scale li { display:flex; justify-content:space-between; gap:14px; border-top:1px solid var(--green); padding:9px 0; font-size:13px; }
-  .scale li:first-child { border-top:none; }
+  .scale li { display:flex; justify-content:space-between; gap:14px; padding:7px 0; font-size:13px; }
   .scale li span:last-child { color:var(--ink-2); }
 
   /* ========== SPACING & SHAPE ========== */
@@ -262,23 +254,23 @@
   .space-meta span { color:var(--ink-2); }
   .radius-row { display:flex; gap:16px; flex-wrap:wrap; }
   .radius-chip {
-    width:96px; height:96px; background:var(--porcelain); border:1.5px solid var(--carbon);
+    width:96px; height:96px; background:var(--porcelain); border:1.5px solid var(--green);
     display:flex; align-items:flex-end; justify-content:center; padding-bottom:8px;
     font-size:11.5px; color:var(--ink-2); font-weight:600;
   }
   .shape-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
   @media (max-width:680px){ .shape-grid { grid-template-columns:1fr; } }
-  .shape-card { background:var(--porcelain); border:1px solid var(--green); border-radius:14px; padding:24px; }
+  .shape-card { background:var(--porcelain); border-radius:14px; padding:24px; }
   .shape-card h4 { font-size:15px; }
   .shape-card p { font-size:13px; color:var(--ink-2); margin-top:6px; }
 
   /* ========== COMPONENTS ========== */
-  .comp-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .comp-grid { display:grid; grid-template-columns:1fr 1fr; gap:clamp(20px,3.5vw,38px); }
   @media (max-width:760px){ .comp-grid { grid-template-columns:1fr; } }
-  .comp { background:var(--porcelain); border:1px solid var(--green); border-radius:16px; padding:24px; }
+  .comp { padding:6px 0; }
   .comp .c-label { font-size:11px; font-weight:700; letter-spacing:0.13em; text-transform:uppercase; color:var(--ink-2); margin-bottom:18px; }
   .comp-stage {
-    background:var(--porcelain); border:1px solid var(--green); border-radius:12px;
+    background:var(--sand); border-radius:12px;
     padding:26px 22px; display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:center;
   }
   .comp p.c-note { font-size:12.5px; color:var(--ink-2); margin-top:14px; }
@@ -288,17 +280,17 @@
     width:100%; max-width:280px;
   }
   .demo-input::placeholder { color:var(--ink-2); }
-  .demo-card { background:var(--porcelain); border:1px solid var(--green); border-radius:14px; padding:20px; max-width:260px; text-align:left; }
+  .demo-card { background:var(--porcelain); border-radius:14px; padding:20px; max-width:260px; text-align:left; }
   .demo-card .dc-eyebrow { font-size:10.5px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-2); }
   .demo-card h4 { font-size:17px; margin-top:6px; }
   .demo-card p { font-size:13px; color:var(--ink-2); margin-top:6px; }
-  .kpi-tile { background:var(--porcelain); border:1px solid var(--green); border-radius:12px; padding:18px 20px; min-width:170px; text-align:left; }
+  .kpi-tile { background:var(--porcelain); border-radius:12px; padding:18px 20px; min-width:170px; text-align:left; }
   .kpi-tile .kl { font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-2); }
   .kpi-tile .kv { font-family:'Domine',serif; font-size:28px; font-weight:700; color:var(--carbon); margin-top:5px; }
   .kpi-tile .kd { font-size:12px; color:var(--ink-2); font-weight:600; margin-top:2px; }
 
   /* ========== FOOTER ========== */
-  .footer { border-top:1px solid var(--green); background:var(--green); }
+  .footer { background:var(--green); }
   .footer .wrap { padding-top:42px; padding-bottom:48px; }
   .footer h4 { font-size:22px; color:var(--porcelain); }
   .footer p { color:var(--porcelain); font-size:14px; margin-top:8px; max-width:640px; }
@@ -475,7 +467,7 @@ body { padding-left: 208px; }
       </div>
     </div>
 
-    <p class="retired-note">One tone beyond the seven brand colours — <b>Ink Secondary</b>, for muted text. Everything else the interface needs is already in the palette: borders and dividers take <b>Dark Green</b>, and hover and pressed states are a brightness shift on the colour beneath. No greys, no extra tokens.</p>
+    <p class="retired-note">One tone beyond the seven brand colours — <b>Ink Secondary</b>, for muted text. Everything else the interface needs is already in the palette: a border, where one is genuinely needed, is <b>Dark Green</b>; hover and pressed states are a brightness shift on the colour beneath. No greys, no extra tokens.</p>
     <p class="retired-note">Retired — burgundy <b>#8B1A2B</b> and teal <b>#0D9488</b>. One red is enough, and the system carries no colour without a job.</p>
   </div>
 </section>
@@ -498,7 +490,7 @@ body { padding-left: 208px; }
         <h3>Carbon is ink. Green is a field.</h3>
         <div class="testbox">
           <div class="tb-label">The test — works every time</div>
-          <div class="tb-q">Is it <b>type or an icon</b>? &nbsp;&rarr;&nbsp; Carbon Black.<br>Is it a <b>surface or a border</b>? &nbsp;&rarr;&nbsp; Dark Green.</div>
+          <div class="tb-q">Is it <b>type or an icon</b>? &nbsp;&rarr;&nbsp; Carbon Black.<br>Is it a <b>surface or a field</b>? &nbsp;&rarr;&nbsp; Dark Green.</div>
         </div>
         <div class="iorf">
           <div class="iorf-panel ink">
@@ -548,6 +540,13 @@ body { padding-left: 208px; }
         <p class="r-text">Every surface is one of these three, and only these three. <b>Carbon Black is never a background.</b> It is ink — and it is the product's own colour, the matte-black cap. So Carbon is everywhere in the photography, as the product itself, but the canvas behind the product is always Porcelain, Sand or Green. Black is what you shoot, not what you shoot it on.</p>
       </div>
 
+      <!-- BORDERS -->
+      <div class="rule">
+        <div class="r-label">Borders · used sparingly</div>
+        <h3>Space separates. A border is for a control.</h3>
+        <p class="r-text">Content is set apart by whitespace and the ground beneath it — Porcelain, Sand, a green field — <b>never by a box</b>. A border earns its place only on something you act on: an input, a select, an outline button. When a border is used, it is <b>Dark Green</b> by default. The test: if you are drawing a box to group content, use space instead.</p>
+      </div>
+
       <!-- RED -->
       <div class="rule">
         <div class="r-label">Brick Red · #B22222</div>
@@ -558,7 +557,7 @@ body { padding-left: 208px; }
             <button class="btn-2">Secondary</button>
             <button class="btn-ghost">Ghost</button>
           </div>
-          <div class="demo-cap">One red action per screen. Secondary is a green field; ghost is a Carbon outline.</div>
+          <div class="demo-cap">One red action per screen. Secondary is a green field; ghost is a green outline.</div>
         </div>
         <p class="r-text">Red carries one message: <b>take this action</b>. The Add to Cart button, the checkout. Never a heading, never decoration, never a text colour. Its power is scarcity — hold it to one thing per screen and the eye goes straight to it.</p>
       </div>
@@ -680,8 +679,8 @@ body { padding-left: 208px; }
         <p>Content holds to a ~1080px column with wide gutters. White space is a feature — the layouts breathe, nothing is crowded.</p>
       </div>
       <div class="shape-card">
-        <h4>Soft edges, fine borders</h4>
-        <p>Cards are Porcelain, set off by a 1px Dark Green border rather than heavy shadow. Lift only on hover.</p>
+        <h4>Space, not boxes</h4>
+        <p>Content is set apart by whitespace and the ground beneath it — not by boxing it in. A panel that must read as separate sits on Sand or a green field; borders are kept for the things you act on.</p>
       </div>
     </div>
   </div>
@@ -705,7 +704,7 @@ body { padding-left: 208px; }
           <button class="btn-2">Secondary</button>
           <button class="btn-ghost">Ghost</button>
         </div>
-        <p class="c-note">Primary is the one red action. Secondary is a green field. Ghost is a Carbon outline — type stays Carbon.</p>
+        <p class="c-note">Primary is the one red action. Secondary is a green field. Ghost is a green outline — type stays Carbon.</p>
       </div>
       <div class="comp">
         <div class="c-label">Badges &amp; pills</div>
@@ -721,7 +720,7 @@ body { padding-left: 208px; }
         <div class="comp-stage">
           <input class="demo-input" type="text" placeholder="Your email address">
         </div>
-        <p class="c-note">Porcelain surface, 1px Dark Green border, 12px radius. Green focus ring when active.</p>
+        <p class="c-note">A control, so it carries a border — 1px Dark Green, 12px radius. Green focus ring when active.</p>
       </div>
       <div class="comp">
         <div class="c-label">Product card</div>
@@ -732,7 +731,7 @@ body { padding-left: 208px; }
             <p>Saffron and oil-soluble Vitamin C for even, lit-from-within tone.</p>
           </div>
         </div>
-        <p class="c-note">Porcelain card, Dark Green border, 14–16px radius. Domine heading, Montserrat body — both Carbon.</p>
+        <p class="c-note">Porcelain, no border — it lifts off its ground by tone, not a box. 14–16px radius. Domine heading, Montserrat body — both Carbon.</p>
       </div>
       <div class="comp">
         <div class="c-label">Dashboard tile</div>

@@ -129,11 +129,12 @@
 <script>
 // ========== THE GOLDS ==========
 const GOLDS = [
-  { name:'Deep Ochre',     hex:'#9A6F15', tag:'in use now' },
   { name:'Goldenrod',      hex:'#DAA63E', tag:'' },
-  { name:'Mango',          hex:'#FFC92B', tag:'' },
   { name:'Mustard Yellow', hex:'#E1AD01', tag:'' },
-  { name:'Sunflower',      hex:'#FCCE00', tag:'' }
+  { name:'Sunflower',      hex:'#FCCE00', tag:'' },
+  { name:'Saffron',        hex:'#F1C338', tag:'' },
+  { name:'Amber',          hex:'#FFBF00', tag:'' },
+  { name:'Apricot',        hex:'#FFC417', tag:'' }
 ];
 const PORCELAIN = '#F6F5F0', GREEN = '#2F5350';
 
@@ -177,7 +178,7 @@ document.getElementById('cands').innerHTML = GOLDS.map(g => {
 }).join('');
 
 document.getElementById('finding').innerHTML =
-  '<b>The catch:</b> no single gold here reads well on both grounds. Deep Ochre is dark enough for Porcelain but disappears on Dark Green; the brighter golds are the reverse — strong on Dark Green, illegible as type on Porcelain. Worth deciding which ground gold type actually needs to work on.';
+  '<b>The pattern:</b> every gold in this set is bright — they all read strongly as type on Dark Green, and all fall well below the legible threshold on Porcelain. If gold type needs to work on Porcelain pages, none of these will do it; that would need a far darker gold. If gold type lives only on Dark Green panels, the choice here is open.';
 
 // ========== TOGGLE MOCK ==========
 const live = document.querySelectorAll('.gold-live');

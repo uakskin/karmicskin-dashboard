@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Karmic Skin — Brand Green Trial</title>
+<link rel="icon" href="favicon-latest.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Domine:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --porcelain:#F6F5F0; --sand:#D8DAC1; --carbon:#232526;
+    --red:#B22222; --amber:#EFA71D; --ochre:#9A6F15;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:var(--porcelain); color:var(--carbon);
+    font-family:'Montserrat',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    line-height:1.65; -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3 { font-family:'Domine',Georgia,serif; font-weight:600; line-height:1.18; }
+  .wrap { max-width:1000px; margin:0 auto; padding:0 clamp(18px,4vw,40px); }
+  .eyebrow { font-size:12px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; }
+
+  /* masthead */
+  .masthead { padding:clamp(40px,6vw,72px) 0 clamp(28px,4vw,40px); }
+  .masthead h1 { font-size:clamp(40px,7vw,64px); margin:12px 0 18px; }
+  .masthead .lead { max-width:640px; font-size:16px; }
+  .masthead .note { max-width:640px; font-size:13.5px; margin-top:14px;
+    background:var(--sand); border-radius:12px; padding:14px 18px; }
+
+  /* section heads */
+  .sec-head { padding:clamp(36px,5vw,56px) 0 4px; }
+  .sec-head h2 { font-size:clamp(24px,3.4vw,32px); }
+  .sec-head p { font-size:14.5px; max-width:640px; margin-top:9px; }
+
+  /* ===== stacked bands ===== */
+  .band { padding:clamp(52px,9vw,104px) 0; }
+  .band .band-tag { font-size:12px; font-weight:700; letter-spacing:0.16em;
+    text-transform:uppercase; opacity:0.85; }
+  .band h2 { font-size:clamp(30px,5vw,52px); margin:14px 0 14px; max-width:760px; }
+  .band p { font-size:15.5px; max-width:560px; }
+  .band .badge { display:inline-block; margin-top:20px; background:var(--amber);
+    color:var(--carbon); font-size:11px; font-weight:700; letter-spacing:0.07em;
+    text-transform:uppercase; padding:6px 12px; border-radius:100px; }
+
+  /* ===== harmony ===== */
+  .harm { display:flex; flex-direction:column; gap:12px; margin-top:20px; }
+  .harm-row { border-radius:14px; padding:20px 22px; display:flex; align-items:center;
+    gap:16px; flex-wrap:wrap; }
+  .harm-row .h-name { font-size:13px; font-weight:700; letter-spacing:0.04em; min-width:180px; }
+  .harm-row .h-btn { background:var(--red); color:var(--porcelain); border:none;
+    font-family:'Montserrat',sans-serif; font-weight:700; font-size:13px;
+    padding:11px 20px; border-radius:12px; }
+  .harm-row .h-badge { background:var(--amber); color:var(--carbon); font-size:11px;
+    font-weight:700; letter-spacing:0.07em; text-transform:uppercase; padding:6px 12px;
+    border-radius:100px; }
+  .harm-row .h-chip { font-size:12px; font-weight:600; padding:8px 12px; border-radius:8px; }
+  .harm-row .h-spacer { flex:1; }
+
+  /* ===== toggle mock ===== */
+  .swatch-row { display:flex; gap:10px; flex-wrap:wrap; margin:20px 0 22px; }
+  .swatch-btn { cursor:pointer; border:1px solid var(--carbon); border-radius:12px;
+    background:var(--porcelain); padding:8px 8px 9px; display:flex; flex-direction:column;
+    gap:7px; align-items:stretch; width:132px; font-family:'Montserrat',sans-serif; }
+  .swatch-btn .sw { height:34px; border-radius:7px; }
+  .swatch-btn .sw-name { font-size:11px; font-weight:700; text-transform:uppercase;
+    letter-spacing:0.04em; text-align:left; }
+  .swatch-btn.active { outline:3px solid var(--carbon); outline-offset:2px; }
+
+  .mock { border:1px solid var(--carbon); border-radius:16px; overflow:hidden;
+    display:flex; min-height:420px; }
+  .mock-side { width:128px; flex-shrink:0; padding:22px 16px;
+    display:flex; flex-direction:column; gap:8px; }
+  .mock-side .ms-brand { font-size:11px; font-weight:700; letter-spacing:0.12em;
+    text-transform:uppercase; margin-bottom:10px; }
+  .mock-side .ms-link { font-size:13px; padding:6px 0; }
+  .mock-side .ms-link.on { font-weight:700; }
+  .mock-body { flex:1; background:var(--porcelain); padding:clamp(20px,3vw,34px);
+    display:flex; flex-direction:column; gap:18px; }
+  .mock-hero { border-radius:14px; padding:clamp(24px,3.5vw,40px); }
+  .mock-hero .mh-eyebrow { font-size:11px; font-weight:700; letter-spacing:0.18em;
+    text-transform:uppercase; }
+  .mock-hero h3 { font-size:clamp(24px,3.4vw,34px); margin:10px 0 10px; }
+  .mock-hero p { font-size:14.5px; max-width:420px; }
+  .mock-hero .mh-cta { display:inline-block; margin-top:18px; background:var(--red);
+    color:var(--porcelain); font-weight:700; font-size:14px; padding:13px 26px;
+    border-radius:12px; }
+  .mock-cards { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .mock-card { background:var(--porcelain); border:1px solid var(--carbon);
+    border-radius:12px; padding:18px; }
+  .mock-card h4 { font-family:'Domine',serif; font-size:16px; }
+  .mock-card p { font-size:12.5px; margin-top:5px; }
+  .mock-now { font-size:13px; margin-top:12px; }
+  .mock-now b { font-weight:700; }
+
+  footer { padding:48px 0 60px; font-size:12.5px; }
+  @media (max-width:620px){ .mock { flex-direction:column; } .mock-side { width:auto; }
+    .mock-cards { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Karmic Skin</div>
+    <h1>Brand Green — Trial</h1>
+    <p class="lead">Trialling a replacement for the brand green. The current Dark Green is the first band, as a baseline; each candidate follows in the same layout, at full field scale. Nothing in the live design system has changed.</p>
+    <p class="note"><b>One thing to watch:</b> the current green is dark, so text on it is Porcelain (light). Every candidate is lighter — text on those flips to Carbon Black (dark). Each band below uses whichever is readable, so you are seeing the real result, not a guess.</p>
+  </div>
+</header>
+
+<div class="sec-head"><div class="wrap">
+  <h2>Side by side</h2>
+  <p>Each green as a full-width branded field — the scale it is actually used at. Same heading and copy every time, so only the green changes. Scroll and compare; the seam between two bands is the most honest comparison point.</p>
+</div></div>
+<div id="bands"></div>
+
+<div class="sec-head"><div class="wrap">
+  <h2>Against the rest of the palette</h2>
+  <p>A green is only right if it still sits with the warm accents. Each row puts the green under a Brick Red button, an Amber badge, and a Sand chip — the colours it has to share a page with.</p>
+</div></div>
+<div class="wrap"><div class="harm" id="harm"></div></div>
+
+<div class="sec-head"><div class="wrap">
+  <h2>Apply one across a layout</h2>
+  <p>Once you are leaning toward one, click it below to recolour a fuller mock — sidebar and hero panel together — and see it doing every job at once.</p>
+</div></div>
+<div class="wrap">
+  <div class="swatch-row" id="swatchRow"></div>
+  <div class="mock">
+    <aside class="mock-side" id="mockSide">
+      <div class="ms-brand">Karmic Skin</div>
+      <div class="ms-link on">Overview</div>
+      <div class="ms-link">Products</div>
+      <div class="ms-link">Journal</div>
+      <div class="ms-link">Stockists</div>
+    </aside>
+    <div class="mock-body">
+      <div class="mock-hero" id="mockHero">
+        <div class="mh-eyebrow">New ritual</div>
+        <h3>Skin is a relationship to be tended.</h3>
+        <p>The brand colour fills the panels, sections and sidebar — type and one red action sit on top of it.</p>
+        <span class="mh-cta">Add to Cart · £29.00</span>
+      </div>
+      <div class="mock-cards">
+        <div class="mock-card"><h4>Sunlight Serum</h4><p>Saffron and oil-soluble Vitamin C for even, lit-from-within tone.</p></div>
+        <div class="mock-card"><h4>Night Repair</h4><p>A slow, restorative balm for the skin barrier overnight.</p></div>
+      </div>
+      <div class="mock-now">Showing: <b id="mockNow">Current — Dark Green</b></div>
+    </div>
+  </div>
+</div>
+
+<footer><div class="wrap">Trial page only — the live design system is unchanged. Pick a winner and it gets applied properly.</div></footer>
+
+<script>
+// ========== THE GREENS ==========
+const GREENS = [
+  { name:'Current — Dark Green', hex:'#2F5350', text:'#F6F5F0', tag:'in use now' },
+  { name:'#4C9900',              hex:'#4C9900', text:'#232526', tag:'earlier pick' },
+  { name:'Citron',               hex:'#CAD183', text:'#232526', tag:'' },
+  { name:'Moss Green',           hex:'#8A9A5B', text:'#232526', tag:'' },
+  { name:'Matcha Cream',         hex:'#9CA764', text:'#232526', tag:'' },
+  { name:'Golden Pistachio',     hex:'#DBE3A0', text:'#232526', tag:'' }
+];
+
+// ========== STACKED BANDS ==========
+document.getElementById('bands').innerHTML = GREENS.map(g => `
+  <section class="band" style="background:${g.hex};color:${g.text}">
+    <div class="wrap">
+      <div class="band-tag">${g.name} &nbsp;·&nbsp; ${g.hex}${g.tag ? ' &nbsp;·&nbsp; ' + g.tag : ''}</div>
+      <h2>Skin is a relationship to be tended.</h2>
+      <p>The brand colour fills every Karmic panel, section and sidebar. Type and accents sit on top of it.</p>
+      <span class="badge">Bestseller</span>
+    </div>
+  </section>
+`).join('');
+
+// ========== HARMONY ==========
+document.getElementById('harm').innerHTML = GREENS.map(g => `
+  <div class="harm-row" style="background:${g.hex};color:${g.text}">
+    <div class="h-name">${g.name}<br>${g.hex}</div>
+    <button class="h-btn">Add to Cart</button>
+    <span class="h-badge">New in</span>
+    <div class="h-spacer"></div>
+    <div class="h-chip" style="background:#D8DAC1;color:#232526">Sand</div>
+    <div class="h-chip" style="background:#F6F5F0;color:#232526">Porcelain</div>
+  </div>
+`).join('');
+
+// ========== TOGGLE MOCK ==========
+const side = document.getElementById('mockSide');
+const hero = document.getElementById('mockHero');
+const nowLabel = document.getElementById('mockNow');
+
+function applyGreen(g, btn) {
+  side.style.background = g.hex; side.style.color = g.text;
+  hero.style.background = g.hex; hero.style.color = g.text;
+  nowLabel.textContent = g.name;
+  document.querySelectorAll('.swatch-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+const row = document.getElementById('swatchRow');
+GREENS.forEach((g, i) => {
+  const btn = document.createElement('button');
+  btn.className = 'swatch-btn';
+  btn.innerHTML = `<div class="sw" style="background:${g.hex}"></div><div class="sw-name">${g.name}</div>`;
+  btn.addEventListener('click', () => applyGreen(g, btn));
+  row.appendChild(btn);
+  if (i === 0) applyGreen(g, btn);
+});
+</script>
+</body>
+</html>

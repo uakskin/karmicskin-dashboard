@@ -1163,8 +1163,8 @@ function aggregateData(data, period) {
     if (period === 'daily') key = row.report_date;
     else if (period === 'weekly') {
       const day = d.getDay();
-      const sun = new Date(d); sun.setDate(d.getDate() - day);
-      key = fmtDate(sun);
+      const mon = new Date(d); mon.setDate(d.getDate() - ((day + 6) % 7));
+      key = fmtDate(mon);
     } else if (period === 'monthly') key = row.report_date.substring(0, 7) + '-01';
     else if (period === 'quarterly') {
       const q = Math.floor(d.getMonth() / 3);
@@ -1555,8 +1555,8 @@ function aggregateTableData(period) {
     if (period === 'daily') key = row.report_date;
     else if (period === 'weekly') {
       const day = d.getDay();
-      const sun = new Date(d); sun.setDate(d.getDate() - day);
-      key = fmtDate(sun);
+      const mon = new Date(d); mon.setDate(d.getDate() - ((day + 6) % 7));
+      key = fmtDate(mon);
     } else {
       key = row.report_date.substring(0, 7);
     }

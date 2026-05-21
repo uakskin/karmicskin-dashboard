@@ -167,7 +167,7 @@ html[data-theme="dark"] .b-draft,html[data-theme="dark"] .b-cancelled{background
 .legend span { display: inline-flex; align-items: center; gap: 5px; }
 .swatch { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
 .ig-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 3px; max-width: 540px; }
-.cell { position: relative; aspect-ratio: 1; background: var(--surface-2); border: 1px solid var(--border); overflow: hidden; cursor: pointer; }
+.cell { position: relative; aspect-ratio: 4 / 5; background: var(--surface-2); border: 1px solid var(--border); overflow: hidden; cursor: pointer; }
 .cell img, .cell video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .ph { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 28px; color: var(--muted); }
 .cell.sched-api { outline: 3px solid var(--blue); outline-offset: -3px; }
@@ -1071,7 +1071,7 @@ function renderGrid() {
   const posted = POSTS
     .filter((p) => p.status === 'published' && p.published_at && p.post_type !== 'story')
     .sort((a, b) => new Date(b.published_at) - new Date(a.published_at))
-    .slice(0, 15);
+    .slice(0, 45);
   $('gridSummary').textContent = `${scheduled.length} scheduled · last ${posted.length} posted`;
   const cells = [...scheduled, ...posted];
   if (!cells.length) { $('gridBody').innerHTML = `<div class="empty">Nothing to show yet. Schedule a post, or your posted history appears here once the daily sync runs.</div>`; return; }

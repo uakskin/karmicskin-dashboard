@@ -458,6 +458,7 @@ tbody tr:hover { background: var(--surface-2); }
           <input type="text" id="librarySearch" placeholder="Search captions, hashtags…" style="flex:2">
           <select id="libraryType" style="flex:1"><option value="">All types</option><option value="photo">Photo</option><option value="carousel">Carousel</option><option value="reel">Reel</option><option value="story">Story</option></select>
           <select id="libraryMode" style="flex:1"><option value="">All modes</option><option value="api">Auto-publish</option><option value="manual">Manual</option></select>
+          <select id="librarySort" style="flex:1"><option value="desc">Latest first</option><option value="asc">Oldest first</option></select>
         </div>
       </div>
       <div id="libraryBody"><div class="empty">Loading…</div></div>
@@ -1119,15 +1120,29 @@ function renderQueue() {
 // ====================================================================
 // LIBRARY
 // ====================================================================
-['librarySearch', 'libraryType', 'libraryMode'].forEach((id) => $(id).addEventListener('input', renderLibrary));
+['librarySearch', 'libraryType', 'libraryMode', 'librarySort'].forEach((id) => $(id).addEventListener('input', renderLibrary));
 function renderLibrary() {
   const q = $('librarySearch').value.toLowerCase().trim();
   const ft = $('libraryType').value, fm = $('libraryMode').value;
+  const sortDir = $('librarySort').value === 'asc' ? 1 : -1;   // -1 = latest first (default)
   const list = POSTS.filter((p) => {
     if (ft && p.post_type !== ft) return false;
     if (fm && p.publish_mode !== fm) return false;
     if (q && !((p.caption || '') + ' ' + (p.hashtags || '') + ' ' + (p.notes || '')).toLowerCase().includes(q)) return false;
     return true;
+  });
+  // Sort by the post's most appropriate timestamp: published > scheduled > created.
+  // Posts missing all three fall to the end of the list regardless of direction.
+  const ts = (p) => {
+    const v = p.published_at || p.scheduled_for || p.created_at;
+    return v ? new Date(v).getTime() : null;
+  };
+  list.sort((a, b) => {
+    const ta = ts(a), tb = ts(b);
+    if (ta === null && tb === null) return 0;
+    if (ta === null) return 1;
+    if (tb === null) return -1;
+    return sortDir * (ta - tb);
   });
   if (!list.length) { $('libraryBody').innerHTML = `<div class="empty">No posts match. The full archive fills in once the daily sync has run.</div>`; return; }
   $('libraryBody').innerHTML = `<div class="grid-lib">` + list.map((p) => {

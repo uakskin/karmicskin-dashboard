@@ -71,6 +71,17 @@ header .spacer { flex: 1; }
   padding: 7px 11px; color: var(--text); font-size: 12.5px;
 }
 .icon-btn:hover { border-color: var(--brand); }
+
+/* Supabase Storage quota — sits between the spacer and the Refresh button.
+   Track + fill + label, sized to feel like another small chrome control. */
+.storage-bar { display: inline-flex; align-items: center; gap: 8px; padding: 5px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); font-size: 12px; color: var(--muted); cursor: help; }
+.storage-bar-track { width: 90px; height: 5px; background: rgba(127,127,127,0.18); border-radius: 3px; overflow: hidden; }
+.storage-bar-fill { display: block; height: 100%; width: 0; background: var(--brand); transition: width .25s ease, background-color .25s ease; }
+.storage-bar-fill.warn   { background: #d49824; }
+.storage-bar-fill.danger { background: #c5403a; }
+.storage-bar-label { font-variant-numeric: tabular-nums; color: var(--text); white-space: nowrap; }
+.storage-bar.is-loading .storage-bar-fill { opacity: 0.4; }
+@media (max-width: 720px) { .storage-bar { display: none; } }
 .theme-toggle { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; cursor: pointer; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
 .theme-toggle:hover { border-color: var(--brand); }
 .theme-toggle svg { width: 16px; height: 16px; fill: var(--text); display: block; }
@@ -316,6 +327,10 @@ tbody tr:hover { background: var(--surface-2); }
     <span class="brand">Instagram Studio</span>
     <span class="acct" id="acctLabel">@karmic.skin</span>
     <span class="spacer"></span>
+    <span class="storage-bar is-loading" id="storageBar" title="Supabase Storage usage (Free tier: 1 GB total, 50 MB per file)">
+      <span class="storage-bar-track"><span class="storage-bar-fill" id="storageBarFill"></span></span>
+      <span class="storage-bar-label" id="storageBarLabel">— / 1 GB</span>
+    </span>
     <button class="icon-btn" id="refreshBtn">Refresh</button>
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Switch theme" aria-label="Switch theme"></button>
     <button class="icon-btn" id="signOutBtn">Sign out</button>
@@ -800,9 +815,42 @@ function toggleTheme() {
     }
   });
 })();
+// Supabase Storage quota indicator. Calls the public.ig_storage_usage SQL fn
+// and renders into the header bar. Project-wide (not just ig-media) because
+// the Free tier 1 GB cap applies to total storage. Best-effort: any failure
+// just leaves the bar in its loading state — never breaks the rest of the page.
+async function refreshStorage() {
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/ig_storage_usage`, {
+      method: 'POST',
+      headers: headers({ 'Content-Type': 'application/json' }),
+      body: '{}',
+    });
+    if (!r.ok) return;
+    const d = await r.json();
+    const used = Number(d.used_bytes) || 0;
+    const planLimit = Number(d.plan_limit_bytes) || 1073741824;
+    const perFileCap = Number(d.per_file_cap_bytes) || 52428800;
+    const pct = Math.min(100, Math.round((used / planLimit) * 100));
+    const usedMb = (used / (1024 * 1024));
+    const usedLabel = usedMb >= 100 ? usedMb.toFixed(0) + ' MB' : usedMb.toFixed(1) + ' MB';
+    const limitLabel = (planLimit / (1024 * 1024 * 1024)).toFixed(0) + ' GB';
+    const perFileMb = (perFileCap / (1024 * 1024)).toFixed(0);
+    const fill = $('storageBarFill');
+    fill.style.width = pct + '%';
+    fill.className = 'storage-bar-fill ' + (pct >= 90 ? 'danger' : pct >= 70 ? 'warn' : '');
+    $('storageBarLabel').textContent = `${usedLabel} / ${limitLabel}`;
+    $('storageBar').title =
+      `Supabase Storage: ${usedLabel} of ${limitLabel} used (${pct}%) across ${d.file_count} files. ` +
+      `Free tier per-file cap: ${perFileMb} MB. Composer videos auto-delete after they publish.`;
+    $('storageBar').classList.remove('is-loading');
+  } catch (e) { /* silent — non-critical UI */ }
+}
+
 $('refreshBtn').addEventListener('click', async () => {
   $('refreshBtn').innerHTML = '<span class="spinner"></span>';
-  try { await loadPosts(); toast('Refreshed'); } catch (e) { toast(e.message, true); }
+  $('storageBar').classList.add('is-loading');
+  try { await loadPosts(); await refreshStorage(); toast('Refreshed'); } catch (e) { toast(e.message, true); }
   $('refreshBtn').textContent = 'Refresh';
 });
 
@@ -1110,6 +1158,13 @@ function startPolling() {
     if (document.hidden) return;
     loadPosts().catch(() => {});
   }, POLL_MS);
+  // Refresh the storage bar less often than posts — usage barely moves between
+  // ticks, but it does drop sharply when a post publishes (composer files
+  // auto-delete in ig-publish-due), so we want to catch that within a minute.
+  setInterval(() => {
+    if (document.hidden) return;
+    refreshStorage();
+  }, 60_000);
 }
 function latestInsight(p) {
   const ins = p.ig_media_insights || [];
@@ -1490,6 +1545,7 @@ async function init() {
   BOOTED = true;
   resetComposer();
   try { await loadPosts(); } catch (e) { toast('Could not load posts: ' + e.message, true); }
+  refreshStorage();   // populate the storage indicator after sign-in; non-blocking
   startPolling();
 }
 </script>

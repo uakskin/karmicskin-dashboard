@@ -294,6 +294,11 @@ tbody tr:hover { background: var(--surface-2); }
   .ksb-links a.ksb-active { background: rgba(255,255,255,.1); color: #fff; border-left-color: #c79a3e; font-weight: 600; }
   @media (max-width: 820px) { body { padding-left: 0; } .ksb { position: static; width: auto; bottom: auto; } }
   </style>
+  <!-- tus-js-client: resumable uploads for large Reel videos (>6 MB).
+       Supabase Storage REST endpoint caps single-request bodies at ~50 MB;
+       TUS chunks the file so we can push up to the bucket file_size_limit
+       (currently 1 GB) and survive flaky uploads. -->
+  <script src="https://cdn.jsdelivr.net/npm/tus-js-client@4.3.1/dist/tus.min.js"></script>
   <script>
   (function () {
     var sb = document.getElementById('ksb');
@@ -571,19 +576,56 @@ async function dbDelete(table, id) {
   const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, { method: 'DELETE', headers: headers() });
   if (!r.ok) throw new Error('Delete failed (' + r.status + ')');
 }
-async function uploadMedia(file) {
+// Upload a file to the ig-media bucket. Small files (<6 MB) go through the
+// simple POST endpoint; larger files use TUS resumable uploads (chunked +
+// retries) so a 400 MB Reel doesn't fail at the 50 MB request-body limit on
+// the standard endpoint. onProgress is optional and receives (bytesSent, total).
+const TUS_THRESHOLD = 6 * 1024 * 1024; // 6 MB — Supabase's documented breakpoint
+async function uploadMedia(file, onProgress) {
   const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
   const path = `composer/${crypto.randomUUID()}/${Date.now()}-${safe}`;
-  const r = await fetch(`${SUPABASE_URL}/storage/v1/object/ig-media/${path}`, {
-    method: 'POST', headers: headers({ 'Content-Type': file.type || 'application/octet-stream', 'x-upsert': 'true' }),
-    body: file,
+  const contentType = file.type || 'application/octet-stream';
+  const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/ig-media/${path}`;
+  const kind = contentType.startsWith('video') ? 'video' : 'image';
+
+  // ── Fast path: small files (images, short clips) ──
+  if (file.size < TUS_THRESHOLD) {
+    const r = await fetch(`${SUPABASE_URL}/storage/v1/object/ig-media/${path}`, {
+      method: 'POST',
+      headers: headers({ 'Content-Type': contentType, 'x-upsert': 'true' }),
+      body: file,
+    });
+    if (!r.ok) throw new Error('Upload failed (' + r.status + '): ' + (await r.text()));
+    if (onProgress) onProgress(file.size, file.size);
+    return { storage_path: path, public_url: publicUrl, type: kind };
+  }
+
+  // ── Resumable path: anything over 6 MB ──
+  if (typeof tus === 'undefined') throw new Error('Upload library not loaded — please refresh and try again');
+  return await new Promise((resolve, reject) => {
+    const upload = new tus.Upload(file, {
+      endpoint: `${SUPABASE_URL}/storage/v1/upload/resumable`,
+      retryDelays: [0, 3000, 5000, 10000, 20000],
+      headers: {
+        authorization: `Bearer ${USER_JWT}`,
+        apikey: SUPABASE_KEY,
+        'x-upsert': 'true',
+      },
+      uploadDataDuringCreation: true,
+      removeFingerprintOnSuccess: true,
+      metadata: {
+        bucketName: 'ig-media',
+        objectName: path,
+        contentType,
+        cacheControl: '3600',
+      },
+      chunkSize: 6 * 1024 * 1024,
+      onError: (err) => reject(new Error('Resumable upload failed: ' + (err.message || err))),
+      onProgress: (sent, total) => { if (onProgress) onProgress(sent, total); },
+      onSuccess: () => resolve({ storage_path: path, public_url: publicUrl, type: kind }),
+    });
+    upload.start();
   });
-  if (!r.ok) throw new Error('Upload failed: ' + (await r.text()));
-  return {
-    storage_path: path,
-    public_url: `${SUPABASE_URL}/storage/v1/object/public/ig-media/${path}`,
-    type: (file.type || '').startsWith('video') ? 'video' : 'image',
-  };
 }
 async function searchLocation(query) {
   const r = await fetch(`${SUPABASE_URL}/functions/v1/ig-location-search`, {
@@ -846,10 +888,19 @@ async function handleFiles(fileList) {
   if (!files.length) return;
   $('dropzone').textContent = 'Uploading…';
   try {
+    let i = 0;
     for (const f of files) {
+      i++;
       if (composer.postType !== 'carousel' && composer.media.length >= 1) composer.media = [];
       if (composer.postType === 'carousel' && composer.media.length >= 10) { toast('Carousels allow up to 10 items', true); break; }
-      composer.media.push(await uploadMedia(f));
+      const sizeMb = (f.size / (1024 * 1024)).toFixed(0);
+      const prefix = files.length > 1 ? `(${i}/${files.length}) ` : '';
+      const onProgress = (sent, total) => {
+        const pct = total ? Math.round((sent / total) * 100) : 0;
+        $('dropzone').textContent = `${prefix}Uploading ${f.name} — ${pct}% of ${sizeMb} MB`;
+      };
+      onProgress(0, f.size);  // immediate feedback so user sees the file name + size
+      composer.media.push(await uploadMedia(f, onProgress));
     }
     renderThumbs();
     // Reels: auto-generate a grid cover from the first video frame (unless one is set).
@@ -862,7 +913,15 @@ async function handleFiles(fileList) {
         renderCover();
       }
     }
-  } catch (e) { toast(e.message, true); }
+  } catch (e) {
+    // Show the error in BOTH places: the toast (timed) and the dropzone (persistent
+    // until the next interaction) so a failed upload can't slip past the user.
+    console.error('handleFiles error', e);
+    toast('Upload failed — ' + (e.message || e), true);
+    $('dropzone').textContent = 'Upload failed — ' + (e.message || 'see error above') + ' · click or drag to retry';
+    $('fileInput').value = '';
+    return;
+  }
   $('dropzone').textContent = 'Click or drag files here';
   $('fileInput').value = '';
 }
@@ -887,11 +946,25 @@ function renderThumbs() {
 }
 $('coverZone').addEventListener('click', () => $('coverInput').click());
 $('coverInput').addEventListener('change', async (e) => {
-  if (!e.target.files[0]) return;
-  $('coverZone').textContent = 'Uploading…';
-  try { const m = await uploadMedia(e.target.files[0]); composer.coverUrl = m.public_url; composer.coverPath = m.storage_path; renderCover(); }
-  catch (err) { toast(err.message, true); }
-  $('coverZone').textContent = 'Click to upload a cover image';
+  const f = e.target.files[0];
+  if (!f) return;
+  const sizeMb = (f.size / (1024 * 1024)).toFixed(0);
+  const onProgress = (sent, total) => {
+    const pct = total ? Math.round((sent / total) * 100) : 0;
+    $('coverZone').textContent = `Uploading cover — ${pct}% of ${sizeMb} MB`;
+  };
+  onProgress(0, f.size);
+  try {
+    const m = await uploadMedia(f, onProgress);
+    composer.coverUrl = m.public_url; composer.coverPath = m.storage_path;
+    renderCover();
+    $('coverZone').textContent = 'Click to upload a cover image';
+  } catch (err) {
+    console.error('coverInput error', err);
+    toast('Cover upload failed — ' + (err.message || err), true);
+    $('coverZone').textContent = 'Cover upload failed — click to try again';
+  }
+  e.target.value = '';
 });
 function renderCover() {
   $('coverThumb').innerHTML = composer.coverUrl

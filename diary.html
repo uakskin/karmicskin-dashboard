@@ -240,7 +240,9 @@
   }
   .slot-notes {
     font-size: 11px; opacity: 0.85; margin-top: 5px; line-height: 1.45;
-    display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden;
+    white-space: pre-wrap;     /* preserve the user's Enter/newlines */
+    word-break: break-word;
+    overflow: hidden;          /* the slot's own height clips overflow */
   }
   .slot.is-compact .slot-notes { display: none; }
   .slot.is-compact { padding: 4px 10px; }

@@ -103,6 +103,9 @@
     border: 1.5px solid var(--ink);
   }
   .btn-ghost:hover { background: var(--ink); color: var(--page-bg); }
+  .btn-ghost:disabled, .btn-ghost[disabled] {
+    opacity: 0.35; cursor: not-allowed; background: transparent; color: var(--ink);
+  }
   .btn-text {
     background: transparent; color: var(--ink); padding: 10px 14px;
     border: none; font-weight: 600;
@@ -132,9 +135,14 @@
     width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0;
     border: 1px solid var(--soft-line);
   }
-  .legend-swatch.is-focus  { background: var(--green); border-color: var(--green); }
-  .legend-swatch.is-alert  { background: var(--citron); border-color: var(--carbon); }
-  .legend-swatch.is-soft   { background: var(--soft-bg); border-color: var(--soft-line); }
+  .legend-swatch.is-focus    { background: var(--green); border-color: var(--green); }
+  .legend-swatch.is-alert    { background: var(--citron); border-color: var(--carbon); }
+  .legend-swatch.is-personal { background: var(--soft-bg); border-color: var(--soft-line); }
+  .legend-swatch.is-ops      {
+    background: var(--soft-bg); border: 1px dashed var(--soft-line);
+    box-shadow: inset 0 0 0 9999px rgba(35, 37, 38, 0.06);
+  }
+  [data-theme="dark"] .legend-swatch.is-ops { box-shadow: inset 0 0 0 9999px rgba(246, 245, 240, 0.06); }
 
   /* ========== CALENDAR ========== */
   .calendar-wrap { padding: 22px 32px 36px; }
@@ -225,36 +233,41 @@
   .slot.is-dragging { cursor: grabbing; opacity: 0.92; z-index: 6; box-shadow: 0 10px 24px var(--shadow-up); }
   .slot.is-editing { box-shadow: 0 0 0 2px var(--amber); z-index: 5; }
 
-  .slot-eyebrow {
-    font-family: 'Montserrat', sans-serif;
-    font-size: 9.5px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
-    opacity: 0.7; margin-bottom: 2px;
-  }
   .slot-title {
     font-family: 'Domine', serif; font-weight: 600;
-    font-size: 13px; line-height: 1.2;
+    font-size: 14px; line-height: 1.2;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   }
   .slot-time {
     font-family: 'Montserrat', sans-serif;
-    font-size: 10.5px; font-weight: 500; margin-top: 2px; opacity: 0.7;
+    font-size: 10.5px; font-weight: 500; margin-top: 3px; opacity: 0.7;
   }
   .slot-notes {
-    font-size: 10.5px; opacity: 0.8; margin-top: 4px; line-height: 1.4;
-    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    font-size: 10.5px; opacity: 0.85; margin-top: 5px; line-height: 1.4;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
   }
-  .slot.is-compact .slot-eyebrow { display: none; }
   .slot.is-compact .slot-notes { display: none; }
   .slot.is-compact .slot-time { display: none; }
-  .slot.is-compact { padding: 4px 8px; }
-  .slot.is-compact .slot-title { font-size: 12px; -webkit-line-clamp: 1; }
+  .slot.is-compact { padding: 4px 10px; }
+  .slot.is-compact .slot-title { font-size: 12.5px; -webkit-line-clamp: 1; }
 
-  /* Visual variants — embody design system: soft / focus / alert.
-     Focus and alert stay literal (Dark Green / Citron) because those colours read in both themes.
-     Soft swaps with theme: Porcelain bg + Carbon text in light, Carbon bg + Porcelain text in dark. */
-  .v-soft   { background: var(--soft-bg); color: var(--soft-ink); border: 1px solid var(--soft-line); }
-  .v-focus  { background: var(--green);   color: var(--porcelain); }
-  .v-alert  { background: var(--citron);  color: var(--carbon);    border: 1px solid var(--carbon); }
+  /* Visual variants — embody design system.
+     - focus: deep work block, Dark Green
+     - alert: meeting, Citron
+     - personal: solid Porcelain card (or Carbon in dark)
+     - ops: subtly recessed card, signals "supporting work, not deep focus" */
+  .v-focus    { background: var(--green);   color: var(--porcelain); }
+  .v-alert    { background: var(--citron);  color: var(--carbon);    border: 1px solid var(--carbon); }
+  .v-personal { background: var(--soft-bg); color: var(--soft-ink);  border: 1px solid var(--soft-line); }
+  .v-ops      {
+    background: var(--soft-bg);
+    color: var(--soft-ink);
+    border: 1px dashed var(--soft-line);
+    box-shadow: inset 0 0 0 9999px rgba(35, 37, 38, 0.06);
+  }
+  [data-theme="dark"] .v-ops {
+    box-shadow: inset 0 0 0 9999px rgba(246, 245, 240, 0.06);
+  }
 
   /* Resize handle at bottom of every slot */
   .slot-resize {
@@ -414,7 +427,7 @@ body { padding-left: 208px; }
   <div class="header-right">
     <span class="save-status" id="saveStatus">Loading</span>
     <button class="btn btn-ghost" id="addBtn" type="button">+ Add block</button>
-    <button class="btn btn-text" id="restoreBtn" type="button">Restore defaults</button>
+    <button class="btn btn-ghost" id="undoBtn" type="button" title="Undo last change (⌘Z)" disabled>↶ Undo</button>
     <button class="btn-icon" id="themeBtn" type="button" title="Toggle theme" aria-label="Toggle theme">
       <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
     </button>
@@ -423,9 +436,10 @@ body { padding-left: 208px; }
 
 <!-- ========== LEGEND ========== -->
 <div class="legend">
-  <span class="legend-item"><span class="legend-swatch is-focus"></span>Deep work — the day's theme</span>
+  <span class="legend-item"><span class="legend-swatch is-focus"></span>Deep work — the day's zone</span>
   <span class="legend-item"><span class="legend-swatch is-alert"></span>Meeting</span>
-  <span class="legend-item"><span class="legend-swatch is-soft"></span>Personal, admin or break</span>
+  <span class="legend-item"><span class="legend-swatch is-personal"></span>Personal</span>
+  <span class="legend-item"><span class="legend-swatch is-ops"></span>Operations</span>
 </div>
 
 <!-- ========== CALENDAR ========== -->
@@ -436,14 +450,6 @@ body { padding-left: 208px; }
   </div>
 </div>
 
-<div class="helper-note">
-  <strong>Drag</strong> a block to move it (or pull it into another day).
-  <strong>Drag the bottom edge</strong> to resize.
-  <strong>Click</strong> to edit title, category, time and notes.
-  Everything syncs to Supabase so the diary follows you across devices.
-</div>
-
-<div class="data-source">Diary stored in Supabase · diary_state JSONB · anon read/write</div>
 
 <!-- ========== EDIT MODAL ========== -->
 <div class="modal-overlay" id="modalOverlay">
@@ -521,26 +527,22 @@ const DAY_THEMES = {
   1: 'Meta Ads',
   2: 'Meta Ads',
   3: 'Organic Social',
-  4: 'Meetings → Amazon · Google · Website',
+  4: 'Meetings, CRO',
   5: 'Email + Claude',
 };
 
-// Each category has a visual variant (soft/focus/alert) plus an eyebrow label.
+// Each category has a visual variant that maps to a CSS class (.v-<variant>).
 const CATEGORIES = [
-  // soft (personal, admin, meal) — Porcelain bg, Carbon text
-  { id: 'personal',      label: 'Personal',         variant: 'soft'  },
-  { id: 'admin',         label: 'Admin',            variant: 'soft'  },
-  { id: 'meal',          label: 'Meal',             variant: 'soft'  },
-  // focus (deep work) — Dark Green bg, Porcelain text
-  { id: 'work-meta',     label: 'Meta Ads',         variant: 'focus' },
-  { id: 'work-organic',  label: 'Organic Social',   variant: 'focus' },
-  { id: 'work-amazon',   label: 'Amazon',           variant: 'focus' },
-  { id: 'work-google',   label: 'Google',           variant: 'focus' },
-  { id: 'work-website',  label: 'Website',          variant: 'focus' },
-  { id: 'work-email',    label: 'Email + Claude',   variant: 'focus' },
-  { id: 'work-other',    label: 'Deep work',        variant: 'focus' },
-  // alert (meetings) — Citron bg, Carbon text
-  { id: 'meeting',       label: 'Meeting',          variant: 'alert' },
+  { id: 'personal',     label: 'Personal',       variant: 'personal' },
+  { id: 'ops',          label: 'Operations',     variant: 'ops'      },
+  { id: 'work-meta',    label: 'Meta Ads',       variant: 'focus'    },
+  { id: 'work-organic', label: 'Organic Social', variant: 'focus'    },
+  { id: 'work-amazon',  label: 'Amazon',         variant: 'focus'    },
+  { id: 'work-google',  label: 'Google',         variant: 'focus'    },
+  { id: 'work-website', label: 'Website',        variant: 'focus'    },
+  { id: 'work-email',   label: 'Email + Claude', variant: 'focus'    },
+  { id: 'work-other',   label: 'Deep work',      variant: 'focus'    },
+  { id: 'meeting',      label: 'Meeting',        variant: 'alert'    },
 ];
 
 function categoryById(id) { return CATEGORIES.find(c => c.id === id) || CATEGORIES[0]; }
@@ -553,16 +555,16 @@ function categoryById(id) { return CATEGORIES.find(c => c.id === id) || CATEGORI
 // ============================================================
 function buildDay(day, themeCat, themeTitle) {
   return [
-    { day, start: '07:00', end: '07:30', category: 'personal',  title: 'Wake up',           notes: '' },
-    { day, start: '07:30', end: '08:00', category: 'personal',  title: 'Meditate',          notes: '' },
-    { day, start: '08:00', end: '08:30', category: 'personal',  title: 'Nespresso, stretch',notes: '' },
-    { day, start: '08:30', end: '09:00', category: themeCat,    title: themeTitle,          notes: 'Morning warm-up — quick win on the day theme.' },
-    { day, start: '09:00', end: '09:30', category: 'admin',     title: 'Customer Emails',   notes: 'Draft Laila replies, send.' },
-    { day, start: '09:30', end: '10:00', category: 'admin',     title: 'IG, FB',            notes: 'Comments, DMs, quick replies.' },
-    { day, start: '10:00', end: '10:30', category: 'admin',     title: 'Inbox cleanup',     notes: 'Triage, archive, file.' },
-    { day, start: '10:30', end: '11:00', category: 'personal',  title: 'Coffee walk',       notes: '' },
-    { day, start: '11:00', end: '12:00', category: 'meal',      title: 'Lunch',             notes: '' },
-    { day, start: '12:00', end: '18:00', category: themeCat,    title: themeTitle,          notes: 'Deep work block.' },
+    { day, start: '07:00', end: '07:30', category: 'personal', title: 'Wake up',            notes: '' },
+    { day, start: '07:30', end: '08:00', category: 'personal', title: 'Meditate',           notes: '' },
+    { day, start: '08:00', end: '08:30', category: 'personal', title: 'Nespresso, stretch', notes: '' },
+    { day, start: '08:30', end: '09:00', category: themeCat,   title: themeTitle,           notes: 'Morning warm-up — quick win on the day zone.' },
+    { day, start: '09:00', end: '09:30', category: 'ops',      title: 'Customer Service',   notes: 'Draft Laila replies, send.' },
+    { day, start: '09:30', end: '10:00', category: 'ops',      title: 'IG, FB',             notes: 'Comments, DMs, quick replies.' },
+    { day, start: '10:00', end: '10:30', category: 'ops',      title: 'Inbox cleanup',      notes: 'Triage, archive, file.' },
+    { day, start: '10:30', end: '11:00', category: 'personal', title: 'Coffee walk',        notes: '' },
+    { day, start: '11:00', end: '12:00', category: 'personal', title: 'Lunch',              notes: '' },
+    { day, start: '12:00', end: '18:00', category: themeCat,   title: themeTitle,           notes: 'Deep work block.' },
   ];
 }
 
@@ -570,14 +572,14 @@ const DEFAULT_SLOTS = [
   ...buildDay(1, 'work-meta',    'Meta Ads'),
   ...buildDay(2, 'work-meta',    'Meta Ads'),
   ...buildDay(3, 'work-organic', 'Organic Social'),
-  // Thursday — keeps wake-up + meditate, then meetings own 8-10, then Amazon → Google → Website.
+  // Thursday — wake-up + meditate, then meetings own 8-10, then Amazon → Google → Website (CRO day).
   { day: 4, start: '07:00', end: '07:30', category: 'personal',    title: 'Wake up',                      notes: '' },
   { day: 4, start: '07:30', end: '08:00', category: 'personal',    title: 'Meditate',                     notes: '' },
   { day: 4, start: '08:00', end: '09:00', category: 'meeting',     title: 'Uday Coaching',                notes: 'Scheduled 8:00–8:30 but blocked to 9:00 because it usually overruns.' },
   { day: 4, start: '09:00', end: '09:30', category: 'meeting',     title: 'Karmic Skin · LeadTap Weekly', notes: 'Recurring Thursday meeting.' },
   { day: 4, start: '09:30', end: '10:00', category: 'meeting',     title: 'Karmic Skin ⇄ DBC Weekly',     notes: 'Recurring Thursday meeting. (Google Cal has this scheduled to 10:15.)' },
   { day: 4, start: '10:00', end: '13:00', category: 'work-amazon', title: 'Amazon',                       notes: 'PDPs, listings, ad campaigns, inventory.' },
-  { day: 4, start: '13:00', end: '14:00', category: 'meal',        title: 'Lunch',                        notes: '' },
+  { day: 4, start: '13:00', end: '14:00', category: 'personal',   title: 'Lunch',                        notes: '' },
   { day: 4, start: '14:00', end: '16:00', category: 'work-google', title: 'Google',                       notes: 'Search, PMax, Merchant Center.' },
   { day: 4, start: '16:00', end: '18:00', category: 'work-website',title: 'Website',                      notes: 'Shopify, PDPs, CRO, dashboards.' },
   ...buildDay(5, 'work-email',   'Email + Claude'),
@@ -587,6 +589,27 @@ const DEFAULT_SLOTS = [
 // STATE
 // ============================================================
 const State = { slots: [], saveTimer: null, isSaving: false, editingId: null };
+
+// Undo history — snapshots of State.slots taken BEFORE each mutation.
+const History = { stack: [], max: 40 };
+function snapshot() {
+  // Deep clone the slots before any change. Keeps undo cheap and correct.
+  History.stack.push(JSON.parse(JSON.stringify(State.slots)));
+  if (History.stack.length > History.max) History.stack.shift();
+  updateUndoButton();
+}
+function undo() {
+  if (!History.stack.length) return;
+  State.slots = History.stack.pop();
+  closeModal();
+  renderBody();
+  queueSave();
+  updateUndoButton();
+}
+function updateUndoButton() {
+  const btn = document.getElementById('undoBtn');
+  if (btn) btn.disabled = History.stack.length === 0;
+}
 
 // In-progress drag/resize state
 const Drag = {
@@ -614,16 +637,21 @@ async function loadFromSupabase() {
     const rows = await resp.json();
     const remoteSlots = (rows[0] && Array.isArray(rows[0].slots)) ? rows[0].slots : [];
 
-    // If remote is empty OR still the old-shape categories (had 'operations', 'meta-ads' etc.),
-    // reset to the new template. (One-off reset on first load of v2.)
-    const looksOld = remoteSlots.some(s => /operations|meta-ads|organic|amazon$|google$|website$|email-claude|lunch|other/.test(s.category || ''));
-    if (remoteSlots.length === 0 || looksOld) {
+    if (remoteSlots.length === 0) {
+      // Brand new row — seed with defaults.
+      State.slots = cloneDefaults();
+      await saveToSupabase();
+    } else if (looksLikeV1(remoteSlots)) {
+      // Only v1 categories trigger a full reset. v2/v3 user edits are preserved.
       State.slots = cloneDefaults();
       await saveToSupabase();
     } else {
       State.slots = remoteSlots.map(ensureId);
-      // v2.1 migration: ensure Thursday has Wake up + Meditate.
-      if (addMissingThursdayRituals()) await saveToSupabase();
+      // Non-destructive migrations: keep all user customisations, just rename old fields.
+      let migrated = false;
+      if (addMissingThursdayRituals()) migrated = true;  // v2.1 — wake/meditate on Thursday
+      if (renameLegacyCategories())    migrated = true;  // v3 — admin→ops, meal→personal
+      if (migrated) await saveToSupabase();
     }
     setSaveStatus('Saved', 'saved');
   } catch (err) {
@@ -633,8 +661,14 @@ async function loadFromSupabase() {
   }
 }
 
-// Ensures Thursday has the 7:00 Wake up + 7:30 Meditate slots (added in v2.1).
-// Returns true if any change was made.
+// v1 used bare category IDs ('operations', 'meta-ads', 'amazon'). v2+ uses prefixed IDs
+// ('work-amazon', 'work-meta'). Anchor with ^...$ so we don't wrongly match v2/v3 IDs.
+function looksLikeV1(slots) {
+  const v1Re = /^(operations|meta-ads|organic|amazon|google|website|email-claude|lunch|other)$/;
+  return slots.some(s => v1Re.test(s.category || ''));
+}
+
+// v2.1 migration: ensure Thursday has Wake up + Meditate.
 function addMissingThursdayRituals() {
   const want = [
     { start: '07:00', end: '07:30', title: 'Wake up' },
@@ -647,6 +681,16 @@ function addMissingThursdayRituals() {
       State.slots.push(ensureId({ day: 4, start: w.start, end: w.end, category: 'personal', title: w.title, notes: '' }));
       changed = true;
     }
+  }
+  return changed;
+}
+
+// v3 migration: 'admin' and 'meal' categories collapsed into 'ops' and 'personal' respectively.
+function renameLegacyCategories() {
+  let changed = false;
+  for (const s of State.slots) {
+    if (s.category === 'admin') { s.category = 'ops';      changed = true; }
+    else if (s.category === 'meal')  { s.category = 'personal'; changed = true; }
   }
   return changed;
 }
@@ -788,11 +832,9 @@ function renderSlot(slot) {
   const isCompact = height < COMPACT_HEIGHT_PX;
   const editingCls = State.editingId === slot.id ? ' is-editing' : '';
   const compactCls = isCompact ? ' is-compact' : '';
-  const eyebrow = !isCompact ? `<div class="slot-eyebrow">${escapeHtml(cat.label)}</div>` : '';
   const notes = (slot.notes && !isCompact) ? `<div class="slot-notes">${escapeHtml(slot.notes)}</div>` : '';
   return `
     <div class="slot v-${cat.variant}${editingCls}${compactCls}" data-id="${slot.id}" style="top:${top}px;height:${height}px">
-      ${eyebrow}
       <div class="slot-title">${escapeHtml(slot.title)}</div>
       <div class="slot-time">${fmtTime12(slot.start)} – ${fmtTime12(slot.end)}</div>
       ${notes}
@@ -937,12 +979,20 @@ function onDragEnd() {
   if (Drag.active) {
     const slot = State.slots.find(s => s.id === Drag.slotId);
     if (slot) {
-      if (Drag.previewStart) slot.start = Drag.previewStart;
-      if (Drag.previewEnd)   slot.end   = Drag.previewEnd;
-      if (Drag.previewDay)   slot.day   = Drag.previewDay;
+      // Only snapshot if something actually changed.
+      const changed =
+        (Drag.previewStart && Drag.previewStart !== slot.start) ||
+        (Drag.previewEnd   && Drag.previewEnd   !== slot.end)   ||
+        (Drag.previewDay   && Drag.previewDay   !== slot.day);
+      if (changed) {
+        snapshot();
+        if (Drag.previewStart) slot.start = Drag.previewStart;
+        if (Drag.previewEnd)   slot.end   = Drag.previewEnd;
+        if (Drag.previewDay)   slot.day   = Drag.previewDay;
+        queueSave();
+      }
     }
     renderBody();
-    queueSave();
   } else {
     // Treat as click
     openEdit(Drag.slotId);
@@ -1010,6 +1060,7 @@ function saveModal() {
   if (!start || !end) { alert('Pick a start and end time.'); return; }
   if (timeToMinutes(end) <= timeToMinutes(start)) { alert('End time must be after start time.'); return; }
 
+  snapshot();
   const existing = State.slots.find(s => s.id === id);
   if (existing) Object.assign(existing, { title, category, day, start, end, notes });
   else          State.slots.push({ id, title, category, day, start, end, notes });
@@ -1021,18 +1072,12 @@ function saveModal() {
 
 function deleteSlot() {
   if (!State.editingId) return;
-  if (!confirm('Delete this block?')) return;
+  if (!confirm('Delete this block? You can undo with ⌘Z.')) return;
+  snapshot();
   State.slots = State.slots.filter(s => s.id !== State.editingId);
   closeModal();
   renderBody();
   queueSave();
-}
-
-async function restoreDefaults() {
-  if (!confirm('Reset to the default template? Your edits and notes will be replaced.')) return;
-  State.slots = cloneDefaults();
-  renderBody();
-  await saveToSupabase();
 }
 
 // ============================================================
@@ -1071,7 +1116,7 @@ function toggleTheme() {
 
 function bindGlobalEvents() {
   document.getElementById('addBtn').addEventListener('click', openCreate);
-  document.getElementById('restoreBtn').addEventListener('click', restoreDefaults);
+  document.getElementById('undoBtn').addEventListener('click', undo);
   document.getElementById('themeBtn').addEventListener('click', toggleTheme);
   document.getElementById('modalClose').addEventListener('click', closeModal);
   document.getElementById('cancelBtn').addEventListener('click', closeModal);
@@ -1080,7 +1125,15 @@ function bindGlobalEvents() {
   document.getElementById('modalOverlay').addEventListener('click', e => {
     if (e.target.id === 'modalOverlay') closeModal();
   });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeModal(); return; }
+    // Cmd/Ctrl + Z = Undo. Only when no modal/input is active.
+    if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
+      const tag = (e.target && e.target.tagName) || '';
+      const inField = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+      if (!inField) { e.preventDefault(); undo(); }
+    }
+  });
   // Refresh now-line every minute
   setInterval(() => {
     const existing = document.querySelector('.now-line');

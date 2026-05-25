@@ -1114,6 +1114,32 @@ function toggleTheme() {
   localStorage.setItem('karmicDiaryTheme', next);
 }
 
+// Refresh from Supabase when the tab regains focus, so edits made elsewhere
+// (other devices, direct SQL, the user's other tab) don't get clobbered by a
+// stale save. Skip if we have a pending local save so we don't lose unsaved work.
+function bindVisibilityRefresh() {
+  document.addEventListener('visibilitychange', async () => {
+    if (document.hidden) return;
+    if (State.saveTimer || State.isSaving) return; // local edits in flight, don't clobber
+    if (document.getElementById('modalOverlay').classList.contains('open')) return; // user is editing
+    try {
+      const resp = await fetch(SUPABASE_URL + '/rest/v1/diary_state?id=eq.1&select=slots', {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
+      });
+      if (!resp.ok) return;
+      const rows = await resp.json();
+      const remoteSlots = (rows[0] && Array.isArray(rows[0].slots)) ? rows[0].slots : null;
+      if (!remoteSlots) return;
+      // Only re-render if the remote has actually changed.
+      const local = JSON.stringify(State.slots);
+      const remote = JSON.stringify(remoteSlots);
+      if (local === remote) return;
+      State.slots = remoteSlots.map(ensureId);
+      renderBody();
+    } catch (e) { /* offline — keep showing what we have */ }
+  });
+}
+
 function bindGlobalEvents() {
   document.getElementById('addBtn').addEventListener('click', openCreate);
   document.getElementById('undoBtn').addEventListener('click', undo);
@@ -1146,6 +1172,7 @@ async function init() {
   initTheme();
   populateCategorySelect();
   bindGlobalEvents();
+  bindVisibilityRefresh();
   renderHeader();
   await loadFromSupabase();
   renderBody();

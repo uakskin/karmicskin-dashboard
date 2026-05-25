@@ -13,6 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Domine:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   /* ========== DESIGN SYSTEM TOKENS (Karmic Skin) ========== */
+  /* The 6 brand colours never change. Dark mode swaps which ones are background/text. */
   :root {
     --porcelain: #F6F5F0;
     --citron:    #CAD183;
@@ -20,20 +21,44 @@
     --green:     #2F5350;
     --red:       #B22222;
     --amber:     #EFA71D;
-    --line-soft: rgba(35, 37, 38, 0.08);
-    --line-hour: rgba(35, 37, 38, 0.16);
+
+    /* Semantic tokens — these are what the UI references. */
+    --page-bg:    var(--porcelain);
+    --ink:        var(--carbon);
+    --line:       var(--carbon);
+    --soft-bg:    var(--porcelain);
+    --soft-ink:   var(--carbon);
+    --soft-line:  var(--carbon);
+    --line-soft:  rgba(35, 37, 38, 0.08);
+    --line-hour:  rgba(35, 37, 38, 0.16);
+    --shadow:     rgba(35, 37, 38, 0.12);
+    --shadow-up:  rgba(35, 37, 38, 0.22);
+  }
+  /* Dark mode — Carbon becomes the page background, Porcelain becomes the ink.
+     Dark Green work blocks and Citron meeting blocks stay exactly as they are. */
+  [data-theme="dark"] {
+    --page-bg:    var(--carbon);
+    --ink:        var(--porcelain);
+    --line:       var(--porcelain);
+    --soft-bg:    var(--carbon);
+    --soft-ink:   var(--porcelain);
+    --soft-line:  var(--porcelain);
+    --line-soft:  rgba(246, 245, 240, 0.10);
+    --line-hour:  rgba(246, 245, 240, 0.22);
+    --shadow:     rgba(0, 0, 0, 0.45);
+    --shadow-up:  rgba(0, 0, 0, 0.65);
   }
 
   /* ========== BASE ========== */
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { background: var(--porcelain); color: var(--carbon); }
+  html, body { background: var(--page-bg); color: var(--ink); }
   body {
     font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     line-height: 1.55;
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
   }
-  h1, h2, h3, h4 { font-family: 'Domine', Georgia, serif; font-weight: 600; line-height: 1.2; color: var(--carbon); }
+  h1, h2, h3, h4 { font-family: 'Domine', Georgia, serif; font-weight: 600; line-height: 1.2; color: var(--ink); }
   a { color: inherit; }
   button { font-family: 'Montserrat', sans-serif; }
 
@@ -43,19 +68,19 @@
     border-bottom: 1px solid var(--line-soft);
     display: flex; align-items: flex-end; justify-content: space-between;
     gap: 24px; flex-wrap: wrap;
-    background: var(--porcelain);
+    background: var(--page-bg);
     position: sticky; top: 0; z-index: 10;
   }
   .header-left .eyebrow {
     font-size: 11px; font-weight: 700; letter-spacing: 0.16em;
-    text-transform: uppercase; color: var(--carbon);
+    text-transform: uppercase; color: var(--ink);
   }
   .header-left h1 { font-size: 32px; margin-top: 6px; font-weight: 700; }
-  .header-left .subtitle { font-size: 13.5px; margin-top: 6px; color: var(--carbon); max-width: 520px; }
+  .header-left .subtitle { font-size: 13.5px; margin-top: 6px; color: var(--ink); max-width: 520px; }
   .header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .save-status {
     font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
-    text-transform: uppercase; color: var(--carbon);
+    text-transform: uppercase; color: var(--ink);
     min-width: 92px; text-align: right; opacity: 0.55;
   }
   .save-status.saving { opacity: 1; }
@@ -71,15 +96,15 @@
   }
   .btn-primary { background: var(--red); color: var(--porcelain); }
   .btn-primary:hover { filter: brightness(0.92); }
-  .btn-secondary { background: var(--carbon); color: var(--porcelain); }
+  .btn-secondary { background: var(--ink); color: var(--page-bg); }
   .btn-secondary:hover { filter: brightness(1.1); }
   .btn-ghost {
-    background: transparent; color: var(--carbon);
-    border: 1.5px solid var(--carbon);
+    background: transparent; color: var(--ink);
+    border: 1.5px solid var(--ink);
   }
-  .btn-ghost:hover { background: var(--carbon); color: var(--porcelain); }
+  .btn-ghost:hover { background: var(--ink); color: var(--page-bg); }
   .btn-text {
-    background: transparent; color: var(--carbon); padding: 10px 14px;
+    background: transparent; color: var(--ink); padding: 10px 14px;
     border: none; font-weight: 600;
   }
   .btn-text:hover { text-decoration: underline; }
@@ -87,6 +112,14 @@
     background: transparent; color: var(--red); border: 1.5px solid var(--red);
   }
   .btn-danger:hover { background: var(--red); color: var(--porcelain); }
+  .btn-icon {
+    background: transparent; border: 1.5px solid var(--ink); color: var(--ink);
+    width: 36px; height: 36px; border-radius: 10px;
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; padding: 0; line-height: 1;
+  }
+  .btn-icon:hover { background: var(--ink); color: var(--page-bg); }
+  .btn-icon svg { width: 16px; height: 16px; }
 
   /* ========== LEGEND ========== */
   .legend {
@@ -94,20 +127,20 @@
     padding: 18px 32px 0;
     font-size: 12px;
   }
-  .legend-item { display: inline-flex; align-items: center; gap: 8px; color: var(--carbon); }
+  .legend-item { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); }
   .legend-swatch {
     width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0;
-    border: 1px solid var(--carbon);
+    border: 1px solid var(--soft-line);
   }
   .legend-swatch.is-focus  { background: var(--green); border-color: var(--green); }
-  .legend-swatch.is-alert  { background: var(--citron); }
-  .legend-swatch.is-soft   { background: var(--porcelain); }
+  .legend-swatch.is-alert  { background: var(--citron); border-color: var(--carbon); }
+  .legend-swatch.is-soft   { background: var(--soft-bg); border-color: var(--soft-line); }
 
   /* ========== CALENDAR ========== */
   .calendar-wrap { padding: 22px 32px 36px; }
   .calendar {
-    background: var(--porcelain);
-    border: 1px solid var(--carbon);
+    background: var(--page-bg);
+    border: 1px solid var(--line);
     border-radius: 14px;
     overflow: hidden;
     position: relative;
@@ -116,8 +149,8 @@
   /* Day header */
   .cal-header {
     display: grid; grid-template-columns: 72px repeat(5, 1fr);
-    border-bottom: 1px solid var(--carbon);
-    background: var(--porcelain);
+    border-bottom: 1px solid var(--line);
+    background: var(--page-bg);
   }
   .cal-header-cell {
     padding: 14px 12px; text-align: left;
@@ -127,14 +160,14 @@
   .cal-header-cell .dow-name {
     font-family: 'Montserrat', sans-serif;
     font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--carbon);
+    color: var(--ink);
   }
   .cal-header-cell .dow-theme {
     font-family: 'Domine', serif;
     font-size: 15px; font-weight: 500; margin-top: 3px;
-    color: var(--carbon);
+    color: var(--ink);
   }
-  .cal-header-cell.is-today .dow-name { color: var(--carbon); }
+  .cal-header-cell.is-today .dow-name { color: var(--ink); }
   .cal-header-cell.is-today .dow-name .today-mark { background-image: linear-gradient(to top, var(--amber) 0.26em, transparent 0.26em); }
 
   /* Calendar body */
@@ -147,7 +180,7 @@
     height: 30px;
     padding: 2px 10px 0 0; text-align: right;
     font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em;
-    color: var(--carbon); opacity: 0.55;
+    color: var(--ink); opacity: 0.55;
     border-top: 1px solid var(--line-soft);
   }
   .cal-time-slot.hour-line {
@@ -188,8 +221,8 @@
     transition: box-shadow 0.12s;
     z-index: 2;
   }
-  .slot:hover { box-shadow: 0 3px 12px rgba(35, 37, 38, 0.12); z-index: 3; }
-  .slot.is-dragging { cursor: grabbing; opacity: 0.92; z-index: 6; box-shadow: 0 10px 24px rgba(35, 37, 38, 0.22); }
+  .slot:hover { box-shadow: 0 3px 12px var(--shadow); z-index: 3; }
+  .slot.is-dragging { cursor: grabbing; opacity: 0.92; z-index: 6; box-shadow: 0 10px 24px var(--shadow-up); }
   .slot.is-editing { box-shadow: 0 0 0 2px var(--amber); z-index: 5; }
 
   .slot-eyebrow {
@@ -216,10 +249,12 @@
   .slot.is-compact { padding: 4px 8px; }
   .slot.is-compact .slot-title { font-size: 12px; -webkit-line-clamp: 1; }
 
-  /* Visual variants — embody design system: soft / focus / alert */
-  .v-soft   { background: var(--porcelain); color: var(--carbon); border: 1px solid var(--carbon); }
-  .v-focus  { background: var(--green);     color: var(--porcelain); }
-  .v-alert  { background: var(--citron);    color: var(--carbon); border: 1px solid var(--carbon); }
+  /* Visual variants — embody design system: soft / focus / alert.
+     Focus and alert stay literal (Dark Green / Citron) because those colours read in both themes.
+     Soft swaps with theme: Porcelain bg + Carbon text in light, Carbon bg + Porcelain text in dark. */
+  .v-soft   { background: var(--soft-bg); color: var(--soft-ink); border: 1px solid var(--soft-line); }
+  .v-focus  { background: var(--green);   color: var(--porcelain); }
+  .v-alert  { background: var(--citron);  color: var(--carbon);    border: 1px solid var(--carbon); }
 
   /* Resize handle at bottom of every slot */
   .slot-resize {
@@ -241,10 +276,11 @@
     z-index: 200; display: none;
     align-items: center; justify-content: center; padding: 18px;
   }
+  [data-theme="dark"] .modal-overlay { background: rgba(0, 0, 0, 0.7); }
   .modal-overlay.open { display: flex; }
   .modal {
-    background: var(--porcelain);
-    border: 1px solid var(--carbon);
+    background: var(--page-bg);
+    border: 1px solid var(--line);
     border-radius: 14px;
     width: 100%; max-width: 480px;
     overflow: hidden;
@@ -259,10 +295,10 @@
   .modal-header h2 { font-size: 22px; margin-top: 4px; }
   .modal-close {
     background: transparent; border: none; cursor: pointer;
-    font-size: 22px; line-height: 1; color: var(--carbon);
+    font-size: 22px; line-height: 1; color: var(--ink);
     width: 32px; height: 32px; border-radius: 50%;
   }
-  .modal-close:hover { background: var(--citron); }
+  .modal-close:hover { background: var(--citron); color: var(--carbon); }
   .modal-body {
     padding: 6px 26px 22px;
     display: flex; flex-direction: column; gap: 16px;
@@ -273,14 +309,15 @@
     font-size: 10.5px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase;
   }
   .field input, .field select, .field textarea {
-    background: var(--porcelain);
-    color: var(--carbon);
-    border: 1px solid var(--carbon);
+    background: var(--page-bg);
+    color: var(--ink);
+    border: 1px solid var(--line);
     border-radius: 10px;
     padding: 11px 13px;
     font-family: 'Montserrat', sans-serif;
     font-size: 14px;
   }
+  [data-theme="dark"] .field input[type="time"] { color-scheme: dark; }
   .field input:focus, .field select:focus, .field textarea:focus {
     outline: 2px solid var(--amber); outline-offset: -1px;
   }
@@ -297,16 +334,16 @@
   /* ========== FOOTER NOTES ========== */
   .helper-note {
     padding: 0 32px 18px;
-    font-size: 12.5px; color: var(--carbon); opacity: 0.7;
+    font-size: 12.5px; color: var(--ink); opacity: 0.7;
     max-width: 760px;
   }
   .helper-note .hl {
-    background: var(--amber); padding: 1px 6px; border-radius: 3px;
+    background: var(--amber); color: var(--carbon); padding: 1px 6px; border-radius: 3px;
     font-weight: 600;
   }
   .data-source {
     text-align: center; padding: 16px 32px 32px;
-    font-size: 11px; color: var(--carbon); opacity: 0.5;
+    font-size: 11px; color: var(--ink); opacity: 0.5;
     letter-spacing: 0.05em;
   }
 </style>
@@ -378,6 +415,9 @@ body { padding-left: 208px; }
     <span class="save-status" id="saveStatus">Loading</span>
     <button class="btn btn-ghost" id="addBtn" type="button">+ Add block</button>
     <button class="btn btn-text" id="restoreBtn" type="button">Restore defaults</button>
+    <button class="btn-icon" id="themeBtn" type="button" title="Toggle theme" aria-label="Toggle theme">
+      <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+    </button>
   </div>
 </header>
 
@@ -530,7 +570,9 @@ const DEFAULT_SLOTS = [
   ...buildDay(1, 'work-meta',    'Meta Ads'),
   ...buildDay(2, 'work-meta',    'Meta Ads'),
   ...buildDay(3, 'work-organic', 'Organic Social'),
-  // Thursday — meetings own the morning, then Amazon → Google → Website.
+  // Thursday — keeps wake-up + meditate, then meetings own 8-10, then Amazon → Google → Website.
+  { day: 4, start: '07:00', end: '07:30', category: 'personal',    title: 'Wake up',                      notes: '' },
+  { day: 4, start: '07:30', end: '08:00', category: 'personal',    title: 'Meditate',                     notes: '' },
   { day: 4, start: '08:00', end: '09:00', category: 'meeting',     title: 'Uday Coaching',                notes: 'Scheduled 8:00–8:30 but blocked to 9:00 because it usually overruns.' },
   { day: 4, start: '09:00', end: '09:30', category: 'meeting',     title: 'Karmic Skin · LeadTap Weekly', notes: 'Recurring Thursday meeting.' },
   { day: 4, start: '09:30', end: '10:00', category: 'meeting',     title: 'Karmic Skin ⇄ DBC Weekly',     notes: 'Recurring Thursday meeting. (Google Cal has this scheduled to 10:15.)' },
@@ -580,6 +622,8 @@ async function loadFromSupabase() {
       await saveToSupabase();
     } else {
       State.slots = remoteSlots.map(ensureId);
+      // v2.1 migration: ensure Thursday has Wake up + Meditate.
+      if (addMissingThursdayRituals()) await saveToSupabase();
     }
     setSaveStatus('Saved', 'saved');
   } catch (err) {
@@ -587,6 +631,24 @@ async function loadFromSupabase() {
     setSaveStatus('Offline — using defaults', 'error');
     State.slots = cloneDefaults();
   }
+}
+
+// Ensures Thursday has the 7:00 Wake up + 7:30 Meditate slots (added in v2.1).
+// Returns true if any change was made.
+function addMissingThursdayRituals() {
+  const want = [
+    { start: '07:00', end: '07:30', title: 'Wake up' },
+    { start: '07:30', end: '08:00', title: 'Meditate' },
+  ];
+  let changed = false;
+  for (const w of want) {
+    const exists = State.slots.some(s => s.day === 4 && s.start === w.start);
+    if (!exists) {
+      State.slots.push(ensureId({ day: 4, start: w.start, end: w.end, category: 'personal', title: w.title, notes: '' }));
+      changed = true;
+    }
+  }
+  return changed;
 }
 
 async function saveToSupabase() {
@@ -982,9 +1044,35 @@ function populateCategorySelect() {
   sel.innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${c.label}</option>`).join('');
 }
 
+// ============================================================
+// THEME (light / dark) — same 6 design-system colours, swapped
+// ============================================================
+
+const SUN_ICON  = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>';
+const MOON_ICON = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+
+function applyTheme(theme) {
+  if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  else                  document.documentElement.removeAttribute('data-theme');
+  const icon = document.getElementById('themeIcon');
+  if (icon) icon.innerHTML = theme === 'dark' ? SUN_ICON : MOON_ICON;
+}
+function initTheme() {
+  const saved = localStorage.getItem('karmicDiaryTheme');
+  const theme = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  applyTheme(theme);
+}
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  const next = current === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  localStorage.setItem('karmicDiaryTheme', next);
+}
+
 function bindGlobalEvents() {
   document.getElementById('addBtn').addEventListener('click', openCreate);
   document.getElementById('restoreBtn').addEventListener('click', restoreDefaults);
+  document.getElementById('themeBtn').addEventListener('click', toggleTheme);
   document.getElementById('modalClose').addEventListener('click', closeModal);
   document.getElementById('cancelBtn').addEventListener('click', closeModal);
   document.getElementById('saveBtn').addEventListener('click', saveModal);
@@ -1002,6 +1090,7 @@ function bindGlobalEvents() {
 }
 
 async function init() {
+  initTheme();
   populateCategorySelect();
   bindGlobalEvents();
   renderHeader();

@@ -238,16 +238,11 @@
     font-size: 14px; line-height: 1.2;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   }
-  .slot-time {
-    font-family: 'Montserrat', sans-serif;
-    font-size: 10.5px; font-weight: 500; margin-top: 3px; opacity: 0.7;
-  }
   .slot-notes {
-    font-size: 10.5px; opacity: 0.85; margin-top: 5px; line-height: 1.4;
-    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    font-size: 11px; opacity: 0.85; margin-top: 5px; line-height: 1.45;
+    display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden;
   }
   .slot.is-compact .slot-notes { display: none; }
-  .slot.is-compact .slot-time { display: none; }
   .slot.is-compact { padding: 4px 10px; }
   .slot.is-compact .slot-title { font-size: 12.5px; -webkit-line-clamp: 1; }
 
@@ -832,11 +827,11 @@ function renderSlot(slot) {
   const isCompact = height < COMPACT_HEIGHT_PX;
   const editingCls = State.editingId === slot.id ? ' is-editing' : '';
   const compactCls = isCompact ? ' is-compact' : '';
+  // Time text is suppressed in the block — the left axis already labels every row.
   const notes = (slot.notes && !isCompact) ? `<div class="slot-notes">${escapeHtml(slot.notes)}</div>` : '';
   return `
     <div class="slot v-${cat.variant}${editingCls}${compactCls}" data-id="${slot.id}" style="top:${top}px;height:${height}px">
       <div class="slot-title">${escapeHtml(slot.title)}</div>
-      <div class="slot-time">${fmtTime12(slot.start)} – ${fmtTime12(slot.end)}</div>
       ${notes}
       <div class="slot-resize" data-resize="1"></div>
     </div>`;

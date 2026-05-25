@@ -8,152 +8,312 @@
 <meta http-equiv="Expires" content="0">
 <title>Karmic Skin — Default Diary</title>
 <link rel="icon" type="image/svg+xml" href="favicon-latest.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Domine:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  /* ========== THEME VARIABLES ========== */
+  /* ========== DESIGN SYSTEM TOKENS (Karmic Skin) ========== */
   :root {
-    --bg-page: #f8f9fa; --bg-card: #ffffff; --bg-card-alt: #f3f4f6; --bg-input: #ffffff;
-    --border: #e5e7eb; --border-hover: #d1d5db;
-    --text-primary: #111827; --text-secondary: #6b7280; --text-muted: #9ca3af; --text-heading: #374151;
-    --dropdown-shadow: 0 12px 40px rgba(0,0,0,0.1);
-    --accent: #0d9488; --accent-hover: #0f766e;
-    --positive: #16a34a; --negative: #dc2626;
-    --tooltip-bg: #1f2937;
-    --row-line: #eef0f3;
-    --grid-current: rgba(13,148,136,0.06);
-  }
-  [data-theme="dark"] {
-    --bg-page: #0f1117; --bg-card: #18181b; --bg-card-alt: #1e1e22; --bg-input: #0f1117;
-    --border: #27272a; --border-hover: #3f3f46;
-    --text-primary: #f4f4f5; --text-secondary: #a1a1aa; --text-muted: #71717a; --text-heading: #e4e4e7;
-    --dropdown-shadow: 0 12px 40px rgba(0,0,0,0.5);
-    --accent: #34d399; --accent-hover: #6ee7b7;
-    --positive: #22c55e; --negative: #ef4444;
-    --tooltip-bg: #27272a;
-    --row-line: #1f2025;
-    --grid-current: rgba(52,211,153,0.08);
+    --porcelain: #F6F5F0;
+    --citron:    #CAD183;
+    --carbon:    #232526;
+    --green:     #2F5350;
+    --red:       #B22222;
+    --amber:     #EFA71D;
+    --line-soft: rgba(35, 37, 38, 0.08);
+    --line-hour: rgba(35, 37, 38, 0.16);
   }
 
+  /* ========== BASE ========== */
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg-page); color: var(--text-primary); min-height: 100vh; transition: background 0.2s, color 0.2s; }
-
-  /* ========== PAGE NAV (shared across all dashboards) ========== */
-  .page-nav { display: flex; border-bottom: 1px solid var(--border); background: var(--bg-card); position: sticky; top: 0; z-index: 102; }
-  .page-nav a { padding: 10px 20px; font-size: 13px; font-weight: 600; color: var(--text-muted); text-decoration: none; border-bottom: 2px solid transparent; transition: all 0.15s; }
-  .page-nav a:hover { color: var(--text-primary); }
-  .page-nav a.active { color: var(--accent); border-bottom-color: var(--accent); }
+  html, body { background: var(--porcelain); color: var(--carbon); }
+  body {
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  h1, h2, h3, h4 { font-family: 'Domine', Georgia, serif; font-weight: 600; line-height: 1.2; color: var(--carbon); }
+  a { color: inherit; }
+  button { font-family: 'Montserrat', sans-serif; }
 
   /* ========== HEADER ========== */
-  .header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; position: sticky; top: 38px; z-index: 101; background: var(--bg-page); }
-  .header-left h1 { font-size: 18px; font-weight: 600; color: var(--text-primary); display: inline; }
-  .header-left .brand { font-size: 11px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; }
-  .header-left .subtitle { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .header {
+    padding: 28px 32px 22px;
+    border-bottom: 1px solid var(--line-soft);
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 24px; flex-wrap: wrap;
+    background: var(--porcelain);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .header-left .eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--carbon);
+  }
+  .header-left h1 { font-size: 32px; margin-top: 6px; font-weight: 700; }
+  .header-left .subtitle { font-size: 13.5px; margin-top: 6px; color: var(--carbon); max-width: 520px; }
+  .header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .save-status {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--carbon);
+    min-width: 92px; text-align: right; opacity: 0.55;
+  }
+  .save-status.saving { opacity: 1; }
+  .save-status.saved  { opacity: 0.6; }
+  .save-status.error  { color: var(--red); opacity: 1; }
 
-  .header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .save-status { font-size: 11px; color: var(--text-muted); margin-right: 8px; min-width: 90px; text-align: right; }
-  .save-status.saving { color: var(--accent); }
-  .save-status.saved { color: var(--positive); }
-  .save-status.error { color: var(--negative); }
-  .toolbar-btn { padding: 7px 12px; border-radius: 8px; border: 1px solid var(--border-hover); background: var(--bg-card); color: var(--text-primary); font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-family: inherit; transition: all 0.15s; }
-  .toolbar-btn:hover { border-color: var(--text-muted); background: var(--bg-card-alt); }
-  .toolbar-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .toolbar-btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
-  .theme-toggle { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; cursor: pointer; font-size: 16px; line-height: 1; transition: all 0.15s; }
-  .theme-toggle:hover { border-color: var(--border-hover); }
+  /* ========== BUTTONS (per design system) ========== */
+  .btn {
+    font-family: 'Montserrat', sans-serif; font-weight: 600;
+    font-size: 13px; padding: 10px 18px; border-radius: 10px;
+    cursor: pointer; transition: filter 0.15s, background 0.15s, color 0.15s;
+    border: none;
+  }
+  .btn-primary { background: var(--red); color: var(--porcelain); }
+  .btn-primary:hover { filter: brightness(0.92); }
+  .btn-secondary { background: var(--carbon); color: var(--porcelain); }
+  .btn-secondary:hover { filter: brightness(1.1); }
+  .btn-ghost {
+    background: transparent; color: var(--carbon);
+    border: 1.5px solid var(--carbon);
+  }
+  .btn-ghost:hover { background: var(--carbon); color: var(--porcelain); }
+  .btn-text {
+    background: transparent; color: var(--carbon); padding: 10px 14px;
+    border: none; font-weight: 600;
+  }
+  .btn-text:hover { text-decoration: underline; }
+  .btn-danger {
+    background: transparent; color: var(--red); border: 1.5px solid var(--red);
+  }
+  .btn-danger:hover { background: var(--red); color: var(--porcelain); }
 
   /* ========== LEGEND ========== */
-  .legend-bar { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 24px 0; }
-  .legend-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--bg-card); border: 1px solid var(--border); font-size: 11px; color: var(--text-secondary); }
-  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-
-  /* ========== CALENDAR GRID ========== */
-  .calendar-wrap { padding: 16px 24px 24px; }
-  .calendar { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-
-  /* Day headers row */
-  .cal-header { display: grid; grid-template-columns: 60px repeat(5, 1fr); border-bottom: 1px solid var(--border); background: var(--bg-card-alt); }
-  .cal-header-cell { padding: 12px 8px; text-align: center; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; border-left: 1px solid var(--border); }
-  .cal-header-cell:first-child { border-left: none; }
-  .cal-header-cell.is-today { color: var(--accent); }
-  .cal-header-cell .dow-name { display: block; }
-  .cal-header-cell .dow-meta { display: block; font-size: 10px; color: var(--text-muted); font-weight: 500; letter-spacing: 0.4px; margin-top: 2px; text-transform: none; }
-
-  /* Body grid */
-  .cal-body { position: relative; display: grid; grid-template-columns: 60px repeat(5, 1fr); }
-  .cal-time-col { display: flex; flex-direction: column; }
-  .cal-time-slot { height: 30px; padding: 2px 8px 0 0; text-align: right; font-size: 10px; color: var(--text-muted); border-top: 1px solid var(--row-line); position: relative; }
-  .cal-time-slot.hour-line { border-top: 1px solid var(--border); }
-  .cal-time-slot.hour-line .hour-label { display: inline; }
-  .cal-time-slot .hour-label { display: none; }
-
-  .cal-day-col { position: relative; border-left: 1px solid var(--border); }
-  .cal-day-col .row-line { height: 30px; border-top: 1px solid var(--row-line); }
-  .cal-day-col .row-line.hour-line { border-top: 1px solid var(--border); }
-
-  /* Slots (absolutely positioned blocks) */
-  .slot { position: absolute; left: 4px; right: 4px; padding: 6px 8px; border-radius: 6px; cursor: pointer; overflow: hidden; transition: filter 0.12s, transform 0.12s; border-left: 3px solid rgba(0,0,0,0.25); display: flex; flex-direction: column; gap: 2px; }
-  .slot:hover { filter: brightness(1.04); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-  .slot.is-editing { outline: 2px solid var(--accent); outline-offset: -2px; }
-  .slot-title { font-size: 12px; font-weight: 600; line-height: 1.2; color: #fff; }
-  .slot-time { font-size: 10px; opacity: 0.85; color: #fff; }
-  .slot-notes { font-size: 10px; opacity: 0.9; color: #fff; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-  /* Category colour classes — applied to .slot */
-  .cat-operations    { background: #64748b; }
-  .cat-meta-ads      { background: #1877f2; }
-  .cat-organic       { background: #db2777; }
-  .cat-meeting       { background: #d97706; }
-  .cat-amazon        { background: #ff9900; }
-  .cat-google        { background: #34a853; }
-  .cat-website       { background: #0d9488; }
-  .cat-email-claude  { background: #d97757; }
-  .cat-lunch         { background: #9ca3af; opacity: 0.85; }
-  .cat-other         { background: #6366f1; }
-
-  /* ========== EDIT MODAL ========== */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: none; align-items: center; justify-content: center; padding: 16px; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--dropdown-shadow); width: 100%; max-width: 460px; overflow: hidden; }
-  .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-  .modal-header h2 { font-size: 15px; font-weight: 600; color: var(--text-primary); }
-  .modal-close { background: none; border: none; font-size: 22px; line-height: 1; cursor: pointer; color: var(--text-muted); padding: 0 4px; }
-  .modal-close:hover { color: var(--text-primary); }
-  .modal-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; max-height: 70vh; overflow-y: auto; }
-  .field { display: flex; flex-direction: column; gap: 6px; }
-  .field label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
-  .field input, .field select, .field textarea { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-hover); background: var(--bg-input); color: var(--text-primary); font-size: 13px; font-family: inherit; }
-  .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--accent); }
-  .field textarea { resize: vertical; min-height: 80px; }
-  .field-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-  .modal-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .danger-btn { padding: 7px 12px; border-radius: 8px; border: 1px solid var(--border-hover); background: var(--bg-card); color: var(--negative); font-size: 13px; cursor: pointer; font-family: inherit; }
-  .danger-btn:hover { background: rgba(220,38,38,0.08); border-color: var(--negative); }
-
-  /* Time helper note */
-  .helper-note { font-size: 11px; color: var(--text-muted); padding: 0 24px 16px; }
-
-  /* Footer note */
-  .data-source { text-align: center; padding: 16px 24px 24px; font-size: 11px; color: var(--text-muted); }
-
-  /* ========== RESPONSIVE ========== */
-  @media (max-width: 900px) {
-    .cal-header, .cal-body { grid-template-columns: 50px repeat(5, 1fr); }
-    .slot-title { font-size: 11px; }
-    .slot-notes { display: none; }
-    .header { flex-direction: column; align-items: flex-start; }
-    .header-right { width: 100%; justify-content: flex-start; }
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 18px;
+    padding: 18px 32px 0;
+    font-size: 12px;
   }
-  @media (max-width: 600px) {
-    .calendar-wrap { padding: 12px 8px 16px; }
-    .legend-bar { padding: 12px 12px 0; }
-    .helper-note { padding: 0 12px 12px; }
-    .cal-header-cell { font-size: 10px; padding: 8px 4px; }
-    .slot { padding: 4px 6px; }
+  .legend-item { display: inline-flex; align-items: center; gap: 8px; color: var(--carbon); }
+  .legend-swatch {
+    width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0;
+    border: 1px solid var(--carbon);
+  }
+  .legend-swatch.is-focus  { background: var(--green); border-color: var(--green); }
+  .legend-swatch.is-alert  { background: var(--citron); }
+  .legend-swatch.is-soft   { background: var(--porcelain); }
+
+  /* ========== CALENDAR ========== */
+  .calendar-wrap { padding: 22px 32px 36px; }
+  .calendar {
+    background: var(--porcelain);
+    border: 1px solid var(--carbon);
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Day header */
+  .cal-header {
+    display: grid; grid-template-columns: 72px repeat(5, 1fr);
+    border-bottom: 1px solid var(--carbon);
+    background: var(--porcelain);
+  }
+  .cal-header-cell {
+    padding: 14px 12px; text-align: left;
+    border-left: 1px solid var(--line-soft);
+  }
+  .cal-header-cell:first-child { border-left: none; }
+  .cal-header-cell .dow-name {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--carbon);
+  }
+  .cal-header-cell .dow-theme {
+    font-family: 'Domine', serif;
+    font-size: 15px; font-weight: 500; margin-top: 3px;
+    color: var(--carbon);
+  }
+  .cal-header-cell.is-today .dow-name { color: var(--carbon); }
+  .cal-header-cell.is-today .dow-name .today-mark { background-image: linear-gradient(to top, var(--amber) 0.26em, transparent 0.26em); }
+
+  /* Calendar body */
+  .cal-body {
+    position: relative;
+    display: grid; grid-template-columns: 72px repeat(5, 1fr);
+  }
+  .cal-time-col { display: flex; flex-direction: column; user-select: none; }
+  .cal-time-slot {
+    height: 30px;
+    padding: 2px 10px 0 0; text-align: right;
+    font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--carbon); opacity: 0.55;
+    border-top: 1px solid var(--line-soft);
+  }
+  .cal-time-slot.hour-line {
+    border-top: 1px solid var(--line-hour);
+    opacity: 0.85;
+  }
+  .cal-time-slot .hour-label { display: none; }
+  .cal-time-slot.hour-line .hour-label { display: inline; }
+
+  .cal-day-col {
+    position: relative;
+    border-left: 1px solid var(--line-soft);
+  }
+  .cal-day-col .row-line {
+    height: 30px;
+    border-top: 1px solid var(--line-soft);
+  }
+  .cal-day-col .row-line.hour-line { border-top: 1px solid var(--line-hour); }
+
+  /* "Now" line (current time, only on today's column) */
+  .now-line {
+    position: absolute; left: 0; right: 0; height: 0;
+    border-top: 2px solid var(--amber); z-index: 4; pointer-events: none;
+  }
+  .now-line::before {
+    content: ''; position: absolute; left: -5px; top: -5px;
+    width: 8px; height: 8px; border-radius: 50%; background: var(--amber);
+  }
+
+  /* ========== SLOT (calendar block) ========== */
+  .slot {
+    position: absolute; left: 3px; right: 3px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: grab;
+    overflow: hidden;
+    user-select: none;
+    transition: box-shadow 0.12s;
+    z-index: 2;
+  }
+  .slot:hover { box-shadow: 0 3px 12px rgba(35, 37, 38, 0.12); z-index: 3; }
+  .slot.is-dragging { cursor: grabbing; opacity: 0.92; z-index: 6; box-shadow: 0 10px 24px rgba(35, 37, 38, 0.22); }
+  .slot.is-editing { box-shadow: 0 0 0 2px var(--amber); z-index: 5; }
+
+  .slot-eyebrow {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 9.5px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+    opacity: 0.7; margin-bottom: 2px;
+  }
+  .slot-title {
+    font-family: 'Domine', serif; font-weight: 600;
+    font-size: 13px; line-height: 1.2;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .slot-time {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10.5px; font-weight: 500; margin-top: 2px; opacity: 0.7;
+  }
+  .slot-notes {
+    font-size: 10.5px; opacity: 0.8; margin-top: 4px; line-height: 1.4;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .slot.is-compact .slot-eyebrow { display: none; }
+  .slot.is-compact .slot-notes { display: none; }
+  .slot.is-compact .slot-time { display: none; }
+  .slot.is-compact { padding: 4px 8px; }
+  .slot.is-compact .slot-title { font-size: 12px; -webkit-line-clamp: 1; }
+
+  /* Visual variants — embody design system: soft / focus / alert */
+  .v-soft   { background: var(--porcelain); color: var(--carbon); border: 1px solid var(--carbon); }
+  .v-focus  { background: var(--green);     color: var(--porcelain); }
+  .v-alert  { background: var(--citron);    color: var(--carbon); border: 1px solid var(--carbon); }
+
+  /* Resize handle at bottom of every slot */
+  .slot-resize {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    height: 8px;
+    cursor: ns-resize;
+  }
+  .slot-resize::after {
+    content: ''; position: absolute; left: 50%; bottom: 2px;
+    transform: translateX(-50%);
+    width: 22px; height: 2px;
+    background: currentColor; opacity: 0.35; border-radius: 1px;
+  }
+  .slot:hover .slot-resize::after { opacity: 0.65; }
+
+  /* ========== MODAL ========== */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(35, 37, 38, 0.55);
+    z-index: 200; display: none;
+    align-items: center; justify-content: center; padding: 18px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--porcelain);
+    border: 1px solid var(--carbon);
+    border-radius: 14px;
+    width: 100%; max-width: 480px;
+    overflow: hidden;
+  }
+  .modal-header {
+    padding: 22px 26px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-header .eyebrow {
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+  }
+  .modal-header h2 { font-size: 22px; margin-top: 4px; }
+  .modal-close {
+    background: transparent; border: none; cursor: pointer;
+    font-size: 22px; line-height: 1; color: var(--carbon);
+    width: 32px; height: 32px; border-radius: 50%;
+  }
+  .modal-close:hover { background: var(--citron); }
+  .modal-body {
+    padding: 6px 26px 22px;
+    display: flex; flex-direction: column; gap: 16px;
+    max-height: 70vh; overflow-y: auto;
+  }
+  .field { display: flex; flex-direction: column; gap: 7px; }
+  .field label {
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase;
+  }
+  .field input, .field select, .field textarea {
+    background: var(--porcelain);
+    color: var(--carbon);
+    border: 1px solid var(--carbon);
+    border-radius: 10px;
+    padding: 11px 13px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline: 2px solid var(--amber); outline-offset: -1px;
+  }
+  .field textarea { resize: vertical; min-height: 84px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .modal-footer {
+    padding: 16px 26px 22px;
+    border-top: 1px solid var(--line-soft);
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    flex-wrap: wrap;
+  }
+  .modal-footer .group { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  /* ========== FOOTER NOTES ========== */
+  .helper-note {
+    padding: 0 32px 18px;
+    font-size: 12.5px; color: var(--carbon); opacity: 0.7;
+    max-width: 760px;
+  }
+  .helper-note .hl {
+    background: var(--amber); padding: 1px 6px; border-radius: 3px;
+    font-weight: 600;
+  }
+  .data-source {
+    text-align: center; padding: 16px 32px 32px;
+    font-size: 11px; color: var(--carbon); opacity: 0.5;
+    letter-spacing: 0.05em;
   }
 </style>
 </head>
 <body>
 
-<!-- ========== SIDEBAR (ksb) — shared across all dashboard pages ========== -->
+<!-- ========== SIDEBAR (shared across all dashboard pages) ========== -->
 <aside id="ksb" class="ksb">
 <div class="ksb-brand">Karmic Skin</div>
 <nav class="ksb-section">
@@ -180,18 +340,17 @@
 </aside>
 <style>
 body { padding-left: 208px; }
-.header { top: 0 !important; }
-.ksb { position: fixed; top: 0; left: 0; bottom: 0; width: 208px; background: #26403d; color: #c8dbd8; z-index: 40; overflow-y: auto; transform: translateZ(0); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-.ksb-brand { color: #fff; font-weight: 700; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; padding: 17px 20px; border-bottom: 1px solid rgba(255,255,255,.09); }
-.ksb-section { border-bottom: 1px solid rgba(255,255,255,.07); }
-.ksb-head { width: 100%; text-align: left; background: none; border: none; cursor: pointer; color: #7fa39d; font-size: 11px; font-weight: 700; letter-spacing: .9px; text-transform: uppercase; padding: 15px 20px 9px; display: flex; justify-content: space-between; align-items: center; }
+.ksb { position: fixed; top: 0; left: 0; bottom: 0; width: 208px; background: var(--green); color: var(--porcelain); z-index: 40; overflow-y: auto; transform: translateZ(0); font-family: 'Montserrat', sans-serif; }
+.ksb-brand { color: var(--porcelain); font-weight: 700; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; padding: 17px 20px; border-bottom: 1px solid rgba(246,245,240,.12); }
+.ksb-section { border-bottom: 1px solid rgba(246,245,240,.08); }
+.ksb-head { width: 100%; text-align: left; background: none; border: none; cursor: pointer; color: rgba(246,245,240,0.65); font-size: 11px; font-weight: 700; letter-spacing: .9px; text-transform: uppercase; padding: 15px 20px 9px; display: flex; justify-content: space-between; align-items: center; font-family: 'Montserrat', sans-serif; }
 .ksb-chev { font-size: 9px; transition: transform .15s; }
 .ksb-section.ksb-closed .ksb-chev { transform: rotate(-90deg); }
 .ksb-section.ksb-closed .ksb-links { display: none; }
 .ksb-links { padding-bottom: 9px; }
-.ksb-links a { display: block; padding: 8px 20px; color: #c8dbd8; text-decoration: none; font-size: 13.5px; border-left: 3px solid transparent; }
-.ksb-links a:hover { background: rgba(255,255,255,.06); color: #fff; }
-.ksb-links a.ksb-active { background: rgba(255,255,255,.1); color: #fff; border-left-color: #c79a3e; font-weight: 600; }
+.ksb-links a { display: block; padding: 8px 20px; color: var(--porcelain); text-decoration: none; font-size: 13.5px; border-left: 3px solid transparent; }
+.ksb-links a:hover { background: rgba(246,245,240,.06); }
+.ksb-links a.ksb-active { background: rgba(246,245,240,.12); border-left-color: var(--amber); font-weight: 600; }
 @media (max-width: 820px) { body { padding-left: 0; } .ksb { position: static; width: auto; bottom: auto; } }
 </style>
 <script>
@@ -211,20 +370,23 @@ body { padding-left: 208px; }
 <!-- ========== HEADER ========== -->
 <header class="header">
   <div class="header-left">
-    <div class="brand">KARMIC SKIN</div>
-    <h1>Default Diary</h1>
-    <div class="subtitle">The weekly baseline. Stay in the zone, review monthly.</div>
+    <div class="eyebrow">Karmic Skin</div>
+    <h1>Default diary</h1>
+    <div class="subtitle">The weekly baseline. Built once, lived weekly, reviewed monthly.</div>
   </div>
   <div class="header-right">
-    <span class="save-status" id="saveStatus">Loading…</span>
-    <button class="toolbar-btn" id="addBtn" type="button">+ Add slot</button>
-    <button class="toolbar-btn" id="restoreBtn" type="button" title="Reset to the default weekly template">Restore defaults</button>
-    <button class="theme-toggle" id="themeBtn" type="button" title="Toggle theme">🌙</button>
+    <span class="save-status" id="saveStatus">Loading</span>
+    <button class="btn btn-ghost" id="addBtn" type="button">+ Add block</button>
+    <button class="btn btn-text" id="restoreBtn" type="button">Restore defaults</button>
   </div>
 </header>
 
 <!-- ========== LEGEND ========== -->
-<div class="legend-bar" id="legendBar"></div>
+<div class="legend">
+  <span class="legend-item"><span class="legend-swatch is-focus"></span>Deep work — the day's theme</span>
+  <span class="legend-item"><span class="legend-swatch is-alert"></span>Meeting</span>
+  <span class="legend-item"><span class="legend-swatch is-soft"></span>Personal, admin or break</span>
+</div>
 
 <!-- ========== CALENDAR ========== -->
 <div class="calendar-wrap">
@@ -235,18 +397,23 @@ body { padding-left: 208px; }
 </div>
 
 <div class="helper-note">
-  Click any slot to edit its title, category, time, or notes. Use <strong>+ Add slot</strong> for new blocks.
-  Everything syncs to Supabase, so the diary follows you across devices.
+  <strong>Drag</strong> a block to move it (or pull it into another day).
+  <strong>Drag the bottom edge</strong> to resize.
+  <strong>Click</strong> to edit title, category, time and notes.
+  Everything syncs to Supabase so the diary follows you across devices.
 </div>
 
-<div class="data-source">Diary stored in Supabase · single-row JSONB doc · anon read/write</div>
+<div class="data-source">Diary stored in Supabase · diary_state JSONB · anon read/write</div>
 
 <!-- ========== EDIT MODAL ========== -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <div class="modal-header">
-      <h2 id="modalTitle">Edit slot</h2>
-      <button class="modal-close" id="modalClose" type="button">×</button>
+      <div>
+        <div class="eyebrow" id="modalEyebrow">Edit block</div>
+        <h2 id="modalTitle">Block</h2>
+      </div>
+      <button class="modal-close" id="modalClose" type="button" aria-label="Close">×</button>
     </div>
     <div class="modal-body">
       <div class="field">
@@ -279,14 +446,14 @@ body { padding-left: 208px; }
       </div>
       <div class="field">
         <label for="fldNotes">Notes</label>
-        <textarea id="fldNotes" placeholder="Anything you want to remember for this block — focus areas, KPIs, prompts…"></textarea>
+        <textarea id="fldNotes" placeholder="What this block is for — focus areas, KPIs, prompts."></textarea>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="danger-btn" id="deleteBtn" type="button">Delete</button>
-      <div style="display:flex;gap:8px">
-        <button class="toolbar-btn" id="cancelBtn" type="button">Cancel</button>
-        <button class="toolbar-btn primary" id="saveBtn" type="button">Save</button>
+      <button class="btn btn-danger" id="deleteBtn" type="button">Delete</button>
+      <div class="group">
+        <button class="btn btn-text" id="cancelBtn" type="button">Cancel</button>
+        <button class="btn btn-primary" id="saveBtn" type="button">Save</button>
       </div>
     </div>
   </div>
@@ -301,14 +468,15 @@ const SUPABASE_URL = 'https://unmkzatppwftnasafhlb.supabase.co';
 // Public anon key — RLS-protected, safe in client-side code.
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVubWt6YXRwcHdmdG5hc2FmaGxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDQ5OTIsImV4cCI6MjA4NjU4MDk5Mn0.SYQm1km08xwlJSIf9jq8DXH3Ijxbxqk_LpTRh0PZhD4';
 
-// Time range shown on the grid (24h).
 const DAY_START_HOUR = 7;   // 7am
-const DAY_END_HOUR   = 19;  // 7pm
+const DAY_END_HOUR   = 18;  // 6pm
 const SLOT_MINUTES   = 30;  // grid granularity
-const PX_PER_HOUR    = 56;  // visual height per hour
+const SNAP_MINUTES   = 15;  // drag snap
+const PX_PER_HOUR    = 56;
 const PX_PER_MINUTE  = PX_PER_HOUR / 60;
+const COMPACT_HEIGHT_PX = 38;  // below this, hide eyebrow/notes/time
 
-const DAY_LABELS = { 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri' };
+const DAY_NAMES = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
 const DAY_THEMES = {
   1: 'Meta Ads',
   2: 'Meta Ads',
@@ -317,95 +485,85 @@ const DAY_THEMES = {
   5: 'Email + Claude',
 };
 
+// Each category has a visual variant (soft/focus/alert) plus an eyebrow label.
 const CATEGORIES = [
-  { id: 'operations',   label: 'Operations',      color: '#64748b' },
-  { id: 'meta-ads',     label: 'Meta Ads',        color: '#1877f2' },
-  { id: 'organic',      label: 'Organic Social',  color: '#db2777' },
-  { id: 'meeting',      label: 'Meeting',         color: '#d97706' },
-  { id: 'amazon',       label: 'Amazon',          color: '#ff9900' },
-  { id: 'google',       label: 'Google',          color: '#34a853' },
-  { id: 'website',      label: 'Website',         color: '#0d9488' },
-  { id: 'email-claude', label: 'Email + Claude',  color: '#d97757' },
-  { id: 'lunch',        label: 'Lunch / Break',   color: '#9ca3af' },
-  { id: 'other',        label: 'Other',           color: '#6366f1' },
+  // soft (personal, admin, meal) — Porcelain bg, Carbon text
+  { id: 'personal',      label: 'Personal',         variant: 'soft'  },
+  { id: 'admin',         label: 'Admin',            variant: 'soft'  },
+  { id: 'meal',          label: 'Meal',             variant: 'soft'  },
+  // focus (deep work) — Dark Green bg, Porcelain text
+  { id: 'work-meta',     label: 'Meta Ads',         variant: 'focus' },
+  { id: 'work-organic',  label: 'Organic Social',   variant: 'focus' },
+  { id: 'work-amazon',   label: 'Amazon',           variant: 'focus' },
+  { id: 'work-google',   label: 'Google',           variant: 'focus' },
+  { id: 'work-website',  label: 'Website',          variant: 'focus' },
+  { id: 'work-email',    label: 'Email + Claude',   variant: 'focus' },
+  { id: 'work-other',    label: 'Deep work',        variant: 'focus' },
+  // alert (meetings) — Citron bg, Carbon text
+  { id: 'meeting',       label: 'Meeting',          variant: 'alert' },
 ];
+
+function categoryById(id) { return CATEGORIES.find(c => c.id === id) || CATEGORIES[0]; }
 
 // ============================================================
 // DEFAULT TEMPLATE
-// 2 hours Operations every morning (Mon, Tue, Wed, Fri).
-// Thursday morning = Uday Coaching + LeadTap + DBC, then Amazon/Google/Website rotation.
-// Lunch 1:00–2:00pm every day. Day-theme work fills the rest.
+// Mon/Tue/Wed/Fri: morning ritual 7:00-12:00 + day theme block 12:00-18:00.
+// The day's theme also appears in the 8:30-9:00 morning burst.
+// Thursday: no morning ritual — meetings 8-10 + Amazon/Google/Website.
 // ============================================================
+function buildDay(day, themeCat, themeTitle) {
+  return [
+    { day, start: '07:00', end: '07:30', category: 'personal',  title: 'Wake up',           notes: '' },
+    { day, start: '07:30', end: '08:00', category: 'personal',  title: 'Meditate',          notes: '' },
+    { day, start: '08:00', end: '08:30', category: 'personal',  title: 'Nespresso, stretch',notes: '' },
+    { day, start: '08:30', end: '09:00', category: themeCat,    title: themeTitle,          notes: 'Morning warm-up — quick win on the day theme.' },
+    { day, start: '09:00', end: '09:30', category: 'admin',     title: 'Customer Emails',   notes: 'Draft Laila replies, send.' },
+    { day, start: '09:30', end: '10:00', category: 'admin',     title: 'IG, FB',            notes: 'Comments, DMs, quick replies.' },
+    { day, start: '10:00', end: '10:30', category: 'admin',     title: 'Inbox cleanup',     notes: 'Triage, archive, file.' },
+    { day, start: '10:30', end: '11:00', category: 'personal',  title: 'Coffee walk',       notes: '' },
+    { day, start: '11:00', end: '12:00', category: 'meal',      title: 'Lunch',             notes: '' },
+    { day, start: '12:00', end: '18:00', category: themeCat,    title: themeTitle,          notes: 'Deep work block.' },
+  ];
+}
+
 const DEFAULT_SLOTS = [
-  // Monday — Meta Ads
-  { day: 1, start: '08:00', end: '10:00', category: 'operations',   title: 'Operations',     notes: 'Inbox, customers, finance, ops admin.' },
-  { day: 1, start: '10:00', end: '13:00', category: 'meta-ads',     title: 'Meta Ads',       notes: 'Deep work block.' },
-  { day: 1, start: '13:00', end: '14:00', category: 'lunch',        title: 'Lunch',          notes: '' },
-  { day: 1, start: '14:00', end: '18:00', category: 'meta-ads',     title: 'Meta Ads',       notes: 'Creative review, scaling decisions, daily check.' },
-
-  // Tuesday — Meta Ads
-  { day: 2, start: '08:00', end: '10:00', category: 'operations',   title: 'Operations',     notes: 'Inbox, customers, finance, ops admin.' },
-  { day: 2, start: '10:00', end: '13:00', category: 'meta-ads',     title: 'Meta Ads',       notes: 'Deep work block.' },
-  { day: 2, start: '13:00', end: '14:00', category: 'lunch',        title: 'Lunch',          notes: '' },
-  { day: 2, start: '14:00', end: '18:00', category: 'meta-ads',     title: 'Meta Ads',       notes: 'Briefs, asset production, ad concepts.' },
-
-  // Wednesday — Organic Social
-  { day: 3, start: '08:00', end: '10:00', category: 'operations',   title: 'Operations',     notes: 'Inbox, customers, finance, ops admin.' },
-  { day: 3, start: '10:00', end: '13:00', category: 'organic',      title: 'Organic Social', notes: 'Captions, carousels, content plan.' },
-  { day: 3, start: '13:00', end: '14:00', category: 'lunch',        title: 'Lunch',          notes: '' },
-  { day: 3, start: '14:00', end: '18:00', category: 'organic',      title: 'Organic Social', notes: 'Scheduling, comments, community.' },
-
-  // Thursday — Meetings, then Amazon / Google / Website
-  { day: 4, start: '08:00', end: '09:00', category: 'meeting',      title: 'Uday Coaching',                 notes: 'Scheduled 8:00–8:30 but blocked to 9:00 because it overruns.' },
-  { day: 4, start: '09:00', end: '09:30', category: 'meeting',      title: 'Karmic Skin · LeadTap Weekly',  notes: 'Recurring Thursday meeting.' },
-  { day: 4, start: '09:30', end: '10:00', category: 'meeting',      title: 'Karmic Skin ⇄ DBC Weekly',      notes: 'Recurring Thursday meeting. (Google Cal has this scheduled to 10:15 — adjust if needed.)' },
-  { day: 4, start: '10:00', end: '13:00', category: 'amazon',       title: 'Amazon',                        notes: 'PDPs, listings, ad campaigns, inventory.' },
-  { day: 4, start: '13:00', end: '14:00', category: 'lunch',        title: 'Lunch',                          notes: '' },
-  { day: 4, start: '14:00', end: '16:00', category: 'google',       title: 'Google',                         notes: 'Search ads, PMax, Google Merchant.' },
-  { day: 4, start: '16:00', end: '18:00', category: 'website',      title: 'Website',                        notes: 'Shopify, PDPs, CRO, dashboards.' },
-
-  // Friday — Email + Claude
-  { day: 5, start: '08:00', end: '10:00', category: 'operations',   title: 'Operations',      notes: 'Inbox, customers, finance, ops admin.' },
-  { day: 5, start: '10:00', end: '13:00', category: 'email-claude', title: 'Email + Claude',  notes: 'Campaign briefs, flow updates, Claude prompts.' },
-  { day: 5, start: '13:00', end: '14:00', category: 'lunch',        title: 'Lunch',           notes: '' },
-  { day: 5, start: '14:00', end: '18:00', category: 'email-claude', title: 'Email + Claude',  notes: 'Email QA, send schedule, agent tweaks.' },
+  ...buildDay(1, 'work-meta',    'Meta Ads'),
+  ...buildDay(2, 'work-meta',    'Meta Ads'),
+  ...buildDay(3, 'work-organic', 'Organic Social'),
+  // Thursday — meetings own the morning, then Amazon → Google → Website.
+  { day: 4, start: '08:00', end: '09:00', category: 'meeting',     title: 'Uday Coaching',                notes: 'Scheduled 8:00–8:30 but blocked to 9:00 because it usually overruns.' },
+  { day: 4, start: '09:00', end: '09:30', category: 'meeting',     title: 'Karmic Skin · LeadTap Weekly', notes: 'Recurring Thursday meeting.' },
+  { day: 4, start: '09:30', end: '10:00', category: 'meeting',     title: 'Karmic Skin ⇄ DBC Weekly',     notes: 'Recurring Thursday meeting. (Google Cal has this scheduled to 10:15.)' },
+  { day: 4, start: '10:00', end: '13:00', category: 'work-amazon', title: 'Amazon',                       notes: 'PDPs, listings, ad campaigns, inventory.' },
+  { day: 4, start: '13:00', end: '14:00', category: 'meal',        title: 'Lunch',                        notes: '' },
+  { day: 4, start: '14:00', end: '16:00', category: 'work-google', title: 'Google',                       notes: 'Search, PMax, Merchant Center.' },
+  { day: 4, start: '16:00', end: '18:00', category: 'work-website',title: 'Website',                      notes: 'Shopify, PDPs, CRO, dashboards.' },
+  ...buildDay(5, 'work-email',   'Email + Claude'),
 ];
 
 // ============================================================
 // STATE
 // ============================================================
+const State = { slots: [], saveTimer: null, isSaving: false, editingId: null };
 
-const State = {
-  slots: [],
-  saveTimer: null,
-  isSaving: false,
-  editingId: null,
+// In-progress drag/resize state
+const Drag = {
+  mode: null,          // 'move' | 'resize' | null
+  slotId: null,
+  startX: 0, startY: 0,
+  origStart: null, origEnd: null, origDay: null,
+  active: false,
+  bodyRect: null,
+  colGeom: [],         // [{ day, left, right }]
+  previewStart: null, previewEnd: null, previewDay: null,
 };
 
 // ============================================================
-// THEME
-// ============================================================
-
-function initTheme() {
-  const saved = localStorage.getItem('karmicTheme');
-  const theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', theme);
-  document.getElementById('themeBtn').textContent = theme === 'dark' ? '☀️' : '🌙';
-}
-function toggleTheme() {
-  const current = document.documentElement.getAttribute('data-theme');
-  const next = current === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  localStorage.setItem('karmicTheme', next);
-  document.getElementById('themeBtn').textContent = next === 'dark' ? '☀️' : '🌙';
-}
-
-// ============================================================
-// SUPABASE — load/save the single-row diary_state doc
+// SUPABASE
 // ============================================================
 
 async function loadFromSupabase() {
-  setSaveStatus('Loading…');
+  setSaveStatus('Loading');
   try {
     const resp = await fetch(SUPABASE_URL + '/rest/v1/diary_state?id=eq.1&select=slots', {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
@@ -413,8 +571,11 @@ async function loadFromSupabase() {
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const rows = await resp.json();
     const remoteSlots = (rows[0] && Array.isArray(rows[0].slots)) ? rows[0].slots : [];
-    if (remoteSlots.length === 0) {
-      // First load on a fresh table — seed with defaults and persist.
+
+    // If remote is empty OR still the old-shape categories (had 'operations', 'meta-ads' etc.),
+    // reset to the new template. (One-off reset on first load of v2.)
+    const looksOld = remoteSlots.some(s => /operations|meta-ads|organic|amazon$|google$|website$|email-claude|lunch|other/.test(s.category || ''));
+    if (remoteSlots.length === 0 || looksOld) {
       State.slots = cloneDefaults();
       await saveToSupabase();
     } else {
@@ -431,7 +592,7 @@ async function loadFromSupabase() {
 async function saveToSupabase() {
   if (State.isSaving) return;
   State.isSaving = true;
-  setSaveStatus('Saving…', 'saving');
+  setSaveStatus('Saving', 'saving');
   try {
     const resp = await fetch(SUPABASE_URL + '/rest/v1/diary_state?id=eq.1', {
       method: 'PATCH',
@@ -455,7 +616,7 @@ async function saveToSupabase() {
 
 function queueSave() {
   if (State.saveTimer) clearTimeout(State.saveTimer);
-  setSaveStatus('Saving…', 'saving');
+  setSaveStatus('Saving', 'saving');
   State.saveTimer = setTimeout(saveToSupabase, 450);
 }
 
@@ -466,53 +627,49 @@ function setSaveStatus(text, cls) {
 }
 
 // ============================================================
-// SLOT HELPERS
+// HELPERS
 // ============================================================
 
-function cloneDefaults() {
-  return DEFAULT_SLOTS.map(s => ensureId({ ...s }));
+function cloneDefaults() { return DEFAULT_SLOTS.map(s => ensureId({ ...s })); }
+function ensureId(slot)  { if (!slot.id) slot.id = 'slot_' + Math.random().toString(36).slice(2, 10); return slot; }
+function timeToMinutes(t) { const [h, m] = t.split(':').map(Number); return h * 60 + (m || 0); }
+function minutesToTime(min) {
+  const h = Math.floor(min / 60), m = min % 60;
+  return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
 }
-
-function ensureId(slot) {
-  if (!slot.id) slot.id = 'slot_' + Math.random().toString(36).slice(2, 10);
-  return slot;
+function minutesToPx(min) { return (min - DAY_START_HOUR * 60) * PX_PER_MINUTE; }
+function escapeHtml(s) {
+  return (s == null ? '' : String(s)).replace(/[&<>"']/g, c => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
 }
-
-function timeToMinutes(t) {
+function fmtTime12(t) {
+  if (!t) return '';
   const [h, m] = t.split(':').map(Number);
-  return h * 60 + (m || 0);
+  const ampm = h < 12 ? 'am' : 'pm';
+  const h12 = h === 0 ? 12 : (h > 12 ? h - 12 : h);
+  return h12 + ':' + String(m).padStart(2, '0') + ampm;
 }
-
-function minutesToPx(min) {
-  const dayStartMin = DAY_START_HOUR * 60;
-  return (min - dayStartMin) * PX_PER_MINUTE;
-}
-
-function categoryById(id) {
-  return CATEGORIES.find(c => c.id === id) || CATEGORIES[CATEGORIES.length - 1];
+function formatHourLabel(h) {
+  const ampm = h < 12 ? 'am' : 'pm';
+  const h12 = h === 0 ? 12 : (h > 12 ? h - 12 : h);
+  return h12 + ampm;
 }
 
 // ============================================================
 // RENDER
 // ============================================================
 
-function renderLegend() {
-  const bar = document.getElementById('legendBar');
-  bar.innerHTML = CATEGORIES.map(c =>
-    `<span class="legend-chip"><span class="legend-dot" style="background:${c.color}"></span>${c.label}</span>`
-  ).join('');
-}
-
 function renderHeader() {
   const header = document.getElementById('calHeader');
   const todayDow = new Date().getDay(); // 0 Sun … 6 Sat
-  const todayMon1 = todayDow === 0 ? 7 : todayDow; // Mon=1, Sun=7
+  const todayMon1 = todayDow === 0 ? 7 : todayDow;
   let html = '<div class="cal-header-cell"></div>';
   for (let d = 1; d <= 5; d++) {
     const isToday = d === todayMon1;
     html += `<div class="cal-header-cell ${isToday ? 'is-today' : ''}">
-      <span class="dow-name">${['Monday','Tuesday','Wednesday','Thursday','Friday'][d-1]}</span>
-      <span class="dow-meta">${DAY_THEMES[d]}</span>
+      <div class="dow-name">${isToday ? `<span class="today-mark">${DAY_NAMES[d-1]}</span>` : DAY_NAMES[d-1]}</div>
+      <div class="dow-theme">${escapeHtml(DAY_THEMES[d])}</div>
     </div>`;
   }
   header.innerHTML = html;
@@ -520,82 +677,230 @@ function renderHeader() {
 
 function renderBody() {
   const body = document.getElementById('calBody');
-  const totalMinutes = (DAY_END_HOUR - DAY_START_HOUR) * 60;
-  const totalRows = totalMinutes / SLOT_MINUTES;
-  const bodyHeight = totalMinutes * PX_PER_MINUTE;
+  const totalMin = (DAY_END_HOUR - DAY_START_HOUR) * 60;
+  const totalRows = totalMin / SLOT_MINUTES;
+  const bodyHeight = totalMin * PX_PER_MINUTE;
 
   // Time column
-  let timeHtml = '<div class="cal-time-col" style="height:' + bodyHeight + 'px">';
+  let html = '<div class="cal-time-col" style="height:' + bodyHeight + 'px">';
   for (let i = 0; i < totalRows; i++) {
     const min = DAY_START_HOUR * 60 + i * SLOT_MINUTES;
-    const hour = Math.floor(min / 60);
     const isHour = (min % 60) === 0;
-    const label12 = formatHourLabel(hour);
-    timeHtml += `<div class="cal-time-slot ${isHour ? 'hour-line' : ''}"><span class="hour-label">${label12}</span></div>`;
+    const h = Math.floor(min / 60);
+    html += `<div class="cal-time-slot${isHour ? ' hour-line' : ''}"><span class="hour-label">${formatHourLabel(h)}</span></div>`;
   }
-  timeHtml += '</div>';
+  html += '</div>';
 
   // 5 day columns
-  let daysHtml = '';
   for (let d = 1; d <= 5; d++) {
-    daysHtml += `<div class="cal-day-col" data-day="${d}" style="height:${bodyHeight}px">`;
+    html += `<div class="cal-day-col" data-day="${d}" style="height:${bodyHeight}px">`;
     for (let i = 0; i < totalRows; i++) {
       const min = DAY_START_HOUR * 60 + i * SLOT_MINUTES;
       const isHour = (min % 60) === 0;
-      daysHtml += `<div class="row-line ${isHour ? 'hour-line' : ''}"></div>`;
+      html += `<div class="row-line${isHour ? ' hour-line' : ''}"></div>`;
     }
-    // Slots for this day
-    for (const slot of State.slots) {
-      if (slot.day !== d) continue;
-      const startMin = timeToMinutes(slot.start);
-      const endMin = timeToMinutes(slot.end);
-      const top = minutesToPx(startMin);
-      const height = Math.max(20, (endMin - startMin) * PX_PER_MINUTE - 2);
-      const editingCls = State.editingId === slot.id ? ' is-editing' : '';
-      daysHtml += `
-        <div class="slot cat-${slot.category}${editingCls}" data-id="${slot.id}" style="top:${top}px;height:${height}px">
-          <div class="slot-title">${escapeHtml(slot.title)}</div>
-          <div class="slot-time">${slot.start} – ${slot.end}</div>
-          ${slot.notes ? `<div class="slot-notes">${escapeHtml(slot.notes)}</div>` : ''}
-        </div>`;
+    // Slots on this day, sorted by start (for stable z-stacking)
+    const slotsForDay = State.slots.filter(s => s.day === d).slice().sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
+    for (const slot of slotsForDay) {
+      html += renderSlot(slot);
     }
-    daysHtml += '</div>';
+    html += '</div>';
   }
-  body.innerHTML = timeHtml + daysHtml;
+  body.innerHTML = html;
 
-  // Bind click on slots
+  // Wire slot interactions
   body.querySelectorAll('.slot').forEach(el => {
-    el.addEventListener('click', () => openEdit(el.dataset.id));
+    el.addEventListener('mousedown', onSlotMouseDown);
+    el.addEventListener('touchstart', onSlotTouchStart, { passive: false });
   });
+
+  drawNowLine();
 }
 
-function formatHourLabel(h) {
-  const ampm = h < 12 ? 'am' : 'pm';
-  const h12 = h === 0 ? 12 : (h > 12 ? h - 12 : h);
-  return h12 + ampm;
+function renderSlot(slot) {
+  const cat = categoryById(slot.category);
+  const startMin = timeToMinutes(slot.start);
+  const endMin = timeToMinutes(slot.end);
+  const top = minutesToPx(startMin);
+  const height = Math.max(20, (endMin - startMin) * PX_PER_MINUTE - 2);
+  const isCompact = height < COMPACT_HEIGHT_PX;
+  const editingCls = State.editingId === slot.id ? ' is-editing' : '';
+  const compactCls = isCompact ? ' is-compact' : '';
+  const eyebrow = !isCompact ? `<div class="slot-eyebrow">${escapeHtml(cat.label)}</div>` : '';
+  const notes = (slot.notes && !isCompact) ? `<div class="slot-notes">${escapeHtml(slot.notes)}</div>` : '';
+  return `
+    <div class="slot v-${cat.variant}${editingCls}${compactCls}" data-id="${slot.id}" style="top:${top}px;height:${height}px">
+      ${eyebrow}
+      <div class="slot-title">${escapeHtml(slot.title)}</div>
+      <div class="slot-time">${fmtTime12(slot.start)} – ${fmtTime12(slot.end)}</div>
+      ${notes}
+      <div class="slot-resize" data-resize="1"></div>
+    </div>`;
 }
 
-function escapeHtml(s) {
-  return (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-  }[c]));
-}
-
-function renderAll() {
-  renderLegend();
-  renderHeader();
-  renderBody();
+function drawNowLine() {
+  // Add a thin amber line at the current time on today's column.
+  const todayDow = new Date().getDay();
+  const todayMon1 = todayDow === 0 ? 7 : todayDow;
+  if (todayMon1 < 1 || todayMon1 > 5) return; // weekend — skip
+  const now = new Date();
+  const minNow = now.getHours() * 60 + now.getMinutes();
+  if (minNow < DAY_START_HOUR * 60 || minNow > DAY_END_HOUR * 60) return;
+  const col = document.querySelector(`.cal-day-col[data-day="${todayMon1}"]`);
+  if (!col) return;
+  const top = minutesToPx(minNow);
+  const line = document.createElement('div');
+  line.className = 'now-line';
+  line.style.top = top + 'px';
+  col.appendChild(line);
 }
 
 // ============================================================
-// MODAL — create / edit / delete
+// DRAG / RESIZE
+// ============================================================
+
+function onSlotMouseDown(e) {
+  if (e.button !== 0) return;
+  const slotEl = e.currentTarget;
+  startDrag(slotEl, e.clientX, e.clientY, e.target && e.target.dataset && e.target.dataset.resize === '1');
+  document.addEventListener('mousemove', onDragMove);
+  document.addEventListener('mouseup', onDragEnd);
+  e.preventDefault();
+}
+
+function onSlotTouchStart(e) {
+  if (e.touches.length !== 1) return;
+  const t = e.touches[0];
+  const slotEl = e.currentTarget;
+  startDrag(slotEl, t.clientX, t.clientY, e.target && e.target.dataset && e.target.dataset.resize === '1');
+  document.addEventListener('touchmove', onDragTouchMove, { passive: false });
+  document.addEventListener('touchend', onDragEnd);
+  e.preventDefault();
+}
+
+function startDrag(slotEl, clientX, clientY, isResize) {
+  const id = slotEl.dataset.id;
+  const slot = State.slots.find(s => s.id === id);
+  if (!slot) return;
+  Drag.mode = isResize ? 'resize' : 'move';
+  Drag.slotId = id;
+  Drag.startX = clientX;
+  Drag.startY = clientY;
+  Drag.origStart = slot.start;
+  Drag.origEnd = slot.end;
+  Drag.origDay = slot.day;
+  Drag.active = false;
+  Drag.previewStart = null;
+  Drag.previewEnd = null;
+  Drag.previewDay = null;
+
+  // Measure body + columns for cross-day drag
+  const body = document.getElementById('calBody');
+  Drag.bodyRect = body.getBoundingClientRect();
+  Drag.colGeom = Array.from(body.querySelectorAll('.cal-day-col')).map(el => {
+    const r = el.getBoundingClientRect();
+    return { day: parseInt(el.dataset.day, 10), left: r.left, right: r.right };
+  });
+
+  slotEl.classList.add('is-dragging');
+}
+
+function onDragTouchMove(e) {
+  if (e.touches.length !== 1) return;
+  const t = e.touches[0];
+  onDragMove({ clientX: t.clientX, clientY: t.clientY, preventDefault: () => e.preventDefault() });
+  e.preventDefault();
+}
+
+function onDragMove(e) {
+  if (!Drag.mode) return;
+  const dx = e.clientX - Drag.startX;
+  const dy = e.clientY - Drag.startY;
+  if (!Drag.active && Math.abs(dx) + Math.abs(dy) > 4) Drag.active = true;
+  if (!Drag.active) return;
+
+  const slotEl = document.querySelector(`.slot[data-id="${Drag.slotId}"]`);
+  if (!slotEl) return;
+
+  const minutesDelta = Math.round(dy / PX_PER_MINUTE / SNAP_MINUTES) * SNAP_MINUTES;
+
+  if (Drag.mode === 'move') {
+    const origStartMin = timeToMinutes(Drag.origStart);
+    const origEndMin = timeToMinutes(Drag.origEnd);
+    const dur = origEndMin - origStartMin;
+    let newStart = origStartMin + minutesDelta;
+    let newEnd = newStart + dur;
+    // Clamp within visible day
+    const dayMin = DAY_START_HOUR * 60;
+    const dayMax = DAY_END_HOUR * 60;
+    if (newStart < dayMin) { newStart = dayMin; newEnd = newStart + dur; }
+    if (newEnd > dayMax)   { newEnd = dayMax;   newStart = newEnd - dur; }
+
+    slotEl.style.top = minutesToPx(newStart) + 'px';
+    slotEl.style.height = (newEnd - newStart) * PX_PER_MINUTE - 2 + 'px';
+    Drag.previewStart = minutesToTime(newStart);
+    Drag.previewEnd = minutesToTime(newEnd);
+
+    // Detect day column
+    const col = Drag.colGeom.find(c => e.clientX >= c.left && e.clientX < c.right);
+    const newDay = col ? col.day : Drag.origDay;
+    if (newDay !== parseInt(slotEl.parentElement.dataset.day, 10)) {
+      const newColEl = document.querySelector(`.cal-day-col[data-day="${newDay}"]`);
+      if (newColEl) newColEl.appendChild(slotEl);
+    }
+    Drag.previewDay = newDay;
+  }
+  else if (Drag.mode === 'resize') {
+    const slot = State.slots.find(s => s.id === Drag.slotId);
+    const startMin = timeToMinutes(slot.start);
+    const origEndMin = timeToMinutes(Drag.origEnd);
+    let newEnd = origEndMin + minutesDelta;
+    if (newEnd < startMin + 15) newEnd = startMin + 15;
+    if (newEnd > DAY_END_HOUR * 60) newEnd = DAY_END_HOUR * 60;
+    slotEl.style.height = (newEnd - startMin) * PX_PER_MINUTE - 2 + 'px';
+    Drag.previewEnd = minutesToTime(newEnd);
+  }
+}
+
+function onDragEnd() {
+  document.removeEventListener('mousemove', onDragMove);
+  document.removeEventListener('mouseup', onDragEnd);
+  document.removeEventListener('touchmove', onDragTouchMove);
+  document.removeEventListener('touchend', onDragEnd);
+  if (!Drag.mode) return;
+
+  const slotEl = document.querySelector(`.slot[data-id="${Drag.slotId}"]`);
+  if (slotEl) slotEl.classList.remove('is-dragging');
+
+  if (Drag.active) {
+    const slot = State.slots.find(s => s.id === Drag.slotId);
+    if (slot) {
+      if (Drag.previewStart) slot.start = Drag.previewStart;
+      if (Drag.previewEnd)   slot.end   = Drag.previewEnd;
+      if (Drag.previewDay)   slot.day   = Drag.previewDay;
+    }
+    renderBody();
+    queueSave();
+  } else {
+    // Treat as click
+    openEdit(Drag.slotId);
+  }
+  // Reset
+  Drag.mode = null;
+  Drag.slotId = null;
+  Drag.active = false;
+}
+
+// ============================================================
+// MODAL
 // ============================================================
 
 function openEdit(slotId) {
   const slot = State.slots.find(s => s.id === slotId);
   if (!slot) return;
   State.editingId = slot.id;
-  document.getElementById('modalTitle').textContent = 'Edit slot';
+  document.getElementById('modalEyebrow').textContent = 'Edit block';
+  document.getElementById('modalTitle').textContent = slot.title || 'Block';
   document.getElementById('fldTitle').value = slot.title || '';
   document.getElementById('fldCategory').value = slot.category;
   document.getElementById('fldDay').value = String(slot.day);
@@ -604,19 +909,20 @@ function openEdit(slotId) {
   document.getElementById('fldNotes').value = slot.notes || '';
   document.getElementById('deleteBtn').style.display = '';
   document.getElementById('modalOverlay').classList.add('open');
-  renderBody(); // refresh outline highlight
+  renderBody();
   setTimeout(() => document.getElementById('fldTitle').focus(), 50);
 }
 
 function openCreate() {
   const newId = 'slot_' + Math.random().toString(36).slice(2, 10);
   State.editingId = newId;
-  document.getElementById('modalTitle').textContent = 'Add slot';
+  document.getElementById('modalEyebrow').textContent = 'Add block';
+  document.getElementById('modalTitle').textContent = 'New block';
   document.getElementById('fldTitle').value = '';
-  document.getElementById('fldCategory').value = 'other';
+  document.getElementById('fldCategory').value = 'work-other';
   document.getElementById('fldDay').value = '1';
-  document.getElementById('fldStart').value = '10:00';
-  document.getElementById('fldEnd').value = '11:00';
+  document.getElementById('fldStart').value = '12:00';
+  document.getElementById('fldEnd').value = '13:00';
   document.getElementById('fldNotes').value = '';
   document.getElementById('deleteBtn').style.display = 'none';
   document.getElementById('modalOverlay').classList.add('open');
@@ -632,22 +938,20 @@ function closeModal() {
 function saveModal() {
   const id = State.editingId;
   if (!id) return;
-  const title = document.getElementById('fldTitle').value.trim() || 'Untitled';
+  const title    = document.getElementById('fldTitle').value.trim() || 'Untitled';
   const category = document.getElementById('fldCategory').value;
-  const day = parseInt(document.getElementById('fldDay').value, 10);
-  const start = document.getElementById('fldStart').value;
-  const end = document.getElementById('fldEnd').value;
-  const notes = document.getElementById('fldNotes').value;
+  const day      = parseInt(document.getElementById('fldDay').value, 10);
+  const start    = document.getElementById('fldStart').value;
+  const end      = document.getElementById('fldEnd').value;
+  const notes    = document.getElementById('fldNotes').value;
 
   if (!start || !end) { alert('Pick a start and end time.'); return; }
   if (timeToMinutes(end) <= timeToMinutes(start)) { alert('End time must be after start time.'); return; }
 
   const existing = State.slots.find(s => s.id === id);
-  if (existing) {
-    Object.assign(existing, { title, category, day, start, end, notes });
-  } else {
-    State.slots.push({ id, title, category, day, start, end, notes });
-  }
+  if (existing) Object.assign(existing, { title, category, day, start, end, notes });
+  else          State.slots.push({ id, title, category, day, start, end, notes });
+
   closeModal();
   renderBody();
   queueSave();
@@ -655,7 +959,7 @@ function saveModal() {
 
 function deleteSlot() {
   if (!State.editingId) return;
-  if (!confirm('Delete this slot?')) return;
+  if (!confirm('Delete this block?')) return;
   State.slots = State.slots.filter(s => s.id !== State.editingId);
   closeModal();
   renderBody();
@@ -663,7 +967,7 @@ function deleteSlot() {
 }
 
 async function restoreDefaults() {
-  if (!confirm('Replace the whole diary with the default template? Your notes and edits will be lost.')) return;
+  if (!confirm('Reset to the default template? Your edits and notes will be replaced.')) return;
   State.slots = cloneDefaults();
   renderBody();
   await saveToSupabase();
@@ -679,26 +983,27 @@ function populateCategorySelect() {
 }
 
 function bindGlobalEvents() {
-  document.getElementById('themeBtn').addEventListener('click', toggleTheme);
   document.getElementById('addBtn').addEventListener('click', openCreate);
   document.getElementById('restoreBtn').addEventListener('click', restoreDefaults);
   document.getElementById('modalClose').addEventListener('click', closeModal);
   document.getElementById('cancelBtn').addEventListener('click', closeModal);
   document.getElementById('saveBtn').addEventListener('click', saveModal);
   document.getElementById('deleteBtn').addEventListener('click', deleteSlot);
-  document.getElementById('modalOverlay').addEventListener('click', (e) => {
+  document.getElementById('modalOverlay').addEventListener('click', e => {
     if (e.target.id === 'modalOverlay') closeModal();
   });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeModal();
-  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+  // Refresh now-line every minute
+  setInterval(() => {
+    const existing = document.querySelector('.now-line');
+    if (existing) existing.remove();
+    drawNowLine();
+  }, 60 * 1000);
 }
 
 async function init() {
-  initTheme();
   populateCategorySelect();
   bindGlobalEvents();
-  renderLegend();
   renderHeader();
   await loadFromSupabase();
   renderBody();

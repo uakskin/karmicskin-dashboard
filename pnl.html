@@ -73,6 +73,9 @@
     /* ROAS supporting sub-table — subtle sand wash, lighter than the alt rows */
     --roas-sub-bg: rgba(216,218,193,0.40);
     --roas-sub-ytd-bg: rgba(216,218,193,0.70);
+    /* Channel key — same colours as the Revenue Trend chart (Shopify green, Amazon ochre) */
+    --ch-shopify: #2F5350;
+    --ch-amazon:  #9A6F15;
   }
   [data-theme="dark"] {
     --bg-page: #0f1117; --bg-card: #18181b; --bg-card-alt: #1e1e22; --bg-input: #0f1117;
@@ -93,6 +96,8 @@
     --margin-text: #71717a;
     --roas-sub-bg: rgba(255,255,255,0.04);
     --roas-sub-ytd-bg: rgba(255,255,255,0.075);
+    --ch-shopify: #34d399;
+    --ch-amazon:  #fbbf24;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -200,6 +205,19 @@
   .roas-subtable tbody tr td.ytd-cell,
   .roas-subtable tbody tr:nth-child(even) td.ytd-cell,
   .roas-subtable tbody tr:hover td.ytd-cell { background: var(--roas-sub-ytd-bg); color: var(--text-secondary); font-weight: 600; }
+
+  /* Channel-split monthly cells — Shopify (green circle) stacked over Amazon (ochre
+     square) so each column scans top-to-bottom by channel. Numbers right-align in
+     column 2; markers align in column 1. Markers reuse the chart's channel colours. */
+  .roas-row td, .roas-subtable td { vertical-align: middle; }
+  .pnl-table td .roas-split { display: inline-grid; grid-template-columns: auto auto; column-gap: 6px; row-gap: 3px; justify-content: end; align-items: center; }
+  .pnl-table td .roas-split .vl { text-align: right; font-variant-numeric: tabular-nums; }
+  .mk { width: 8px; height: 8px; display: inline-block; flex: none; }
+  .mk.shop { background: var(--ch-shopify); border-radius: 50%; }
+  .mk.amz  { background: var(--ch-amazon);  border-radius: 2px; }
+  .roas-legend { display: flex; align-items: center; gap: 4px; margin-top: 5px; font-size: 9px; font-weight: 600; letter-spacing: 0.02em; text-transform: none; color: var(--text-muted); }
+  .roas-legend .mk { width: 7px; height: 7px; }
+  .roas-legend .mk.amz { margin-left: 8px; }
 
   /* CHARTS */
   .charts-row { display: flex; gap: 16px; padding: 0 24px 16px; }
@@ -646,11 +664,13 @@ function buildTable(d, n) {
     { label: 'Overheads - Other Expenses', ytd: ytdOtherExp, ytdShop: null, ytdAmz: null, monthFn: i => d.otherExp[i], cls: '', negate: true },
     { label: 'Other Income', ytd: ytdOtherInc, ytdShop: null, ytdAmz: null, monthFn: i => d.otherInc[i], cls: '' },
     { label: 'EBITDA', ytd: ytdEBITDA, ytdShop: ytdShopEBITDA, ytdAmz: ytdAmzEBITDA, monthFn: i => d.ebitda[i], cls: 'ebitda-row', marginBase: [ytdRev, ytdShopRev, ytdAmzRev], monthMarginBase: i => d.revenue[i] },
-    // Blended ROAS = Revenue incl. VAT ÷ Ad Spend. Monthly + YTD Total are blended
-    // (Shopify+Amazon); YTD Shopify / YTD Amazon are the channel cuts. Ratio-formatted.
-    { label: 'Blended ROAS <span class="info-tip" data-tip="Revenue incl. VAT ÷ Ad Spend. The advertising efficiency behind this EBITDA.">ⓘ</span>',
+    // ROAS = Revenue incl. VAT ÷ Ad Spend. YTD columns stay as totals (Total/Shopify/
+    // Amazon); monthly columns are split per channel — Shopify and Amazon shown separately
+    // rather than blended, since Amazon's near-organic sales distort a blended ratio.
+    { label: 'ROAS <span class="info-tip" data-tip="Revenue incl. VAT ÷ Ad Spend. Monthly columns show Shopify and Amazon separately; YTD columns are totals.">ⓘ</span><div class="roas-legend"><span class="mk shop"></span>Shopify<span class="mk amz"></span>Amazon</div>',
       ytd: roas(ytdRev, ytdAds), ytdShop: roas(ytdShopRev, ytdShopAds), ytdAmz: roas(ytdAmzRev, ytdAmzAds),
-      monthFn: i => roas(d.revenue[i], d.adSpend[i]), cls: 'roas-row', ratio: true },
+      monthShop: i => roas(d.shopRev[i], d.shopAds[i]), monthAmz: i => roas(d.amzRev[i], d.amzAds[i]),
+      cls: 'roas-row', ratio: true, split: true },
   ];
 
   // Find best EBITDA month index (highest value among active months)
@@ -673,8 +693,9 @@ function buildTable(d, n) {
     // YTD Amazon
     html += cell(row.ytdAmz, row.marginBase ? row.marginBase[2] : null, true, false, ff);
 
-    // Monthly (newest first)
+    // Monthly (newest first). Split rows (ROAS) render two channel values per cell.
     reversedIdx.forEach(i => {
+      if (row.split) { html += splitCell(row.monthShop(i), row.monthAmz(i), ff); return; }
       const v = row.monthFn(i);
       const mb = row.monthMarginBase ? row.monthMarginBase(i) : null;
       const isBest = row.cls === 'ebitda-row' && i === bestEbitdaIdx;
@@ -690,8 +711,10 @@ function buildTable(d, n) {
   // Revenue (incl. VAT) and Ad Spend, per the same columns as above. Dividing the
   // first by the second reproduces the Blended ROAS row exactly.
   const subRows = [
-    { label: 'Revenue (incl. VAT)', ytd: ytdRev * VAT_MULT, ytdShop: ytdShopRev * VAT_MULT, ytdAmz: ytdAmzRev * VAT_MULT, monthFn: i => d.revenue[i] * VAT_MULT },
-    { label: 'Ad Spend',            ytd: ytdAds,            ytdShop: ytdShopAds,             ytdAmz: ytdAmzAds,             monthFn: i => d.adSpend[i] },
+    { label: 'Revenue (incl. VAT)', ytd: ytdRev * VAT_MULT, ytdShop: ytdShopRev * VAT_MULT, ytdAmz: ytdAmzRev * VAT_MULT,
+      monthShop: i => d.shopRev[i] * VAT_MULT, monthAmz: i => d.amzRev[i] * VAT_MULT },
+    { label: 'Ad Spend',            ytd: ytdAds,            ytdShop: ytdShopAds,             ytdAmz: ytdAmzAds,
+      monthShop: i => d.shopAds[i],            monthAmz: i => d.amzAds[i] },
   ];
   let subHtml = '';
   subRows.forEach(row => {
@@ -700,7 +723,7 @@ function buildTable(d, n) {
     subHtml += cell(row.ytd, null, true);
     subHtml += cell(row.ytdShop, null, true);
     subHtml += cell(row.ytdAmz, null, true);
-    reversedIdx.forEach(i => { subHtml += cell(row.monthFn(i), null, false); });
+    reversedIdx.forEach(i => { subHtml += splitCell(row.monthShop(i), row.monthAmz(i), fmt); });
     subHtml += '</tr>';
   });
   document.getElementById('roasSubTbody').innerHTML = subHtml;
@@ -740,6 +763,17 @@ function cell(value, marginBase, isYtd, isBest, fmtFn) {
     marginHtml = `<span class="margin">${fmtPct(m)}</span>`;
   }
   return `<td class="${negCls}${ytdCls}${bestCls}">${fmtFn(value)}${marginHtml}</td>`;
+}
+
+// A channel-split cell: Shopify value (green circle) stacked over Amazon value
+// (ochre square). fmtFn handles null/zero → '-'. Used for the monthly ROAS row
+// and the monthly Revenue/Ad-Spend inputs below it.
+function splitCell(shopVal, amzVal, fmtFn) {
+  fmtFn = fmtFn || fmtRoas;
+  return `<td><span class="roas-split">`
+    + `<span class="mk shop"></span><span class="vl">${fmtFn(shopVal)}</span>`
+    + `<span class="mk amz"></span><span class="vl">${fmtFn(amzVal)}</span>`
+    + `</span></td>`;
 }
 
 // ─── CHARTS ─────────────────────────────────────────────────────────────────

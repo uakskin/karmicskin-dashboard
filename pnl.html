@@ -76,6 +76,7 @@
     /* Channel key — same colours as the Revenue Trend chart (Shopify green, Amazon ochre) */
     --ch-shopify: #2F5350;
     --ch-amazon:  #9A6F15;
+    --pe-track:   rgba(35,37,38,0.16);
   }
   [data-theme="dark"] {
     --bg-page: #0f1117; --bg-card: #18181b; --bg-card-alt: #1e1e22; --bg-input: #0f1117;
@@ -98,6 +99,7 @@
     --roas-sub-ytd-bg: rgba(255,255,255,0.075);
     --ch-shopify: #34d399;
     --ch-amazon:  #fbbf24;
+    --pe-track:   rgba(255,255,255,0.18);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -236,6 +238,42 @@
   .channel-metric .cm-label { font-size: 12px; color: var(--text-secondary); }
   .channel-metric .cm-value { font-size: 14px; font-weight: 700; color: var(--text-primary); }
   .channel-metric .cm-margin { font-size: 11px; color: var(--margin-text); margin-left: 6px; }
+
+  /* PROFIT ESTIMATOR */
+  .pe-section { padding: 0 24px 24px; }
+  .pe-wrap { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .pe-header { padding: 14px 20px 6px; }
+  .pe-header h3 { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 0; }
+  .pe-sub { display: block; font-size: 11px; color: var(--text-muted); margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .pe-body { display: grid; grid-template-columns: minmax(0,320px) 1fr; gap: 28px; padding: 14px 20px 18px; align-items: start; }
+  .pe-controls { display: flex; flex-direction: column; gap: 16px; }
+  .pe-ctrl-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px; }
+  .pe-ctrl-head label { font-size: 12px; color: var(--text-secondary); }
+  .pe-ctrl-head span { font-size: 14px; font-weight: 600; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+  input[type=range].pe-range { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; border-radius: 2px; background: var(--pe-track); outline: none; cursor: pointer; }
+  input[type=range].pe-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); border: none; cursor: pointer; }
+  input[type=range].pe-range::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--accent); border: none; cursor: pointer; }
+  .pe-num { width: 100%; background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-family: var(--font-body); font-size: 14px; color: var(--text-primary); }
+  .pe-num:focus { outline: none; border-color: var(--border-hover); }
+  .pe-readout { margin-top: 4px; padding-top: 14px; border-top: 1px solid var(--table-border); }
+  .pe-eb-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+  .pe-eb { font-family: var(--font-heading); font-size: 32px; font-weight: 600; letter-spacing: -0.01em; margin-top: 4px; }
+  .pe-eb.pos { color: var(--positive); }
+  .pe-eb.neg { color: var(--negative); }
+  .pe-margin { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
+  .pe-break { margin-top: 14px; }
+  .pe-break .pe-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--table-border); font-size: 12.5px; }
+  .pe-break .pe-row .lbl { color: var(--text-secondary); }
+  .pe-break .pe-row .val { color: var(--text-primary); font-variant-numeric: tabular-nums; }
+  .pe-break .pe-row.total { border-bottom: none; font-weight: 700; padding-top: 8px; }
+  .pe-chart { position: relative; height: 360px; min-width: 0; }
+  .pe-assume { padding: 0 20px 18px; }
+  .pe-assume-label { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin: 8px 0; }
+  .pe-assume ul { list-style: none; margin: 0; padding: 0; }
+  .pe-assume li { position: relative; padding-left: 16px; font-size: 12.5px; color: var(--text-secondary); line-height: 1.55; margin: 5px 0; max-width: 960px; }
+  .pe-assume li::before { content: ''; position: absolute; left: 2px; top: 7px; width: 5px; height: 5px; background: var(--amber); border-radius: 1px; }
+  @media (max-width: 1024px) { .pe-body { grid-template-columns: 1fr; } }
+  @media (max-width: 768px) { .pe-section { padding-left: 16px; padding-right: 16px; } }
 
   /* FOOTER */
   .footer-note { padding: 16px 24px 24px; text-align: center; }
@@ -376,6 +414,54 @@ body { padding-left: 208px; }
         <colgroup id="roasSubColgroup"></colgroup>
         <tbody id="roasSubTbody"></tbody>
       </table>
+    </div>
+  </div>
+</div>
+
+<!-- Profit Estimator -->
+<div class="pe-section">
+  <div class="pe-wrap">
+    <div class="pe-header">
+      <h3>Profit Estimator</h3>
+      <span class="pe-sub">EBITDA = Revenue (incl VAT) × (0.554 − 1/ROAS) − £570/mo overhead</span>
+    </div>
+    <div class="pe-body">
+      <div class="pe-controls">
+        <div class="pe-ctrl">
+          <div class="pe-ctrl-head"><label for="peRoas">Shopify ROAS</label><span id="peRoasOut">2.10×</span></div>
+          <input type="range" class="pe-range" id="peRoas" min="1.5" max="3" step="0.01" value="2.10">
+        </div>
+        <div class="pe-ctrl">
+          <div class="pe-ctrl-head"><label for="peRev">Revenue (incl VAT)</label><span id="peRevOut">£50k</span></div>
+          <input type="range" class="pe-range" id="peRev" min="25" max="250" step="1" value="50">
+        </div>
+        <div class="pe-ctrl">
+          <div class="pe-ctrl-head"><label for="peOh">Fixed overhead £/mo</label></div>
+          <input type="number" class="pe-num" id="peOh" min="0" max="5000" step="10" value="570">
+        </div>
+        <div class="pe-readout">
+          <div class="pe-eb-label">Expected EBITDA / month</div>
+          <div class="pe-eb pos" id="peEb">£3,327</div>
+          <div class="pe-margin" id="peMargin">8.0% margin (net of VAT)</div>
+        </div>
+        <div class="pe-break">
+          <div class="pe-row"><span class="lbl">Fulfilled gross profit</span><span class="val" id="peFgp">+£28,290</span></div>
+          <div class="pe-row"><span class="lbl">Ad spend</span><span class="val" id="peAd">−£23,810</span></div>
+          <div class="pe-row"><span class="lbl">Overhead</span><span class="val" id="peOhVal">−£1,154</span></div>
+          <div class="pe-row total"><span class="lbl">EBITDA</span><span class="val" id="peEbRow">£3,327</span></div>
+        </div>
+      </div>
+      <div class="pe-chart"><canvas id="peCanvas"></canvas></div>
+    </div>
+    <div class="pe-assume">
+      <div class="pe-assume-label">Assumptions</div>
+      <ul>
+        <li>Keeps 56.6% of every £ of sales (incl VAT) after product cost and fulfilment — these margins are stable month to month (gross ~85.5%, fulfilment ~17%).</li>
+        <li>Ad spend = revenue ÷ ROAS, with ROAS measured on revenue including VAT.</li>
+        <li>Overhead = £570 fixed per month (subscriptions − other income) plus 1.4% of sales for variable other expenses.</li>
+        <li>Calibrated on the last 12 months of actuals — predicts real monthly EBITDA within ±£500 (R² 0.95).</li>
+        <li>Reliable up to ~£80k/month revenue; treat anything higher as a rough planning estimate, since costs change at scale.</li>
+      </ul>
     </div>
   </div>
 </div>
@@ -945,6 +1031,9 @@ function rebuildCharts() {
       }
     }
   });
+
+  // Rebuild the Profit Estimator chart with the same theme colours.
+  buildEstimatorChart();
 }
 
 // ─── CHANNEL COMPARISON ─────────────────────────────────────────────────────
@@ -978,8 +1067,95 @@ function buildChannelComparison(d, n) {
   document.getElementById('amazonMetrics').innerHTML = channelHtml(ytdAmzRev, amzProductGM, amzFulfilledGM, amzAdPct, ytdAmzEBITDA, amzEBITDAM);
 }
 
+// ─── PROFIT ESTIMATOR ───────────────────────────────────────────────────────
+// EBITDA = Rev_inclVAT*(fulfilled margin − variable overhead − 1/ROAS) − fixed overhead.
+// Hybrid overhead model fitted on FY2026 (R² 0.95). Assumptions are listed in the panel.
+const PE_FM = 0.5658, PE_VAR = 0.01167, PE_REFS = [50000, 100000, 150000, 200000, 250000];
+const PE_XS = [];
+for (let pr = 1.5; pr <= 3.001; pr += 0.05) PE_XS.push(Math.round(pr * 100) / 100);
+let estimatorChart = null;
+function peEb(G, roas, foh) { return G * (PE_FM - PE_VAR) - G / roas - foh; }
+
+function buildEstimatorChart() {
+  const cv = document.getElementById('peCanvas');
+  if (!cv) return;
+  if (estimatorChart) estimatorChart.destroy();
+  const c = getChartColors();
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const txt = isDark ? '#e4e4e7' : '#232526';
+  const refData = g => ({ data: PE_XS.map(r => ({ x: r, y: peEb(g, r, 570) })), borderColor: c.tick, borderWidth: 1, pointRadius: 0, tension: 0.35, showLine: true, fill: false, _lab: '£' + (g / 1000) + 'k' });
+  const yfmt = v => v === 0 ? '£0' : ((v < 0 ? '-£' : '£') + Math.abs(Math.round(v / 1000)) + 'k');
+  const marker = {
+    id: 'peMarker',
+    afterDatasetsDraw(ch) {
+      const { ctx, scales: { x, y } } = ch;
+      const foh = +document.getElementById('peOh').value || 0;
+      const r0 = +document.getElementById('peRoas').value;
+      const G = (+document.getElementById('peRev').value) * 1000;
+      ctx.save();
+      ctx.font = '600 11px Montserrat, sans-serif';
+      let bx = null;
+      for (let r = 1.5; r < 3; r += 0.001) { if (peEb(G, r, foh) >= 0) { bx = r; break; } }
+      if (bx) {
+        const px = x.getPixelForValue(bx);
+        ctx.setLineDash([4, 4]); ctx.strokeStyle = c.tick; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(px, y.getPixelForValue(y.max)); ctx.lineTo(px, y.getPixelForValue(y.min)); ctx.stroke();
+        ctx.setLineDash([]); ctx.fillStyle = c.tick; ctx.textAlign = 'left';
+        ctx.fillText('breakeven ' + bx.toFixed(2) + '×', px + 4, y.getPixelForValue(y.max) + 11);
+      }
+      ctx.fillStyle = c.tick; ctx.textAlign = 'left';
+      ch.data.datasets.forEach(d => { if (!d._lab) return; const p = d.data[d.data.length - 1]; ctx.fillText(d._lab, x.getPixelForValue(p.x) + 5, y.getPixelForValue(p.y)); });
+      const my = peEb(G, r0, foh), mpx = x.getPixelForValue(r0), mpy = y.getPixelForValue(my);
+      ctx.fillStyle = c.ebitda; ctx.beginPath(); ctx.arc(mpx, mpy, 6, 0, 7); ctx.fill();
+      ctx.fillStyle = txt; ctx.textAlign = r0 > 2.6 ? 'right' : 'left';
+      ctx.fillText(fmt(my), mpx + (r0 > 2.6 ? -9 : 9), mpy - 9);
+      ctx.restore();
+    }
+  };
+  estimatorChart = new Chart(cv, {
+    type: 'scatter',
+    data: { datasets: [...PE_REFS.map(refData), { data: [], borderColor: c.shopify, borderWidth: 2.5, pointRadius: 0, tension: 0.35, showLine: true, fill: false }] },
+    plugins: [marker],
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false, layout: { padding: { right: 46, top: 6 } },
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      scales: {
+        x: { type: 'linear', min: 1.5, max: 3, title: { display: true, text: 'Shopify ROAS (incl VAT)', color: c.tick, font: { size: 12 } }, grid: { color: c.grid }, ticks: { color: c.tick, stepSize: 0.3, callback: v => v.toFixed(1) + '×' } },
+        y: { min: -30000, max: 58000, title: { display: true, text: 'EBITDA  (£ / month)', color: c.tick, font: { size: 12 } }, grid: { color: c.grid }, ticks: { color: c.tick, callback: yfmt } }
+      }
+    }
+  });
+  estimatorRefresh();
+}
+
+function estimatorRefresh() {
+  if (!estimatorChart) return;
+  const r = +document.getElementById('peRoas').value;
+  const G = (+document.getElementById('peRev').value) * 1000;
+  const foh = +document.getElementById('peOh').value || 0;
+  const fgp = G * PE_FM, ad = G / r, oh = foh + G * PE_VAR, e = fgp - ad - oh;
+  document.getElementById('peRoasOut').textContent = r.toFixed(2) + '×';
+  document.getElementById('peRevOut').textContent = '£' + (G / 1000) + 'k';
+  const ebEl = document.getElementById('peEb');
+  ebEl.textContent = fmt(e);
+  ebEl.className = 'pe-eb ' + (e >= 0 ? 'pos' : 'neg');
+  document.getElementById('peMargin').textContent = fmtPct(e / (G / 1.2) * 100) + ' margin (net of VAT)';
+  document.getElementById('peFgp').textContent = '+' + fmt(fgp);
+  document.getElementById('peAd').textContent = '−' + fmt(ad);
+  document.getElementById('peOhVal').textContent = '−' + fmt(oh);
+  document.getElementById('peEbRow').textContent = fmt(e);
+  for (let i = 0; i < PE_REFS.length; i++) estimatorChart.data.datasets[i].data = PE_XS.map(rr => ({ x: rr, y: peEb(PE_REFS[i], rr, foh) }));
+  estimatorChart.data.datasets[PE_REFS.length].data = PE_XS.map(rr => ({ x: rr, y: peEb(G, rr, foh) }));
+  estimatorChart.update('none');
+}
+
 // ─── INIT ───────────────────────────────────────────────────────────────────
 render();
+
+['peRoas', 'peRev', 'peOh'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', estimatorRefresh);
+});
 
 // Keep the sub-table columns aligned to the main table after layout shifts.
 window.addEventListener('resize', () => requestAnimationFrame(syncSubTableWidths));

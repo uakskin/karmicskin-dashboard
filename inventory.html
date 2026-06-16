@@ -317,17 +317,18 @@ const LEAD_TIME_DAYS = 120;
 let USER_JWT = SUPABASE_KEY;
 
 // Bundle composition map. Each bundle sold deducts 1 unit of each component.
-// Sourced from product descriptions where explicit; inferred from name + price math otherwise.
+// Sourced from the canonical product list (cs-agent-laila/brand-knowledge/shopify-products.md),
+// verified against live Shopify PDPs.
 // EDITABLE — if you change a bundle's contents, update here and refresh.
 const BUNDLE_MAP = {
   // Explicit in product description
   'The Heroes Kit':   ['Sunlight Serum', 'Moonlight Serum', 'Pot of Gold'],
   'Dew It Right':     ['Pot of Gold', 'Moonlight Serum', 'Richie Rich Rich'],
   'Age Confidence':   ['Pot of Gold', 'Sunlight Serum', 'Moonlight Serum', 'Sleepytime Gelly'],
-  // Inferred from bundle name + price math
-  'Bright Future':    ['Pot of Gold', 'Sunlight Serum', 'Sleepytime Gelly', 'Top of the Morning'],
-  "Mama's Glow":      ['Pot of Gold', 'Sunlight Serum', 'Sleepytime Gelly', 'Richie Rich Rich'],
-  'Soft Intentions':  ['Ruby Dooby Doo', 'Richie Rich Rich', 'Top of the Morning'],
+  // From canonical product list (cs-agent-laila/brand-knowledge/shopify-products.md, verified vs live Shopify PDPs)
+  'Bright Future':    ['Sunlight Serum', 'Moonlight Serum', 'Sleepytime Gelly', 'Top of the Morning'],
+  "Mama's Glow":      ['Moonlight Serum', 'Sleepytime Gelly', 'Richie Rich Rich', 'Ruby Dooby Doo', 'Clean as a Whistle'],
+  'Soft Intentions':  ['Ruby Dooby Doo', 'Moonlight Serum', 'Sleepytime Gelly'],
   'The Hair Affair Bundle': ['Featherweight', 'Espresso Bar', 'The One & Only'],
 };
 // SKUs (component products) we track. Order = display preference (highest-volume first).

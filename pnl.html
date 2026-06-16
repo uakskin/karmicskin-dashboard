@@ -686,12 +686,18 @@ function buildTable(d, n) {
     html += `<tr class="${row.cls}">`;
     html += `<td class="row-label">${row.label}</td>`;
 
-    // YTD Total
+    // YTD Total (blended — no channel marker, even on the split ROAS row).
     html += cell(row.ytd, row.marginBase ? row.marginBase[0] : null, true, false, ff);
-    // YTD Shopify
-    html += cell(row.ytdShop, row.marginBase ? row.marginBase[1] : null, true, false, ff);
-    // YTD Amazon
-    html += cell(row.ytdAmz, row.marginBase ? row.marginBase[2] : null, true, false, ff);
+    if (row.split) {
+      // YTD Shopify / Amazon carry their channel marker to match the monthly cells.
+      html += markedYtdCell(row.ytdShop, ff, 'shop');
+      html += markedYtdCell(row.ytdAmz, ff, 'amz');
+    } else {
+      // YTD Shopify
+      html += cell(row.ytdShop, row.marginBase ? row.marginBase[1] : null, true, false, ff);
+      // YTD Amazon
+      html += cell(row.ytdAmz, row.marginBase ? row.marginBase[2] : null, true, false, ff);
+    }
 
     // Monthly (newest first). Split rows (ROAS) render two channel values per cell.
     reversedIdx.forEach(i => {
@@ -721,8 +727,8 @@ function buildTable(d, n) {
     subHtml += '<tr>';
     subHtml += `<td class="row-label">${row.label}</td>`;
     subHtml += cell(row.ytd, null, true);
-    subHtml += cell(row.ytdShop, null, true);
-    subHtml += cell(row.ytdAmz, null, true);
+    subHtml += markedYtdCell(row.ytdShop, fmt, 'shop');
+    subHtml += markedYtdCell(row.ytdAmz, fmt, 'amz');
     reversedIdx.forEach(i => { subHtml += splitCell(row.monthShop(i), row.monthAmz(i), fmt); });
     subHtml += '</tr>';
   });
@@ -774,6 +780,14 @@ function splitCell(shopVal, amzVal, fmtFn) {
     + `<span class="mk shop"></span><span class="vl">${fmtFn(shopVal)}</span>`
     + `<span class="mk amz"></span><span class="vl">${fmtFn(amzVal)}</span>`
     + `</span></td>`;
+}
+
+// A YTD cell with a single channel marker, so the YTD Shopify / YTD Amazon columns
+// carry the same circle/square key as the channel-split monthly cells. channelClass
+// is 'shop' (green circle) or 'amz' (ochre square).
+function markedYtdCell(value, fmtFn, channelClass) {
+  fmtFn = fmtFn || fmtRoas;
+  return `<td class="ytd-cell"><span class="roas-split"><span class="mk ${channelClass}"></span><span class="vl">${fmtFn(value)}</span></span></td>`;
 }
 
 // ─── CHARTS ─────────────────────────────────────────────────────────────────

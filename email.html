@@ -6,24 +6,25 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Karmic Skin — Email Marketing Dashboard</title>
+<title>Karmic Skin — Email Intelligence</title>
 <link rel="icon" type="image/svg+xml" href="favicon-latest.svg">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
-  /* THEME VARIABLES */
+  /* ========== THEME VARIABLES ========== */
   :root {
     --bg-page: #f8f9fa; --bg-card: #ffffff; --bg-card-alt: #f3f4f6; --bg-input: #ffffff;
     --border: #e5e7eb; --border-hover: #d1d5db;
     --text-primary: #111827; --text-secondary: #6b7280; --text-muted: #9ca3af; --text-heading: #374151;
     --table-header-bg: #f9fafb; --table-border: #f3f4f6; --table-hover: #f9fafb;
     --dropdown-shadow: 0 12px 40px rgba(0,0,0,0.1);
-    --accent: #0d9488; --accent-hover: #0f766e;
-    --positive: #16a34a; --negative: #dc2626;
+    --accent: #0d9488; --accent-hover: #0f766e; --accent-soft: rgba(13,148,136,0.10);
+    --positive: #16a34a; --negative: #dc2626; --warn: #d97706;
+    --purple: #7c3aed; --purple-soft: rgba(124,58,237,0.10);
+    --blue: #2563eb; --amber: #d97706;
     --highlight-bg: rgba(168, 85, 247, 0.08); --highlight-text: #7c3aed;
     --sort-active: #7c3aed;
     --chart-grid: #f3f4f6; --chart-tick: #9ca3af;
     --tooltip-bg: #1f2937; --tooltip-title: #f3f4f6; --tooltip-body: #d1d5db; --tooltip-border: #374151;
-    --toggle-border: #d1d5db;
   }
   [data-theme="dark"] {
     --bg-page: #0f1117; --bg-card: #18181b; --bg-card-alt: #1e1e22; --bg-input: #0f1117;
@@ -31,199 +32,166 @@
     --text-primary: #f4f4f5; --text-secondary: #a1a1aa; --text-muted: #71717a; --text-heading: #e4e4e7;
     --table-header-bg: #1e1e22; --table-border: #1f1f23; --table-hover: #1e1e22;
     --dropdown-shadow: 0 12px 40px rgba(0,0,0,0.5);
-    --accent: #34d399; --accent-hover: #6ee7b7;
-    --positive: #22c55e; --negative: #ef4444;
+    --accent: #34d399; --accent-hover: #6ee7b7; --accent-soft: rgba(52,211,153,0.12);
+    --positive: #22c55e; --negative: #ef4444; --warn: #fbbf24;
+    --purple: #c4b5fd; --purple-soft: rgba(196,181,253,0.12);
+    --blue: #60a5fa; --amber: #fbbf24;
     --highlight-bg: rgba(228, 193, 249, 0.15); --highlight-text: #E4C1F9;
     --sort-active: #E4C1F9;
     --chart-grid: #27272a; --chart-tick: #52525b;
     --tooltip-bg: #27272a; --tooltip-title: #e4e4e7; --tooltip-body: #a1a1aa; --tooltip-border: #3f3f46;
-    --toggle-border: #3f3f46;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg-page); color: var(--text-primary); min-height: 100vh; transition: background 0.2s, color 0.2s; }
 
-  /* PAGE NAV */
-  .page-nav { display: flex; border-bottom: 1px solid var(--border); background: var(--bg-card); position: sticky; top: 0; z-index: 102; }
-  .page-nav a { padding: 10px 20px; font-size: 13px; font-weight: 600; color: var(--text-muted); text-decoration: none; border-bottom: 2px solid transparent; transition: all 0.15s; }
-  .page-nav a:hover { color: var(--text-primary); }
-  .page-nav a.active { color: var(--accent); border-bottom-color: var(--accent); }
-
-  /* HEADER */
-  .header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; position: sticky; top: 38px; z-index: 101; background: var(--bg-page); }
+  /* ========== HEADER ========== */
+  .header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; position: sticky; top: 0; z-index: 101; background: var(--bg-page); }
   .header-left h1 { font-size: 18px; font-weight: 600; color: var(--text-primary); display: inline; }
-  .header-left .brand { font-size: 11px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; }
+  .header-left .brand { font-size: 11px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; display:block; }
   .last-updated { font-size: 10px; color: var(--text-muted); font-weight: 400; }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .date-controls { display: flex; align-items: center; gap: 8px; }
 
-  /* THEME TOGGLE */
-  .theme-toggle { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; cursor: pointer; line-height: 1; transition: all 0.15s; display: inline-flex; align-items: center; justify-content: center; }
+  .theme-toggle { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; cursor: pointer; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
   .theme-toggle:hover { border-color: var(--border-hover); }
   .theme-toggle svg { width: 16px; height: 16px; fill: var(--text-primary); display: block; }
 
-  /* DATE PICKER */
   .date-picker-wrap { position: relative; }
   .date-picker-btn { padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border-hover); background: var(--bg-card); color: var(--text-primary); font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
   .date-picker-btn:hover { border-color: var(--text-muted); }
   .date-picker-btn svg { width: 14px; height: 14px; fill: var(--text-muted); }
-
-  .date-dropdown { position: absolute; top: calc(100% + 6px); right: 0; background: var(--bg-card); border: 1px solid var(--border-hover); border-radius: 12px; box-shadow: var(--dropdown-shadow); z-index: 100; display: none; min-width: 320px; }
-  .date-dropdown.open { display: flex; }
-  .date-presets { border-right: 1px solid var(--border); padding: 8px 0; min-width: 150px; }
-  .date-preset { padding: 8px 16px; font-size: 13px; color: var(--text-secondary); cursor: pointer; display: block; width: 100%; text-align: left; background: none; border: none; }
+  .date-dropdown { position: absolute; top: calc(100% + 6px); right: 0; background: var(--bg-card); border: 1px solid var(--border-hover); border-radius: 12px; box-shadow: var(--dropdown-shadow); z-index: 100; display: none; min-width: 180px; padding: 8px 0; }
+  .date-dropdown.open { display: block; }
+  .date-preset { padding: 9px 18px; font-size: 13px; color: var(--text-secondary); cursor: pointer; display: block; width: 100%; text-align: left; background: none; border: none; }
   .date-preset:hover { background: var(--bg-card-alt); color: var(--text-primary); }
-  .date-preset.active { background: var(--bg-card-alt); color: var(--accent); }
-  .date-custom { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-  .date-custom label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-  .date-custom input[type="date"] { padding: 7px 10px; border-radius: 6px; border: 1px solid var(--border-hover); background: var(--bg-input); color: var(--text-primary); font-size: 13px; width: 100%; }
-  .date-custom .apply-btn { padding: 8px 16px; border-radius: 8px; border: none; background: var(--accent); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 4px; }
-  .date-custom .apply-btn:hover { background: var(--accent-hover); }
-
-  /* Click outside to close */
+  .date-preset.active { background: var(--bg-card-alt); color: var(--accent); font-weight: 600; }
   .overlay { position: fixed; inset: 0; z-index: 99; display: none; }
   .overlay.open { display: block; }
 
-  .header-right { display: flex; align-items: center; gap: 12px; }
-  .date-controls { display: flex; align-items: center; gap: 8px; }
+  /* ========== SECTION SCAFFOLD ========== */
+  .section { padding: 0 24px 18px; }
+  .section-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin: 4px 0 12px; flex-wrap:wrap; }
+  .section-title { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; }
+  .section-sub { font-size: 11px; color: var(--text-muted); }
+  .eyebrow { font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 1.4px; font-weight: 700; }
 
-  /* KPI STRIP */
-  .kpi-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; padding: 16px 24px; }
+  /* ========== KPI STRIP ========== */
+  .kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 16px 24px; }
   .kpi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
-  .kpi-card .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-  .kpi-card .value { font-size: 20px; font-weight: 700; color: var(--text-primary); }
-  .kpi-card .sub { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+  .kpi-card .label { font-size: 10.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; display:flex; align-items:center; gap:4px; }
+  .kpi-card .value { font-size: 21px; font-weight: 700; color: var(--text-primary); line-height:1.1; }
+  .kpi-card .sub { font-size: 11px; color: var(--text-secondary); margin-top: 3px; }
+  .delta { font-weight: 600; }
+  .delta.up { color: var(--positive); } .delta.down { color: var(--negative); }
 
-  /* CHART SECTIONS */
-  .dashboard-body { display: flex; padding: 0 24px 16px; gap: 16px; }
-  .chart-area { flex: 1; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; min-height: 400px; min-width: 0; }
-  .chart-area h3 { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
-  .chart-wrap { position: relative; height: 360px; }
+  /* ========== CARDS / CHARTS ========== */
+  .grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+  .grid-3 { display:grid; grid-template-columns: repeat(3,1fr); gap:16px; }
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; min-width:0; }
+  .card h3 { font-size: 12.5px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+  .card .note { font-size: 11px; color: var(--text-muted); margin-top: 12px; line-height: 1.5; padding-top: 10px; border-top: 1px solid var(--border); }
+  .chart-wrap { position: relative; height: 300px; }
+  .chart-wrap.tall { height: 340px; }
 
-  .charts-row { display: flex; gap: 16px; padding: 0 24px 16px; }
-  .chart-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; min-width: 0; }
-  .chart-card h3 { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
-  .chart-card-wrap { position: relative; }
+  /* ========== INSIGHT CARDS ========== */
+  .insight-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap:12px; }
+  .insight-card { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 10px; padding: 14px 16px; }
+  .insight-card.warn { border-left-color: var(--warn); }
+  .insight-card.bad { border-left-color: var(--negative); }
+  .insight-card.good { border-left-color: var(--positive); }
+  .insight-kicker { font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); font-weight:700; margin-bottom:5px; }
+  .insight-head { font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+  .insight-body { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
 
-  /* PERFORMANCE TABLE */
-  .perf-table-section { padding: 0 24px 16px; }
-  .perf-table-wrap { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-  .perf-table-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px 10px; }
-  .perf-table-header h3 { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 0; }
-  .perf-table-scroll { overflow-x: auto; }
-  .perf-table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
-  .perf-table thead { position: sticky; top: 0; z-index: 1; }
-  .perf-table th { background: var(--table-header-bg); color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10px; padding: 8px 12px; text-align: center; border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; position: relative; }
-  .perf-table th:hover { color: var(--text-secondary); }
-  .perf-table th:first-child { text-align: left; position: sticky; left: 0; background: var(--table-header-bg); z-index: 2; min-width: 280px; }
-  .perf-table th .sort-arrow { font-size: 9px; margin-left: 3px; opacity: 0.3; }
-  .perf-table th.sorted .sort-arrow { opacity: 1; color: var(--sort-active); }
-  .perf-table td { padding: 7px 12px; text-align: center; border-bottom: 1px solid var(--table-border); color: var(--text-secondary); }
-  .perf-table td:first-child { text-align: left; font-weight: 600; color: var(--text-primary); position: sticky; left: 0; background: var(--bg-card); z-index: 1; max-width: 320px; overflow: hidden; text-overflow: ellipsis; }
-  .perf-table tbody tr:hover td { background: var(--table-hover); }
-  .perf-table tbody tr:hover td:first-child { background: var(--table-hover); }
-  .perf-table .positive { color: var(--positive); }
-  .perf-table .negative { color: var(--negative); }
-  .perf-table .subtle { color: var(--text-muted); }
-  .perf-table .highlight-best { background: var(--highlight-bg); color: var(--highlight-text); font-weight: 700; }
-  .perf-table .high-performer { background: var(--highlight-bg); }
-  .perf-table .high-performer td:first-child { background: var(--highlight-bg); }
+  /* ========== SUMMARY TILES (campaigns vs flows) ========== */
+  .split-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+  .split-tile { background: var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:18px 20px; }
+  .split-tile .st-label { font-size:11px; text-transform:uppercase; letter-spacing:0.6px; color:var(--text-muted); font-weight:700; }
+  .split-tile .st-rev { font-size:26px; font-weight:800; color:var(--text-primary); margin:6px 0 2px; }
+  .split-tile .st-row { display:flex; gap:18px; margin-top:12px; flex-wrap:wrap; }
+  .split-tile .st-stat .v { font-size:15px; font-weight:700; color:var(--text-primary); }
+  .split-tile .st-stat .k { font-size:10px; text-transform:uppercase; letter-spacing:0.4px; color:var(--text-muted); }
+  .split-bar { height:8px; border-radius:4px; background:var(--bg-card-alt); overflow:hidden; margin-top:14px; display:flex; }
+  .split-bar i { display:block; height:100%; }
 
-  .status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-  .status-live { background: rgba(22, 163, 74, 0.12); color: var(--positive); }
-  .status-draft { background: rgba(156, 163, 175, 0.15); color: var(--text-muted); }
+  /* ========== TABLES ========== */
+  .table-wrap { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .table-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px 10px; gap:12px; flex-wrap:wrap; }
+  .table-head h3 { font-size: 12.5px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 0; }
+  .table-scroll { overflow-x: auto; }
+  table.tbl { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+  table.tbl thead th { background: var(--table-header-bg); color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; font-size: 10px; padding: 9px 12px; text-align: right; border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; position:sticky; top:0; }
+  table.tbl thead th:first-child { text-align: left; position: sticky; left: 0; z-index:2; background: var(--table-header-bg); }
+  table.tbl thead th:hover { color: var(--text-secondary); }
+  table.tbl th .arr { font-size: 8px; margin-left: 3px; opacity: 0.35; }
+  table.tbl th.sorted .arr { opacity: 1; color: var(--sort-active); }
+  table.tbl td { padding: 8px 12px; text-align: right; border-bottom: 1px solid var(--table-border); color: var(--text-secondary); }
+  table.tbl td:first-child { text-align: left; font-weight: 600; color: var(--text-primary); position: sticky; left: 0; background: var(--bg-card); max-width: 360px; overflow: hidden; text-overflow: ellipsis; }
+  table.tbl tbody tr:hover td { background: var(--table-hover); }
+  table.tbl tbody tr:hover td:first-child { background: var(--table-hover); }
+  td .sub-line { font-weight:400; color: var(--text-muted); font-size:10.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; max-width:340px; }
+  .pos { color: var(--positive); } .neg { color: var(--negative); }
+  .rpr-good { color: var(--positive); font-weight: 700; }
+  .rpr-bad { color: var(--negative); font-weight: 700; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:700; letter-spacing:0.3px; }
+  .pill.audience { background: var(--accent-soft); color: var(--accent); }
+  .pill.type { background: var(--purple-soft); color: var(--purple); }
+  .pill.live { background: rgba(22,163,74,0.12); color: var(--positive); }
+  .pill.draft { background: rgba(124,58,237,0.12); color: var(--purple); }
+  .pill.missing { background: rgba(220,38,38,0.10); color: var(--negative); }
+  .pill.partial { background: rgba(217,119,6,0.14); color: var(--warn); }
 
-  /* INSIGHTS */
-  .insights-section { padding: 0 24px 24px; }
-  .insights-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
-  .insight-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; display: flex; gap: 12px; align-items: flex-start; }
-  .insight-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
-  .insight-icon.green { background: rgba(22, 163, 74, 0.1); }
-  .insight-icon.purple { background: rgba(124, 58, 237, 0.1); }
-  .insight-icon.amber { background: rgba(245, 158, 11, 0.1); }
-  .insight-icon.blue { background: rgba(59, 130, 246, 0.1); }
-  .insight-text { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
-  .insight-text strong { color: var(--text-primary); }
+  /* ========== FILTER BAR ========== */
+  .filterbar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .filterbar input, .filterbar select { padding:6px 10px; border-radius:8px; border:1px solid var(--border-hover); background: var(--bg-input); color: var(--text-primary); font-size:12px; }
+  .filterbar input { min-width: 180px; }
 
-  .section-title { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+  /* ========== WINNERS / LOSERS ========== */
+  .rank-list { display:flex; flex-direction:column; gap:6px; }
+  .rank-row { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; background: var(--bg-card-alt); }
+  .rank-no { width:22px; height:22px; flex-shrink:0; border-radius:50%; background: var(--accent); color:#fff; font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  .rank-no.bad { background: var(--negative); }
+  .rank-body { flex:1; min-width:0; }
+  .rank-name { font-size:12px; font-weight:600; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .rank-meta { font-size:10px; color:var(--text-muted); margin-top:2px; }
+  .rank-stat { text-align:right; flex-shrink:0; min-width:78px; }
+  .rank-stat .v { font-size:13px; font-weight:700; color:var(--text-primary); }
+  .rank-stat .k { font-size:9px; text-transform:uppercase; letter-spacing:0.4px; color:var(--text-muted); }
 
-  /* DATA SOURCE */
-  .data-source { text-align: center; padding: 16px 24px 24px; font-size: 11px; color: var(--text-muted); }
+  /* ========== OPPORTUNITIES ========== */
+  .opp-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(330px,1fr)); gap:12px; }
+  .opp-card { background: var(--bg-card); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:10px; padding:16px; }
+  .opp-rank { font-size:10px; color:var(--accent); font-weight:800; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
+  .opp-title { font-size:14.5px; font-weight:700; color:var(--text-primary); margin-bottom:8px; }
+  .opp-body { font-size:12px; color:var(--text-secondary); line-height:1.55; margin-bottom:12px; }
+  .opp-stats { display:flex; gap:18px; padding-top:10px; border-top:1px solid var(--border); }
+  .opp-stat { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.4px; }
+  .opp-stat strong { display:block; font-size:13px; color:var(--text-primary); margin-top:2px; text-transform:none; letter-spacing:0; }
 
-  .info-tip { display: inline-block; font-size: 10px; opacity: 0.5; cursor: help; margin-left: 2px; }
-  .tooltip-popup { position: fixed; background: #111; color: #fff; font-size: 11px; padding: 5px 10px; border-radius: 6px; pointer-events: none; font-weight: 400; text-transform: none; letter-spacing: 0; z-index: 9999; box-shadow: 0 2px 8px rgba(0,0,0,0.4); display: none; border: 1px solid #333; max-width: 90vw; white-space: normal; }
-  [data-theme="light"] .tooltip-popup { background: #1a1a1a; color: #fff; border-color: #333; }
+  /* ========== MISC ========== */
+  .data-source { text-align:center; padding: 8px 24px 30px; font-size: 11px; color: var(--text-muted); line-height:1.6; }
+  .info-tip { display:inline-block; font-size:10px; opacity:0.5; cursor:help; }
+  .tooltip-popup { position: fixed; background: #111; color: #fff; font-size: 11px; padding: 6px 10px; border-radius: 6px; pointer-events: none; z-index: 9999; display: none; border: 1px solid #333; max-width: 280px; white-space: normal; line-height:1.4; }
+  details.method { background: var(--bg-card); border:1px solid var(--border); border-radius:10px; padding: 4px 16px; margin: 0 24px 16px; }
+  details.method summary { cursor:pointer; font-size:12px; font-weight:600; color:var(--text-secondary); padding:10px 0; }
+  details.method .m-body { font-size:11.5px; color:var(--text-secondary); line-height:1.6; padding-bottom:12px; }
+  details.method .m-body b { color: var(--text-primary); }
+  .loading { padding:60px 24px; text-align:center; color:var(--text-muted); font-size:13px; }
 
-  /* RESPONSIVE */
   @media (max-width: 1100px) {
-    .kpi-strip { grid-template-columns: repeat(3, 1fr); }
-    .charts-row { flex-direction: column; }
-    .dashboard-body { flex-direction: column; }
-  }
-  @media (max-width: 700px) {
     .kpi-strip { grid-template-columns: repeat(2, 1fr); }
-    .header { flex-direction: column; align-items: flex-start; }
-    .date-dropdown { right: auto; left: 0; }
-    .insights-grid { grid-template-columns: 1fr; }
-    .page-nav { overflow-x: auto; }
+    .grid-2, .grid-3, .split-grid { grid-template-columns: 1fr; }
   }
-
-  /* ════════════════════════════════════════════════
-     STRATEGIC ANALYSIS SECTIONS
-     ════════════════════════════════════════════════ */
-  .strategic-banner { padding: 24px 24px 8px; }
-  .strategic-banner-inner { background: linear-gradient(135deg, rgba(13,148,136,0.06) 0%, rgba(124,58,237,0.04) 100%); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; }
-  [data-theme="dark"] .strategic-banner-inner { background: linear-gradient(135deg, rgba(52,211,153,0.08) 0%, rgba(228,193,249,0.06) 100%); }
-  .strategic-eyebrow { font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
-  .strategic-h2 { font-size: 20px; font-weight: 700; color: var(--text-primary); margin: 4px 0 4px; }
-  .strategic-period { font-size: 12px; color: var(--text-muted); }
-  .strategic-toplines { display: flex; gap: 24px; flex-wrap: wrap; }
-  .topline-block { min-width: 110px; }
-  .topline-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; }
-  .topline-value { font-size: 18px; font-weight: 700; color: var(--text-primary); }
-
-  .chart-note { font-size: 11px; color: var(--text-muted); margin-top: 12px; line-height: 1.5; padding-top: 10px; border-top: 1px solid var(--border); }
-
-  /* Winners/losers list */
-  .winners-list { display: flex; flex-direction: column; gap: 6px; }
-  .winner-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; background: var(--bg-card-alt); }
-  .winner-rank { width: 22px; height: 22px; flex-shrink: 0; border-radius: 50%; background: var(--accent); color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
-  .loser-rank { background: var(--negative); }
-  .winner-body { flex: 1; min-width: 0; }
-  .winner-name { font-size: 12px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .winner-meta { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
-  .winner-stat { text-align: right; flex-shrink: 0; min-width: 90px; }
-  .winner-stat-value { font-size: 13px; font-weight: 700; color: var(--text-primary); }
-  .winner-stat-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
-
-  /* Status pills for flows */
-  .status-pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
-  .status-live { background: rgba(22,163,74,0.12); color: var(--positive); }
-  .status-partial { background: rgba(245,158,11,0.15); color: #d97706; }
-  .status-missing { background: rgba(220,38,38,0.10); color: var(--negative); }
-  .status-draft { background: rgba(124,58,237,0.10); color: #7c3aed; }
-  [data-theme="dark"] .status-live { background: rgba(34,197,94,0.16); color: var(--positive); }
-  [data-theme="dark"] .status-partial { background: rgba(245,158,11,0.18); color: #fbbf24; }
-  [data-theme="dark"] .status-missing { background: rgba(239,68,68,0.16); color: var(--negative); }
-  [data-theme="dark"] .status-draft { background: rgba(228,193,249,0.15); color: #E4C1F9; }
-
-  /* Opportunity cards */
-  .opportunities-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
-  .opportunity-card { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 10px; padding: 16px; }
-  .opportunity-rank { font-size: 10px; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-  .opportunity-title { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
-  .opportunity-body { font-size: 12px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px; }
-  .opportunity-stats { display: flex; gap: 16px; padding-top: 10px; border-top: 1px solid var(--border); }
-  .opportunity-stat { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-  .opportunity-stat strong { display: block; font-size: 13px; color: var(--text-primary); margin-top: 2px; text-transform: none; letter-spacing: 0; }
-
-  /* Audience/Type table — RPR cell colour scale */
-  .perf-table .rpr-good { color: var(--positive); font-weight: 600; }
-  .perf-table .rpr-bad { color: var(--negative); font-weight: 600; }
+  @media (max-width: 820px) {
+    .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+  }
 </style>
 </head>
 <body>
 <div class="tooltip-popup" id="tooltipPopup"></div>
 
-<!-- PAGE NAV -->
+<!-- ========== SIDEBAR ========== -->
 <aside id="ksb" class="ksb">
 <div class="ksb-brand">Karmic Skin</div>
 <nav class="ksb-section">
@@ -250,8 +218,6 @@
 </aside>
 <style>
 body { padding-left: 208px; }
-.header { top: 0 !important; }
-.page-nav, .nav-bar { display: none !important; }
 .ksb { position: fixed; top: 0; left: 0; bottom: 0; width: 208px; background: #26403d; color: #c8dbd8; z-index: 40; overflow-y: auto; transform: translateZ(0); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
 .ksb-brand { color: #fff; font-weight: 700; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; padding: 17px 20px; border-bottom: 1px solid rgba(255,255,255,.09); }
 .ksb-section { border-bottom: 1px solid rgba(255,255,255,.07); }
@@ -278,326 +244,198 @@ body { padding-left: 208px; }
   if (a) a.classList.add('ksb-active');
 })();
 </script>
-<nav class="page-nav">
-  <a href="index.html">Shopify</a>
-  <a href="meta.html">Meta</a>
-  <a href="email.html" class="active">Email</a>
-  <a href="inventory.html">Inventory</a>
-  <a href="amazon.html">Amazon</a>
-  <a href="pnl.html">P&L</a>
-  <a href="worklist.html">Work List</a>
-  <a href="instagram-scheduler.html">Instagram</a>
-</nav>
 
 <div class="overlay" id="overlay"></div>
 
-<!-- HEADER -->
+<!-- ========== HEADER ========== -->
 <header class="header">
   <div class="header-left">
-    <div class="brand">KARMIC SKIN</div>
-    <h1>Email Marketing Dashboard</h1>
+    <span class="brand">KARMIC SKIN</span>
+    <h1>Email Intelligence</h1>
   </div>
   <div class="date-controls">
-    <div style="text-align:right;margin-right:8px"><span class="last-updated" id="lastUpdated"></span></div>
+    <span class="last-updated" id="lastUpdated"></span>
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Switch theme" aria-label="Switch theme"></button>
     <div class="date-picker-wrap">
       <button class="date-picker-btn" id="datePickerBtn" onclick="toggleDatePicker()">
         <svg viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 1h10a1 1 0 011 1v1H4V5a1 1 0 011-1zm-1 4h12v7a1 1 0 01-1 1H5a1 1 0 01-1-1V8z"/></svg>
-        <span id="dateLabel">Month to date</span>
+        <span id="dateLabel">Last 12 months</span>
         <svg viewBox="0 0 20 20" style="width:10px;height:10px"><path d="M10 13l-5-5h10z"/></svg>
       </button>
       <div class="date-dropdown" id="dateDropdown">
-        <div class="date-presets">
-          <button class="date-preset" data-preset="yesterday">Yesterday</button>
-          <button class="date-preset active" data-preset="mtd">Month to date</button>
-          <button class="date-preset" data-preset="ytd">Year to date</button>
-          <button class="date-preset" data-preset="last7">Last 7 days</button>
-          <button class="date-preset" data-preset="last30">Last 30 days</button>
-          <button class="date-preset" data-preset="last90">Last 90 days</button>
-          <button class="date-preset" data-preset="lastMonth">Last month</button>
-          <button class="date-preset" data-preset="last12m">Last 12 months</button>
-          <button class="date-preset" data-preset="lastYear">Last year</button>
-        </div>
-        <div class="date-custom">
-          <div><label>Starting</label><input type="date" id="dateFrom"></div>
-          <div><label>Ending</label><input type="date" id="dateTo"></div>
-          <button class="apply-btn" onclick="applyCustomDates()">Apply</button>
-        </div>
+        <button class="date-preset" data-preset="thisMonth">This month</button>
+        <button class="date-preset" data-preset="lastMonth">Last month</button>
+        <button class="date-preset" data-preset="last3m">Last 3 months</button>
+        <button class="date-preset" data-preset="last6m">Last 6 months</button>
+        <button class="date-preset active" data-preset="last12m">Last 12 months</button>
+        <button class="date-preset" data-preset="thisYear">This year</button>
       </div>
     </div>
   </div>
 </header>
 
-<!-- KPI CARDS -->
-<section class="kpi-strip">
-  <div class="kpi-card">
-    <div class="label">Total Email Revenue <span class="info-tip" data-tip="Sum of placed_order_value across all months">ⓘ</span></div>
-    <div class="value" id="kpiTotalRev">--</div>
-    <div class="sub" id="kpiTotalRevSub">Loading...</div>
-  </div>
-  <div class="kpi-card">
-    <div class="label">Emails Sent <span class="info-tip" data-tip="Total emails sent in selected period">ⓘ</span></div>
-    <div class="value" id="kpiEmailsSent">--</div>
-    <div class="sub" id="kpiEmailsSentSub">Loading...</div>
-  </div>
-  <div class="kpi-card">
-    <div class="label">Total Orders <span class="info-tip" data-tip="Orders attributed to email marketing">ⓘ</span></div>
-    <div class="value" id="kpiOrders">--</div>
-    <div class="sub" id="kpiOrdersSub">Loading...</div>
-  </div>
-  <div class="kpi-card">
-    <div class="label">Avg Open Rate <span class="info-tip" data-tip="Weighted avg of Klaviyo per-campaign &amp; per-flow open rates (unique opens &divide; delivered)">ⓘ</span></div>
-    <div class="value" id="kpiOpenRate">--</div>
-    <div class="sub">Industry avg: ~30-40%</div>
-  </div>
-  <div class="kpi-card">
-    <div class="label">Avg Click Rate <span class="info-tip" data-tip="Weighted avg of Klaviyo per-campaign &amp; per-flow click rates (unique clicks &divide; delivered)">ⓘ</span></div>
-    <div class="value" id="kpiClickRate">--</div>
-    <div class="sub">Industry avg: ~1-2%</div>
-  </div>
-  <div class="kpi-card">
-    <div class="label">Revenue Per Recipient <span class="info-tip" data-tip="Total email revenue &divide; Total unique recipients">ⓘ</span></div>
-    <div class="value" id="kpiRPR">--</div>
-    <div class="sub" id="kpiRPRSub">Loading...</div>
-  </div>
-</section>
+<div id="app">
+  <div class="loading" id="loadingMsg">Loading email intelligence from Supabase…</div>
+</div>
 
-<!-- MONTHLY REVENUE TREND -->
-<section class="dashboard-body">
-  <div class="chart-area" style="flex:1;">
-    <h3>Monthly Email-Attributed Revenue</h3>
-    <div class="chart-wrap">
-      <canvas id="monthlyRevenueChart"></canvas>
-    </div>
-  </div>
-</section>
+<!-- ========== TEMPLATE (filled by JS) ========== -->
+<div id="content" style="display:none">
 
-<!-- ENGAGEMENT TRENDS -->
-<section class="dashboard-body">
-  <div class="chart-area" style="flex:1;">
-    <h3>Monthly Engagement Trends</h3>
-    <div class="chart-wrap">
-      <canvas id="engagementTrendChart"></canvas>
-    </div>
-  </div>
-</section>
+  <!-- KPI STRIP -->
+  <section class="kpi-strip" id="kpiStrip"></section>
 
-<!-- MONTHLY PERFORMANCE TABLE -->
-<section class="perf-table-section">
-  <div class="perf-table-wrap">
-    <div class="perf-table-header">
-      <h3>Monthly Performance</h3>
-      <span style="font-size:11px; color:var(--text-muted);" id="monthlyTableSummary">Loading...</span>
-    </div>
-    <div class="perf-table-scroll">
-      <table class="perf-table" id="monthlyTable">
-        <thead>
-          <tr>
-            <th onclick="sortTable('monthlyTable', 0, 'date')">Month <span class="sort-arrow">&#9650;</span></th>
-            <th onclick="sortTable('monthlyTable', 1, 'number')">Emails Sent <span class="sort-arrow">&#9650;</span></th>
-            <th onclick="sortTable('monthlyTable', 2, 'number')">Recipients <span class="sort-arrow">&#9650;</span></th>
-            <th onclick="sortTable('monthlyTable', 3, 'number')">Open Rate <span class="sort-arrow">&#9650;</span></th>
-            <th onclick="sortTable('monthlyTable', 4, 'number')">Click Rate <span class="sort-arrow">&#9650;</span></th>
-            <th onclick="sortTable('monthlyTable', 5, 'number')">Bounced <span class="sort-arrow">&#9650;</span></th>
-            <th onclick="sortTable('monthlyTable', 6, 'number')">Unsubscribes <span class="sort-arrow">&#9650;</span></th>
-            <th onclick="sortTable('monthlyTable', 7, 'number')">Orders <span class="sort-arrow">&#9650;</span></th>
-            <th onclick="sortTable('monthlyTable', 8, 'number')">Revenue <span class="sort-arrow">&#9650;</span></th>
-            <th onclick="sortTable('monthlyTable', 9, 'number')">RPR <span class="sort-arrow">&#9650;</span></th>
-          </tr>
-        </thead>
-        <tbody id="monthlyTableBody">
-        </tbody>
-      </table>
-    </div>
-  </div>
-</section>
+  <!-- HEADLINE INSIGHTS -->
+  <section class="section">
+    <div class="section-head"><span class="eyebrow">What the data says</span><span class="section-sub" id="insightPeriod"></span></div>
+    <div class="insight-grid" id="insightGrid"></div>
+  </section>
 
-<!-- CAMPAIGN & FLOW PERFORMANCE -->
-<!-- ════════════════════════════════════════════════════════════════
-     STRATEGIC ANALYSIS SECTIONS (snapshot, refreshed manually)
-     Period: 25 Oct 2025 – 25 Apr 2026 (6 months)
-     Source: Klaviyo MCP metric aggregates + flow-values report
-     ════════════════════════════════════════════════════════════════ -->
-
-<section class="strategic-banner">
-  <div class="strategic-banner-inner">
-    <div>
-      <span class="strategic-eyebrow">STRATEGIC SNAPSHOT</span>
-      <h2 class="strategic-h2">Campaign &amp; Flow Performance</h2>
-      <div class="strategic-period">25 Oct 2025 – 25 Apr 2026 &middot; <span id="strategicAnalyzedDate">Last analysed: 25 Apr 2026</span></div>
-    </div>
-    <div class="strategic-toplines">
-      <div class="topline-block">
-        <div class="topline-label">Total email revenue</div>
-        <div class="topline-value" id="topRevenue">£93,564</div>
+  <!-- REVENUE OVER TIME + ENGAGEMENT -->
+  <section class="section">
+    <div class="grid-2">
+      <div class="card">
+        <h3>Email revenue over time — campaigns vs flows</h3>
+        <div class="chart-wrap tall"><canvas id="revChart"></canvas></div>
+        <div class="note" id="revNote"></div>
       </div>
-      <div class="topline-block">
-        <div class="topline-label">Campaigns vs Flows</div>
-        <div class="topline-value" id="topSplit">80% / 20%</div>
-      </div>
-      <div class="topline-block">
-        <div class="topline-label">Campaign avg RPR</div>
-        <div class="topline-value" id="topCampaignRPR">£0.124</div>
-      </div>
-      <div class="topline-block">
-        <div class="topline-label">Flow avg RPR</div>
-        <div class="topline-value" id="topFlowRPR">£0.522</div>
+      <div class="card">
+        <h3>Engagement over time (campaign sends)</h3>
+        <div class="chart-wrap tall"><canvas id="engChart"></canvas></div>
+        <div class="note">Open and click rates are unique-of-delivered, weighted across all campaigns sent that month. Flows excluded so promotional engagement is not diluted.</div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- AUDIENCE & TYPE PERFORMANCE -->
-<section class="charts-row">
-  <div class="chart-card" style="flex: 1;">
-    <h3>Revenue per Recipient by Audience</h3>
-    <div class="chart-card-wrap" style="height: 360px;">
-      <canvas id="audienceRPRChart"></canvas>
+  <!-- LIST GROWTH + DELIVERABILITY -->
+  <section class="section">
+    <div class="grid-2">
+      <div class="card">
+        <h3>List growth — subscribes vs unsubscribes</h3>
+        <div class="chart-wrap"><canvas id="growthChart"></canvas></div>
+        <div class="note" id="growthNote"></div>
+      </div>
+      <div class="card">
+        <h3>Deliverability health (campaign sends)</h3>
+        <div class="chart-wrap"><canvas id="delivChart"></canvas></div>
+        <div class="note">Healthy guide rails: bounce &lt; 2%, spam &lt; 0.08%, unsubscribe &lt; 0.5%. Spikes usually mean a cold segment was included.</div>
+      </div>
     </div>
-    <div class="chart-note">Repeat purchasers (2x+) generate 5–11× more revenue per email than 0x Purchasers. Engaged opens look great (54%) but RPR is the same as Whole List — open rate is misleading.</div>
-  </div>
-  <div class="chart-card" style="flex: 1;">
-    <h3>Revenue per Recipient by Type</h3>
-    <div class="chart-card-wrap" style="height: 360px;">
-      <canvas id="typeRPRChart"></canvas>
-    </div>
-    <div class="chart-note">Offers earn 58% more per recipient than Education (£0.16 vs £0.10). Birthday/anniversary &ldquo;a gift for us&rdquo; emotional template is the strongest pattern of the period.</div>
-  </div>
-</section>
+  </section>
 
-<!-- AUDIENCE TABLE -->
-<section class="perf-table-section">
-  <div class="perf-table-wrap">
-    <div class="perf-table-header">
-      <h3>Audience Effectiveness</h3>
-      <span style="font-size:11px; color:var(--text-muted);">Higher RPR = higher leverage. Cohorts with low n_campaigns &amp; high RPR are under-utilised.</span>
-    </div>
-    <div class="perf-table-scroll">
-      <table class="perf-table" id="audienceTable">
-        <thead>
-          <tr>
-            <th>Audience</th>
-            <th>Campaigns</th>
-            <th>Recipients</th>
-            <th>Open %</th>
-            <th>Click %</th>
-            <th>Orders</th>
-            <th>Revenue</th>
-            <th>RPR</th>
-            <th>Read</th>
-          </tr>
-        </thead>
-        <tbody id="audienceTableBody"></tbody>
-      </table>
-    </div>
-  </div>
-</section>
+  <!-- CAMPAIGNS VS FLOWS SPLIT -->
+  <section class="section">
+    <div class="section-head"><span class="section-title">Campaigns vs flows</span><span class="section-sub">Flows are always-on automations. Figures are the trailing 12 months.</span></div>
+    <div class="split-grid" id="splitGrid"></div>
+  </section>
 
-<!-- TYPE TABLE -->
-<section class="perf-table-section">
-  <div class="perf-table-wrap">
-    <div class="perf-table-header">
-      <h3>Type / Theme Effectiveness</h3>
-      <span style="font-size:11px; color:var(--text-muted);">Education that names a product converts. Brand-essay Education does not.</span>
+  <!-- CAMPAIGN EXPLORER -->
+  <section class="section">
+    <div class="table-wrap">
+      <div class="table-head">
+        <h3>Campaign explorer</h3>
+        <div class="filterbar">
+          <input type="text" id="campSearch" placeholder="Search name or subject…" oninput="renderExplorer()">
+          <select id="campAudience" onchange="renderExplorer()"><option value="">All audiences</option></select>
+          <select id="campType" onchange="renderExplorer()"><option value="">All types</option></select>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="tbl" id="campTable">
+          <thead><tr id="campHead"></tr></thead>
+          <tbody id="campBody"></tbody>
+        </table>
+      </div>
     </div>
-    <div class="perf-table-scroll">
-      <table class="perf-table" id="typeTable">
-        <thead>
-          <tr>
-            <th>Type / Theme</th>
-            <th>Campaigns</th>
-            <th>Recipients</th>
-            <th>Open %</th>
-            <th>Click %</th>
-            <th>Orders</th>
-            <th>Revenue</th>
-            <th>RPR</th>
-          </tr>
-        </thead>
-        <tbody id="typeTableBody"></tbody>
-      </table>
-    </div>
-  </div>
-</section>
+  </section>
 
-<!-- WINNERS & LOSERS -->
-<section class="charts-row">
-  <div class="chart-card" style="flex: 1;">
-    <h3>Top 10 Campaigns by Revenue</h3>
-    <div class="winners-list" id="winnersList"></div>
-  </div>
-  <div class="chart-card" style="flex: 1;">
-    <h3>Top 10 Campaigns by Lowest RPR (n &ge; 200)</h3>
-    <div class="winners-list" id="losersList"></div>
-  </div>
-</section>
-
-<!-- FLOW PERFORMANCE -->
-<section class="perf-table-section">
-  <div class="perf-table-wrap">
-    <div class="perf-table-header">
-      <h3>Flow Performance</h3>
-      <span style="font-size:11px; color:var(--text-muted);">Flows convert ~4× harder than campaigns. Only 3 are live.</span>
+  <!-- WINNERS / LOSERS -->
+  <section class="section">
+    <div class="grid-2">
+      <div class="card"><h3>Top campaigns by revenue per recipient (n &ge; 1,000)</h3><div class="rank-list" id="winners"></div></div>
+      <div class="card"><h3>Lowest revenue per recipient — the bleed (n &ge; 1,000)</h3><div class="rank-list" id="losers"></div></div>
     </div>
-    <div class="perf-table-scroll">
-      <table class="perf-table" id="flowsTable">
-        <thead>
-          <tr>
-            <th>Flow</th>
-            <th>Trigger</th>
-            <th>Status</th>
-            <th>Recipients</th>
-            <th>Open %</th>
-            <th>Click %</th>
-            <th>Orders</th>
-            <th>Revenue</th>
-            <th>RPR</th>
-          </tr>
-        </thead>
-        <tbody id="flowsTableBody"></tbody>
-      </table>
-    </div>
-  </div>
-</section>
+  </section>
 
-<!-- FLOW GAP ANALYSIS -->
-<section class="perf-table-section">
-  <div class="perf-table-wrap">
-    <div class="perf-table-header">
-      <h3>Flow Gap Analysis &mdash; What&apos;s missing</h3>
-      <span style="font-size:11px; color:var(--text-muted);">Of 13 standard D2C flows, 3 are live, 1 is partial, 9 are missing.</span>
+  <!-- AUDIENCE & TYPE LEVERAGE -->
+  <section class="section">
+    <div class="grid-2">
+      <div class="card">
+        <h3>Revenue per recipient by audience</h3>
+        <div class="chart-wrap"><canvas id="audChart"></canvas></div>
+        <div class="note">The single most important chart for allocation. Send more to the bars above the line, less to those below it.</div>
+      </div>
+      <div class="card">
+        <h3>Revenue per recipient by content type</h3>
+        <div class="chart-wrap"><canvas id="typeChart"></canvas></div>
+        <div class="note">Offers and review-asks earn the most per email. Pure education engages but rarely converts. The dashed line is the campaign average.</div>
+      </div>
     </div>
-    <div class="perf-table-scroll">
-      <table class="perf-table" id="flowGapTable">
-        <thead>
-          <tr>
-            <th style="width:40px;">&nbsp;</th>
-            <th>Flow</th>
-            <th>Status</th>
-            <th>Estimated annual uplift if built</th>
-            <th>Notes</th>
-          </tr>
-        </thead>
-        <tbody id="flowGapTableBody"></tbody>
-      </table>
+  </section>
+
+  <!-- AUDIENCE TABLE -->
+  <section class="section">
+    <div class="table-wrap">
+      <div class="table-head"><h3>Audience effectiveness</h3><span class="section-sub">High RPR + few sends = under-used leverage. Low RPR + high volume = deliverability drag.</span></div>
+      <div class="table-scroll"><table class="tbl" id="audTable"><thead><tr id="audHead"></tr></thead><tbody id="audBody"></tbody></table></div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- STRATEGIC FINDINGS -->
-<section class="insights-section">
-  <div class="section-title">5 Biggest Opportunities &mdash; Ranked</div>
-  <div class="opportunities-grid" id="opportunitiesGrid"></div>
-  <div style="font-size: 11px; color: var(--text-muted); padding: 12px 8px 0;">Combined estimated uplift if all 5 executed: <strong>£50–85k/yr</strong> &mdash; roughly the same as the current 6-month campaign revenue.</div>
-</section>
+  <!-- SEND TIMING -->
+  <section class="section">
+    <div class="grid-2">
+      <div class="card">
+        <h3>Performance by send day</h3>
+        <div class="chart-wrap"><canvas id="dowChart"></canvas></div>
+        <div class="note" id="dowNote"></div>
+      </div>
+      <div class="card">
+        <h3>Payday window vs mid-month</h3>
+        <div class="chart-wrap"><canvas id="paydayChart"></canvas></div>
+        <div class="note">Sends in the payday window (22nd to 7th) ride the UK payday spending bump. A like-for-like mid-month send will look weaker. Always read sale revenue with this in mind.</div>
+      </div>
+    </div>
+  </section>
 
-<!-- DATA SOURCE -->
-<div class="data-source" id="dataSource">Data source: Klaviyo via Supabase &middot; Loading...</div>
+  <!-- FLOW PERFORMANCE -->
+  <section class="section">
+    <div class="table-wrap">
+      <div class="table-head"><h3>Flow performance</h3><span class="section-sub">Automations convert far harder than broadcasts. Trailing 12 months.</span></div>
+      <div class="table-scroll"><table class="tbl" id="flowTable"><thead><tr id="flowHead"></tr></thead><tbody id="flowBody"></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- FLOW GAP -->
+  <section class="section">
+    <div class="table-wrap">
+      <div class="table-head"><h3>Flow gap analysis — what is missing</h3><span class="section-sub">Live status pulled from Klaviyo. Uplift figures are planning estimates.</span></div>
+      <div class="table-scroll"><table class="tbl" id="gapTable">
+        <thead><tr><th style="width:34px"></th><th>Lifecycle flow</th><th style="text-align:left">Status</th><th style="text-align:left">Estimated annual uplift if built</th><th style="text-align:left">Note</th></tr></thead>
+        <tbody id="gapBody"></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- OPPORTUNITIES -->
+  <section class="section">
+    <div class="section-head"><span class="eyebrow">Biggest opportunities, ranked</span></div>
+    <div class="opp-grid" id="oppGrid"></div>
+    <div style="font-size:11px;color:var(--text-muted);padding:12px 2px 0;" id="oppFooter"></div>
+  </section>
+
+  <!-- METHODOLOGY -->
+  <details class="method">
+    <summary>Methodology &amp; caveats</summary>
+    <div class="m-body" id="methodBody"></div>
+  </details>
+
+</div>
+
+<div class="data-source" id="dataSource"></div>
 
 <script>
-// ══════════════════════════════════════════════════════
-// SUPABASE CONFIG
-// ══════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════
+// SUPABASE CONFIG (anon key is public + RLS-protected)
+// ════════════════════════════════════════════════════════════════
 const SUPABASE_URL = 'https://unmkzatppwftnasafhlb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVubWt6YXRwcHdmdG5hc2FmaGxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDQ5OTIsImV4cCI6MjA4NjU4MDk5Mn0.SYQm1km08xwlJSIf9jq8DXH3Ijxbxqk_LpTRh0PZhD4';
 let USER_JWT = SUPABASE_KEY;
@@ -606,853 +444,674 @@ let USER_JWT = SUPABASE_KEY;
     const stored = JSON.parse(localStorage.getItem('ks-dashboard-auth') || 'null');
     if (stored && stored.access_token && stored.expires_at && stored.expires_at > Math.floor(Date.now()/1000)) {
       USER_JWT = stored.access_token;
-    } else {
-      window.location.href = 'index.html';
-    }
+    } else { window.location.href = 'index.html'; }
   } catch { window.location.href = 'index.html'; }
 })();
 
-// All fetched data lives here
-let allData = [];
-let filteredData = [];
-
-// Chart instances
-let monthlyChart = null;
-let engagementChart = null;
-
-// ══════════════════════════════════════════════════════
-// THEME TOGGLE (preserved)
-// ══════════════════════════════════════════════════════
-// Monochrome theme icons \u2014 picks up colour from var(--text-primary) via CSS fill.
-const THEME_ICON_SUN = '<svg viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 000-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/></svg>';
-const THEME_ICON_MOON = '<svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 109 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 01-4.4 2.26 5.403 5.403 0 01-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>';
-function setThemeIcon(isDark) {
-  document.getElementById('themeToggle').innerHTML = isDark ? THEME_ICON_SUN : THEME_ICON_MOON;
-}
-function toggleTheme() {
+// ════════════════════════════════════════════════════════════════
+// THEME
+// ════════════════════════════════════════════════════════════════
+const ICON_SUN = '<svg viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 000-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/></svg>';
+const ICON_MOON = '<svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 109 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 01-4.4 2.26 5.403 5.403 0 01-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>';
+function setThemeIcon(isDark){ document.getElementById('themeToggle').innerHTML = isDark ? ICON_SUN : ICON_MOON; }
+function toggleTheme(){
   const html = document.documentElement;
   const isDark = html.getAttribute('data-theme') === 'dark';
   html.setAttribute('data-theme', isDark ? '' : 'dark');
   setThemeIcon(!isDark);
   localStorage.setItem('ks-theme', isDark ? 'light' : 'dark');
-  updateChartThemes();
+  renderAll();
 }
-(function() {
+(function(){
   const saved = localStorage.getItem('ks-theme');
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   const isDark = saved ? saved === 'dark' : prefersDark;
   if (isDark) document.documentElement.setAttribute('data-theme', 'dark');
   setThemeIcon(isDark);
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-    if (!localStorage.getItem('ks-theme')) {
-      document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : '');
-      setThemeIcon(e.matches);
-      updateChartThemes();
-    }
-  });
 })();
+function cssv(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function chartTheme(){ return { grid: cssv('--chart-grid'), tick: cssv('--chart-tick'), tipBg: cssv('--tooltip-bg'), tipTitle: cssv('--tooltip-title'), tipBody: cssv('--tooltip-body'), tipBorder: cssv('--tooltip-border') }; }
 
-function getThemeColors() {
-  const s = getComputedStyle(document.documentElement);
-  return {
-    grid: s.getPropertyValue('--chart-grid').trim(),
-    tick: s.getPropertyValue('--chart-tick').trim(),
-    tooltipBg: s.getPropertyValue('--tooltip-bg').trim(),
-    tooltipTitle: s.getPropertyValue('--tooltip-title').trim(),
-    tooltipBody: s.getPropertyValue('--tooltip-body').trim(),
-    tooltipBorder: s.getPropertyValue('--tooltip-border').trim(),
-    textPrimary: s.getPropertyValue('--text-primary').trim(),
-    textSecondary: s.getPropertyValue('--text-secondary').trim(),
-    accent: s.getPropertyValue('--accent').trim(),
-  };
-}
-
-// ══════════════════════════════════════════════════════
-// DATE PICKER (matching Shopify dashboard exactly)
-// ══════════════════════════════════════════════════════
-let activePreset = 'mtd';
-
-// DATE HELPERS (matching Shopify exactly)
-function fmtDate(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
-function fmtDisplay(dateStr) {
-  const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-}
-
-function getPresetDates(preset) {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
-
-  switch(preset) {
-    case 'yesterday': return { from: fmtDate(yesterday), to: fmtDate(yesterday), label: 'Yesterday' };
-    case 'last7': {
-      const from = new Date(yesterday); from.setDate(yesterday.getDate() - 6);
-      return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Last 7 days' };
-    }
-    case 'last30': {
-      const from = new Date(yesterday); from.setDate(yesterday.getDate() - 29);
-      return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Last 30 days' };
-    }
-    case 'last90': {
-      const from = new Date(yesterday); from.setDate(yesterday.getDate() - 89);
-      return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Last 90 days' };
-    }
-    case 'mtd': {
-      const from = new Date(today.getFullYear(), today.getMonth(), 1);
-      return { from: fmtDate(from), to: fmtDate(today), label: 'Month to date' };
-    }
-    case 'lastMonth': {
-      const from = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-      const to = new Date(today.getFullYear(), today.getMonth(), 0);
-      return { from: fmtDate(from), to: fmtDate(to), label: 'Last month' };
-    }
-    case 'ytd': {
-      const from = new Date(today.getFullYear(), 0, 1);
-      return { from: fmtDate(from), to: fmtDate(today), label: 'Year to date' };
-    }
-    case 'last12m': {
-      const from = new Date(yesterday); from.setFullYear(yesterday.getFullYear() - 1); from.setDate(from.getDate() + 1);
-      return { from: fmtDate(from), to: fmtDate(yesterday), label: 'Last 12 months' };
-    }
-    case 'lastYear': {
-      const from = new Date(today.getFullYear() - 1, 0, 1);
-      const to = new Date(today.getFullYear() - 1, 11, 31);
-      return { from: fmtDate(from), to: fmtDate(to), label: `${today.getFullYear() - 1}` };
-    }
-    default: return null;
-  }
-}
-
-// Filter monthly data by date range
-function getFilteredData(from, to) {
-  if (!allData.length) return [];
-  // A month "YYYY-MM" overlaps [from, to] if month-start <= to AND month-end >= from
-  const fromMonth = from.substring(0, 7);
-  const toMonth = to.substring(0, 7);
-  return allData.filter(r => r.report_month >= fromMonth && r.report_month <= toMonth);
-}
-
-// DATE PICKER
-function toggleDatePicker() {
-  const dd = document.getElementById('dateDropdown');
-  const ov = document.getElementById('overlay');
-  const isOpen = dd.classList.contains('open');
-  dd.classList.toggle('open');
-  ov.classList.toggle('open');
-  if (!isOpen) {
-    document.getElementById('dateFrom').value = document.getElementById('dateFrom').dataset.current || '';
-    document.getElementById('dateTo').value = document.getElementById('dateTo').dataset.current || '';
-  }
-}
-
-function closeDatePicker() {
-  document.getElementById('dateDropdown').classList.remove('open');
-  document.getElementById('overlay').classList.remove('open');
-}
-
-document.getElementById('overlay').addEventListener('click', closeDatePicker);
-
-function applyPreset(preset) {
-  const dates = getPresetDates(preset);
-  if (!dates) return;
-  activePreset = preset;
-  document.querySelectorAll('.date-preset').forEach(b => b.classList.remove('active'));
-  document.querySelector(`[data-preset="${preset}"]`)?.classList.add('active');
-  document.getElementById('dateFrom').value = dates.from;
-  document.getElementById('dateTo').value = dates.to;
-  document.getElementById('dateFrom').dataset.current = dates.from;
-  document.getElementById('dateTo').dataset.current = dates.to;
-  document.getElementById('dateLabel').textContent = dates.label;
-  closeDatePicker();
-  filteredData = getFilteredData(dates.from, dates.to);
-  renderAll(filteredData);
-}
-
-function applyCustomDates() {
-  const from = document.getElementById('dateFrom').value;
-  const to = document.getElementById('dateTo').value;
-  if (!from || !to) return;
-  activePreset = null;
-  document.querySelectorAll('.date-preset').forEach(b => b.classList.remove('active'));
-  document.getElementById('dateFrom').dataset.current = from;
-  document.getElementById('dateTo').dataset.current = to;
-  document.getElementById('dateLabel').textContent = fmtDisplay(from) + ' \u2013 ' + fmtDisplay(to);
-  closeDatePicker();
-  filteredData = getFilteredData(from, to);
-  renderAll(filteredData);
-}
-
-// Preset click handlers
-document.querySelectorAll('.date-preset').forEach(btn => {
-  btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
-});
-
-// ══════════════════════════════════════════════════════
-// CHART.JS DEFAULTS (preserved)
-// ══════════════════════════════════════════════════════
-function applyChartDefaults() {
-  const c = getThemeColors();
-  Chart.defaults.color = c.tick;
-  Chart.defaults.borderColor = c.grid;
-  Chart.defaults.plugins.tooltip.backgroundColor = c.tooltipBg;
-  Chart.defaults.plugins.tooltip.titleColor = c.tooltipTitle;
-  Chart.defaults.plugins.tooltip.bodyColor = c.tooltipBody;
-  Chart.defaults.plugins.tooltip.borderColor = c.tooltipBorder;
-  Chart.defaults.plugins.tooltip.borderWidth = 1;
-  Chart.defaults.plugins.tooltip.padding = 10;
-  Chart.defaults.plugins.tooltip.cornerRadius = 8;
-  Chart.defaults.plugins.tooltip.displayColors = true;
-  Chart.defaults.plugins.tooltip.boxPadding = 4;
-}
-applyChartDefaults();
-
-// ══════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════
 // HELPERS
-// ══════════════════════════════════════════════════════
-function formatMonthShort(dateStr) {
-  // "2025-04" -> "Apr 25"
-  const [y, m] = dateStr.split('-');
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return months[parseInt(m) - 1] + ' ' + y.slice(2);
+// ════════════════════════════════════════════════════════════════
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function gbp(v){ v = Number(v)||0; return '£' + v.toLocaleString('en-GB',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function gbp2(v){ v = Number(v)||0; return '£' + v.toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function rpr(v){ v = Number(v)||0; return '£' + v.toFixed(3); }
+function pct(v,d){ return ((Number(v)||0)*100).toFixed(d===undefined?1:d) + '%'; }
+function num(v){ return (Number(v)||0).toLocaleString('en-GB'); }
+function mLabel(m){ const [y,mo]=m.split('-'); return MONTHS[(+mo)-1]+' '+y.slice(2); }
+function clampHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// Parse the Karmic "Audience | Type | Theme" naming convention.
+function normAudience(name){
+  if(!name) return 'Other';
+  let seg = name.split(' | ')[0];
+  if(seg === name) seg = name.split(' - ')[0];
+  const s = seg.toLowerCase();
+  if(/trustpilot|review|judge ?me|judge\.me|reviewer/.test(s)) return 'Review request';
+  if(/3x|2x or more|2x\+|2x pur|two[ -]?x/.test(s)) return 'Repeat 2x+';
+  if(/\b2x\b/.test(s)) return 'Repeat 2x+';
+  if(/\b1x\b|one[ -]?x|first[ -]?time/.test(s)) return '1x purchasers';
+  if(/0x|non[ -]?purchas|not purchased|never purchased|prospect/.test(s)) return 'Non-purchasers 0x';
+  if(/engaged/.test(s)) return 'Engaged';
+  if(/whole list|all subscribers|everyone|full list|entire/.test(s)) return 'Whole list';
+  if(/not purchased in last|restock|abandon|browse|viewed|cart/.test(s)) return 'Behavioural';
+  if(/purchased|past purchaser|customers|buyers/.test(s)) return 'Purchasers (all)';
+  return seg.length > 20 ? seg.slice(0,20)+'…' : seg;
+}
+function classifyType(name){
+  if(!name) return 'Other';
+  const parts = name.split(' | ');
+  const ex = (parts[1]||'').toLowerCase();
+  if(/education|how to|guide|why|what a|tips|routine|ingredient/.test(ex)) return 'Education';
+  if(/offer|sale|% off|discount|reminder/.test(ex)) return 'Offer / sale';
+  if(/founder|note|letter/.test(ex)) return 'Founder / brand';
+  if(/customer story|story|testimonial/.test(ex)) return 'Social proof';
+  const s = name.toLowerCase();
+  if(/trustpilot|review request|judge ?me|reviewer/.test(s)) return 'Review request';
+  if(/founder|gayatri|a note/.test(s)) return 'Founder / brand';
+  if(/customer story|testimonial/.test(s)) return 'Social proof';
+  if(/sale|% off|payday|black friday|\bbf\b|diwali|eid|valentine|vday|mother|birthday|boxing|new year|launch|offer|discount|last day|final|selling out|restock|back in stock/.test(s)) return 'Offer / sale';
+  if(/education|how to|why |what a |routine|ingredient|pores|pigment|barrier|cleanse|spf/.test(s)) return 'Education';
+  return 'Other';
 }
 
-function pnd(v) { return '\u00a3' + Number(v).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-function pndInt(v) { return '\u00a3' + Math.round(v).toLocaleString('en-GB'); }
-function pct(v) { return (v * 100).toFixed(1) + '%'; }
-function num(v) { return Number(v).toLocaleString('en-GB'); }
+// ════════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════════
+let CAMPAIGNS = [], FLOWS = [], MONTHLY = [], STORE_BY_MONTH = {};
+let RANGE = { from: null, to: null, label: 'Last 12 months', preset: 'last12m' };
+const CHARTS = {};
+function destroyChart(id){ if(CHARTS[id]){ CHARTS[id].destroy(); delete CHARTS[id]; } }
 
-// ══════════════════════════════════════════════════════
-// KPI COMPUTATION
-// ══════════════════════════════════════════════════════
-function computeKPIs(data) {
-  const totalRev = data.reduce((s, r) => s + Number(r.placed_order_value || 0), 0);
-  const totalSent = data.reduce((s, r) => s + Number(r.emails_sent || 0), 0);
-  const totalRecipients = data.reduce((s, r) => s + Number(r.unique_recipients || 0), 0);
-  const totalOrders = data.reduce((s, r) => s + Number(r.placed_orders || 0), 0);
-  // Weighted average open/click rate: weight by emails_sent (since open_rate = opens/sent*100 in Klaviyo)
-  let weightedOpen = 0, weightedClick = 0;
-  data.forEach(r => {
-    const sent = Number(r.emails_sent || 0);
-    weightedOpen += Number(r.open_rate || 0) * sent;
-    weightedClick += Number(r.click_rate || 0) * sent;
-  });
-  const avgOpenRate = totalSent > 0 ? weightedOpen / totalSent : 0; // already a percentage, e.g. 8.09
-  const avgClickRate = totalSent > 0 ? weightedClick / totalSent : 0; // already a percentage, e.g. 1.03
-  const rpr = totalRecipients > 0 ? totalRev / totalRecipients : 0;
-  return { totalRev, totalSent, totalRecipients, totalOrders, avgOpenRate, avgClickRate, rpr };
+// ════════════════════════════════════════════════════════════════
+// DATE RANGE (month based)
+// ════════════════════════════════════════════════════════════════
+function curMonth(){ const d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function shiftMonth(m, delta){
+  let [y,mo] = m.split('-').map(Number); mo += delta;
+  while(mo<1){ mo+=12; y--; } while(mo>12){ mo-=12; y++; }
+  return y+'-'+String(mo).padStart(2,'0');
 }
-
-function renderKPIs(data) {
-  const k = computeKPIs(data);
-  document.getElementById('kpiTotalRev').textContent = pndInt(k.totalRev);
-  document.getElementById('kpiTotalRevSub').textContent = data.length + ' months of data';
-  document.getElementById('kpiEmailsSent').textContent = num(k.totalSent);
-  document.getElementById('kpiEmailsSentSub').textContent = num(k.totalRecipients) + ' unique recipients';
-  document.getElementById('kpiOrders').textContent = num(k.totalOrders);
-  document.getElementById('kpiOrdersSub').textContent = 'Attributed to email';
-  document.getElementById('kpiOpenRate').textContent = k.avgOpenRate.toFixed(1) + '%';
-  document.getElementById('kpiClickRate').textContent = k.avgClickRate.toFixed(1) + '%';
-  document.getElementById('kpiRPR').textContent = '\u00a3' + k.rpr.toFixed(2);
-  document.getElementById('kpiRPRSub').textContent = 'Per unique recipient';
-}
-
-// ══════════════════════════════════════════════════════
-// MONTHLY REVENUE CHART
-// ══════════════════════════════════════════════════════
-function renderMonthlyChart(data) {
-  const labels = data.map(r => formatMonthShort(r.report_month));
-  const emailRev = data.map(r => Number(r.placed_order_value || 0));
-  const totalRev = data.map(r => window._monthlyTotalRev[r.report_month] || 0);
-  const pctData = emailRev.map((e, i) => totalRev[i] > 0 ? Math.round((e / totalRev[i]) * 100 * 10) / 10 : 0);
-  const ord = data.map(r => Number(r.placed_orders || 0));
-
-  if (monthlyChart) {
-    monthlyChart.data.labels = labels;
-    monthlyChart.data.datasets[0].data = pctData;
-    monthlyChart.data.datasets[1].data = ord;
-    monthlyChart._emailRev = emailRev;
-    monthlyChart._totalRev = totalRev;
-    monthlyChart.update();
-    return;
-  }
-
-  const ctx = document.getElementById('monthlyRevenueChart').getContext('2d');
-  monthlyChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Email % of Revenue',
-        data: pctData,
-        backgroundColor: 'rgba(13, 148, 136, 0.7)',
-        borderColor: 'rgba(13, 148, 136, 1)',
-        borderWidth: 1, borderRadius: 4, yAxisID: 'y',
-      }, {
-        label: 'Orders',
-        data: ord,
-        type: 'line',
-        borderColor: '#7c3aed',
-        backgroundColor: 'rgba(124, 58, 237, 0.1)',
-        pointBackgroundColor: '#7c3aed',
-        pointRadius: 4, pointHoverRadius: 6,
-        borderWidth: 2, tension: 0.3, fill: false, yAxisID: 'y1',
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { position: 'top', labels: { usePointStyle: true, padding: 16, font: { size: 11 } } },
-        tooltip: {
-          callbacks: {
-            label(ctx) {
-              if (ctx.dataset.label === 'Email % of Revenue') {
-                const i = ctx.dataIndex;
-                const eRev = ctx.chart._emailRev ? ctx.chart._emailRev[i] : 0;
-                const tRev = ctx.chart._totalRev ? ctx.chart._totalRev[i] : 0;
-                return [
-                  ' Email attributed: \u00a3' + eRev.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 }),
-                  ' Total revenue: \u00a3' + tRev.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 }),
-                  ' Email share: ' + ctx.raw + '%'
-                ];
-              }
-              return ' Orders: ' + ctx.raw;
-            }
-          }
-        }
-      },
-      scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
-        y: {
-          position: 'left',
-          grid: { color: getThemeColors().grid },
-          ticks: { font: { size: 11 }, callback: v => v + '%' },
-          title: { display: true, text: 'Email % of Total Revenue', font: { size: 11 } }
-        },
-        y1: {
-          position: 'right',
-          grid: { drawOnChartArea: false },
-          ticks: { font: { size: 11 } },
-          title: { display: true, text: 'Orders', font: { size: 11 } }
-        }
-      }
-    }
-  });
-  monthlyChart._emailRev = emailRev;
-  monthlyChart._totalRev = totalRev;
-}
-
-// ══════════════════════════════════════════════════════
-// ENGAGEMENT TRENDS CHART (replaces doughnut)
-// ══════════════════════════════════════════════════════
-function renderEngagementChart(data) {
-  const labels = data.map(r => formatMonthShort(r.report_month));
-  const openRates = data.map(r => Number(r.open_rate || 0));
-  const clickRates = data.map(r => Number(r.click_rate || 0));
-
-  if (engagementChart) {
-    engagementChart.data.labels = labels;
-    engagementChart.data.datasets[0].data = openRates;
-    engagementChart.data.datasets[1].data = clickRates;
-    engagementChart.update();
-    return;
-  }
-
-  const ctx = document.getElementById('engagementTrendChart').getContext('2d');
-  engagementChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Open Rate',
-        data: openRates,
-        borderColor: 'rgba(13, 148, 136, 1)',
-        backgroundColor: 'rgba(13, 148, 136, 0.1)',
-        pointBackgroundColor: 'rgba(13, 148, 136, 1)',
-        pointRadius: 4, pointHoverRadius: 6,
-        borderWidth: 2, tension: 0.3, fill: true, yAxisID: 'y',
-      }, {
-        label: 'Click Rate',
-        data: clickRates,
-        borderColor: '#7c3aed',
-        backgroundColor: 'rgba(124, 58, 237, 0.1)',
-        pointBackgroundColor: '#7c3aed',
-        pointRadius: 4, pointHoverRadius: 6,
-        borderWidth: 2, tension: 0.3, fill: true, yAxisID: 'y1',
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { position: 'top', labels: { usePointStyle: true, padding: 16, font: { size: 11 } } },
-        tooltip: {
-          callbacks: {
-            label(ctx) { return ' ' + ctx.dataset.label + ': ' + ctx.raw.toFixed(1) + '%'; }
-          }
-        }
-      },
-      scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
-        y: {
-          position: 'left',
-          grid: { color: getThemeColors().grid },
-          ticks: { font: { size: 11 }, callback: v => v + '%' },
-          title: { display: true, text: 'Open Rate', font: { size: 11 } }
-        },
-        y1: {
-          position: 'right',
-          grid: { drawOnChartArea: false },
-          ticks: { font: { size: 11 }, callback: v => v + '%' },
-          title: { display: true, text: 'Click Rate', font: { size: 11 } }
-        }
-      }
-    }
-  });
-}
-
-// ══════════════════════════════════════════════════════
-// MONTHLY PERFORMANCE TABLE
-// ══════════════════════════════════════════════════════
-function renderMonthlyTable(data) {
-  const tbody = document.getElementById('monthlyTableBody');
-  tbody.innerHTML = '';
-  const k = computeKPIs(data);
-  document.getElementById('monthlyTableSummary').textContent =
-    data.length + ' months \u00b7 ' + pndInt(k.totalRev) + ' total revenue \u00b7 ' + num(k.totalOrders) + ' orders';
-
-  // Find best revenue month for highlighting
-  const maxRev = Math.max(...data.map(r => Number(r.placed_order_value || 0)));
-
-  data.forEach(r => {
-    const rev = Number(r.placed_order_value || 0);
-    const recipients = Number(r.unique_recipients || 0);
-    const rpr = recipients > 0 ? rev / recipients : 0;
-    const isBest = rev === maxRev && rev > 0;
-    const tr = document.createElement('tr');
-    if (isBest) tr.classList.add('high-performer');
-    tr.innerHTML =
-      '<td>' + formatMonthShort(r.report_month) + '</td>' +
-      '<td>' + num(r.emails_sent) + '</td>' +
-      '<td>' + num(r.unique_recipients) + '</td>' +
-      '<td>' + Number(r.open_rate || 0).toFixed(1) + '%</td>' +
-      '<td>' + Number(r.click_rate || 0).toFixed(1) + '%</td>' +
-      '<td>' + num(r.emails_bounced) + '</td>' +
-      '<td>' + num(r.unsubscribes) + '</td>' +
-      '<td>' + num(r.placed_orders) + '</td>' +
-      '<td style="font-weight:600;"' + (isBest ? ' class="highlight-best"' : '') + '>' + pnd(rev) + '</td>' +
-      '<td>' + '\u00a3' + rpr.toFixed(2) + '</td>';
-    tbody.appendChild(tr);
-  });
-}
-
-// ══════════════════════════════════════════════════════
-// INSIGHTS (auto-generated)
-// ══════════════════════════════════════════════════════
-// ══════════════════════════════════════════════════════
-// SORTABLE TABLE (preserved)
-// ══════════════════════════════════════════════════════
-let sortState = {};
-function sortTable(tableId, colIdx, type) {
-  const table = document.getElementById(tableId);
-  const tbody = table.querySelector('tbody');
-  const rows = Array.from(tbody.querySelectorAll('tr'));
-  const key = tableId + '-' + colIdx;
-  const asc = sortState[key] === 'asc' ? 'desc' : 'asc';
-  sortState[key] = asc;
-
-  table.querySelectorAll('th').forEach(th => th.classList.remove('sorted'));
-  table.querySelectorAll('th')[colIdx].classList.add('sorted');
-
-  rows.sort((a, b) => {
-    let va = a.cells[colIdx].textContent.trim();
-    let vb = b.cells[colIdx].textContent.trim();
-    if (type === 'number') {
-      va = parseFloat(va.replace(/[^0-9.\-]/g, '')) || 0;
-      vb = parseFloat(vb.replace(/[^0-9.\-]/g, '')) || 0;
-    } else if (type === 'date') {
-      va = new Date(va).getTime() || 0;
-      vb = new Date(vb).getTime() || 0;
-    } else {
-      va = va.toLowerCase(); vb = vb.toLowerCase();
-    }
-    if (va < vb) return asc === 'asc' ? -1 : 1;
-    if (va > vb) return asc === 'asc' ? 1 : -1;
-    return 0;
-  });
-
-  rows.forEach(r => tbody.appendChild(r));
-  const arrow = table.querySelectorAll('th')[colIdx].querySelector('.sort-arrow');
-  if (arrow) arrow.innerHTML = asc === 'asc' ? '&#9650;' : '&#9660;';
-}
-
-// ══════════════════════════════════════════════════════
-// THEME UPDATE (preserved)
-// ══════════════════════════════════════════════════════
-function updateChartThemes() {
-  applyChartDefaults();
-  const c = getThemeColors();
-  if (monthlyChart) {
-    monthlyChart.options.scales.y.grid.color = c.grid;
-    monthlyChart.options.scales.x.ticks.color = c.tick;
-    monthlyChart.options.scales.y.ticks.color = c.tick;
-    monthlyChart.options.scales.y1.ticks.color = c.tick;
-    monthlyChart.update();
-  }
-  if (engagementChart) {
-    engagementChart.options.scales.y.grid.color = c.grid;
-    engagementChart.options.scales.x.ticks.color = c.tick;
-    engagementChart.options.scales.y.ticks.color = c.tick;
-    engagementChart.options.scales.y1.ticks.color = c.tick;
-    engagementChart.update();
+function presetRange(p){
+  const c = curMonth();
+  switch(p){
+    case 'thisMonth': return { from:c, to:c, label:'This month' };
+    case 'lastMonth': { const m=shiftMonth(c,-1); return { from:m, to:m, label:'Last month' }; }
+    case 'last3m': return { from:shiftMonth(c,-2), to:c, label:'Last 3 months' };
+    case 'last6m': return { from:shiftMonth(c,-5), to:c, label:'Last 6 months' };
+    case 'last12m': return { from:shiftMonth(c,-11), to:c, label:'Last 12 months' };
+    case 'thisYear': return { from:c.slice(0,4)+'-01', to:c, label:'This year' };
+    default: return { from:shiftMonth(c,-11), to:c, label:'Last 12 months' };
   }
 }
+function toggleDatePicker(){ document.getElementById('dateDropdown').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); }
+function closeDatePicker(){ document.getElementById('dateDropdown').classList.remove('open'); document.getElementById('overlay').classList.remove('open'); }
+document.getElementById('overlay').addEventListener('click', closeDatePicker);
+document.querySelectorAll('.date-preset').forEach(btn => btn.addEventListener('click', () => {
+  const r = presetRange(btn.dataset.preset);
+  RANGE = { from:r.from, to:r.to, label:r.label, preset:btn.dataset.preset };
+  document.querySelectorAll('.date-preset').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('dateLabel').textContent = r.label;
+  closeDatePicker();
+  renderAll();
+}));
 
-// ══════════════════════════════════════════════════════
-// RENDER ALL
-// ══════════════════════════════════════════════════════
-function renderAll(data) {
-  renderKPIs(data);
-  renderMonthlyChart(data);
-  renderEngagementChart(data);
-  renderMonthlyTable(data);
+function monthsInRange(){
+  const out = [];
+  let m = RANGE.from;
+  while(m <= RANGE.to){ out.push(m); m = shiftMonth(m,1); if(out.length>60) break; }
+  return out;
 }
+function campsInRange(){ return CAMPAIGNS.filter(c => c.send_month && c.send_month >= RANGE.from && c.send_month <= RANGE.to); }
+function monthlyInRange(){ return MONTHLY.filter(r => r.report_month >= RANGE.from && r.report_month <= RANGE.to); }
 
-// ══════════════════════════════════════════════════════
-// FETCH FROM SUPABASE & BOOTSTRAP
-// ══════════════════════════════════════════════════════
-// PostgREST defaults to 1000 rows. Paginate to avoid silently truncating.
-async function fetchAllPages(baseUrl) {
-  const PAGE = 1000;
+// ════════════════════════════════════════════════════════════════
+// FETCH
+// ════════════════════════════════════════════════════════════════
+async function fetchAll(baseUrl){
   const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + USER_JWT };
-  let all = [], offset = 0;
-  while (true) {
+  let all = [], offset = 0; const PAGE = 1000;
+  while(true){
     const sep = baseUrl.includes('?') ? '&' : '?';
-    const resp = await fetch(`${baseUrl}${sep}limit=${PAGE}&offset=${offset}`, { headers });
+    const resp = await fetch(baseUrl + sep + 'limit=' + PAGE + '&offset=' + offset, { headers });
     const rows = await resp.json();
-    if (!Array.isArray(rows) || rows.length === 0) break;
+    if(!Array.isArray(rows) || rows.length===0) break;
     all = all.concat(rows);
-    if (rows.length < PAGE) break;
+    if(rows.length < PAGE) break;
     offset += PAGE;
   }
   return all;
 }
-
-async function fetchData() {
+async function boot(){
   try {
-    const [allData_, rptData] = await Promise.all([
-      fetchAllPages(SUPABASE_URL + '/rest/v1/raw_klaviyo_monthly?order=report_month.asc&select=*'),
-      fetchAllPages(SUPABASE_URL + '/rest/v1/rpt_daily_overview?select=report_date,total_sales&order=report_date.asc')
+    const [camps, flows, monthly, store] = await Promise.all([
+      fetchAll(SUPABASE_URL + '/rest/v1/raw_klaviyo_campaigns?select=*&order=send_time.desc'),
+      fetchAll(SUPABASE_URL + '/rest/v1/raw_klaviyo_flows?select=*'),
+      fetchAll(SUPABASE_URL + '/rest/v1/raw_klaviyo_monthly_ext?select=*&order=report_month.asc'),
+      fetchAll(SUPABASE_URL + '/rest/v1/rpt_daily_overview?select=report_date,total_sales&order=report_date.asc')
     ]);
-    allData = allData_;
-    // Build monthly total revenue map from rpt_daily_overview
-    window._monthlyTotalRev = {};
-    for (const r of rptData) {
-      const m = r.report_date.substring(0, 7);
-      window._monthlyTotalRev[m] = (window._monthlyTotalRev[m] || 0) + Number(r.total_sales || 0);
-    }
-    // Init with MTD preset — on 1st of month MTD is empty, fall back to Last Month
-    let initDates = getPresetDates('mtd');
-    if (initDates.from > initDates.to) {
-      initDates = getPresetDates('lastMonth');
-      document.getElementById('dateLabel').textContent = initDates.label;
-      document.querySelectorAll('.date-preset').forEach(b => {
-        b.classList.toggle('active', b.dataset.preset === 'lastMonth');
-      });
-    }
-    document.getElementById('dateFrom').value = initDates.from;
-    document.getElementById('dateTo').value = initDates.to;
-    document.getElementById('dateFrom').dataset.current = initDates.from;
-    document.getElementById('dateTo').dataset.current = initDates.to;
-    filteredData = getFilteredData(initDates.from, initDates.to);
-    renderAll(filteredData);
+    CAMPAIGNS = camps.map(c => ({ ...c, audience: normAudience(c.campaign_name), ctype: classifyType(c.campaign_name) }));
+    FLOWS = flows;
+    MONTHLY = monthly;
+    STORE_BY_MONTH = {};
+    for(const r of store){ const m = (r.report_date||'').substring(0,7); STORE_BY_MONTH[m] = (STORE_BY_MONTH[m]||0) + (Number(r.total_sales)||0); }
 
-    // Data refreshed timestamp
-    const d = new Date();
-    const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-    const timeStr = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-    document.getElementById('dataSource').textContent =
-      'Data source: Klaviyo via Supabase \u00b7 ' + allData.length + ' months loaded \u00b7 Data refreshed at: ' + dateStr + ', ' + timeStr;
-  } catch (err) {
-    console.error('Failed to fetch email data:', err);
-    document.getElementById('dataSource').textContent = 'Error loading data from Supabase: ' + err.message;
-    document.getElementById('kpiTotalRev').textContent = 'Error';
+    // default range clamped to available data
+    const avail = MONTHLY.map(r=>r.report_month).sort();
+    const r = presetRange('last12m');
+    if(avail.length){ r.from = avail[0] > r.from ? avail[0] : r.from; }
+    RANGE = { from:r.from, to:r.to, label:'Last 12 months', preset:'last12m' };
+
+    document.getElementById('loadingMsg').style.display='none';
+    document.getElementById('content').style.display='block';
+    populateFilters();
+    renderAll();
+
+    const latest = CAMPAIGNS.length ? new Date(CAMPAIGNS[0].send_time) : new Date();
+    document.getElementById('lastUpdated').textContent = 'Data through ' + latest.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    document.getElementById('dataSource').innerHTML =
+      'Source: Klaviyo via Supabase (raw_klaviyo_campaigns / _flows / _monthly_ext), Shopify for store revenue. ' +
+      CAMPAIGNS.length + ' campaigns, ' + FLOWS.length + ' flows, ' + MONTHLY.length + ' months. ' +
+      'Synced daily ~03:20 UTC by the sync-klaviyo-detail Edge Function.';
+  } catch(err){
+    console.error(err);
+    document.getElementById('loadingMsg').innerHTML = 'Error loading data: ' + err.message;
   }
 }
 
-fetchData();
-
-// ══════════════════════════════════════════════════════
-// STRATEGIC ANALYSIS — campaigns + flows snapshot
-// Source: Klaviyo MCP metric aggregates (25 Oct 2025 – 25 Apr 2026)
-// Refresh: re-run /tmp/karmic-klaviyo-analysis/build.py to regenerate
-// ══════════════════════════════════════════════════════
-const KLAVIYO_ANALYSIS = {"summary":{"period_start":"2025-10-25","period_end":"2026-04-25","last_analyzed":"2026-04-25","campaigns_total":83,"campaign_revenue":75290.38,"campaign_recipients":608125,"campaign_orders":1388,"campaign_avg_rpr":0.1238,"flow_revenue":18274.26,"flow_recipients":34995,"flow_orders":322,"flow_avg_rpr":0.5222},"by_audience":[{"audience":"2x Purchasers","n_campaigns":2,"recipients":3012,"revenue":2024.91,"orders":50,"open_rate":0.4701,"click_rate":0.0442,"rpr":0.6723},{"audience":"2x or More Purchasers","n_campaigns":3,"recipients":4531,"revenue":2687.96,"orders":47,"open_rate":0.4639,"click_rate":0.0543,"rpr":0.5932},{"audience":"2x or More","n_campaigns":1,"recipients":2053,"revenue":857.76,"orders":15,"open_rate":0.4618,"click_rate":0.02,"rpr":0.4178},{"audience":"Purchased","n_campaigns":1,"recipients":6823,"revenue":2535.62,"orders":49,"open_rate":0.4401,"click_rate":0.0311,"rpr":0.3716},{"audience":"0x and 1x Purchased","n_campaigns":1,"recipients":6686,"revenue":1045.78,"orders":19,"open_rate":0.4945,"click_rate":0.012,"rpr":0.1564},{"audience":"1x Purchasers","n_campaigns":7,"recipients":30550,"revenue":4211.87,"orders":88,"open_rate":0.3977,"click_rate":0.0148,"rpr":0.1379},{"audience":"1x Purchased","n_campaigns":1,"recipients":5598,"revenue":719.55,"orders":14,"open_rate":0.3959,"click_rate":0.0123,"rpr":0.1285},{"audience":"Trustpilot Review Request","n_campaigns":4,"recipients":3119,"revenue":400.17,"orders":8,"open_rate":0.5223,"click_rate":0.0321,"rpr":0.1283},{"audience":"Whole List","n_campaigns":18,"recipients":243141,"revenue":29873.35,"orders":540,"open_rate":0.3561,"click_rate":0.0102,"rpr":0.1229},{"audience":"Engaged","n_campaigns":29,"recipients":197005,"revenue":23070.13,"orders":414,"open_rate":0.538,"click_rate":0.0121,"rpr":0.1171},{"audience":"0x Purchasers","n_campaigns":7,"recipients":51871,"revenue":2825.02,"orders":52,"open_rate":0.3439,"click_rate":0.007,"rpr":0.0545}],"by_type":[{"type":"Spring Sale 1st Announcement","n_campaigns":1,"recipients":7458,"revenue":1950.33,"orders":34,"open_rate":0.5422,"click_rate":0.0245,"rpr":0.2615},{"type":"25% Off - Final Reminder","n_campaigns":3,"recipients":9845,"revenue":2500.85,"orders":56,"open_rate":0.495,"click_rate":0.0154,"rpr":0.254},{"type":"BF Now On","n_campaigns":3,"recipients":16189,"revenue":3819.61,"orders":64,"open_rate":0.3251,"click_rate":0.0257,"rpr":0.2359},{"type":"BF - Selling Out Fast","n_campaigns":1,"recipients":16038,"revenue":3105.82,"orders":50,"open_rate":0.3231,"click_rate":0.0119,"rpr":0.1937},{"type":"Offer","n_campaigns":14,"recipients":131176,"revenue":21083.75,"orders":369,"open_rate":0.4005,"click_rate":0.0126,"rpr":0.1607},{"type":"Founder Note","n_campaigns":1,"recipients":6686,"revenue":1045.78,"orders":19,"open_rate":0.4945,"click_rate":0.012,"rpr":0.1564},{"type":"Spring Must Haves","n_campaigns":1,"recipients":7669,"revenue":1084.02,"orders":18,"open_rate":0.4826,"click_rate":0.0136,"rpr":0.1414},{"type":"25% Off - 1st Reminder","n_campaigns":3,"recipients":15073,"revenue":2009.05,"orders":46,"open_rate":0.3288,"click_rate":0.0141,"rpr":0.1333},{"type":"BF - Black Friday Day","n_campaigns":1,"recipients":16161,"revenue":2038.3,"orders":41,"open_rate":0.311,"click_rate":0.0117,"rpr":0.1261},{"type":"Education","n_campaigns":25,"recipients":162824,"revenue":16629,"orders":295,"open_rate":0.4421,"click_rate":0.0124,"rpr":0.1021}],"winners":[{"name":"Whole List | BF - Selling Out Fast","recipients":16038,"revenue":3105.82,"rpr":0.1937,"open_rate":0.3231,"click_rate":0.0119,"click_to_buy":0.2618},{"name":"Purchased | Offer | Birthday Sale","recipients":6823,"revenue":2535.62,"rpr":0.3716,"open_rate":0.4401,"click_rate":0.0311,"click_to_buy":0.2311},{"name":"Whole List | Offer | Birthday Sale Reminder","recipients":6397,"revenue":2318.19,"rpr":0.3624,"open_rate":0.6295,"click_rate":0.0228,"click_to_buy":0.2671},{"name":"Whole List | Offer | New Year Sale","recipients":17279,"revenue":2242.15,"rpr":0.1298,"open_rate":0.3253,"click_rate":0.0094,"click_to_buy":0.2454},{"name":"Whole List | BF - Black Friday Day","recipients":16161,"revenue":2038.3,"rpr":0.1261,"open_rate":0.311,"click_rate":0.0117,"click_to_buy":0.2169},{"name":"Engaged | Spring Sale 1st Announcement","recipients":7458,"revenue":1950.33,"rpr":0.2615,"open_rate":0.5422,"click_rate":0.0245,"click_to_buy":0.1858},{"name":"Whole List | Offer | Vday Sale","recipients":15309,"revenue":1921.58,"rpr":0.1255,"open_rate":0.3594,"click_rate":0.0132,"click_to_buy":0.1634},{"name":"Whole List | Offer | Birthday Sale Reminder (Final)","recipients":6330,"revenue":1836.14,"rpr":0.2901,"open_rate":0.5199,"click_rate":0.0179,"click_to_buy":0.3009},{"name":"Whole List | Education | Night-Time Recovery","recipients":17364,"revenue":1813.88,"rpr":0.1045,"open_rate":0.3557,"click_rate":0.0073,"click_to_buy":0.2756},{"name":"Whole List | Offer | New Year Sale (Last Day)","recipients":17513,"revenue":1800.86,"rpr":0.1028,"open_rate":0.3287,"click_rate":0.0085,"click_to_buy":0.223}],"losers":[{"name":"Trustpilot Review Request | JudgeMe 5 Star Reviewers","recipients":517,"revenue":0,"rpr":0,"open_rate":0.6151,"click_rate":0.0426,"click_to_buy":0},{"name":"0x Purchased | Offer | Spring Sale Reminder 1","recipients":12143,"revenue":94.98,"rpr":0.0078,"open_rate":0.2749,"click_rate":0.0044,"click_to_buy":0.0556},{"name":"Non-Purchasers | Education | Serums Consistency","recipients":3342,"revenue":70.89,"rpr":0.0212,"open_rate":0.5694,"click_rate":0.0045,"click_to_buy":0.2},{"name":"0x Purchasers | 25% Off - 1st Reminder","recipients":9354,"revenue":214.03,"rpr":0.0229,"open_rate":0.2627,"click_rate":0.0065,"click_to_buy":0.082},{"name":"Engaged | Education - Skin doesn’t need fixing","recipients":8605,"revenue":203.63,"rpr":0.0237,"open_rate":0.602,"click_rate":0,"click_to_buy":0},{"name":"0x Purchasers | Education | Cooler Air Brighter Skin","recipients":10052,"revenue":291.62,"rpr":0.029,"open_rate":0.2772,"click_rate":0.0031,"click_to_buy":0.1935},{"name":"0x Purchasers | Customer Story - Sarah's Story","recipients":10095,"revenue":380.25,"rpr":0.0377,"open_rate":0.2826,"click_rate":0.0016,"click_to_buy":0.375},{"name":"0x Purchasers | Hair Serum Ingredients","recipients":4116,"revenue":162.77,"rpr":0.0395,"open_rate":0.492,"click_rate":0.0097,"click_to_buy":0.125},{"name":"0x Purchasers | Bars Highlight","recipients":4152,"revenue":169.46,"rpr":0.0408,"open_rate":0.5908,"click_rate":0.0108,"click_to_buy":0.1333},{"name":"Engaged | What a cleanser should feel like","recipients":7136,"revenue":320.5,"rpr":0.0449,"open_rate":0.485,"click_rate":0.0084,"click_to_buy":0.0833}],"flows":[{"flow_name":"Welcome Flow - Skin Quiz - Aug 2025","trigger":"Added to List","status":"live","recipients":30956,"revenue":13063.56,"rpr":0.4254,"open_rate":0.3344,"click_rate":0.0211,"orders":220},{"flow_name":"Welcome Flow - Newsletter - 5 June 2024","trigger":"Added to List","status":"live","recipients":2767,"revenue":3109.41,"rpr":1.1373,"open_rate":0.3614,"click_rate":0.0304,"orders":54},{"flow_name":"Checkout Started - 5 June 2024","trigger":"Metric","status":"live","recipients":1272,"revenue":2101.29,"rpr":1.6743,"open_rate":0.3514,"click_rate":0.0629,"orders":48}]};
-
-const FLOW_GAPS = [
-  {flow: "Welcome Series (Quiz)",       status: "live",    statusLabel: "Live",     uplift: "—",         note: "7 messages, low avg RPR. Compress to a stronger #1 + #2 + branched"},
-  {flow: "Welcome Series (Newsletter)", status: "live",    statusLabel: "Live",     uplift: "—",         note: "Best converting flow. Make sure all non-quiz signups land here"},
-  {flow: "Cart Abandonment",            status: "partial", statusLabel: "Partial",  uplift: "+£3–6k/yr", note: "Single email at £1.67 RPR. Add email #2 (24h) and #3 (48h with £5 off)"},
-  {flow: "Browse Abandonment",          status: "draft",   statusLabel: "Draft",    uplift: "+£8–15k/yr", note: "Sits as 2023 draft, never live. High-intent signal wasted"},
-  {flow: "Replenishment",               status: "missing", statusLabel: "Missing",  uplift: "+£15–25k/yr", note: "60/90/120 days based on hero SKU. Biggest single opportunity"},
-  {flow: "Post-Purchase Upsell",        status: "missing", statusLabel: "Missing",  uplift: "+£6–12k/yr",  note: "Day 1 'thank you + add this'"},
-  {flow: "Post-Purchase How-To-Use",    status: "missing", statusLabel: "Missing",  uplift: "+£4–8k/yr",   note: "Day 3 + Day 14 nurture so customer actually uses product = repurchase"},
-  {flow: "Win-Back",                    status: "missing", statusLabel: "Missing",  uplift: "+£4–8k/yr",   note: "60/90/180-day no purchase trigger"},
-  {flow: "Birthday",                    status: "missing", statusLabel: "Missing",  uplift: "+£2–4k/yr",   note: "Currently a campaign. Trigger as a flow on birthday property"},
-  {flow: "Review Request",              status: "partial", statusLabel: "Partial",  uplift: "frees campaign slots", note: "Trustpilot/JudgeMe run as campaigns. Move to flow at delivery+14d"},
-  {flow: "VIP / Loyalty (3x+)",         status: "missing", statusLabel: "Missing",  uplift: "+£3–6k/yr",   note: "2x+ campaign-level RPR is £0.59. Automate early access"},
-  {flow: "Back-in-Stock",               status: "missing", statusLabel: "Missing",  uplift: "+£2–4k/yr",   note: "Worth £2–4k/yr per major SKU"},
-  {flow: "Cross-sell (Skin↔Hair)",      status: "missing", statusLabel: "Missing",  uplift: "+£3–6k/yr",   note: "Hair launch sales to non-Skin buyers were poor; cross-sell to Skin buyers"},
-];
-
-const OPPORTUNITIES = [
-  {rank:"#1", title:"Build the Replenishment Flow", body:"Sunlight, Moonlight, Sleepytime are 60–90 day usage products. With 6 months of repeat-purchaser revenue at £0.59 RPR, even modest replenishment automation should add £15–25k/yr. Needs Shopify last_purchased_product piped to Klaviyo, then 3 segmented flows (one per hero SKU).", uplift:"£15–25k/yr", effort:"1–2 weeks"},
-  {rank:"#2", title:"Repeat-Purchaser Cadence Lift", body:"2x+ Purchasers (RPR £0.59–£1.10) received only ~6 campaigns in 6 months. Doubling cadence — still well within fatigue limits given high engagement — should add ~£10–15k/yr without needing new content. Just re-segment existing campaigns to hit this cohort first.", uplift:"£10–15k/yr", effort:"1 day"},
-  {rank:"#3", title:"Replicate the “A gift for us” template", body:"Birthday Sale series alone = £6,690 from 3 sends with 26–30% click-to-buy — by far the strongest emotional-offer pattern of the period. Currently used once a year. Reuse the template and emotional voice for Diwali, Anniversary, Founder Birthday, Mother's Day, Boxing Day. 4–6 new moment-led sales/yr.", uplift:"£8–15k/yr", effort:"Low (template reuse)"},
-  {rank:"#4", title:"Stop the bleed on 0x Purchasers", body:"0x Purchasers received 51,871 sends in 6 months and produced £2,825 (RPR £0.054, 1/11 the 2x cohort). Cut their volume in half without changing total revenue → frees deliverability for higher-value cohorts. Build a dedicated first-buy nurture flow with money-back, social proof, tester-size offer.", uplift:"£3–5k/yr (direct) + sender reputation", effort:"Medium"},
-  {rank:"#5", title:"Build Browse Abandon + Post-Purchase flows", body:"Browse Abandon sits as a 2023 draft, never live. Post-purchase flows don't exist. The Checkout Started flow at £1.67 RPR shows automated emails work — there's no reason browse and post-purchase wouldn't convert similarly.", uplift:"£15–25k/yr combined", effort:"1 week each"},
-];
-
-// ── Helpers ─────────────────────────────────────────────
-function fmtCurrency(v) { if (v == null) return '—'; return '£' + Number(v).toLocaleString('en-GB', {minimumFractionDigits: v < 100 ? 2 : 0, maximumFractionDigits: v < 100 ? 2 : 0}); }
-function fmtPct(v) { if (v == null) return '—'; return (Number(v) * 100).toFixed(1) + '%'; }
-function fmtRPR(v) { if (v == null) return '—'; return '£' + Number(v).toFixed(3); }
-function fmtNum(v) { if (v == null) return '—'; return Number(v).toLocaleString('en-GB'); }
-
-// ── Render top-line banner ─────────────────────────────
-function renderTopline() {
-  const s = KLAVIYO_ANALYSIS.summary;
-  const total = s.campaign_revenue + s.flow_revenue;
-  const pctC = (s.campaign_revenue / total * 100).toFixed(0);
-  const pctF = (s.flow_revenue / total * 100).toFixed(0);
-  document.getElementById('topRevenue').textContent = fmtCurrency(total);
-  document.getElementById('topSplit').textContent = pctC + '% / ' + pctF + '%';
-  document.getElementById('topCampaignRPR').textContent = fmtRPR(s.campaign_avg_rpr);
-  document.getElementById('topFlowRPR').textContent = fmtRPR(s.flow_avg_rpr);
-  document.getElementById('strategicAnalyzedDate').textContent = 'Last analysed: ' + new Date(s.last_analyzed).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+// ════════════════════════════════════════════════════════════════
+// AGGREGATIONS
+// ════════════════════════════════════════════════════════════════
+function weightedRates(rows){
+  let del=0, op=0, cl=0, rec=0, rev=0, ord=0;
+  rows.forEach(c => { del+=+c.delivered||0; op+=+c.opens_unique||0; cl+=+c.clicks_unique||0; rec+=+c.recipients||0; rev+=+c.conversion_value||0; ord+=+c.conversions||0; });
+  return { open: del>0?op/del:0, click: del>0?cl/del:0, rpr: rec>0?rev/rec:0, rec, rev, ord, del };
 }
-
-// ── Audience RPR chart (horizontal bars) ───────────────
-function renderAudienceRPR() {
-  const ctx = document.getElementById('audienceRPRChart').getContext('2d');
-  const data = KLAVIYO_ANALYSIS.by_audience.slice().sort((a,b) => b.rpr - a.rpr);
-  const cs = getComputedStyle(document.documentElement);
-  const accent = cs.getPropertyValue('--accent').trim();
-  const negative = cs.getPropertyValue('--negative').trim();
-  const tickColor = cs.getPropertyValue('--chart-tick').trim();
-  const gridColor = cs.getPropertyValue('--chart-grid').trim();
-  const benchmark = KLAVIYO_ANALYSIS.summary.campaign_avg_rpr;
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: data.map(d => d.audience),
-      datasets: [{
-        label: 'RPR',
-        data: data.map(d => d.rpr),
-        backgroundColor: data.map(d => d.rpr >= benchmark ? accent : negative),
-        borderRadius: 4,
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ' RPR: ' + fmtRPR(ctx.parsed.x) + '  (' + fmtNum(data[ctx.dataIndex].recipients) + ' recipients)' } }
-      },
-      scales: {
-        x: { ticks: { color: tickColor, callback: v => '£' + v.toFixed(2) }, grid: { color: gridColor } },
-        y: { ticks: { color: tickColor }, grid: { display: false } }
-      }
-    }
+function groupBy(rows, key){
+  const m = {};
+  rows.forEach(c => { const k = c[key]; (m[k] = m[k] || []).push(c); });
+  return Object.entries(m).map(([k,arr]) => {
+    const w = weightedRates(arr);
+    return { key:k, n:arr.length, recipients:w.rec, revenue:w.rev, orders:w.ord, open:w.open, click:w.click, rpr:w.rpr };
   });
 }
 
-// ── Type RPR chart ─────────────────────────────────────
-function renderTypeRPR() {
-  const ctx = document.getElementById('typeRPRChart').getContext('2d');
-  const data = KLAVIYO_ANALYSIS.by_type.slice().sort((a,b) => b.rpr - a.rpr);
-  const cs = getComputedStyle(document.documentElement);
-  const accent = cs.getPropertyValue('--accent').trim();
-  const negative = cs.getPropertyValue('--negative').trim();
-  const tickColor = cs.getPropertyValue('--chart-tick').trim();
-  const gridColor = cs.getPropertyValue('--chart-grid').trim();
-  const benchmark = KLAVIYO_ANALYSIS.summary.campaign_avg_rpr;
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: data.map(d => d.type),
-      datasets: [{
-        label: 'RPR',
-        data: data.map(d => d.rpr),
-        backgroundColor: data.map(d => d.rpr >= benchmark ? accent : negative),
-        borderRadius: 4,
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ' RPR: ' + fmtRPR(ctx.parsed.x) + '  (' + fmtNum(data[ctx.dataIndex].recipients) + ' recipients)' } }
-      },
-      scales: {
-        x: { ticks: { color: tickColor, callback: v => '£' + v.toFixed(2) }, grid: { color: gridColor } },
-        y: { ticks: { color: tickColor }, grid: { display: false } }
-      }
-    }
-  });
-}
-
-// ── Audience table ─────────────────────────────────────
-function renderAudienceTable() {
-  const tbody = document.getElementById('audienceTableBody');
-  const benchmark = KLAVIYO_ANALYSIS.summary.campaign_avg_rpr;
-  const data = KLAVIYO_ANALYSIS.by_audience.slice().sort((a,b) => b.rpr - a.rpr);
-  tbody.innerHTML = data.map(d => {
-    const rprClass = d.rpr >= benchmark * 1.5 ? 'rpr-good' : (d.rpr < benchmark * 0.6 ? 'rpr-bad' : '');
-    const read = d.rpr >= benchmark * 1.5 ? '🟢 Under-utilised — send more here' : (d.rpr < benchmark * 0.6 ? '🔴 Bleeding deliverability' : '⚪ Average');
-    return '<tr>' +
-      '<td><strong>' + d.audience + '</strong></td>' +
-      '<td>' + d.n_campaigns + '</td>' +
-      '<td>' + fmtNum(d.recipients) + '</td>' +
-      '<td>' + fmtPct(d.open_rate) + '</td>' +
-      '<td>' + fmtPct(d.click_rate) + '</td>' +
-      '<td>' + fmtNum(d.orders) + '</td>' +
-      '<td>' + fmtCurrency(d.revenue) + '</td>' +
-      '<td class="' + rprClass + '">' + fmtRPR(d.rpr) + '</td>' +
-      '<td style="font-size:11px;">' + read + '</td>' +
-    '</tr>';
-  }).join('');
-}
-
-// ── Type table ─────────────────────────────────────────
-function renderTypeTable() {
-  const tbody = document.getElementById('typeTableBody');
-  const benchmark = KLAVIYO_ANALYSIS.summary.campaign_avg_rpr;
-  const data = KLAVIYO_ANALYSIS.by_type.slice().sort((a,b) => b.rpr - a.rpr);
-  tbody.innerHTML = data.map(d => {
-    const rprClass = d.rpr >= benchmark * 1.5 ? 'rpr-good' : (d.rpr < benchmark * 0.6 ? 'rpr-bad' : '');
-    return '<tr>' +
-      '<td><strong>' + d.type + '</strong></td>' +
-      '<td>' + d.n_campaigns + '</td>' +
-      '<td>' + fmtNum(d.recipients) + '</td>' +
-      '<td>' + fmtPct(d.open_rate) + '</td>' +
-      '<td>' + fmtPct(d.click_rate) + '</td>' +
-      '<td>' + fmtNum(d.orders) + '</td>' +
-      '<td>' + fmtCurrency(d.revenue) + '</td>' +
-      '<td class="' + rprClass + '">' + fmtRPR(d.rpr) + '</td>' +
-    '</tr>';
-  }).join('');
-}
-
-// ── Winners / losers list ─────────────────────────────
-function renderCampaignList(arr, elId, isLoser) {
-  const el = document.getElementById(elId);
-  el.innerHTML = arr.map((c, i) => {
-    const stat = isLoser ? fmtRPR(c.rpr) : fmtCurrency(c.revenue);
-    const statLabel = isLoser ? 'RPR' : 'Revenue';
-    return '<div class="winner-row">' +
-      '<div class="winner-rank ' + (isLoser ? 'loser-rank' : '') + '">' + (i+1) + '</div>' +
-      '<div class="winner-body">' +
-        '<div class="winner-name" title="' + c.name + '">' + c.name + '</div>' +
-        '<div class="winner-meta">' + fmtNum(c.recipients) + ' recipients · ' + fmtPct(c.open_rate) + ' open · ' + fmtPct(c.click_rate) + ' click · ' + fmtPct(c.click_to_buy) + ' click→buy</div>' +
-      '</div>' +
-      '<div class="winner-stat">' +
-        '<div class="winner-stat-value">' + stat + '</div>' +
-        '<div class="winner-stat-label">' + statLabel + '</div>' +
-      '</div>' +
-    '</div>';
-  }).join('');
-}
-
-// ── Flow performance table ─────────────────────────────
-function renderFlowsTable() {
-  const tbody = document.getElementById('flowsTableBody');
-  tbody.innerHTML = KLAVIYO_ANALYSIS.flows.slice().sort((a,b) => b.revenue - a.revenue).map(f => {
-    return '<tr>' +
-      '<td><strong>' + f.flow_name + '</strong></td>' +
-      '<td><span class="status-pill" style="background:rgba(124,58,237,0.10);color:#7c3aed;">' + f.trigger + '</span></td>' +
-      '<td><span class="status-pill status-live">Live</span></td>' +
-      '<td>' + fmtNum(f.recipients) + '</td>' +
-      '<td>' + fmtPct(f.open_rate) + '</td>' +
-      '<td>' + fmtPct(f.click_rate) + '</td>' +
-      '<td>' + fmtNum(f.orders) + '</td>' +
-      '<td>' + fmtCurrency(f.revenue) + '</td>' +
-      '<td class="rpr-good">' + fmtRPR(f.rpr) + '</td>' +
-    '</tr>';
-  }).join('');
-}
-
-// ── Flow gap analysis table ────────────────────────────
-function renderFlowGapTable() {
-  const tbody = document.getElementById('flowGapTableBody');
-  const icons = { live: '✅', partial: '⚠️', draft: '📝', missing: '❌' };
-  tbody.innerHTML = FLOW_GAPS.map(f => {
-    return '<tr>' +
-      '<td style="text-align:center;font-size:16px;">' + (icons[f.status] || '·') + '</td>' +
-      '<td><strong>' + f.flow + '</strong></td>' +
-      '<td><span class="status-pill status-' + f.status + '">' + f.statusLabel + '</span></td>' +
-      '<td><strong style="color:var(--accent);">' + f.uplift + '</strong></td>' +
-      '<td style="font-size:11px;color:var(--text-secondary);">' + f.note + '</td>' +
-    '</tr>';
-  }).join('');
-}
-
-// ── Opportunity cards ──────────────────────────────────
-function renderOpportunities() {
-  const grid = document.getElementById('opportunitiesGrid');
-  grid.innerHTML = OPPORTUNITIES.map(o => {
-    return '<div class="opportunity-card">' +
-      '<div class="opportunity-rank">' + o.rank + '</div>' +
-      '<div class="opportunity-title">' + o.title + '</div>' +
-      '<div class="opportunity-body">' + o.body + '</div>' +
-      '<div class="opportunity-stats">' +
-        '<div class="opportunity-stat">Uplift<strong>' + o.uplift + '</strong></div>' +
-        '<div class="opportunity-stat">Effort<strong>' + o.effort + '</strong></div>' +
-      '</div>' +
-    '</div>';
-  }).join('');
-}
-
-// ── Run all renders ────────────────────────────────────
-function renderStrategicAnalysis() {
-  renderTopline();
-  renderAudienceRPR();
-  renderTypeRPR();
-  renderAudienceTable();
-  renderTypeTable();
-  renderCampaignList(KLAVIYO_ANALYSIS.winners, 'winnersList', false);
-  renderCampaignList(KLAVIYO_ANALYSIS.losers, 'losersList', true);
-  renderFlowsTable();
-  renderFlowGapTable();
+// ════════════════════════════════════════════════════════════════
+// RENDER — orchestrator
+// ════════════════════════════════════════════════════════════════
+function renderAll(){
+  if(!CAMPAIGNS.length && !MONTHLY.length) return;
+  renderKPIs();
+  renderInsights();
+  renderRevChart();
+  renderEngChart();
+  renderGrowthChart();
+  renderDelivChart();
+  renderSplit();
+  renderExplorer();
+  renderWinnersLosers();
+  renderAudChart();
+  renderTypeChart();
+  renderAudTable();
+  renderDOW();
+  renderPayday();
+  renderFlows();
+  renderGap();
   renderOpportunities();
+  renderMethod();
 }
-renderStrategicAnalysis();
 
-// ══════════════════════════════════════════════════════
-// TOOLTIP POPUP (preserved)
-// ══════════════════════════════════════════════════════
-const tooltipEl = document.getElementById('tooltipPopup');
+// ---- KPIs ----
+function renderKPIs(){
+  const mr = monthlyInRange();
+  const camps = campsInRange();
+  const emailRev = mr.reduce((s,r)=>s+(+r.email_revenue||0),0);
+  const emailOrd = mr.reduce((s,r)=>s+(+r.email_orders||0),0);
+  const storeRev = monthsInRange().reduce((s,m)=>s+(STORE_BY_MONTH[m]||0),0);
+  const sharePct = storeRev>0 ? emailRev/storeRev*100 : 0;
+  const w = weightedRates(camps);
+  const net = mr.reduce((s,r)=>s+(+r.net_growth||0),0);
+  const subs = mr.reduce((s,r)=>s+(+r.new_subscriptions||0),0);
+  const flowRev = mr.reduce((s,r)=>s+(+r.flow_revenue||0),0);
+  const flowShare = emailRev>0 ? flowRev/emailRev*100 : 0;
+
+  const tiles = [
+    { label:'Email revenue', tip:'Campaign + flow revenue attributed by Klaviyo (Placed Order), event-time, for the selected months.', value: gbp(emailRev), sub: num(emailOrd)+' orders' },
+    { label:'Email % of store revenue', tip:'Email-attributed revenue divided by total Shopify revenue for the period.', value: sharePct.toFixed(1)+'%', sub: 'of '+gbp(storeRev)+' store' },
+    { label:'Revenue / recipient', tip:'Campaign revenue divided by campaign recipients. The core efficiency metric.', value: rpr(w.rpr), sub: 'across '+num(camps.length)+' campaigns' },
+    { label:'Avg open rate', tip:'Unique opens / delivered, weighted by campaign.', value: pct(w.open), sub: 'click '+pct(w.click) },
+    { label:'Campaigns sent', tip:'Email campaigns with a send in the period.', value: num(camps.length), sub: num(w.rec)+' recipients' },
+    { label:'Flow revenue', tip:'Revenue from always-on automations in the period.', value: gbp(flowRev), sub: flowShare.toFixed(0)+'% of email' },
+    { label:'New subscribers', tip:'Subscribed to Email Marketing events in the period.', value: num(subs), sub: 'gross adds' },
+    { label:'Net list growth', tip:'New subscriptions minus unsubscriptions.', value: (net>=0?'+':'')+num(net), sub: net>=0?'list growing':'list shrinking' },
+  ];
+  document.getElementById('kpiStrip').innerHTML = tiles.map(t =>
+    '<div class="kpi-card"><div class="label">'+t.label+' <span class="info-tip" data-tip="'+t.tip+'">&#9432;</span></div>'+
+    '<div class="value">'+t.value+'</div><div class="sub">'+t.sub+'</div></div>').join('');
+}
+
+// ---- Headline insights (auto, data-driven) ----
+function renderInsights(){
+  document.getElementById('insightPeriod').textContent = RANGE.label + ' · ' + mLabel(RANGE.from) + (RANGE.from!==RANGE.to?(' to '+mLabel(RANGE.to)):'');
+  const camps = campsInRange();
+  const cards = [];
+
+  // 1. Repeat-purchaser leverage
+  const byAud = groupBy(camps, 'audience');
+  const repeat = byAud.find(a=>a.key==='Repeat 2x+');
+  const zero = byAud.find(a=>a.key==='Non-purchasers 0x');
+  if(repeat && zero && zero.rpr>0){
+    const mult = (repeat.rpr/zero.rpr).toFixed(0);
+    cards.push({cls:'good', kicker:'Leverage', head:rpr(repeat.rpr)+' vs '+rpr(zero.rpr),
+      body:'Repeat buyers (2x+) earn about '+mult+'× more per email than non-purchasers. Loyalists convert on relationship, not discount depth.'});
+  }
+  // 2. Flow vs campaign efficiency
+  const fw = weightedRates(FLOWS.map(f=>({delivered:f.delivered,opens_unique:f.opens_unique,clicks_unique:f.clicks_unique,recipients:f.recipients,conversion_value:f.conversion_value,conversions:f.conversions})));
+  const cw = weightedRates(camps);
+  if(fw.rpr>0 && cw.rpr>0){
+    const mult = (fw.rpr/cw.rpr).toFixed(1);
+    cards.push({cls:'', kicker:'Automations', head:'Flows convert '+mult+'× harder',
+      body:'Live flows earn '+rpr(fw.rpr)+'/email vs '+rpr(cw.rpr)+' for broadcasts, yet only 3 flows are live. The lifecycle is the biggest untapped lever.'});
+  }
+  // 3. Education engages but does not convert
+  const byType = groupBy(camps,'ctype');
+  const edu = byType.find(t=>t.key==='Education');
+  if(edu && edu.open>0){
+    cards.push({cls:'warn', kicker:'Content gap', head:'Education opens '+pct(edu.open,0)+', converts '+rpr(edu.rpr),
+      body:'Education earns strong opens but weak revenue per email. The content engages, the call to action does not. Name a product and link it.'});
+  }
+  // 4. List growth direction
+  const mr = monthlyInRange();
+  const net = mr.reduce((s,r)=>s+(+r.net_growth||0),0);
+  if(mr.length){
+    cards.push({cls: net>=0?'good':'bad', kicker:'List health', head:(net>=0?'+':'')+num(net)+' net subscribers',
+      body: net>=0 ? 'The list is growing. Acquisition is outpacing unsubscribes over the period.' : 'Unsubscribes are outpacing new subscribers. Trim cold sends to protect deliverability.'});
+  }
+  // 5. Best campaign of the period
+  const best = camps.filter(c=>c.recipients>=1000).sort((a,b)=>b.revenue_per_recipient-a.revenue_per_recipient)[0];
+  if(best){
+    cards.push({cls:'good', kicker:'Top send', head:rpr(best.revenue_per_recipient)+' best RPR',
+      body:'“'+clampHtml(best.campaign_name||'').slice(0,70)+'” earned '+gbp(best.conversion_value)+' from '+num(best.recipients)+' recipients. Worth templatising.'});
+  }
+  document.getElementById('insightGrid').innerHTML = cards.map(c =>
+    '<div class="insight-card '+c.cls+'"><div class="insight-kicker">'+c.kicker+'</div>'+
+    '<div class="insight-head">'+c.head+'</div><div class="insight-body">'+c.body+'</div></div>').join('');
+}
+
+// ---- Revenue over time ----
+function renderRevChart(){
+  destroyChart('rev');
+  const months = monthsInRange();
+  const byMonth = {}; MONTHLY.forEach(r=>byMonth[r.report_month]=r);
+  const labels = months.map(mLabel);
+  const camp = months.map(m=> byMonth[m] ? +byMonth[m].campaign_revenue||0 : 0);
+  const flow = months.map(m=> byMonth[m] ? +byMonth[m].flow_revenue||0 : 0);
+  const share = months.map(m=>{ const e = byMonth[m]?(+byMonth[m].email_revenue||0):0; const s = STORE_BY_MONTH[m]||0; return s>0? Math.round(e/s*1000)/10 : null; });
+  const t = chartTheme();
+  CHARTS.rev = new Chart(document.getElementById('revChart'), {
+    data: { labels, datasets: [
+      { type:'bar', label:'Campaigns', data:camp, backgroundColor:cssv('--accent'), stack:'s', borderRadius:3, yAxisID:'y' },
+      { type:'bar', label:'Flows', data:flow, backgroundColor:cssv('--purple'), stack:'s', borderRadius:3, yAxisID:'y' },
+      { type:'line', label:'% of store revenue', data:share, borderColor:cssv('--amber'), backgroundColor:'transparent', borderWidth:2, tension:0.3, pointRadius:3, yAxisID:'y1' }
+    ]},
+    options: { responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+      plugins:{ legend:{position:'top',labels:{usePointStyle:true,padding:14,font:{size:11},color:t.tick}},
+        tooltip:{ backgroundColor:t.tipBg, titleColor:t.tipTitle, bodyColor:t.tipBody, borderColor:t.tipBorder, borderWidth:1, padding:10, callbacks:{ label:(x)=> x.dataset.label==='% of store revenue' ? ' '+x.dataset.label+': '+(x.raw==null?'n/a':x.raw+'%') : ' '+x.dataset.label+': '+gbp(x.raw) } } },
+      scales:{ x:{stacked:true,grid:{display:false},ticks:{color:t.tick,font:{size:10}}},
+        y:{stacked:true,position:'left',grid:{color:t.grid},ticks:{color:t.tick,font:{size:10},callback:v=>'£'+(v/1000)+'k'}},
+        y1:{position:'right',grid:{drawOnChartArea:false},ticks:{color:t.tick,font:{size:10},callback:v=>v+'%'},suggestedMin:0} } }
+  });
+  const mr = monthlyInRange();
+  const tot = mr.reduce((s,r)=>s+(+r.email_revenue||0),0);
+  const cf = mr.reduce((s,r)=>s+(+r.campaign_revenue||0),0);
+  document.getElementById('revNote').innerHTML = 'Over the period: '+gbp(cf)+' from campaigns, '+gbp(tot-cf)+' from flows. Amber line is email as a share of total store revenue.';
+}
+
+// ---- Engagement over time ----
+function renderEngChart(){
+  destroyChart('eng');
+  const months = monthsInRange();
+  const series = months.map(m => weightedRates(CAMPAIGNS.filter(c=>c.send_month===m)));
+  const t = chartTheme();
+  CHARTS.eng = new Chart(document.getElementById('engChart'), {
+    type:'line',
+    data:{ labels:months.map(mLabel), datasets:[
+      { label:'Open rate', data:series.map(s=>+(s.open*100).toFixed(1)), borderColor:cssv('--accent'), backgroundColor:'transparent', borderWidth:2, tension:0.3, pointRadius:3, yAxisID:'y' },
+      { label:'Click rate', data:series.map(s=>+(s.click*100).toFixed(2)), borderColor:cssv('--purple'), backgroundColor:'transparent', borderWidth:2, tension:0.3, pointRadius:3, yAxisID:'y1' }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+      plugins:{ legend:{position:'top',labels:{usePointStyle:true,padding:14,font:{size:11},color:t.tick}},
+        tooltip:{ backgroundColor:t.tipBg, titleColor:t.tipTitle, bodyColor:t.tipBody, borderColor:t.tipBorder, borderWidth:1, callbacks:{ label:x=> ' '+x.dataset.label+': '+x.raw+'%' } } },
+      scales:{ x:{grid:{display:false},ticks:{color:t.tick,font:{size:10}}},
+        y:{position:'left',grid:{color:t.grid},ticks:{color:t.tick,font:{size:10},callback:v=>v+'%'},title:{display:true,text:'Open',color:t.tick,font:{size:10}}},
+        y1:{position:'right',grid:{drawOnChartArea:false},ticks:{color:t.tick,font:{size:10},callback:v=>v+'%'},title:{display:true,text:'Click',color:t.tick,font:{size:10}}} } }
+  });
+}
+
+// ---- List growth ----
+function renderGrowthChart(){
+  destroyChart('growth');
+  const mr = monthlyInRange();
+  const t = chartTheme();
+  CHARTS.growth = new Chart(document.getElementById('growthChart'), {
+    data:{ labels:mr.map(r=>mLabel(r.report_month)), datasets:[
+      { type:'bar', label:'New subscribers', data:mr.map(r=>+r.new_subscriptions||0), backgroundColor:cssv('--positive'), borderRadius:3, yAxisID:'y' },
+      { type:'bar', label:'Unsubscribes', data:mr.map(r=>-(+r.unsubscriptions||0)), backgroundColor:cssv('--negative'), borderRadius:3, yAxisID:'y' },
+      { type:'line', label:'Net growth', data:mr.map(r=>+r.net_growth||0), borderColor:cssv('--blue'), backgroundColor:'transparent', borderWidth:2, tension:0.3, pointRadius:3, yAxisID:'y' }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+      plugins:{ legend:{position:'top',labels:{usePointStyle:true,padding:14,font:{size:11},color:t.tick}},
+        tooltip:{ backgroundColor:t.tipBg, titleColor:t.tipTitle, bodyColor:t.tipBody, borderColor:t.tipBorder, borderWidth:1, callbacks:{ label:x=> ' '+x.dataset.label+': '+num(Math.abs(x.raw)) } } },
+      scales:{ x:{grid:{display:false},ticks:{color:t.tick,font:{size:10}}}, y:{grid:{color:t.grid},ticks:{color:t.tick,font:{size:10}}} } }
+  });
+  const tot = mr.reduce((s,r)=>s+(+r.net_growth||0),0);
+  document.getElementById('growthNote').innerHTML = 'Net '+(tot>=0?'+':'')+num(tot)+' over the period. Negative bars are unsubscribes. Watch for months where the blue net line dips below zero.';
+}
+
+// ---- Deliverability ----
+function renderDelivChart(){
+  destroyChart('deliv');
+  const months = monthsInRange();
+  const ser = months.map(m=>{
+    const cs = CAMPAIGNS.filter(c=>c.send_month===m);
+    let del=0,rec=0,b=0,sp=0,un=0;
+    cs.forEach(c=>{ del+=+c.delivered||0; rec+=+c.recipients||0; b+=+c.bounced||0; sp+=+c.spam_complaints||0; un+=+c.unsubscribe_uniques||0; });
+    return { bounce: rec>0?b/rec*100:0, spam: del>0?sp/del*100:0, unsub: del>0?un/del*100:0 };
+  });
+  const t = chartTheme();
+  CHARTS.deliv = new Chart(document.getElementById('delivChart'), {
+    type:'line',
+    data:{ labels:months.map(mLabel), datasets:[
+      { label:'Bounce %', data:ser.map(s=>+s.bounce.toFixed(2)), borderColor:cssv('--negative'), backgroundColor:'transparent', borderWidth:2, tension:0.3, pointRadius:2 },
+      { label:'Unsubscribe %', data:ser.map(s=>+s.unsub.toFixed(2)), borderColor:cssv('--warn'), backgroundColor:'transparent', borderWidth:2, tension:0.3, pointRadius:2 },
+      { label:'Spam %', data:ser.map(s=>+s.spam.toFixed(3)), borderColor:cssv('--purple'), backgroundColor:'transparent', borderWidth:2, tension:0.3, pointRadius:2 }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+      plugins:{ legend:{position:'top',labels:{usePointStyle:true,padding:14,font:{size:11},color:t.tick}},
+        tooltip:{ backgroundColor:t.tipBg, titleColor:t.tipTitle, bodyColor:t.tipBody, borderColor:t.tipBorder, borderWidth:1, callbacks:{ label:x=> ' '+x.dataset.label+': '+x.raw+'%' } } },
+      scales:{ x:{grid:{display:false},ticks:{color:t.tick,font:{size:10}}}, y:{grid:{color:t.grid},ticks:{color:t.tick,font:{size:10},callback:v=>v+'%'},suggestedMin:0} } }
+  });
+}
+
+// ---- Campaigns vs flows split ----
+function renderSplit(){
+  const camps = campsInRange();
+  const cw = weightedRates(camps);
+  const fw = weightedRates(FLOWS.map(f=>({delivered:f.delivered,opens_unique:f.opens_unique,clicks_unique:f.clicks_unique,recipients:f.recipients,conversion_value:f.conversion_value,conversions:f.conversions})));
+  const total = cw.rev + fw.rev || 1;
+  const liveFlows = FLOWS.filter(f=>f.status==='live').length;
+  const tile = (label,w,n,share,color,extra)=>
+    '<div class="split-tile"><div class="st-label">'+label+'</div><div class="st-rev">'+gbp(w.rev)+'</div>'+
+    '<div class="section-sub">'+share.toFixed(0)+'% of email revenue · '+extra+'</div>'+
+    '<div class="st-row">'+
+      '<div class="st-stat"><div class="v">'+rpr(w.rpr)+'</div><div class="k">per recipient</div></div>'+
+      '<div class="st-stat"><div class="v">'+num(w.ord)+'</div><div class="k">orders</div></div>'+
+      '<div class="st-stat"><div class="v">'+pct(w.open,0)+'</div><div class="k">open</div></div>'+
+      '<div class="st-stat"><div class="v">'+pct(w.click,1)+'</div><div class="k">click</div></div>'+
+    '</div>'+
+    '<div class="split-bar"><i style="width:'+share+'%;background:'+color+'"></i></div></div>';
+  document.getElementById('splitGrid').innerHTML =
+    tile('Campaigns (broadcasts)', cw, camps.length, cw.rev/total*100, cssv('--accent'), num(camps.length)+' sends in period') +
+    tile('Flows (automations)', fw, FLOWS.length, fw.rev/total*100, cssv('--purple'), liveFlows+' live of '+FLOWS.length+' · 12-month total');
+}
+
+// ---- Campaign explorer ----
+const CAMP_COLS = [
+  {k:'campaign_name', t:'Campaign', align:'left', s:'text'},
+  {k:'send_time', t:'Sent', s:'date', f:v=> v? new Date(v).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '—'},
+  {k:'audience', t:'Audience', s:'text', f:v=>'<span class="pill audience">'+v+'</span>'},
+  {k:'ctype', t:'Type', s:'text', f:v=>'<span class="pill type">'+v+'</span>'},
+  {k:'recipients', t:'Recipients', s:'num', f:num},
+  {k:'open_rate', t:'Open', s:'num', f:v=>pct(v)},
+  {k:'click_rate', t:'Click', s:'num', f:v=>pct(v,2)},
+  {k:'click_to_open_rate', t:'CTOR', s:'num', f:v=>pct(v,1)},
+  {k:'conversions', t:'Orders', s:'num', f:num},
+  {k:'conversion_value', t:'Revenue', s:'num', f:gbp},
+  {k:'revenue_per_recipient', t:'RPR', s:'num', f:rpr, rprcell:true},
+];
+let campSort = { k:'send_time', dir:-1 };
+function populateFilters(){
+  const auds = [...new Set(CAMPAIGNS.map(c=>c.audience))].sort();
+  const types = [...new Set(CAMPAIGNS.map(c=>c.ctype))].sort();
+  document.getElementById('campAudience').innerHTML = '<option value="">All audiences</option>' + auds.map(a=>'<option>'+a+'</option>').join('');
+  document.getElementById('campType').innerHTML = '<option value="">All types</option>' + types.map(a=>'<option>'+a+'</option>').join('');
+  document.getElementById('campHead').innerHTML = CAMP_COLS.map((c,i)=>'<th onclick="sortCamp('+i+')" style="text-align:'+(c.align||'right')+'">'+c.t+'<span class="arr">&#9650;</span></th>').join('');
+}
+function sortCamp(i){ const c = CAMP_COLS[i]; campSort = (campSort.k===c.k) ? {k:c.k,dir:-campSort.dir} : {k:c.k,dir:c.s==='text'?1:-1}; renderExplorer(); }
+function renderExplorer(){
+  const q = (document.getElementById('campSearch').value||'').toLowerCase();
+  const fa = document.getElementById('campAudience').value;
+  const ft = document.getElementById('campType').value;
+  let rows = campsInRange().filter(c=>{
+    if(fa && c.audience!==fa) return false;
+    if(ft && c.ctype!==ft) return false;
+    if(q && !((c.campaign_name||'').toLowerCase().includes(q) || (c.subject||'').toLowerCase().includes(q))) return false;
+    return true;
+  });
+  const col = CAMP_COLS.find(c=>c.k===campSort.k);
+  rows.sort((a,b)=>{
+    let va=a[campSort.k], vb=b[campSort.k];
+    if(col.s==='text'){ va=(va||'').toString().toLowerCase(); vb=(vb||'').toString().toLowerCase(); return va<vb?-campSort.dir:va>vb?campSort.dir:0; }
+    if(col.s==='date'){ va=va?new Date(va).getTime():0; vb=vb?new Date(vb).getTime():0; }
+    va=+va||0; vb=+vb||0; return (va-vb)*campSort.dir;
+  });
+  document.querySelectorAll('#campHead th').forEach((th,i)=>{ th.classList.toggle('sorted', CAMP_COLS[i].k===campSort.k); const a=th.querySelector('.arr'); if(a) a.innerHTML = CAMP_COLS[i].k===campSort.k ? (campSort.dir>0?'&#9650;':'&#9660;') : '&#9650;'; });
+  const benchmark = weightedRates(campsInRange()).rpr;
+  document.getElementById('campBody').innerHTML = rows.map(c=>'<tr>'+CAMP_COLS.map(col=>{
+    let v = c[col.k]; let disp = col.f ? col.f(v) : (v==null?'—':v);
+    if(col.k==='campaign_name') disp = '<div>'+clampHtml(v||'(unnamed)')+'</div><span class="sub-line">'+clampHtml(c.subject||'')+'</span>';
+    let cls='';
+    if(col.rprcell){ if((+v)>=benchmark*1.6) cls=' class="rpr-good"'; else if((+v)<benchmark*0.5) cls=' class="rpr-bad"'; }
+    return '<td'+cls+' style="text-align:'+(col.align||'right')+'">'+disp+'</td>';
+  }).join('')+'</tr>').join('') || '<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted)">No campaigns match.</td></tr>';
+  document.querySelector('#campTable').previousElementSibling;
+}
+
+// ---- Winners / losers ----
+function renderWinnersLosers(){
+  const rows = campsInRange().filter(c=>c.recipients>=1000);
+  const sorted = rows.slice().sort((a,b)=>b.revenue_per_recipient-a.revenue_per_recipient);
+  const top = sorted.slice(0,8), bot = sorted.slice(-8).reverse();
+  const row = (c,i,bad)=>'<div class="rank-row"><div class="rank-no '+(bad?'bad':'')+'">'+(i+1)+'</div>'+
+    '<div class="rank-body"><div class="rank-name" title="'+clampHtml(c.campaign_name||'')+'">'+clampHtml(c.campaign_name||'')+'</div>'+
+    '<div class="rank-meta">'+num(c.recipients)+' rec · '+pct(c.open_rate,0)+' open · '+pct(c.click_rate,1)+' click · '+gbp(c.conversion_value)+'</div></div>'+
+    '<div class="rank-stat"><div class="v">'+rpr(c.revenue_per_recipient)+'</div><div class="k">RPR</div></div></div>';
+  document.getElementById('winners').innerHTML = top.map((c,i)=>row(c,i,false)).join('');
+  document.getElementById('losers').innerHTML = bot.map((c,i)=>row(c,i,true)).join('');
+}
+
+// ---- Audience chart ----
+function renderAudChart(){
+  destroyChart('aud');
+  const data = groupBy(campsInRange(),'audience').filter(d=>d.recipients>=500).sort((a,b)=>b.rpr-a.rpr);
+  const bench = weightedRates(campsInRange()).rpr;
+  const t = chartTheme();
+  CHARTS.aud = new Chart(document.getElementById('audChart'), {
+    type:'bar',
+    data:{ labels:data.map(d=>d.key), datasets:[{ label:'RPR', data:data.map(d=>+d.rpr.toFixed(3)), backgroundColor:data.map(d=> d.rpr>=bench?cssv('--accent'):cssv('--negative')), borderRadius:3 }] },
+    options:{ indexAxis:'y', maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ backgroundColor:t.tipBg, titleColor:t.tipTitle, bodyColor:t.tipBody, borderColor:t.tipBorder, borderWidth:1, callbacks:{ label:x=>' RPR '+rpr(x.raw)+'  ('+num(data[x.dataIndex].recipients)+' rec · '+data[x.dataIndex].n+' sends)' } },
+        annotation:false },
+      scales:{ x:{grid:{color:t.grid},ticks:{color:t.tick,font:{size:10},callback:v=>'£'+(+v).toFixed(2)}}, y:{grid:{display:false},ticks:{color:t.tick,font:{size:11}}} } }
+  });
+}
+
+// ---- Type chart ----
+function renderTypeChart(){
+  destroyChart('type');
+  const data = groupBy(campsInRange(),'ctype').filter(d=>d.recipients>=300).sort((a,b)=>b.rpr-a.rpr);
+  const bench = weightedRates(campsInRange()).rpr;
+  const t = chartTheme();
+  CHARTS.type = new Chart(document.getElementById('typeChart'), {
+    type:'bar',
+    data:{ labels:data.map(d=>d.key), datasets:[{ label:'RPR', data:data.map(d=>+d.rpr.toFixed(3)), backgroundColor:data.map(d=> d.rpr>=bench?cssv('--accent'):cssv('--negative')), borderRadius:3 }] },
+    options:{ indexAxis:'y', maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ backgroundColor:t.tipBg, titleColor:t.tipTitle, bodyColor:t.tipBody, borderColor:t.tipBorder, borderWidth:1, callbacks:{ label:x=>' RPR '+rpr(x.raw)+'  ('+data[x.dataIndex].n+' campaigns)' } } },
+      scales:{ x:{grid:{color:t.grid},ticks:{color:t.tick,font:{size:10},callback:v=>'£'+(+v).toFixed(2)}}, y:{grid:{display:false},ticks:{color:t.tick,font:{size:11}}} } }
+  });
+}
+
+// ---- Audience table ----
+function renderAudTable(){
+  const bench = weightedRates(campsInRange()).rpr;
+  const head = ['Audience','Sends','Recipients','Open','Click','Orders','Revenue','RPR','Read'];
+  document.getElementById('audHead').innerHTML = head.map((h,i)=>'<th style="text-align:'+(i===0||i===8?'left':'right')+'">'+h+'</th>').join('');
+  const data = groupBy(campsInRange(),'audience').sort((a,b)=>b.rpr-a.rpr);
+  document.getElementById('audBody').innerHTML = data.map(d=>{
+    const cls = d.rpr>=bench*1.6?'rpr-good':(d.rpr<bench*0.55?'rpr-bad':'');
+    const read = d.rpr>=bench*1.6?'Under-used, send more':(d.rpr<bench*0.55?'Deliverability drag':'Average');
+    return '<tr><td>'+d.key+'</td><td>'+d.n+'</td><td>'+num(d.recipients)+'</td><td>'+pct(d.open)+'</td><td>'+pct(d.click,2)+'</td><td>'+num(d.orders)+'</td><td>'+gbp(d.revenue)+'</td>'+
+      '<td class="'+cls+'">'+rpr(d.rpr)+'</td><td style="text-align:left;font-size:11px">'+read+'</td></tr>';
+  }).join('');
+}
+
+// ---- Day of week ----
+function renderDOW(){
+  destroyChart('dow');
+  const buckets = Array.from({length:7},()=>[]);
+  campsInRange().forEach(c=>{ if(c.send_time){ buckets[new Date(c.send_time).getUTCDay()].push(c); } });
+  const stats = buckets.map(b=>weightedRates(b));
+  const t = chartTheme();
+  CHARTS.dow = new Chart(document.getElementById('dowChart'), {
+    data:{ labels:DOW, datasets:[
+      { type:'bar', label:'RPR', data:stats.map(s=>+s.rpr.toFixed(3)), backgroundColor:cssv('--accent'), borderRadius:3, yAxisID:'y' },
+      { type:'line', label:'Open rate', data:stats.map(s=>+(s.open*100).toFixed(1)), borderColor:cssv('--amber'), backgroundColor:'transparent', borderWidth:2, tension:0.3, pointRadius:3, yAxisID:'y1' }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+      plugins:{ legend:{position:'top',labels:{usePointStyle:true,padding:14,font:{size:11},color:t.tick}},
+        tooltip:{ backgroundColor:t.tipBg, titleColor:t.tipTitle, bodyColor:t.tipBody, borderColor:t.tipBorder, borderWidth:1, callbacks:{ label:x=> x.dataset.label==='RPR'? ' RPR '+rpr(x.raw)+' ('+buckets[x.dataIndex].length+' sends)' : ' Open '+x.raw+'%' } } },
+      scales:{ x:{grid:{display:false},ticks:{color:t.tick,font:{size:10}}},
+        y:{position:'left',grid:{color:t.grid},ticks:{color:t.tick,font:{size:10},callback:v=>'£'+(+v).toFixed(2)}},
+        y1:{position:'right',grid:{drawOnChartArea:false},ticks:{color:t.tick,font:{size:10},callback:v=>v+'%'}} } }
+  });
+  const best = stats.map((s,i)=>({d:DOW[i],rpr:s.rpr,n:buckets[i].length})).filter(x=>x.n>=3).sort((a,b)=>b.rpr-a.rpr)[0];
+  document.getElementById('dowNote').innerHTML = best ? ('Best converting send day so far: <b>'+best.d+'</b> at '+rpr(best.rpr)+' per recipient. Day-of-week is confounded by what gets sent when, so read it as a hint, not a rule.') : 'Not enough sends to call a best day yet.';
+}
+
+// ---- Payday ----
+function renderPayday(){
+  destroyChart('payday');
+  const camps = campsInRange();
+  const isPayday = c=>{ const d=new Date(c.send_time).getUTCDate(); return d>=22 || d<=7; };
+  const pay = weightedRates(camps.filter(isPayday));
+  const mid = weightedRates(camps.filter(c=>!isPayday(c)));
+  const t = chartTheme();
+  CHARTS.payday = new Chart(document.getElementById('paydayChart'), {
+    type:'bar',
+    data:{ labels:['Payday window (22nd–7th)','Mid-month (8th–21st)'], datasets:[
+      { label:'RPR', data:[+pay.rpr.toFixed(3),+mid.rpr.toFixed(3)], backgroundColor:[cssv('--positive'),cssv('--text-muted')], borderRadius:4, yAxisID:'y' },
+      { label:'Open rate', data:[+(pay.open*100).toFixed(1),+(mid.open*100).toFixed(1)], backgroundColor:'transparent', borderColor:cssv('--amber'), type:'line', pointRadius:5, yAxisID:'y1' }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'top',labels:{usePointStyle:true,padding:14,font:{size:11},color:t.tick}},
+        tooltip:{ backgroundColor:t.tipBg, titleColor:t.tipTitle, bodyColor:t.tipBody, borderColor:t.tipBorder, borderWidth:1, callbacks:{ label:(x)=> x.dataset.label==='RPR'? ' RPR '+rpr(x.raw) : ' Open '+x.raw+'%' } } },
+      scales:{ x:{grid:{display:false},ticks:{color:t.tick,font:{size:10}}},
+        y:{position:'left',grid:{color:t.grid},ticks:{color:t.tick,font:{size:10},callback:v=>'£'+(+v).toFixed(2)}},
+        y1:{position:'right',grid:{drawOnChartArea:false},ticks:{color:t.tick,font:{size:10},callback:v=>v+'%'}} } }
+  });
+}
+
+// ---- Flows ----
+function renderFlows(){
+  const head = ['Flow','Trigger','Status','Recipients','Open','Click','Orders','Revenue','RPR'];
+  document.getElementById('flowHead').innerHTML = head.map((h,i)=>'<th style="text-align:'+(i===0||i===1||i===2?'left':'right')+'">'+h+'</th>').join('');
+  const rows = FLOWS.slice().sort((a,b)=>(+b.conversion_value||0)-(+a.conversion_value||0));
+  document.getElementById('flowBody').innerHTML = rows.map(f=>{
+    const st = (f.status||'').toLowerCase();
+    const pill = st==='live'?'<span class="pill live">Live</span>': st==='draft'?'<span class="pill draft">Draft</span>':'<span class="pill partial">'+clampHtml(f.status||'—')+'</span>';
+    return '<tr><td>'+clampHtml(f.flow_name||'(unnamed)')+'</td><td style="text-align:left"><span class="pill type">'+clampHtml(f.trigger_type||'—')+'</span></td>'+
+      '<td style="text-align:left">'+pill+'</td><td>'+num(f.recipients)+'</td><td>'+pct(f.open_rate)+'</td><td>'+pct(f.click_rate,2)+'</td>'+
+      '<td>'+num(f.conversions)+'</td><td>'+gbp(f.conversion_value)+'</td><td class="rpr-good">'+rpr(f.revenue_per_recipient)+'</td></tr>';
+  }).join('');
+}
+
+// ---- Flow gap (curated; live status reflects Klaviyo) ----
+function renderGap(){
+  const liveNames = FLOWS.filter(f=>(f.status||'').toLowerCase()==='live').map(f=>(f.flow_name||'').toLowerCase());
+  const hasLive = re => liveNames.some(n=>re.test(n));
+  const gaps = [
+    { flow:'Welcome series', status: hasLive(/welcome/)?'live':'missing', uplift:'live', note:'Quiz + newsletter welcomes are live and are the top-converting automations. Make sure every signup path lands in one.' },
+    { flow:'Checkout / cart abandonment', status: hasLive(/checkout|cart/)?'partial':'missing', uplift:'+£3–6k/yr', note:'Checkout Started is live and converts at the highest RPR of any flow. Add a 24h and 48h follow-up to capture more.' },
+    { flow:'Browse abandonment', status:'draft', uplift:'+£8–15k/yr', note:'Sits as a draft, never switched on. High-intent product viewers go un-emailed.' },
+    { flow:'Replenishment', status:'missing', uplift:'+£15–25k/yr', note:'Serums last 3–4 months and loyalists repurchase every ~95 days. A SKU-timed replenishment flow is the single biggest opportunity.' },
+    { flow:'Post-purchase nurture', status:'missing', uplift:'+£6–12k/yr', note:'No thank-you, how-to-use, or cross-sell sequence after a first order. This is where repeat behaviour is built.' },
+    { flow:'Win-back / lapsed', status:'missing', uplift:'+£4–8k/yr', note:'3–6 month lapsed buyers carry the highest LTV. A founder-voice win-back is a proven, untapped angle.' },
+    { flow:'Birthday / anniversary', status:'missing', uplift:'+£2–4k/yr', note:'Currently run as a campaign. The "a gift for us" template is the best emotional offer on record. Automate it.' },
+    { flow:'Review request', status:'partial', uplift:'frees slots', note:'Trustpilot / Judge.me asks run as campaigns. Move to a delivery+14d flow to free up the broadcast calendar.' },
+    { flow:'VIP / loyalty (2x+)', status:'missing', uplift:'+£3–6k/yr', note:'Repeat buyers earn the highest RPR but get no dedicated automation. Early access + free-gift tier.' },
+    { flow:'Back-in-stock', status:'missing', uplift:'+£2–4k/yr', note:'Worth £2–4k a year per hero SKU when stock returns.' },
+    { flow:'Cross-sell (serum to cleanser)', status:'missing', uplift:'+£3–6k/yr', note:'Thousands of serum buyers own no cleanser. The biggest catalogue gap, automatable as a triggered cross-sell.' },
+  ];
+  const icon = { live:'✅', partial:'⚠️', draft:'📝', missing:'❌' };
+  document.getElementById('gapBody').innerHTML = gaps.map(g=>{
+    const p = g.status==='live'?'<span class="pill live">Live</span>': g.status==='partial'?'<span class="pill partial">Partial</span>': g.status==='draft'?'<span class="pill draft">Draft</span>':'<span class="pill missing">Missing</span>';
+    return '<tr><td style="text-align:center;font-size:15px">'+(icon[g.status]||'·')+'</td><td>'+g.flow+'</td><td style="text-align:left">'+p+'</td>'+
+      '<td style="text-align:left"><b style="color:var(--accent)">'+g.uplift+'</b></td><td style="text-align:left;font-size:11px;color:var(--text-secondary);white-space:normal;max-width:420px">'+g.note+'</td></tr>';
+  }).join('');
+}
+
+// ---- Opportunities (Karmic-tuned, with live numbers injected) ----
+function renderOpportunities(){
+  const camps = campsInRange();
+  const byAud = groupBy(camps,'audience');
+  const zero = byAud.find(a=>a.key==='Non-purchasers 0x') || {recipients:0,revenue:0,rpr:0,n:0};
+  const repeat = byAud.find(a=>a.key==='Repeat 2x+') || {rpr:0,n:0};
+  const opps = [
+    { rank:'#1', title:'Build the replenishment flow', uplift:'£15–25k/yr', effort:'1–2 weeks',
+      body:'Serums last 3–4 months and 3x+ loyalists repurchase every ~95 days, almost exactly one usage cycle. A SKU-timed replenishment automation captures that intent before it leaks to a reminder. Needs last-purchased-product piped from Shopify to Klaviyo, then one flow per hero SKU.' },
+    { rank:'#2', title:'Lift cadence to repeat buyers', uplift:'£10–15k/yr', effort:'1 day',
+      body:'Repeat buyers (2x+) earn '+rpr(repeat.rpr)+' per email, far above average, yet received only '+repeat.n+' sends this period. They convert on relationship, not discount depth. Re-segment existing campaigns to hit this cohort first and more often.' },
+    { rank:'#3', title:'Reuse the "a gift for us" template', uplift:'£8–15k/yr', effort:'low',
+      body:'The emotional, occasion-led offer (Valentine\'s, Birthday) is the strongest converting pattern on record. It is used a handful of times a year. Reuse the voice and structure for Diwali, Eid, Mother\'s Day, Anniversary and Boxing Day. Four to six extra moment-led sales a year.' },
+    { rank:'#4', title:'Stop the 0x bleed', uplift:'£3–5k/yr + reputation', effort:'medium',
+      body:'Non-purchasers absorbed '+num(zero.recipients)+' sends for '+gbp(zero.revenue)+' ('+rpr(zero.rpr)+' RPR). Halve the volume to this cohort, route them to a dedicated first-buy nurture with social proof and a tester-size offer, and free deliverability for cohorts that pay back.' },
+    { rank:'#5', title:'Switch on browse + post-purchase flows', uplift:'£14–27k/yr combined', effort:'1 week each',
+      body:'Browse abandonment is a draft that was never enabled, and there is no post-purchase sequence at all. The live Checkout Started flow proves automations convert here. Browse and post-purchase should perform similarly with far higher intent than a broadcast.' },
+  ];
+  document.getElementById('oppGrid').innerHTML = opps.map(o=>
+    '<div class="opp-card"><div class="opp-rank">'+o.rank+'</div><div class="opp-title">'+o.title+'</div>'+
+    '<div class="opp-body">'+o.body+'</div><div class="opp-stats">'+
+    '<div class="opp-stat">Uplift<strong>'+o.uplift+'</strong></div><div class="opp-stat">Effort<strong>'+o.effort+'</strong></div></div></div>').join('');
+  document.getElementById('oppFooter').innerHTML = 'Combined planning estimate if all five execute: <b>£50–85k/yr</b>, roughly a year of current campaign revenue. Figures are directional, not forecasts.';
+}
+
+// ---- Methodology ----
+function renderMethod(){
+  document.getElementById('methodBody').innerHTML =
+    '<p><b>Revenue per recipient (RPR)</b> = Placed Order revenue / recipients. It is the fairest way to compare sends of different sizes, and the metric this dashboard optimises for.</p>'+
+    '<p><b>Attribution.</b> All revenue is Klaviyo Placed Order attribution. Monthly figures are event-time (when the order happened); campaign-level figures are credited to the campaign that drove them. The two can differ slightly across month boundaries.</p>'+
+    '<p><b>Campaigns vs flows split.</b> Flow revenue is orders attributed to an automation. Campaign revenue is total email-attributed revenue minus flow revenue. Flow tables show the trailing 12 months and are not date-filtered.</p>'+
+    '<p><b>Payday effect.</b> UK spending peaks around payday (roughly the 22nd to the 7th). Sends in that window are flattered. Never compare a payday sale send against a mid-month education send without adjusting.</p>'+
+    '<p><b>Discount halo.</b> Campaigns sent during a sale window read 30–50% stronger than the same content at full price. Subtract for a fair read.</p>'+
+    '<p><b>Timezone.</b> Monthly aggregates use UTC. The earlier Europe/London setting corrupted month buckets (a known issue in the legacy monthly table), which is why these numbers can differ from the old dashboard.</p>'+
+    '<p><b>Market.</b> Karmic is UK-first. US orders ship but are not a target and should not drive these reads.</p>';
+}
+
+// ════════════════════════════════════════════════════════════════
+// TOOLTIPS
+// ════════════════════════════════════════════════════════════════
+const tipEl = document.getElementById('tooltipPopup');
 document.addEventListener('mouseover', e => {
-  const tip = e.target.closest('.info-tip');
-  if (tip && tip.dataset.tip) {
-    const rect = tip.getBoundingClientRect();
-    tooltipEl.textContent = tip.dataset.tip;
-    tooltipEl.style.display = 'block';
-    let left = rect.left + rect.width / 2 - tooltipEl.offsetWidth / 2;
-    let top = rect.top - tooltipEl.offsetHeight - 6;
-    left = Math.max(8, Math.min(left, window.innerWidth - tooltipEl.offsetWidth - 8));
-    if (top < 4) top = rect.bottom + 6;
-    top = Math.max(4, Math.min(top, window.innerHeight - tooltipEl.offsetHeight - 4));
-    tooltipEl.style.left = left + 'px';
-    tooltipEl.style.top = top + 'px';
+  const t = e.target.closest('.info-tip');
+  if(t && t.dataset.tip){
+    const r = t.getBoundingClientRect();
+    tipEl.textContent = t.dataset.tip; tipEl.style.display='block';
+    let left = r.left + r.width/2 - tipEl.offsetWidth/2;
+    let top = r.top - tipEl.offsetHeight - 6;
+    left = Math.max(8, Math.min(left, window.innerWidth - tipEl.offsetWidth - 8));
+    if(top<4) top = r.bottom + 6;
+    tipEl.style.left = left+'px'; tipEl.style.top = top+'px';
   }
 });
-document.addEventListener('mouseout', e => {
-  if (e.target.closest('.info-tip')) tooltipEl.style.display = 'none';
-});
+document.addEventListener('mouseout', e => { if(e.target.closest('.info-tip')) tipEl.style.display='none'; });
+
+// ════════════════════════════════════════════════════════════════
+boot();
 </script>
 </body>
 </html>

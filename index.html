@@ -1541,11 +1541,11 @@ async function fetchTableData() {
     if (Array.isArray(ltvRows)) { for (const r of ltvRows) ltvData[r.month] = parseFloat(r.ltv_12m); }
   } catch(e) {}
 
-  // Fetch trailing-12m CAC payback (days), keyed by month — computed server-side (cohort contribution curve)
+  // Fetch trailing-12m CAC payback (days), keyed by month — precomputed nightly into rpt_trailing_payback_12m
+  // (read from the cache table, not the live RPC, which is too slow for the 8s authenticated timeout)
   try {
-    const pbResp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_trailing_payback_12m`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${USER_JWT}` },
-      body: '{}'
+    const pbResp = await fetch(`${SUPABASE_URL}/rest/v1/rpt_trailing_payback_12m?select=month,payback_days`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${USER_JWT}` }
     });
     const pbRows = await pbResp.json();
     if (Array.isArray(pbRows)) { for (const r of pbRows) paybackData[r.month] = parseFloat(r.payback_days); }

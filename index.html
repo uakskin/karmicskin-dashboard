@@ -654,11 +654,12 @@ body { padding-left: 208px; }
             <th data-col="ltv" title="Trailing 12-month Revenue ÷ Unique Customers in that 12-month window">LTV 12m <span class="info-tip" data-tip="Trailing 12-month Revenue ÷ Unique Customers in that 12-month window">ⓘ</span> <span class="sort-arrow">▼</span></th>
             <th data-col="ncac" title="New Customer Acquisition Cost. Total Ad Spend (Meta + Google) ÷ New Unique Paying Customers acquired that month.">N-CAC <span class="info-tip" data-tip="Total Ad Spend (Meta + Google) ÷ New Unique Paying Customers acquired that month">ⓘ</span> <span class="sort-arrow">▼</span></th>
             <th data-col="ltvNcac" title="LTV 12m ÷ N-CAC. How much lifetime revenue a customer generates relative to what you paid to acquire them.">LTV:N-CAC <span class="info-tip" data-tip="LTV 12m ÷ N-CAC. Lifetime revenue relative to new customer acquisition cost.">ⓘ</span> <span class="sort-arrow">▼</span></th>
+            <th data-col="payback" title="Trailing-12-month CAC payback, in days. For each month: how long for a customer acquired in the prior 12 months to repay their N-CAC out of contribution margin (revenue ex-VAT × 66.8% delivered margin). <90 days healthy.">Payback 12m <span class="info-tip" data-tip="<p><strong>Payback 12m</strong> — trailing-12-month CAC payback, in days.</p><p class='tt-muted'>For the row's month M: take everyone who placed their first-ever order in the 12 months ending M, and measure how long for the average customer to repay their acquisition cost out of contribution margin.</p><p class='tt-muted'>Contribution = order revenue ÷ 1.2 (ex-VAT) × 66.8% delivered margin. N-CAC = Meta + Google spend ÷ new customers over the window. The contribution curve is maturity-adjusted (each tenure averages only cohorts old enough to have reached it) and observed through the last complete month.</p><div class='tt-divider'></div><p class='tt-muted'>Benchmark: &lt;90 days healthy · 90–120 risky · &gt;120 problematic. The newest months read longer partly because recent cohorts haven't shown all their repeats yet — they shorten as cohorts mature.</p>">ⓘ</span> <span class="sort-arrow">▼</span></th>
             <th data-col="aovUplift" title="(Repeat AOV − New AOV) ÷ New AOV × 100. How much bigger an average repeat order is vs an average first-time order. A quick proxy for repeat-customer value — but LTV:N-CAC is the more complete measure.">Repeat AOV vs New <span class="info-tip" data-tip="<p><strong>Repeat AOV vs New</strong> = (Repeat AOV − New AOV) ÷ New AOV × 100</p><p class='tt-muted'>How much bigger an average repeat order is than an average first-time order. Almost always positive — repeat customers are warmer and add more to the basket.</p><div class='tt-divider'></div><p><strong>Caveats:</strong></p><p class='tt-muted'>This is a per-order signal. It misses two things repeat customers also do: (1) order more frequently, and (2) tend to have higher gross margin if they skip first-order discounts. The most complete measure is <strong>LTV:N-CAC</strong> — total lifetime revenue per customer relative to what you paid to acquire them.</p>">ⓘ</span> <span class="sort-arrow">▼</span></th>
           </tr>
         </thead>
         <tbody id="perfTableBody">
-          <tr><td colspan="16" style="text-align:center;color:#52525b;padding:20px">Loading...</td></tr>
+          <tr><td colspan="17" style="text-align:center;color:#52525b;padding:20px">Loading...</td></tr>
         </tbody>
       </table>
     </div>
@@ -1521,6 +1522,7 @@ document.querySelectorAll('.toggle-item input').forEach(cb => {
 // PERFORMANCE TABLE
 let allDailyData = [];
 let ltvData = {};
+let paybackData = {};
 // N-CAC and LTV:N-CAC computed from existing data
 let tablePeriod = 'monthly';
 const VISIBLE_ROWS = 12;
@@ -1537,6 +1539,16 @@ async function fetchTableData() {
     });
     const ltvRows = await ltvResp.json();
     if (Array.isArray(ltvRows)) { for (const r of ltvRows) ltvData[r.month] = parseFloat(r.ltv_12m); }
+  } catch(e) {}
+
+  // Fetch trailing-12m CAC payback (days), keyed by month — computed server-side (cohort contribution curve)
+  try {
+    const pbResp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_trailing_payback_12m`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${USER_JWT}` },
+      body: '{}'
+    });
+    const pbRows = await pbResp.json();
+    if (Array.isArray(pbRows)) { for (const r of pbRows) paybackData[r.month] = parseFloat(r.payback_days); }
   } catch(e) {}
 
   // LTV 6m removed — N-CAC and LTV:N-CAC computed from table data
@@ -1624,6 +1636,7 @@ function buildTableRows() {
     return {
       key: k, label, roas, revenue: d.revenue, adSpend: d.adSpend, meta: d.meta, google: d.google,
       orders: d.orders, aov, newCust: d.newCust, repeat: d.repeat, repeatPct, aovUplift, ltv, ncac, ltvNcac,
+      payback: tablePeriod === 'monthly' ? (paybackData[k] || 0) : 0,
       growthPct: growthMap[k].revGrowth, spendGrowth: growthMap[k].spendGrowth,
     };
   });
@@ -1691,6 +1704,7 @@ function renderTable() {
       <td>${r.ltv > 0 ? '\u00A3' + r.ltv.toFixed(0) : '-'}</td>
       <td>${r.ncac > 0 ? '\u00A3' + r.ncac.toFixed(0) : '-'}</td>
       <td>${r.ltvNcac > 0 ? r.ltvNcac.toFixed(1) + 'x' : '-'}</td>
+      <td>${r.payback > 0 ? r.payback.toFixed(0) + 'd' : '-'}</td>
       <td>${r.aovUplift === null ? '-' : (r.aovUplift >= 0 ? '+' : '') + r.aovUplift.toFixed(0) + '%'}</td>
     </tr>`;
   }

@@ -256,6 +256,11 @@ body { padding-left: 208px; }
   </div>
 </div>
 
+<!-- OPEN PO BANNER (populated from INCOMING_POS) -->
+<div class="body-section" id="poBannerWrap" style="display:none; padding-bottom: 12px;">
+  <div class="info-block" id="poBanner"></div>
+</div>
+
 <!-- PER-SKU TABLE -->
 <div class="body-section">
   <div class="card">
@@ -269,16 +274,17 @@ body { padding-left: 208px; }
           <tr>
             <th class="sortable" data-col="product_title">SKU <span class="sort-arrow">▲</span></th>
             <th class="sortable" data-col="on_hand">Inventory <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-col="incoming_qty" title="Units on order (open POs), added to the forecast on their ETA.">Incoming <span class="sort-arrow">▼</span></th>
             <th class="sortable" data-col="rate90" title="Average daily units sold over the trailing 90 days, including bundle component allocation.">90d / day <span class="sort-arrow">▼</span></th>
             <th class="sortable" data-col="rate180" title="Same as 90d but over 180-day window. Compare to 90d to spot acceleration / slowdown.">180d / day <span class="sort-arrow">▼</span></th>
             <th title="Trailing-trend change. ▲ = 90d rate is &gt;15% faster than 180d (demand accelerating). ▼ = 90d is &gt;15% slower (demand softening).">Trend</th>
-            <th class="sortable sorted" data-col="days_of_cover" title="Inventory ÷ daily rate. Uses the higher of 90d or a stockout-corrected rate to be safe.">Days cover <span class="sort-arrow">▲</span></th>
-            <th class="sortable" data-col="stockout_at" title="Today + days of cover.">Stockout date <span class="sort-arrow">▼</span></th>
-            <th class="sortable" data-col="po_due" title="Stockout date − 120 days. The latest you can place a PO and still receive it before stockout.">PO due <span class="sort-arrow">▼</span></th>
+            <th class="sortable sorted" data-col="days_of_cover" title="Current inventory ÷ daily rate (excludes incoming POs). Uses the higher of 90d or a stockout-corrected rate to be safe.">Days cover <span class="sort-arrow">▲</span></th>
+            <th class="sortable" data-col="stockout_at" title="Projected stockout including incoming PO units landing at their ETA.">Stockout date <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-col="po_due" title="Stockout date − 120 days. The latest you can place the NEXT PO and still receive it before stockout.">PO due <span class="sort-arrow">▼</span></th>
             <th class="sortable" data-col="urgency_rank">Status <span class="sort-arrow">▼</span></th>
           </tr>
         </thead>
-        <tbody id="invBody"><tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:24px">Loading…</td></tr></tbody>
+        <tbody id="invBody"><tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:24px">Loading…</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -301,7 +307,7 @@ body { padding-left: 208px; }
   <div class="info-block">
     <h4>How this dashboard is calculated</h4>
     <p style="margin-bottom: 10px"><strong>Sales rate per SKU</strong> = direct unit sales + bundle-component allocation (when a bundle is sold, each listed component's count goes up by the bundle's quantity). 90-day window is the primary forecast; 180-day shown alongside for trend comparison.</p>
-    <p style="margin-bottom: 10px"><strong>Days of cover</strong> = current Shopify on-hand ÷ daily rate. <strong>Stockout date</strong> = today + days of cover. <strong>PO due</strong> = stockout date − 120 days lead time. <strong>Status pill</strong> drives off PO due: <span class="pill overdue">Overdue</span> if PO due is in the past · <span class="pill urgent">Urgent</span> if within 30 days · <span class="pill soon">Soon</span> if within 60 days · <span class="pill ok">OK</span> otherwise.</p>
+    <p style="margin-bottom: 10px"><strong>Days of cover</strong> = current Shopify on-hand ÷ daily rate (current stock only). <strong>Stockout date</strong> = when stock hits zero <em>including incoming PO units</em>, which land in the forecast on their ETA (see <code>INCOMING_POS</code> in the page source). If current stock would run dry before a shipment lands, a <span class="trend-chip trend-down">⚠ gap</span> chip appears in the Incoming column. <strong>PO due</strong> = stockout date − 120 days lead time, i.e. the latest date to place the <em>next</em> PO. <strong>Status pill</strong> drives off PO due: <span class="pill overdue">Overdue</span> if PO due is in the past · <span class="pill urgent">Urgent</span> if within 30 days · <span class="pill soon">Soon</span> if within 60 days · <span class="pill ok">OK</span> otherwise.</p>
     <p style="margin-bottom: 10px"><strong>Bundles tracked</strong> (1 bundle sold = 1 unit each component): The Heroes Kit, Dew It Right, Age Confidence, Bright Future, Mama's Glow, Soft Intentions, The Hair Affair Bundle. Component map is in the page source — see <code>BUNDLE_MAP</code> if you need to correct it. Bundle SKUs are hidden from this list per directive (you only see the underlying components).</p>
     <p style="margin-bottom: 10px"><strong>Why some rates differ between 90d and 180d</strong>: a stockout in the window will lower the rate for that period (Sleepytime Gelly hit zero in late March), and recently-launched products (Featherweight, Maui Waui, Tropic Thunder, Espresso Bar, The One &amp; Only — all launched Sep 2025) won't have a meaningful 180d picture. The dashboard auto-uses the more conservative (faster) of the two when there's a strong divergence.</p>
     <p><strong>Refresh cadence</strong>: inventory syncs from Shopify hourly via <code>sync-shopify-inventory</code>. Sales data updates with the next webhook + rebuild cycle (every 10 min). Click <strong>Refresh</strong> for an immediate Shopify pull (≈3 sec).</p>
@@ -331,6 +337,27 @@ const BUNDLE_MAP = {
   'Soft Intentions':  ['Ruby Dooby Doo', 'Moonlight Serum', 'Sleepytime Gelly'],
   'The Hair Affair Bundle': ['Featherweight', 'Espresso Bar', 'The One & Only'],
 };
+// Incoming purchase orders. Units land in the forecast at their ETA: stockout dates,
+// PO-due dates and status pills all account for stock already on order.
+// EDITABLE — update ship_date/eta when the supplier confirms; delete the PO object once goods are received
+// and counted into Shopify.
+const INCOMING_POS = [
+  {
+    po: 'PO #011',
+    placed: '2026-06-17',
+    ship_date: '2026-09-10',  // estimated ship from India (in production as of Aug 2026)
+    eta: '2026-10-15',        // ship date + ~5 weeks sea transit India → UK (estimate)
+    lines: {
+      'Sunlight Serum': 10000,
+      'Moonlight Serum': 8500,
+      'Sleepytime Gelly': 2500,
+      'Pot of Gold': 2000,
+      'Top of the Morning': 1500,
+      'Richie Rich Rich': 500,
+      'Clean as a Whistle': 250,
+    },
+  },
+];
 // SKUs (component products) we track. Order = display preference (highest-volume first).
 const TRACKED_SKUS = [
   'Sunlight Serum', 'Moonlight Serum', 'Pot of Gold', 'Sleepytime Gelly',
@@ -445,6 +472,22 @@ function computeRates(weekly) {
   return { sku90, sku180, direct90, direct180 };
 }
 
+// Incoming units per SKU from POs whose ETA is still in the future,
+// with the earliest ETA and PO labels for display.
+function incomingForSku(sku, today) {
+  let qty = 0, eta = null, pos = [];
+  for (const po of INCOMING_POS) {
+    const poEta = new Date(po.eta + 'T00:00:00');
+    if (poEta < today) continue; // already landed — should be counted into Shopify by now
+    const units = po.lines[sku];
+    if (!units) continue;
+    qty += units;
+    pos.push(`${po.po} (placed ${po.placed}, ships ${po.ship_date})`);
+    if (!eta || poEta < eta) eta = poEta;
+  }
+  return { qty, eta, pos };
+}
+
 // Build per-SKU forecast rows
 function buildForecast(inventory, rates) {
   const today = new Date(); today.setHours(0,0,0,0);
@@ -465,7 +508,26 @@ function buildForecast(inventory, rates) {
     const useRate = (rate180 > rate90 * 1.15 && rate180 > 0) ? rate180 : rate90;
 
     const daysCover = useRate > 0 ? Math.floor(inv.on_hand / useRate) : 99999;
-    const stockoutAt = new Date(today); stockoutAt.setDate(today.getDate() + daysCover);
+
+    // Stockout on current stock alone
+    const stockoutCurrent = new Date(today); stockoutCurrent.setDate(today.getDate() + daysCover);
+
+    // Fold in incoming PO stock: units land at ETA. If current stock outlasts the ETA the
+    // pool simply grows; if it runs dry first there's a gap, then incoming restarts the clock.
+    const incoming = incomingForSku(sku, today);
+    let stockoutAt = stockoutCurrent;
+    let gapDays = 0;
+    if (incoming.qty > 0 && useRate > 0) {
+      if (stockoutCurrent >= incoming.eta) {
+        const totalCover = Math.floor((inv.on_hand + incoming.qty) / useRate);
+        stockoutAt = new Date(today); stockoutAt.setDate(today.getDate() + totalCover);
+      } else {
+        gapDays = daysBetween(stockoutCurrent, incoming.eta);
+        stockoutAt = new Date(incoming.eta);
+        stockoutAt.setDate(stockoutAt.getDate() + Math.floor(incoming.qty / useRate));
+      }
+    }
+
     const poDue = new Date(stockoutAt); poDue.setDate(stockoutAt.getDate() - LEAD_TIME_DAYS);
     const daysToPo = daysBetween(today, poDue);
 
@@ -490,6 +552,10 @@ function buildForecast(inventory, rates) {
       use_rate: useRate,
       use_rate_source: useRate === rate180 ? '180d (90d stockout-suppressed)' : '90d',
       days_of_cover: daysCover,
+      incoming_qty: incoming.qty,
+      incoming_eta: incoming.eta,
+      incoming_pos: incoming.pos,
+      gap_days: gapDays,
       stockout_at: stockoutAt,
       po_due: poDue,
       days_to_po: daysToPo,
@@ -499,6 +565,23 @@ function buildForecast(inventory, rates) {
     });
   }
   return rows;
+}
+
+// ── RENDER: OPEN PO BANNER ──
+function renderPoBanner() {
+  const wrap = document.getElementById('poBannerWrap');
+  const openPos = INCOMING_POS.filter(po => new Date(po.eta + 'T00:00:00') >= new Date());
+  if (openPos.length === 0) { wrap.style.display = 'none'; return; }
+  const html = openPos.map(po => {
+    const total = Object.values(po.lines).reduce((a, b) => a + b, 0);
+    const lineStr = Object.entries(po.lines).map(([sku, q]) => `${sku} ${fmt(q)}`).join(' · ');
+    return `<h4>📦 ${po.po} — in production (${fmt(total)} units)</h4>
+      <p>Placed <strong>${po.placed}</strong> · est. ship from India <strong>${po.ship_date}</strong> · ETA UK <strong>~${po.eta}</strong> (ship + ~5 weeks sea transit, estimate).
+      Incoming units are already included in the stockout dates, PO-due dates and status pills below.</p>
+      <p style="margin-top:6px; font-size:11px; color:var(--text-muted)">${lineStr}</p>`;
+  }).join('<hr style="border:none;border-top:1px solid var(--border);margin:10px 0">');
+  document.getElementById('poBanner').innerHTML = html;
+  wrap.style.display = '';
 }
 
 // ── RENDER: KPI ──
@@ -567,7 +650,7 @@ function renderTable() {
 
   const tbody = document.getElementById('invBody');
   if (rows.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:24px">No data — inventory may not have synced yet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:24px">No data — inventory may not have synced yet.</td></tr>';
     return;
   }
   const html = rows.map(r => {
@@ -575,9 +658,16 @@ function renderTable() {
     const trendCls = r.trend === 'up' ? 'trend-up' : r.trend === 'down' ? 'trend-down' : 'trend-flat';
     const trendText = r.trend === 'flat' ? '—' : `${trendArrow} ${Math.abs(r.trendPct).toFixed(0)}%`;
     const statusLabel = { overdue: 'Overdue', urgent: 'Urgent', soon: 'Soon', ok: 'OK' }[r.status];
+    let incomingCell = '<span style="color:var(--text-muted)">—</span>';
+    if (r.incoming_qty > 0) {
+      const etaStr = r.incoming_eta ? r.incoming_eta.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
+      const gapWarn = r.gap_days > 0 ? ` <span class="trend-chip trend-down" title="Current stock runs out ${r.gap_days} days before the shipment lands.">⚠ ${r.gap_days}d gap</span>` : '';
+      incomingCell = `<span title="${r.incoming_pos.join('; ')} — ETA ${fmtDate(r.incoming_eta)}">+${fmt(r.incoming_qty)} · ${etaStr}</span>${gapWarn}`;
+    }
     return `<tr title="Using ${r.use_rate_source}">
       <td>${r.product_title}</td>
       <td>${fmt(r.on_hand)}</td>
+      <td>${incomingCell}</td>
       <td>${fmt(r.rate90, 1)}</td>
       <td>${fmt(r.rate180, 1)}</td>
       <td><span class="trend-chip ${trendCls}">${trendText}</span></td>
@@ -676,6 +766,7 @@ async function load() {
     const rates = computeRates(weekly);
     const rows = buildForecast(inventory, rates);
     cachedRows = rows;
+    renderPoBanner();
     renderTable();
     const latest = inventory.reduce((acc, r) => (r.loaded_at > acc ? r.loaded_at : acc), '');
     renderKPIs(rows, latest);

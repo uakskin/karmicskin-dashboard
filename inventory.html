@@ -346,7 +346,7 @@ const INCOMING_POS = [
     po: 'PO #011',
     placed: '2026-06-17',
     ship_date: '2026-09-10',  // estimated ship from India (in production as of Aug 2026)
-    eta: '2026-10-15',        // ship date + ~5 weeks sea transit India → UK (estimate)
+    eta: '2026-11-10',        // Uday's arrival estimate (10 Nov 2026)
     lines: {
       'Sunlight Serum': 10000,
       'Moonlight Serum': 8500,
@@ -576,7 +576,7 @@ function renderPoBanner() {
     const total = Object.values(po.lines).reduce((a, b) => a + b, 0);
     const lineStr = Object.entries(po.lines).map(([sku, q]) => `${sku} ${fmt(q)}`).join(' · ');
     return `<h4>📦 ${po.po} — in production (${fmt(total)} units)</h4>
-      <p>Placed <strong>${po.placed}</strong> · est. ship from India <strong>${po.ship_date}</strong> · ETA UK <strong>~${po.eta}</strong> (ship + ~5 weeks sea transit, estimate).
+      <p>Placed <strong>${po.placed}</strong> · est. ship from India <strong>${po.ship_date}</strong> · ETA UK <strong>~${po.eta}</strong>.
       Incoming units are already included in the stockout dates, PO-due dates and status pills below.</p>
       <p style="margin-top:6px; font-size:11px; color:var(--text-muted)">${lineStr}</p>`;
   }).join('<hr style="border:none;border-top:1px solid var(--border);margin:10px 0">');

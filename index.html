@@ -649,6 +649,7 @@ body { padding-left: 208px; }
             <th data-col="repeatPct" title="Orders from returning customers ÷ Total orders × 100">Repeat Orders % <span class="sort-arrow">▼</span></th>
             <th data-col="newCust" title="Customers placing their first-ever order">New Cust. <span class="sort-arrow">▼</span></th>
             <th data-col="repeat" title="Customers who have ordered before">Repeat <span class="sort-arrow">▼</span></th>
+            <th data-col="secondOrders" title="Orders that were a customer's 2nd-ever purchase (matched by email, cancelled orders excluded). Counted in the period the 2nd order was placed, even if the 1st order was in the same period.">2nd Orders <span class="info-tip" data-tip="<p><strong>2nd Orders</strong> = orders in this period that were the customer's <strong>2nd-ever</strong> purchase.</p><p class='tt-muted'>Matched by email across all history; cancelled orders excluded. If a customer's 1st and 2nd orders both fall in the same period, the 2nd still counts here. A customer's 3rd, 4th and later orders are not counted.</p>">ⓘ</span> <span class="sort-arrow">▼</span></th>
             <th data-col="meta" title="Total Meta (Facebook/Instagram) advertising spend">Meta Ad Spend <span class="sort-arrow">▼</span></th>
             <th data-col="google" title="Total Google Ads (Search/PMax) advertising spend">Google Ad Spend <span class="sort-arrow">▼</span></th>
             <th data-col="ltv" title="Trailing 12-month Revenue ÷ Unique Customers in that 12-month window">LTV 12m <span class="info-tip" data-tip="Trailing 12-month Revenue ÷ Unique Customers in that 12-month window">ⓘ</span> <span class="sort-arrow">▼</span></th>
@@ -658,7 +659,7 @@ body { padding-left: 208px; }
           </tr>
         </thead>
         <tbody id="perfTableBody">
-          <tr><td colspan="16" style="text-align:center;color:#52525b;padding:20px">Loading...</td></tr>
+          <tr><td colspan="17" style="text-align:center;color:#52525b;padding:20px">Loading...</td></tr>
         </tbody>
       </table>
     </div>
@@ -1521,6 +1522,7 @@ document.querySelectorAll('.toggle-item input').forEach(cb => {
 // PERFORMANCE TABLE
 let allDailyData = [];
 let ltvData = {};
+let secondOrdersByDate = {}; // report_date -> orders that were the customer's 2nd-ever purchase (RPC get_second_orders_daily)
 // N-CAC and LTV:N-CAC computed from existing data
 let tablePeriod = 'monthly';
 const VISIBLE_ROWS = 12;
@@ -1538,6 +1540,18 @@ async function fetchTableData() {
     const ltvRows = await ltvResp.json();
     if (Array.isArray(ltvRows)) { for (const r of ltvRows) ltvData[r.month] = parseFloat(r.ltv_12m); }
   } catch(e) {}
+
+  // 2nd-ever orders per day, feeds the "2nd Orders" column. Computed in SQL from raw_shopify_orders
+  // with the same rules as New Cust./Repeat (exact-case email, cancelled excluded, UK-local date).
+  try {
+    const soResp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_second_orders_daily`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${USER_JWT}` },
+      body: '{}'
+    });
+    const soRows = await soResp.json();
+    if (Array.isArray(soRows)) { for (const r of soRows) secondOrdersByDate[r.order_date] = parseInt(r.second_orders || 0); }
+    else console.error('[perf-table] get_second_orders_daily returned non-array:', soRows);
+  } catch (e) { console.error('[perf-table] get_second_orders_daily failed:', e); }
 
   // LTV 6m removed — N-CAC and LTV:N-CAC computed from table data
 
@@ -1561,7 +1575,7 @@ function aggregateTableData(period) {
     } else {
       key = row.report_date.substring(0, 7);
     }
-    if (!buckets[key]) buckets[key] = { revenue: 0, netProductRev: 0, adSpend: 0, meta: 0, google: 0, metaRev: 0, googleRev: 0, orders: 0, newCust: 0, repeat: 0, ordersFromNew: 0, ordersFromReturning: 0, newRev: 0, retRev: 0 };
+    if (!buckets[key]) buckets[key] = { revenue: 0, netProductRev: 0, adSpend: 0, meta: 0, google: 0, metaRev: 0, googleRev: 0, orders: 0, newCust: 0, repeat: 0, ordersFromNew: 0, ordersFromReturning: 0, newRev: 0, retRev: 0, secondOrders: 0 };
     const b = buckets[key];
     b.revenue += parseFloat(row.total_sales || 0);
     b.netProductRev += parseFloat(row.net_product_revenue || 0);
@@ -1577,6 +1591,7 @@ function aggregateTableData(period) {
     b.ordersFromReturning += parseInt(row.orders_from_returning || 0);
     b.newRev += parseFloat(row.new_customer_revenue || 0);
     b.retRev += parseFloat(row.returning_customer_revenue || 0);
+    b.secondOrders += secondOrdersByDate[row.report_date] || 0;
   }
   return buckets;
 }
@@ -1623,7 +1638,7 @@ function buildTableRows() {
     }
     return {
       key: k, label, roas, revenue: d.revenue, adSpend: d.adSpend, meta: d.meta, google: d.google,
-      orders: d.orders, aov, newCust: d.newCust, repeat: d.repeat, repeatPct, aovUplift, ltv, ncac, ltvNcac,
+      orders: d.orders, aov, newCust: d.newCust, repeat: d.repeat, secondOrders: d.secondOrders, repeatPct, aovUplift, ltv, ncac, ltvNcac,
       growthPct: growthMap[k].revGrowth, spendGrowth: growthMap[k].spendGrowth,
     };
   });
@@ -1646,6 +1661,7 @@ function renderTable() {
   let bestOrdersVal = -Infinity, bestOrdersKey = null;
   let bestNewCustVal = -Infinity, bestNewCustKey = null;
   let bestRepeatVal = -Infinity, bestRepeatKey = null;
+  let bestSecondVal = -Infinity, bestSecondKey = null;
   // bestCac removed — B-CAC no longer shown
   for (const r of rows) {
     if (r.revenue > bestRevVal) { bestRevVal = r.revenue; bestRevKey = r.key; }
@@ -1653,6 +1669,7 @@ function renderTable() {
     if (r.orders > bestOrdersVal) { bestOrdersVal = r.orders; bestOrdersKey = r.key; }
     if (r.newCust > bestNewCustVal) { bestNewCustVal = r.newCust; bestNewCustKey = r.key; }
     if (r.repeat > bestRepeatVal) { bestRepeatVal = r.repeat; bestRepeatKey = r.key; }
+    if (r.secondOrders > bestSecondVal) { bestSecondVal = r.secondOrders; bestSecondKey = r.key; }
     // B-CAC tracking removed
   }
 
@@ -1673,6 +1690,7 @@ function renderTable() {
     const isTopOrders = r.key === bestOrdersKey;
     const isTopNewCust = r.key === bestNewCustKey;
     const isTopRepeat = r.key === bestRepeatKey;
+    const isTopSecond = r.key === bestSecondKey;
     // B-CAC highlight removed
 
     html += `<tr>
@@ -1686,6 +1704,7 @@ function renderTable() {
       <td>${r.repeatPct.toFixed(1)}%</td>
       <td${isTopNewCust ? ' class="highlight-best"' : ''}>${r.newCust.toLocaleString()}</td>
       <td${isTopRepeat ? ' class="highlight-best"' : ''}>${r.repeat.toLocaleString()}</td>
+      <td${isTopSecond ? ' class="highlight-best"' : ''}>${r.secondOrders.toLocaleString()}</td>
       <td>\u00A3${Math.round(r.meta).toLocaleString()}</td>
       <td>\u00A3${Math.round(r.google).toLocaleString()}</td>
       <td>${r.ltv > 0 ? '\u00A3' + r.ltv.toFixed(0) : '-'}</td>

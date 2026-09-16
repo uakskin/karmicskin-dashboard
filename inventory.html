@@ -290,12 +290,38 @@ body { padding-left: 208px; }
   </div>
 </div>
 
+<!-- PACKAGING MATERIALS (populated from PACKAGING_STOCK) -->
+<div class="body-section">
+  <div class="card">
+    <div class="card-header">
+      <h3>Packaging materials (primary jars / bottles + secondary cartons)</h3>
+      <span class="meta" id="pkgMeta">Loading…</span>
+    </div>
+    <div class="table-scroll">
+      <table class="inv-table" id="pkgTable">
+        <thead>
+          <tr>
+            <th class="sortable" data-col="sku">SKU <span class="sort-arrow">▲</span></th>
+            <th>Pack size</th>
+            <th class="sortable" data-col="primary_qty" title="Primary packaging on hand: jars or bottles. Bars have no primary pack.">Jars / bottles <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-col="carton_qty" title="Secondary packaging on hand: printed cartons.">Cartons <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-col="fillable" title="Units that can be produced with the packaging held = the lower of jars/bottles and cartons (cartons only for bars).">Units fillable <span class="sort-arrow">▼</span></th>
+            <th class="sortable sorted" data-col="months_cover" title="Units fillable ÷ the same daily sales rate used in the forecast above (bundle-aware), shown in months.">Cover at current rate <span class="sort-arrow">▲</span></th>
+            <th class="sortable" data-col="urgency_rank" title="Low = packaging covers less than one 120-day lead time of sales. Watch = less than two lead times.">Status <span class="sort-arrow">▼</span></th>
+          </tr>
+        </thead>
+        <tbody id="pkgBody"><tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <!-- TREND CHART -->
 <div class="body-section">
   <div class="card">
     <div class="card-header">
-      <h3>Weekly sales trend (last 26 weeks, bundle-decomposed)</h3>
-      <span class="meta">Click an SKU pill to toggle its line.</span>
+      <h3>Monthly sales trend (last 12 months + current month to date, bundle-decomposed)</h3>
+      <span class="meta">Click an SKU pill to toggle its line. The current month is dashed because it is month to date.</span>
     </div>
     <div class="sku-toggles" id="skuToggles"></div>
     <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
@@ -310,6 +336,8 @@ body { padding-left: 208px; }
     <p style="margin-bottom: 10px"><strong>Days of cover</strong> = current Shopify on-hand ÷ daily rate (current stock only). <strong>Stockout date</strong> = when stock hits zero <em>including incoming PO units</em>, which land in the forecast on their ETA (see <code>INCOMING_POS</code> in the page source). If current stock would run dry before a shipment lands, a <span class="trend-chip trend-down">⚠ gap</span> chip appears in the Incoming column. <strong>PO due</strong> = stockout date − 120 days lead time, i.e. the latest date to place the <em>next</em> PO. <strong>Status pill</strong> drives off PO due: <span class="pill overdue">Overdue</span> if PO due is in the past · <span class="pill urgent">Urgent</span> if within 30 days · <span class="pill soon">Soon</span> if within 60 days · <span class="pill ok">OK</span> otherwise.</p>
     <p style="margin-bottom: 10px"><strong>Bundles tracked</strong> (1 bundle sold = 1 unit each component): The Heroes Kit, Dew It Right, Age Confidence, Bright Future, Mama's Glow, Soft Intentions, The Hair Affair Bundle. Component map is in the page source — see <code>BUNDLE_MAP</code> if you need to correct it. Bundle SKUs are hidden from this list per directive (you only see the underlying components).</p>
     <p style="margin-bottom: 10px"><strong>Why some rates differ between 90d and 180d</strong>: a stockout in the window will lower the rate for that period (Sleepytime Gelly hit zero in late March), and recently-launched products (Featherweight, Maui Waui, Tropic Thunder, Espresso Bar, The One &amp; Only — all launched Sep 2025) won't have a meaningful 180d picture. The dashboard auto-uses the more conservative (faster) of the two when there's a strong divergence.</p>
+    <p style="margin-bottom: 10px"><strong>Packaging materials</strong> = the latest count of primary packs (jars / bottles) and secondary packs (cartons) held per SKU, stored in <code>PACKAGING_STOCK</code> in the page source (paste the next count there and update the date). <strong>Units fillable</strong> = the lower of the two (cartons only for bars, which have no primary pack). <strong>Cover</strong> = units fillable ÷ the same daily rate used in the forecast above, in months. Status: <span class="pill urgent">Low</span> if packaging covers less than one lead time (120 days) of sales · <span class="pill soon">Watch</span> if under two lead times · <span class="pill ok">OK</span> otherwise. The count is used as reported; if a count was taken before an open PO was filled, subtract that PO's quantities first.</p>
+    <p style="margin-bottom: 10px"><strong>Monthly sales trend</strong> = units per calendar month (UK time), bundle-decomposed the same way as the rates, for the last 12 full months plus the current month to date (drawn dashed because it is incomplete). Sales rates in the table still use the trailing 90 / 180 day windows.</p>
     <p><strong>Refresh cadence</strong>: inventory syncs from Shopify hourly via <code>sync-shopify-inventory</code>. Sales data updates with the next webhook + rebuild cycle (every 10 min). Click <strong>Refresh</strong> for an immediate Shopify pull (≈3 sec).</p>
   </div>
 </div>
@@ -358,6 +386,29 @@ const INCOMING_POS = [
     },
   },
 ];
+// Packaging stock held per SKU: primary = jars / bottles, cartons = secondary printed cartons.
+// Bars (Maui Waui, Espresso Bar, Tropic Thunder, The One & Only) have no primary pack.
+// Source: the "Karmic Primary & Secondary Packing Material 2026" count sheet.
+// EDITABLE — paste the next count here and update `received`.
+const PACKAGING_STOCK = {
+  received: '2026-09-16',
+  lines: [
+    { sku: 'Pot of Gold',           pack: '100 g', primary: 10021, cartons: 12071 },
+    { sku: 'Ruby Dooby Doo',        pack: '100 g', primary: 485,   cartons: 622 },
+    { sku: 'Clean as a Whistle',    pack: '100 g', primary: 5000,  cartons: 5467 },
+    { sku: 'Everyday. No Excuses!', pack: '45 g',  primary: 1259,  cartons: 1243 },
+    { sku: 'Richie Rich Rich',      pack: '45 g',  primary: 4937,  cartons: 5188 },
+    { sku: 'Sleepytime Gelly',      pack: '45 g',  primary: 6266,  cartons: 7743 },
+    { sku: 'Top of the Morning',    pack: '45 g',  primary: 4823,  cartons: 6352 },
+    { sku: 'Moonlight Serum',       pack: '30 ml', primary: 21848, cartons: 23707 },
+    { sku: 'Featherweight',         pack: '30 ml', primary: 2874,  cartons: 3343 },
+    { sku: 'Sunlight Serum',        pack: '30 ml', primary: 31065, cartons: 33449 },
+    { sku: 'Maui Waui',             pack: '75 g',  primary: null,  cartons: 1198 },
+    { sku: 'Espresso Bar',          pack: '75 g',  primary: null,  cartons: 1352 },
+    { sku: 'Tropic Thunder',        pack: '75 g',  primary: null,  cartons: 1339 },
+    { sku: 'The One & Only',        pack: '60 g',  primary: null,  cartons: 1632 },
+  ],
+};
 // SKUs (component products) we track. Order = display preference (highest-volume first).
 const TRACKED_SKUS = [
   'Sunlight Serum', 'Moonlight Serum', 'Pot of Gold', 'Sleepytime Gelly',
@@ -428,6 +479,12 @@ async function fetchSalesWeekly() {
   const url = `${SUPABASE_URL}/rest/v1/rpc/get_sku_sales_weekly`;
   const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${USER_JWT}` }, body: JSON.stringify({ weeks_back: 26 }) });
   if (!r.ok) throw new Error(`sales ${r.status}`);
+  return r.json();
+}
+async function fetchSalesMonthly() {
+  const url = `${SUPABASE_URL}/rest/v1/rpc/get_sku_sales_monthly`;
+  const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${USER_JWT}` }, body: JSON.stringify({ months_back: 12 }) });
+  if (!r.ok) throw new Error(`sales monthly ${r.status}`);
   return r.json();
 }
 async function triggerInventorySync() {
@@ -689,38 +746,134 @@ document.querySelectorAll('#invTable th.sortable').forEach(th => {
   });
 });
 
-// ── RENDER: TREND CHART ──
+// ── RENDER: PACKAGING MATERIALS ──
+let pkgSortCol = 'months_cover';
+let pkgSortDir = 'asc';
+let cachedPkgRows = [];
+
+// One row per packaging line: how many units the packaging can fill, and how long that
+// lasts at the same daily rate the forecast table uses (falls back to the plain 90d rate
+// when the forecast has no row for the SKU).
+function buildPackagingRows(rates) {
+  const rateBySku = {};
+  for (const r of cachedRows) rateBySku[r.product_title] = r.use_rate;
+  return PACKAGING_STOCK.lines.map(line => {
+    const dailyRate = rateBySku[line.sku] ?? ((rates.sku90[line.sku] || 0) / 90);
+    const hasPrimary = line.primary != null;
+    const fillable = hasPrimary ? Math.min(line.primary, line.cartons) : line.cartons;
+    const limiting = !hasPrimary ? 'cartons' : (line.primary <= line.cartons ? 'jars / bottles' : 'cartons');
+    const daysCover = dailyRate > 0 ? fillable / dailyRate : null;
+    let status = 'ok', urgencyRank = 2;
+    if (daysCover != null && daysCover <= LEAD_TIME_DAYS)          { status = 'urgent'; urgencyRank = 0; }
+    else if (daysCover != null && daysCover <= LEAD_TIME_DAYS * 2) { status = 'soon';   urgencyRank = 1; }
+    return {
+      sku: line.sku, pack: line.pack,
+      primary_qty: line.primary, carton_qty: line.cartons,
+      fillable, limiting,
+      daily_rate: dailyRate,
+      months_cover: daysCover == null ? null : daysCover / 30,
+      status, urgency_rank: urgencyRank,
+    };
+  });
+}
+
+function renderPackaging() {
+  const rows = [...cachedPkgRows].sort((a, b) => {
+    let va = a[pkgSortCol], vb = b[pkgSortCol];
+    if (typeof va === 'string') return pkgSortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    if (va == null) va = Infinity;
+    if (vb == null) vb = Infinity;
+    return pkgSortDir === 'asc' ? (va - vb) : (vb - va);
+  });
+
+  document.querySelectorAll('#pkgTable th[data-col]').forEach(th => {
+    const col = th.dataset.col;
+    th.classList.toggle('sorted', col === pkgSortCol);
+    const arrow = th.querySelector('.sort-arrow');
+    if (arrow) arrow.textContent = (col === pkgSortCol && pkgSortDir === 'asc') ? '▲' : '▼';
+  });
+
+  const rd = new Date(PACKAGING_STOCK.received + 'T00:00:00');
+  const received = `${rd.getDate()} ${MONTHS_SHORT[rd.getMonth()]} ${rd.getFullYear()}`;
+  document.getElementById('pkgMeta').textContent = `Count received ${received}. Bars have no primary pack (cartons only).`;
+
+  const tbody = document.getElementById('pkgBody');
+  tbody.innerHTML = rows.map(r => {
+    const primaryCell = r.primary_qty == null
+      ? '<span style="color:var(--text-muted)" title="Bars have no primary pack">n/a</span>'
+      : fmt(r.primary_qty);
+    const coverCell = r.months_cover == null
+      ? '<span style="color:var(--text-muted)" title="No sales in the trailing window">—</span>'
+      : `<span title="${fmt(r.daily_rate, 2)} units / day">${fmt(r.months_cover, 1)} months</span>`;
+    const statusLabel = { urgent: 'Low', soon: 'Watch', ok: 'OK' }[r.status];
+    return `<tr>
+      <td>${r.sku}</td>
+      <td>${r.pack}</td>
+      <td>${primaryCell}</td>
+      <td>${fmt(r.carton_qty)}</td>
+      <td title="Limited by ${r.limiting}">${fmt(r.fillable)} <span style="color:var(--text-muted);font-size:10px">(${r.limiting})</span></td>
+      <td>${coverCell}</td>
+      <td><span class="pill ${r.status}">${statusLabel}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+document.querySelectorAll('#pkgTable th.sortable').forEach(th => {
+  th.addEventListener('click', () => {
+    const col = th.dataset.col;
+    if (pkgSortCol === col) pkgSortDir = pkgSortDir === 'asc' ? 'desc' : 'asc';
+    else { pkgSortCol = col; pkgSortDir = (col === 'sku' || col === 'months_cover' || col === 'urgency_rank') ? 'asc' : 'desc'; }
+    renderPackaging();
+  });
+});
+
+// ── RENDER: TREND CHART (monthly) ──
 let chartInst = null;
 const activeSkus = new Set();
 
-function renderTrend(weekly) {
-  // Build {sku → {weekStart → units}} including bundle decomposition
-  const skuByWeek = {};
-  for (const sku of TRACKED_SKUS) skuByWeek[sku] = {};
-  for (const row of weekly) {
-    const w = row.week_start;
-    if (skuByWeek[row.lineitem_name]) skuByWeek[row.lineitem_name][w] = (skuByWeek[row.lineitem_name][w] || 0) + row.units;
-  }
-  for (const [bundle, components] of Object.entries(BUNDLE_MAP)) {
-    for (const row of weekly) {
-      if (row.lineitem_name !== bundle) continue;
-      const w = row.week_start;
-      for (const c of components) {
-        if (skuByWeek[c] !== undefined) skuByWeek[c][w] = (skuByWeek[c][w] || 0) + row.units;
-      }
+const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTHS_LONG = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+// Fixed names rather than toLocaleDateString: Chrome's en-GB prints "Sept", which clashes with
+// the "1 Mar" style used across the other dashboards.
+function monthLabel(iso, style) {
+  const d = new Date(iso + 'T00:00:00');
+  return style === 'long'
+    ? `${MONTHS_LONG[d.getMonth()]} ${d.getFullYear()}`
+    : `${MONTHS_SHORT[d.getMonth()]} ${String(d.getFullYear()).slice(-2)}`;
+}
+
+function renderTrend(monthly) {
+  // Build {sku → {monthStart → units}} including bundle decomposition
+  const skuByMonth = {};
+  for (const sku of TRACKED_SKUS) skuByMonth[sku] = {};
+  for (const row of monthly) {
+    const m = row.month_start;
+    if (skuByMonth[row.lineitem_name]) skuByMonth[row.lineitem_name][m] = (skuByMonth[row.lineitem_name][m] || 0) + row.units;
+    const components = BUNDLE_MAP[row.lineitem_name];
+    if (!components) continue;
+    for (const c of components) {
+      if (skuByMonth[c] !== undefined) skuByMonth[c][m] = (skuByMonth[c][m] || 0) + row.units;
     }
   }
 
-  const allWeeks = [...new Set(weekly.map(r => r.week_start))].sort();
+  const allMonths = [...new Set(monthly.map(r => r.month_start))].sort();
+  const today = new Date();
+  const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-01`;
+  const lastIdx = allMonths.length - 1;
+  const lastIsPartial = allMonths[lastIdx] === currentMonth;
+  const labels = allMonths.map((m, i) => (lastIsPartial && i === lastIdx) ? `${monthLabel(m)} (MTD)` : monthLabel(m));
+
   const datasets = TRACKED_SKUS.map(sku => ({
     label: sku,
-    data: allWeeks.map(w => skuByWeek[sku][w] || 0),
+    data: allMonths.map(m => skuByMonth[sku][m] || 0),
     borderColor: SKU_COLORS[sku] || '#6b7280',
     backgroundColor: (SKU_COLORS[sku] || '#6b7280') + '20',
     borderWidth: 2,
     tension: 0.25,
-    pointRadius: 2,
+    pointRadius: 3,
     hidden: !activeSkus.has(sku),
+    // Dash the final segment when it runs into the incomplete current month.
+    segment: { borderDash: ctx => (lastIsPartial && ctx.p1DataIndex === lastIdx) ? [6, 4] : undefined },
   }));
 
   const ctx = document.getElementById('trendChart').getContext('2d');
@@ -730,14 +883,27 @@ function renderTrend(weekly) {
   const gridColor = styles.getPropertyValue('--chart-grid').trim();
   chartInst = new Chart(ctx, {
     type: 'line',
-    data: { labels: allWeeks, datasets },
+    data: { labels, datasets },
     options: {
       responsive: true, maintainAspectRatio: false,
       interaction: { intersect: false, mode: 'index' },
-      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#111', titleColor: '#fff', bodyColor: '#d1d5db' } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#111', titleColor: '#fff', bodyColor: '#d1d5db',
+          callbacks: {
+            title: items => {
+              const i = items[0].dataIndex;
+              const full = monthLabel(allMonths[i], 'long');
+              return (lastIsPartial && i === lastIdx) ? `${full} (month to date, ${today.getDate()} days)` : full;
+            },
+            label: item => ` ${item.dataset.label}: ${fmt(item.parsed.y)} units`,
+          },
+        },
+      },
       scales: {
-        x: { ticks: { color: tickColor, autoSkip: true, maxTicksLimit: 13 }, grid: { color: gridColor } },
-        y: { ticks: { color: tickColor }, grid: { color: gridColor }, beginAtZero: true },
+        x: { ticks: { color: tickColor, autoSkip: false, maxRotation: 0 }, grid: { color: gridColor } },
+        y: { ticks: { color: tickColor }, grid: { color: gridColor }, beginAtZero: true, title: { display: true, text: 'Units / month', color: tickColor, font: { size: 11 } } },
       },
     },
   });
@@ -753,7 +919,7 @@ function renderTrend(weekly) {
     el.addEventListener('click', () => {
       const sku = el.dataset.sku;
       if (activeSkus.has(sku)) activeSkus.delete(sku); else activeSkus.add(sku);
-      renderTrend(weekly);
+      renderTrend(monthly);
     });
   });
 }
@@ -762,19 +928,22 @@ function renderTrend(weekly) {
 async function load() {
   try {
     document.getElementById('lastUpdated').textContent = 'Loading…';
-    const [inventory, weekly] = await Promise.all([fetchInventory(), fetchSalesWeekly()]);
+    const [inventory, weekly, monthly] = await Promise.all([fetchInventory(), fetchSalesWeekly(), fetchSalesMonthly()]);
     const rates = computeRates(weekly);
     const rows = buildForecast(inventory, rates);
     cachedRows = rows;
     renderPoBanner();
     renderTable();
+    cachedPkgRows = buildPackagingRows(rates);
+    renderPackaging();
     const latest = inventory.reduce((acc, r) => (r.loaded_at > acc ? r.loaded_at : acc), '');
     renderKPIs(rows, latest);
-    // Default chart: top 4 SKUs by 90d units
+    // Default chart: top 4 SKUs by 90d units (bundle-aware rates, so this works even if the
+    // inventory table is empty)
     if (activeSkus.size === 0) {
-      [...rows].sort((a,b) => b.units_90d - a.units_90d).slice(0, 4).forEach(r => activeSkus.add(r.product_title));
+      [...TRACKED_SKUS].sort((a, b) => (rates.sku90[b] || 0) - (rates.sku90[a] || 0)).slice(0, 4).forEach(sku => activeSkus.add(sku));
     }
-    renderTrend(weekly);
+    renderTrend(monthly);
     document.getElementById('lastUpdated').textContent = `Refreshed ${new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
   } catch (e) {
     console.error(e);

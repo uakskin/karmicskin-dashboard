@@ -8,133 +8,171 @@
 <meta http-equiv="Expires" content="0">
 <title>Karmic Skin — Inventory Dashboard</title>
 <link rel="icon" type="image/svg+xml" href="favicon-latest.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Domine:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 <style>
+  /* ========== TOKENS ==========
+     Palette and type come from design-system.html. Light theme = the design system:
+     six colours only, all text Carbon Black, hierarchy from size and weight, content
+     separated by space and background tone, borders only on things a user interacts with.
+     Amber has one job on this page: marking what needs attention.
+     Dark theme keeps the neutral dark palette shared by the other dashboards (same
+     choice as pnl.html); only the mapped tokens below change. */
   :root {
-    --bg-page: #f8f9fa; --bg-card: #ffffff; --bg-card-alt: #f3f4f6; --bg-input: #ffffff;
-    --border: #e5e7eb; --border-hover: #d1d5db;
-    --text-primary: #111827; --text-secondary: #6b7280; --text-muted: #9ca3af; --text-heading: #374151;
-    --pill-bg: #f3f4f6; --pill-border: #e5e7eb; --pill-active-bg: #e5e7eb; --pill-text: #6b7280; --pill-active-text: #111827;
-    --table-header-bg: #f9fafb; --table-border: #f3f4f6; --table-hover: #f9fafb;
-    --accent: #0d9488; --accent-hover: #0f766e;
-    --positive: #16a34a; --negative: #dc2626;
-    --highlight-bg: rgba(168, 85, 247, 0.08); --highlight-text: #7c3aed;
-    --chart-grid: #f3f4f6; --chart-tick: #9ca3af;
-    --status-overdue-bg: rgba(220,38,38,0.12); --status-overdue: #dc2626;
-    --status-urgent-bg: rgba(234,88,12,0.12); --status-urgent: #ea580c;
-    --status-soon-bg: rgba(202,138,4,0.12); --status-soon: #ca8a04;
-    --status-ok-bg: rgba(13,148,136,0.12); --status-ok: #0d9488;
+    /* Brand palette */
+    --porcelain: #F6F5F0;   /* background, default      */
+    --citron:    #CAD183;   /* background, section tint */
+    --carbon:    #232526;   /* text, icons and borders  */
+    --green:     #2F5350;   /* branded background       */
+    --red:       #B22222;   /* main action button       */
+    --amber:     #EFA71D;   /* highlight mark           */
+
+    /* Typography */
+    --font-heading: 'Domine', Georgia, serif;
+    --font-body:    'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+    /* Mapped tokens */
+    --ground:    var(--porcelain);   /* page and tiles                         */
+    --tint:      var(--citron);      /* KPI band, row hover, active pill       */
+    --ink:       var(--carbon);      /* all text, icons, borders               */
+    --panel:     var(--green);       /* branded panel                          */
+    --panel-ink: var(--porcelain);
+    --mark:      var(--amber);       /* attention mark, always under Carbon    */
+    --mark-ink:  var(--carbon);
+    --action:    var(--red);         /* the single main action (sign-in only)  */
+    --btn-fill:  var(--carbon);      /* secondary button fill                  */
+    --btn-ink:   var(--porcelain);
+    --series-a:  var(--carbon);      /* chart line ink 1                       */
+    --series-b:  var(--green);       /* chart line ink 2                       */
+    --chart-grid: rgba(35,37,38,0.12);   /* Carbon at low opacity, horizontal gridlines only */
+    --tooltip-bg: var(--green);
+    --tooltip-ink: var(--porcelain);
   }
   [data-theme="dark"] {
-    --bg-page: #0f1117; --bg-card: #18181b; --bg-card-alt: #1e1e22; --bg-input: #0f1117;
-    --border: #27272a; --border-hover: #3f3f46;
-    --text-primary: #f4f4f5; --text-secondary: #a1a1aa; --text-muted: #71717a; --text-heading: #e4e4e7;
-    --pill-bg: #18181b; --pill-border: #3f3f46; --pill-active-bg: #3f3f46; --pill-text: #a1a1aa; --pill-active-text: #fff;
-    --table-header-bg: #1e1e22; --table-border: #1f1f23; --table-hover: #1e1e22;
-    --accent: #34d399; --accent-hover: #6ee7b7;
-    --positive: #22c55e; --negative: #ef4444;
-    --highlight-bg: rgba(228, 193, 249, 0.15); --highlight-text: #E4C1F9;
-    --chart-grid: #27272a; --chart-tick: #52525b;
-    --status-overdue-bg: rgba(239,68,68,0.18); --status-overdue: #f87171;
-    --status-urgent-bg: rgba(251,146,60,0.18); --status-urgent: #fb923c;
-    --status-soon-bg: rgba(250,204,21,0.18); --status-soon: #facc15;
-    --status-ok-bg: rgba(45,212,191,0.18); --status-ok: #5eead4;
+    --ground: #0f1117; --tint: #1e1e22; --ink: #f4f4f5;
+    --btn-fill: #f4f4f5; --btn-ink: #0f1117;
+    --series-a: #f4f4f5; --series-b: #34d399;
+    --chart-grid: #27272a;
+    --tooltip-bg: #27272a; --tooltip-ink: #f4f4f5;
   }
+
+  /* ========== BASE ========== */
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg-page); color: var(--text-primary); min-height: 100vh; }
+  body { font-family: var(--font-body); background: var(--ground); color: var(--ink); min-height: 100vh; line-height: 1.5; -webkit-font-smoothing: antialiased; transition: background 0.2s, color 0.2s; }
+  h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 600; line-height: 1.2; color: var(--ink); }
   a { color: inherit; text-decoration: none; }
+  strong, b { font-weight: 700; }
 
-  /* TAB NAV */
-  .nav-bar { background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; gap: 4px; position: sticky; top: 0; z-index: 102; }
-  .nav-tab { padding: 10px 14px; font-size: 13px; color: var(--text-secondary); border-bottom: 2px solid transparent; cursor: pointer; transition: color 0.15s, border-color 0.15s; }
-  .nav-tab:hover { color: var(--text-primary); }
-  .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+  /* ========== LAYOUT ========== */
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 clamp(16px, 3vw, 32px); }
+  .section { padding-top: 48px; }
+  .section.last { padding-bottom: 64px; }
+  .section.tint { background: var(--tint); padding: 24px 0; }
+  .section-head { margin-bottom: 24px; }
+  .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; }
+  .section-title { font-size: 24px; margin-top: 8px; }
+  .section-intro { font-size: 14px; margin-top: 8px; max-width: 760px; }
 
-  /* HEADER */
-  .header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; position: sticky; top: 38px; z-index: 101; background: var(--bg-page); }
-  .header-left h1 { font-size: 18px; font-weight: 600; display: inline; }
-  .header-left .brand { font-size: 11px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-right: 8px; }
-  .last-updated { font-size: 10px; color: var(--text-muted); font-weight: 400; margin-left: 8px; }
+  /* ========== HEADER ========== */
+  .header { position: sticky; top: 0; z-index: 101; background: var(--ground); }
+  .header .wrap { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding-top: 16px; padding-bottom: 12px; }
+  .header h1 { font-size: 24px; margin-top: 4px; display: inline-block; margin-right: 12px; }
+  .last-updated { font-size: 12px; font-weight: 500; white-space: nowrap; }
   .header-right { display: flex; align-items: center; gap: 8px; }
-  .icon-btn { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; cursor: pointer; font-size: 13px; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 6px; }
-  .icon-btn:hover { border-color: var(--border-hover); color: var(--text-primary); }
-  .icon-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .icon-btn svg { width: 14px; height: 14px; }
-  .icon-btn.spinning svg { animation: spin 0.6s linear infinite; }
+
+  /* ========== BUTTONS ========== */
+  .btn { font-family: var(--font-body); font-weight: 600; font-size: 13px; line-height: 1; padding: 8px 16px; border-radius: 12px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: filter 0.15s, background 0.15s, color 0.15s; }
+  .btn svg { width: 14px; height: 14px; display: block; }
+  .btn:disabled { cursor: not-allowed; filter: brightness(0.9); }
+  .btn-secondary { background: var(--btn-fill); color: var(--btn-ink); border: 1.5px solid var(--btn-fill); }
+  .btn-secondary:hover { filter: brightness(0.9); }
+  .btn-ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--ink); }
+  .btn-ghost:hover { background: var(--btn-fill); color: var(--btn-ink); }
+  .btn.spinning svg { animation: spin 0.6s linear infinite; }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-  .theme-toggle { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; cursor: pointer; line-height: 1; transition: all 0.15s; display: inline-flex; align-items: center; justify-content: center; }
-  .theme-toggle:hover { border-color: var(--border-hover); }
-  .theme-toggle svg { width: 16px; height: 16px; fill: var(--text-primary); display: block; }
+  .theme-toggle { padding: 8px; }
+  .theme-toggle svg { width: 16px; height: 16px; fill: currentColor; }
 
-  /* KPI STRIP */
-  .kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 16px 24px; }
-  .kpi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
-  .kpi-card .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-  .kpi-card .value { font-size: 20px; font-weight: 700; }
-  .kpi-card .sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-  .kpi-card.urgent .value { color: var(--status-overdue); }
-  .kpi-card.warn .value { color: var(--status-urgent); }
-  .kpi-card.ok .value { color: var(--status-ok); }
+  /* ========== KPI TILES ========== */
+  .kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .kpi-card { background: var(--ground); border-radius: 12px; padding: 16px 20px; min-width: 0; }
+  .kpi-card .label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+  .kpi-card .value { font-family: var(--font-heading); font-size: 24px; font-weight: 700; line-height: 1.3; }
+  .kpi-card .sub { font-size: 12px; font-weight: 600; margin-top: 4px; }
+  /* Attention marks: amber sits behind or beneath Carbon text, never as the text colour. */
+  .kpi-card.urgent .value { display: inline; background: var(--mark); color: var(--mark-ink); padding: 2px 8px; border-radius: 3px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .kpi-card.warn .value { display: inline; background-image: linear-gradient(to top, var(--mark) 0.26em, transparent 0.26em); }
+  .kpi-card.urgent .sub, .kpi-card.warn .sub { margin-top: 8px; }
 
-  /* MAIN BODY */
-  .body-section { padding: 0 24px 24px; }
-  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-  .card-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px 10px; flex-wrap: wrap; gap: 8px; }
-  .card-header h3 { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 0; }
-  .card-header .meta { font-size: 11px; color: var(--text-muted); }
+  /* ========== OPEN PO PANEL (branded section) ========== */
+  .po-panel { background: var(--panel); color: var(--panel-ink); border-radius: 16px; padding: 24px; }
+  .po-panel h3, .po-panel .eyebrow, .po-panel p { color: var(--panel-ink); }
+  .po-panel h3 { font-size: 20px; margin-top: 8px; }
+  .po-panel p { font-size: 14px; margin-top: 8px; max-width: 880px; }
+  .po-panel p.po-lines { font-size: 13px; font-weight: 600; }
+  .po-panel .po-gap { height: 32px; }
 
-  /* TABLE */
-  .table-scroll { overflow-x: auto; }
-  table.inv-table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
-  table.inv-table th { background: var(--table-header-bg); color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10px; padding: 8px 12px; text-align: right; border-bottom: 1px solid var(--border); user-select: none; }
+  /* ========== TABLES ========== */
+  /* No boxes and no row rules: rows are separated by space. The one rule sits under the
+     header row, whose cells are interactive (click to sort). */
+  .table-scroll { overflow-x: auto; margin: 0 -6px; }
+  table.inv-table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  table.inv-table th { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 8px 6px; text-align: right; border-bottom: 1px solid var(--ink); user-select: none; }
   table.inv-table th:first-child { text-align: left; }
   table.inv-table th.sortable { cursor: pointer; }
-  table.inv-table th.sortable:hover { color: var(--text-secondary); }
-  table.inv-table th .sort-arrow { font-size: 9px; margin-left: 3px; opacity: 0.3; }
-  table.inv-table th.sorted .sort-arrow { opacity: 1; color: var(--accent); }
-  table.inv-table td { padding: 8px 12px; text-align: right; border-bottom: 1px solid var(--table-border); color: var(--text-secondary); }
-  table.inv-table td:first-child { text-align: left; font-weight: 600; color: var(--text-primary); }
-  table.inv-table tbody tr:hover td { background: var(--table-hover); }
-  table.inv-table tbody tr.muted td { color: var(--text-muted); }
+  table.inv-table th.sortable:hover { text-decoration: underline; text-underline-offset: 3px; }
+  table.inv-table th .sort-arrow { font-size: 9px; margin-left: 4px; visibility: hidden; }
+  table.inv-table th.sorted .sort-arrow { visibility: visible; }
+  table.inv-table td { padding: 12px 6px; text-align: right; }
+  table.inv-table td:first-child { text-align: left; font-weight: 600; }
+  table.inv-table tbody tr:hover td { background: var(--tint); }
+  table.inv-table tbody tr:hover td:first-child { border-radius: 6px 0 0 6px; }
+  table.inv-table tbody tr:hover td:last-child { border-radius: 0 6px 6px 0; }
+  table.inv-table td.table-empty { text-align: center; padding: 24px; font-weight: 400; }
+  table.inv-table tbody tr:hover td.table-empty { background: transparent; }
+  .cell-note { font-size: 11px; font-weight: 400; }
 
-  /* STATUS PILL */
-  .pill { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 10px; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; }
-  .pill.overdue { background: var(--status-overdue-bg); color: var(--status-overdue); }
-  .pill.urgent  { background: var(--status-urgent-bg);  color: var(--status-urgent);  }
-  .pill.soon    { background: var(--status-soon-bg);    color: var(--status-soon);    }
-  .pill.ok      { background: var(--status-ok-bg);      color: var(--status-ok);      }
+  /* ========== STATUS MARKS ========== */
+  /* Needs action = amber badge. Everything else is plain Carbon text; weight carries the level. */
+  .pill, .badge { display: inline-block; font-size: 11px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; padding: 4px 12px; border-radius: 100px; }
+  .pill.overdue, .pill.urgent, .badge { background: var(--mark); color: var(--mark-ink); font-weight: 700; }
+  .pill.soon { font-weight: 700; }
+  table.inv-table .pill, table.inv-table .badge { padding: 3px 10px; }
+  /* A stock gap is an alarm state: the badge drops to its own line so the column stays narrow. */
+  .gap-badge { display: block; width: fit-content; margin: 4px 0 0 auto; }
+  .trend-chip { font-weight: 600; }
+  .trend-chip.trend-flat { font-weight: 400; }
 
-  /* TINY SPARKLINE NUMBERS */
-  .trend-chip { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 8px; }
-  .trend-up { background: rgba(13,148,136,0.12); color: var(--status-ok); }
-  .trend-down { background: rgba(202,138,4,0.12); color: var(--status-soon); }
-  .trend-flat { background: var(--bg-card-alt); color: var(--text-muted); }
+  /* ========== TREND CHART ========== */
+  .chart-wrap { position: relative; height: 380px; }
+  .sku-toggles { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+  .sku-toggle { font-family: var(--font-body); background: transparent; color: var(--ink); border: 1px solid var(--ink); border-radius: 6px; padding: 4px 12px; font-size: 12px; font-weight: 500; line-height: 1.5; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+  .sku-toggle:hover { background: var(--tint); }
+  .sku-toggle.active { background: var(--tint); font-weight: 700; }
+  .sku-toggle svg { display: block; flex: none; }
 
-  /* TREND CHART */
-  .chart-wrap { position: relative; height: 360px; padding: 16px 20px 20px; }
+  /* ========== METHOD NOTES ========== */
+  .notes p { font-size: 14px; max-width: 820px; margin-bottom: 16px; }
+  .notes p:last-child { margin-bottom: 0; }
+  .notes code { font-family: var(--font-body); font-size: 13px; font-weight: 600; }
 
-  /* SKU TOGGLES */
-  .sku-toggles { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 20px 12px; }
-  .sku-toggle { background: var(--pill-bg); border: 1px solid var(--pill-border); border-radius: 8px; padding: 4px 10px; font-size: 11px; cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; gap: 4px; }
-  .sku-toggle .dot { width: 8px; height: 8px; border-radius: 50%; }
-  .sku-toggle.active { color: var(--text-primary); border-color: var(--text-primary); }
-
-  /* INFO BLOCK */
-  .info-block { background: var(--bg-card-alt); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; font-size: 12px; line-height: 1.5; color: var(--text-secondary); }
-  .info-block h4 { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-  .info-block code { font-family: ui-monospace, SFMono-Regular, monospace; font-size: 11px; background: var(--bg-card); padding: 1px 4px; border-radius: 3px; }
-
-  /* AUTH OVERLAY */
-  .auth-overlay { position: fixed; inset: 0; background: rgba(15,17,23,0.95); display: none; align-items: center; justify-content: center; z-index: 1000; }
+  /* ========== AUTH OVERLAY ========== */
+  .auth-overlay { position: fixed; inset: 0; background: var(--panel); display: none; align-items: center; justify-content: center; z-index: 1000; }
   .auth-overlay.show { display: flex; }
-  .auth-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 32px; max-width: 380px; width: 90%; }
-  .auth-box h2 { font-size: 18px; margin-bottom: 8px; color: var(--text-primary); }
-  .auth-box p { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; }
-  .auth-box input { width: 100%; padding: 10px 12px; border: 1px solid var(--border-hover); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); font-size: 14px; margin-bottom: 12px; }
-  .auth-box button { width: 100%; padding: 10px; border: none; border-radius: 8px; background: var(--accent); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
-  .auth-box button:hover { background: var(--accent-hover); }
-  .auth-box .err { font-size: 12px; color: var(--negative); margin-top: 8px; }
+  .auth-box { background: var(--ground); border-radius: 16px; padding: 32px; max-width: 380px; width: 90%; }
+  .auth-box h2 { font-size: 22px; margin-bottom: 8px; }
+  .auth-box p { font-size: 14px; margin-bottom: 16px; }
+  .auth-box input { width: 100%; padding: 12px 16px; border: 1px solid var(--ink); border-radius: 12px; background: var(--ground); color: var(--ink); font-family: var(--font-body); font-size: 14px; margin-bottom: 12px; }
+  .auth-box button { width: 100%; padding: 12px; border: none; border-radius: 12px; background: var(--action); color: var(--porcelain); font-family: var(--font-body); font-size: 14px; font-weight: 700; cursor: pointer; }
+  .auth-box button:hover { filter: brightness(0.9); }
+  .auth-box .err { font-size: 12px; font-weight: 600; margin-top: 8px; }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 1024px) { .kpi-strip { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px)  { .kpi-strip { grid-template-columns: 1fr; } .section { padding-top: 32px; } }
 </style>
 </head>
 <body>
@@ -205,23 +243,25 @@ body { padding-left: 208px; }
   <a class="nav-tab" href="instagram-scheduler.html">Instagram</a>
 </div>
 
-<!-- HEADER -->
+<!-- ========== HEADER ========== -->
 <div class="header">
-  <div class="header-left">
-    <span class="brand">Karmic Skin</span>
-    <h1>Inventory Dashboard</h1>
-    <span class="last-updated" id="lastUpdated">Loading…</span>
-  </div>
-  <div class="header-right">
-    <button class="icon-btn" id="refreshBtn" title="Re-sync inventory from Shopify (≈3 sec)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-      <span>Refresh</span>
-    </button>
-    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Switch theme" aria-label="Switch theme"></button>
+  <div class="wrap">
+    <div class="header-left">
+      <div class="eyebrow">Karmic Skin</div>
+      <h1>Inventory dashboard</h1>
+      <span class="last-updated" id="lastUpdated">Loading…</span>
+    </div>
+    <div class="header-right">
+      <button class="btn btn-secondary" id="refreshBtn" title="Re-sync inventory from Shopify (≈3 sec)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+        <span>Refresh</span>
+      </button>
+      <button class="btn btn-ghost theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Switch theme" aria-label="Switch theme"></button>
+    </div>
   </div>
 </div>
 
-<!-- AUTH OVERLAY -->
+<!-- ========== AUTH OVERLAY ========== -->
 <div class="auth-overlay" id="authOverlay">
   <div class="auth-box">
     <h2>Sign in</h2>
@@ -232,41 +272,48 @@ body { padding-left: 208px; }
   </div>
 </div>
 
-<!-- KPI SUMMARY -->
-<div class="kpi-strip">
-  <div class="kpi-card" id="kpi-next-po">
-    <div class="label">Next PO recommended</div>
-    <div class="value">—</div>
-    <div class="sub">SKU & lead-time-aware</div>
+<!-- ========== KPI SUMMARY (Porcelain tiles on a Citron band) ========== -->
+<section class="section tint">
+  <div class="wrap">
+    <div class="kpi-strip">
+      <div class="kpi-card" id="kpi-next-po">
+        <div class="label">Next PO recommended</div>
+        <div class="value">—</div>
+        <div class="sub">SKU and lead-time aware</div>
+      </div>
+      <div class="kpi-card" id="kpi-highest-risk">
+        <div class="label">Highest-risk SKU</div>
+        <div class="value">—</div>
+        <div class="sub">Lowest days of cover</div>
+      </div>
+      <div class="kpi-card" id="kpi-at-risk">
+        <div class="label">SKUs needing PO</div>
+        <div class="value">—</div>
+        <div class="sub">Within next 30 days</div>
+      </div>
+      <div class="kpi-card" id="kpi-data-fresh">
+        <div class="label">Data freshness</div>
+        <div class="value">—</div>
+        <div class="sub">Inventory snapshot age</div>
+      </div>
+    </div>
   </div>
-  <div class="kpi-card" id="kpi-highest-risk">
-    <div class="label">Highest-risk SKU</div>
-    <div class="value">—</div>
-    <div class="sub">Lowest days of cover</div>
-  </div>
-  <div class="kpi-card" id="kpi-at-risk">
-    <div class="label">SKUs needing PO</div>
-    <div class="value">—</div>
-    <div class="sub">Within next 30 days</div>
-  </div>
-  <div class="kpi-card" id="kpi-data-fresh">
-    <div class="label">Data freshness</div>
-    <div class="value" style="font-size: 13px">—</div>
-    <div class="sub">Inventory snapshot age</div>
-  </div>
-</div>
+</section>
 
-<!-- OPEN PO BANNER (populated from INCOMING_POS) -->
-<div class="body-section" id="poBannerWrap" style="display:none; padding-bottom: 12px;">
-  <div class="info-block" id="poBanner"></div>
-</div>
+<!-- ========== OPEN PO PANEL (populated from INCOMING_POS) ========== -->
+<section class="section" id="poBannerWrap" style="display:none">
+  <div class="wrap">
+    <div class="po-panel" id="poBanner"></div>
+  </div>
+</section>
 
-<!-- PER-SKU TABLE -->
-<div class="body-section">
-  <div class="card">
-    <div class="card-header">
-      <h3>Per-SKU forecast (lead time = 120 days)</h3>
-      <span class="meta">Bundle-aware. Sales rates include component allocation from bundle orders.</span>
+<!-- ========== PER-SKU FORECAST ========== -->
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Forecast</div>
+      <h2 class="section-title">Per-SKU forecast</h2>
+      <p class="section-intro">Lead time is 120 days. Sales rates are bundle-aware: they include each component's share of bundle orders.</p>
     </div>
     <div class="table-scroll">
       <table class="inv-table" id="invTable">
@@ -279,23 +326,24 @@ body { padding-left: 208px; }
             <th class="sortable" data-col="rate180" title="Same as 90d but over 180-day window. Compare to 90d to spot acceleration / slowdown.">180d / day <span class="sort-arrow">▼</span></th>
             <th title="Trailing-trend change. ▲ = 90d rate is &gt;15% faster than 180d (demand accelerating). ▼ = 90d is &gt;15% slower (demand softening).">Trend</th>
             <th class="sortable sorted" data-col="days_of_cover" title="Current inventory ÷ daily rate (excludes incoming POs). Uses the higher of 90d or a stockout-corrected rate to be safe.">Days cover <span class="sort-arrow">▲</span></th>
-            <th class="sortable" data-col="stockout_at" title="Projected stockout including incoming PO units landing at their ETA.">Stockout date <span class="sort-arrow">▼</span></th>
+            <th class="sortable" data-col="stockout_at" title="Projected stockout including incoming PO units landing at their ETA.">Stockout <span class="sort-arrow">▼</span></th>
             <th class="sortable" data-col="po_due" title="Stockout date − 120 days. The latest you can place the NEXT PO and still receive it before stockout.">PO due <span class="sort-arrow">▼</span></th>
             <th class="sortable" data-col="urgency_rank">Status <span class="sort-arrow">▼</span></th>
           </tr>
         </thead>
-        <tbody id="invBody"><tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:24px">Loading…</td></tr></tbody>
+        <tbody id="invBody"><tr><td colspan="10" class="table-empty">Loading…</td></tr></tbody>
       </table>
     </div>
   </div>
-</div>
+</section>
 
-<!-- PACKAGING MATERIALS (populated from PACKAGING_STOCK) -->
-<div class="body-section">
-  <div class="card">
-    <div class="card-header">
-      <h3>Packaging materials (primary jars / bottles + secondary cartons)</h3>
-      <span class="meta" id="pkgMeta">Loading…</span>
+<!-- ========== PACKAGING MATERIALS (populated from PACKAGING_STOCK) ========== -->
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Packaging</div>
+      <h2 class="section-title">Packaging materials</h2>
+      <p class="section-intro" id="pkgMeta">Loading…</p>
     </div>
     <div class="table-scroll">
       <table class="inv-table" id="pkgTable">
@@ -306,41 +354,45 @@ body { padding-left: 208px; }
             <th class="sortable" data-col="primary_qty" title="Primary packaging on hand: jars or bottles. Bars have no primary pack.">Jars / bottles <span class="sort-arrow">▼</span></th>
             <th class="sortable" data-col="carton_qty" title="Secondary packaging on hand: printed cartons.">Cartons <span class="sort-arrow">▼</span></th>
             <th class="sortable" data-col="fillable" title="Units that can be produced with the packaging held = the lower of jars/bottles and cartons (cartons only for bars).">Units fillable <span class="sort-arrow">▼</span></th>
-            <th class="sortable sorted" data-col="months_cover" title="Units fillable ÷ the same daily sales rate used in the forecast above (bundle-aware), shown in months.">Cover at current rate <span class="sort-arrow">▲</span></th>
+            <th class="sortable sorted" data-col="months_cover" title="Units fillable ÷ the same daily sales rate used in the forecast above (bundle-aware), shown in months.">Months cover <span class="sort-arrow">▲</span></th>
             <th class="sortable" data-col="urgency_rank" title="Low = packaging covers less than one 120-day lead time of sales. Watch = less than two lead times.">Status <span class="sort-arrow">▼</span></th>
           </tr>
         </thead>
-        <tbody id="pkgBody"><tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px">Loading…</td></tr></tbody>
+        <tbody id="pkgBody"><tr><td colspan="7" class="table-empty">Loading…</td></tr></tbody>
       </table>
     </div>
   </div>
-</div>
+</section>
 
-<!-- TREND CHART -->
-<div class="body-section">
-  <div class="card">
-    <div class="card-header">
-      <h3>Monthly sales trend (last 12 months + current month to date, bundle-decomposed)</h3>
-      <span class="meta">Click an SKU pill to toggle its line. The current month is dashed because it is month to date.</span>
+<!-- ========== TREND CHART ========== -->
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Sales trend</div>
+      <h2 class="section-title">Monthly sales trend</h2>
+      <p class="section-intro">Units per month for the last 12 months plus the current month to date, bundle-decomposed. Click an SKU to show or hide its line. The current month ends in a hollow point because it is incomplete.</p>
     </div>
     <div class="sku-toggles" id="skuToggles"></div>
     <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
   </div>
-</div>
+</section>
 
-<!-- METHOD NOTES -->
-<div class="body-section">
-  <div class="info-block">
-    <h4>How this dashboard is calculated</h4>
-    <p style="margin-bottom: 10px"><strong>Sales rate per SKU</strong> = direct unit sales + bundle-component allocation (when a bundle is sold, each listed component's count goes up by the bundle's quantity). 90-day window is the primary forecast; 180-day shown alongside for trend comparison.</p>
-    <p style="margin-bottom: 10px"><strong>Days of cover</strong> = current Shopify on-hand ÷ daily rate (current stock only). <strong>Stockout date</strong> = when stock hits zero <em>including incoming PO units</em>, which land in the forecast on their ETA (see <code>INCOMING_POS</code> in the page source). If current stock would run dry before a shipment lands, a <span class="trend-chip trend-down">⚠ gap</span> chip appears in the Incoming column. <strong>PO due</strong> = stockout date − 120 days lead time, i.e. the latest date to place the <em>next</em> PO. <strong>Status pill</strong> drives off PO due: <span class="pill overdue">Overdue</span> if PO due is in the past · <span class="pill urgent">Urgent</span> if within 30 days · <span class="pill soon">Soon</span> if within 60 days · <span class="pill ok">OK</span> otherwise.</p>
-    <p style="margin-bottom: 10px"><strong>Bundles tracked</strong> (1 bundle sold = 1 unit each component): The Heroes Kit, Dew It Right, Age Confidence, Bright Future, Mama's Glow, Soft Intentions, The Hair Affair Bundle. Component map is in the page source — see <code>BUNDLE_MAP</code> if you need to correct it. Bundle SKUs are hidden from this list per directive (you only see the underlying components).</p>
-    <p style="margin-bottom: 10px"><strong>Why some rates differ between 90d and 180d</strong>: a stockout in the window will lower the rate for that period (Sleepytime Gelly hit zero in late March), and recently-launched products (Featherweight, Maui Waui, Tropic Thunder, Espresso Bar, The One &amp; Only — all launched Sep 2025) won't have a meaningful 180d picture. The dashboard auto-uses the more conservative (faster) of the two when there's a strong divergence.</p>
-    <p style="margin-bottom: 10px"><strong>Packaging materials</strong> = the latest count of primary packs (jars / bottles) and secondary packs (cartons) held per SKU, stored in <code>PACKAGING_STOCK</code> in the page source (paste the next count there and update the date). <strong>Units fillable</strong> = the lower of the two (cartons only for bars, which have no primary pack). <strong>Cover</strong> = units fillable ÷ the same daily rate used in the forecast above, in months. Status: <span class="pill urgent">Low</span> if packaging covers less than one lead time (120 days) of sales · <span class="pill soon">Watch</span> if under two lead times · <span class="pill ok">OK</span> otherwise. The count is used as reported; if a count was taken before an open PO was filled, subtract that PO's quantities first.</p>
-    <p style="margin-bottom: 10px"><strong>Monthly sales trend</strong> = units per calendar month (UK time), bundle-decomposed the same way as the rates, for the last 12 full months plus the current month to date (drawn dashed because it is incomplete). Sales rates in the table still use the trailing 90 / 180 day windows.</p>
+<!-- ========== METHOD NOTES ========== -->
+<section class="section last">
+  <div class="wrap notes">
+    <div class="section-head">
+      <div class="eyebrow">Method</div>
+      <h2 class="section-title">How this dashboard is calculated</h2>
+    </div>
+    <p><strong>Sales rate per SKU</strong> = direct unit sales + bundle-component allocation (when a bundle is sold, each listed component's count goes up by the bundle's quantity). 90-day window is the primary forecast; 180-day shown alongside for trend comparison.</p>
+    <p><strong>Days of cover</strong> = current Shopify on-hand ÷ daily rate (current stock only). <strong>Stockout date</strong> = when stock hits zero <em>including incoming PO units</em>, which land in the forecast on their ETA (see <code>INCOMING_POS</code> in the page source). If current stock would run dry before a shipment lands, a <span class="badge">gap</span> badge appears in the Incoming column. <strong>PO due</strong> = stockout date − 120 days lead time, i.e. the latest date to place the <em>next</em> PO. <strong>Status</strong> drives off PO due: <span class="pill overdue">Overdue</span> if PO due is in the past · <span class="pill urgent">Urgent</span> if within 30 days · <span class="pill soon">Soon</span> if within 60 days · <span class="pill ok">OK</span> otherwise. Amber marks the rows that need action now.</p>
+    <p><strong>Bundles tracked</strong> (1 bundle sold = 1 unit each component): The Heroes Kit, Dew It Right, Age Confidence, Bright Future, Mama's Glow, Soft Intentions, The Hair Affair Bundle. Component map is in the page source — see <code>BUNDLE_MAP</code> if you need to correct it. Bundle SKUs are hidden from this list per directive (you only see the underlying components).</p>
+    <p><strong>Why some rates differ between 90d and 180d</strong>: a stockout in the window will lower the rate for that period (Sleepytime Gelly hit zero in late March), and recently-launched products (Featherweight, Maui Waui, Tropic Thunder, Espresso Bar, The One &amp; Only — all launched Sep 2025) won't have a meaningful 180d picture. The dashboard auto-uses the more conservative (faster) of the two when there's a strong divergence.</p>
+    <p><strong>Packaging materials</strong> = the latest count of primary packs (jars / bottles) and secondary packs (cartons) held per SKU, stored in <code>PACKAGING_STOCK</code> in the page source (paste the next count there and update the date). <strong>Units fillable</strong> = the lower of the two (cartons only for bars, which have no primary pack). <strong>Cover</strong> = units fillable ÷ the same daily rate used in the forecast above, in months. Status: <span class="pill urgent">Low</span> if packaging covers less than one lead time (120 days) of sales · <span class="pill soon">Watch</span> if under two lead times · <span class="pill ok">OK</span> otherwise. The count is used as reported; if a count was taken before an open PO was filled, subtract that PO's quantities first.</p>
+    <p><strong>Monthly sales trend</strong> = units per calendar month (UK time), bundle-decomposed the same way as the rates, for the last 12 full months plus the current month to date. Lines use two inks and four stroke patterns, and each line is labelled at its right-hand end. Sales rates in the table still use the trailing 90 / 180 day windows.</p>
     <p><strong>Refresh cadence</strong>: inventory syncs from Shopify hourly via <code>sync-shopify-inventory</code>. Sales data updates with the next webhook + rebuild cycle (every 10 min). Click <strong>Refresh</strong> for an immediate Shopify pull (≈3 sec).</p>
   </div>
-</div>
+</section>
 
 <script>
 // ── CONFIG ──
@@ -416,16 +468,19 @@ const TRACKED_SKUS = [
   'Everyday. No Excuses!', 'Featherweight', 'Maui Waui', 'Tropic Thunder',
   'The One & Only', 'Espresso Bar',
 ];
-// Visual palette for the trend chart
-const SKU_COLORS = {
-  'Sunlight Serum': '#f59e0b',     'Moonlight Serum': '#8b5cf6',
-  'Pot of Gold': '#eab308',        'Sleepytime Gelly': '#3b82f6',
-  'Top of the Morning': '#06b6d4', 'Richie Rich Rich': '#ec4899',
-  'Ruby Dooby Doo': '#dc2626',     'Clean as a Whistle': '#10b981',
-  'Everyday. No Excuses!': '#f97316', 'Featherweight': '#a78bfa',
-  'Maui Waui': '#14b8a6',          'Tropic Thunder': '#22c55e',
-  'The One & Only': '#0ea5e9',     'Espresso Bar': '#92400e',
-};
+// Trend-chart series styles. The design system has no rainbow: lines use two inks
+// (--series-a Carbon, --series-b Dark Green) and are told apart by stroke pattern and
+// point shape, in TRACKED_SKUS order so the highest-volume SKUs get the plainest strokes.
+// Every visible line is also labelled at its right-hand end.
+const SERIES_DASHES = [[], [8, 4], [2, 3], [10, 3, 2, 3]];   // solid, dashed, dotted, dash-dot
+function seriesStyle(sku) {
+  const position = Math.max(0, TRACKED_SKUS.indexOf(sku));
+  return {
+    colorVar: position % 2 === 0 ? '--series-a' : '--series-b',
+    dash: SERIES_DASHES[Math.floor(position / 2) % SERIES_DASHES.length],
+    pointStyle: position < 8 ? 'circle' : 'rect',
+  };
+}
 
 // ── AUTH (mirrors other dashboards) ──
 (function authBoot() {
@@ -441,7 +496,7 @@ const SKU_COLORS = {
 })();
 
 // ── THEME ──
-// Monochrome theme icons — picks up colour from var(--text-primary) via CSS fill.
+// Monochrome theme icons — they inherit the button text colour (fill: currentColor).
 const THEME_ICON_SUN = '<svg viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 000-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/></svg>';
 const THEME_ICON_MOON = '<svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 109 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 01-4.4 2.26 5.403 5.403 0 01-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>';
 function setThemeIcon(isDark) {
@@ -453,6 +508,7 @@ function toggleTheme() {
   html.setAttribute('data-theme', isDark ? '' : 'dark');
   setThemeIcon(!isDark);
   localStorage.setItem('ks-theme', isDark ? 'light' : 'dark');
+  if (cachedMonthly) renderTrend(cachedMonthly);   // canvas colours are read at render time
 }
 (function() {
   const saved = localStorage.getItem('ks-theme');
@@ -632,11 +688,12 @@ function renderPoBanner() {
   const html = openPos.map(po => {
     const total = Object.values(po.lines).reduce((a, b) => a + b, 0);
     const lineStr = Object.entries(po.lines).map(([sku, q]) => `${sku} ${fmt(q)}`).join(' · ');
-    return `<h4>📦 ${po.po} — in production (${fmt(total)} units)</h4>
+    return `<div class="eyebrow">Open purchase order</div>
+      <h3>${po.po} in production · ${fmt(total)} units</h3>
       <p>Placed <strong>${po.placed}</strong> · est. ship from India <strong>${po.ship_date}</strong> · ETA UK <strong>~${po.eta}</strong>.
-      Incoming units are already included in the stockout dates, PO-due dates and status pills below.</p>
-      <p style="margin-top:6px; font-size:11px; color:var(--text-muted)">${lineStr}</p>`;
-  }).join('<hr style="border:none;border-top:1px solid var(--border);margin:10px 0">');
+      Incoming units are already included in the stockout dates, PO-due dates and statuses below.</p>
+      <p class="po-lines">${lineStr}</p>`;
+  }).join('<div class="po-gap"></div>');
   document.getElementById('poBanner').innerHTML = html;
   wrap.style.display = '';
 }
@@ -707,7 +764,7 @@ function renderTable() {
 
   const tbody = document.getElementById('invBody');
   if (rows.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:24px">No data — inventory may not have synced yet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" class="table-empty">No data — inventory may not have synced yet.</td></tr>';
     return;
   }
   const html = rows.map(r => {
@@ -715,10 +772,10 @@ function renderTable() {
     const trendCls = r.trend === 'up' ? 'trend-up' : r.trend === 'down' ? 'trend-down' : 'trend-flat';
     const trendText = r.trend === 'flat' ? '—' : `${trendArrow} ${Math.abs(r.trendPct).toFixed(0)}%`;
     const statusLabel = { overdue: 'Overdue', urgent: 'Urgent', soon: 'Soon', ok: 'OK' }[r.status];
-    let incomingCell = '<span style="color:var(--text-muted)">—</span>';
+    let incomingCell = '—';
     if (r.incoming_qty > 0) {
       const etaStr = r.incoming_eta ? r.incoming_eta.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
-      const gapWarn = r.gap_days > 0 ? ` <span class="trend-chip trend-down" title="Current stock runs out ${r.gap_days} days before the shipment lands.">⚠ ${r.gap_days}d gap</span>` : '';
+      const gapWarn = r.gap_days > 0 ? ` <span class="badge gap-badge" title="Current stock runs out ${r.gap_days} days before the shipment lands.">${r.gap_days}d gap</span>` : '';
       incomingCell = `<span title="${r.incoming_pos.join('; ')} — ETA ${fmtDate(r.incoming_eta)}">+${fmt(r.incoming_qty)} · ${etaStr}</span>${gapWarn}`;
     }
     return `<tr title="Using ${r.use_rate_source}">
@@ -795,15 +852,15 @@ function renderPackaging() {
 
   const rd = new Date(PACKAGING_STOCK.received + 'T00:00:00');
   const received = `${rd.getDate()} ${MONTHS_SHORT[rd.getMonth()]} ${rd.getFullYear()}`;
-  document.getElementById('pkgMeta').textContent = `Count received ${received}. Bars have no primary pack (cartons only).`;
+  document.getElementById('pkgMeta').textContent = `Primary jars and bottles, and secondary cartons, held per SKU. Count received ${received}. Bars have no primary pack, so they show cartons only.`;
 
   const tbody = document.getElementById('pkgBody');
   tbody.innerHTML = rows.map(r => {
     const primaryCell = r.primary_qty == null
-      ? '<span style="color:var(--text-muted)" title="Bars have no primary pack">n/a</span>'
+      ? '<span title="Bars have no primary pack">n/a</span>'
       : fmt(r.primary_qty);
     const coverCell = r.months_cover == null
-      ? '<span style="color:var(--text-muted)" title="No sales in the trailing window">—</span>'
+      ? '<span title="No sales in the trailing window">—</span>'
       : `<span title="${fmt(r.daily_rate, 2)} units / day">${fmt(r.months_cover, 1)} months</span>`;
     const statusLabel = { urgent: 'Low', soon: 'Watch', ok: 'OK' }[r.status];
     return `<tr>
@@ -811,7 +868,7 @@ function renderPackaging() {
       <td>${r.pack}</td>
       <td>${primaryCell}</td>
       <td>${fmt(r.carton_qty)}</td>
-      <td title="Limited by ${r.limiting}">${fmt(r.fillable)} <span style="color:var(--text-muted);font-size:10px">(${r.limiting})</span></td>
+      <td title="Limited by ${r.limiting}">${fmt(r.fillable)} <span class="cell-note">(${r.limiting})</span></td>
       <td>${coverCell}</td>
       <td><span class="pill ${r.status}">${statusLabel}</span></td>
     </tr>`;
@@ -829,7 +886,45 @@ document.querySelectorAll('#pkgTable th.sortable').forEach(th => {
 
 // ── RENDER: TREND CHART (monthly) ──
 let chartInst = null;
+let cachedMonthly = null;
 const activeSkus = new Set();
+
+// Labels each visible line at its right-hand end, so identity never depends on colour.
+// Labels that would collide are pushed apart, then pulled back inside the plot area.
+const lineEndLabels = {
+  id: 'lineEndLabels',
+  afterDatasetsDraw(chart, _args, opts) {
+    if (!opts.enabled) return;
+    const { ctx, chartArea } = chart;
+    const labels = [];
+    chart.data.datasets.forEach((dataset, datasetIndex) => {
+      if (!chart.isDatasetVisible(datasetIndex)) return;
+      const points = chart.getDatasetMeta(datasetIndex).data;
+      const lastPoint = points[points.length - 1];
+      if (lastPoint) labels.push({ text: dataset.label, y: lastPoint.y });
+    });
+    if (labels.length === 0) return;
+    const minGap = 14;
+    labels.sort((a, b) => a.y - b.y);
+    for (let i = 1; i < labels.length; i++) {
+      if (labels[i].y - labels[i - 1].y < minGap) labels[i].y = labels[i - 1].y + minGap;
+    }
+    if (labels[labels.length - 1].y > chartArea.bottom) {
+      labels[labels.length - 1].y = chartArea.bottom;
+      for (let i = labels.length - 2; i >= 0; i--) {
+        if (labels[i + 1].y - labels[i].y < minGap) labels[i].y = labels[i + 1].y - minGap;
+      }
+    }
+    ctx.save();
+    ctx.font = `600 11px ${opts.fontFamily}`;
+    ctx.fillStyle = opts.color;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    for (const label of labels) ctx.fillText(label.text, chartArea.right + 10, label.y);
+    ctx.restore();
+  },
+};
+Chart.register(lineEndLabels);
 
 const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const MONTHS_LONG = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -843,6 +938,7 @@ function monthLabel(iso, style) {
 }
 
 function renderTrend(monthly) {
+  cachedMonthly = monthly;
   // Build {sku → {monthStart → units}} including bundle decomposition
   const skuByMonth = {};
   for (const sku of TRACKED_SKUS) skuByMonth[sku] = {};
@@ -863,34 +959,55 @@ function renderTrend(monthly) {
   const lastIsPartial = allMonths[lastIdx] === currentMonth;
   const labels = allMonths.map((m, i) => (lastIsPartial && i === lastIdx) ? `${monthLabel(m)} (MTD)` : monthLabel(m));
 
-  const datasets = TRACKED_SKUS.map(sku => ({
-    label: sku,
-    data: allMonths.map(m => skuByMonth[sku][m] || 0),
-    borderColor: SKU_COLORS[sku] || '#6b7280',
-    backgroundColor: (SKU_COLORS[sku] || '#6b7280') + '20',
-    borderWidth: 2,
-    tension: 0.25,
-    pointRadius: 3,
-    hidden: !activeSkus.has(sku),
-    // Dash the final segment when it runs into the incomplete current month.
-    segment: { borderDash: ctx => (lastIsPartial && ctx.p1DataIndex === lastIdx) ? [6, 4] : undefined },
-  }));
+  const styles = getComputedStyle(document.documentElement);
+  const cssVar = name => styles.getPropertyValue(name).trim();
+  const inkColor = cssVar('--ink');
+  const groundColor = cssVar('--ground');
+  const gridColor = cssVar('--chart-grid');
+  const fontFamily = cssVar('--font-body');
+
+  const datasets = TRACKED_SKUS.map(sku => {
+    const style = seriesStyle(sku);
+    const lineColor = cssVar(style.colorVar);
+    return {
+      label: sku,
+      data: allMonths.map(m => skuByMonth[sku][m] || 0),
+      borderColor: lineColor,
+      borderWidth: 2,
+      borderDash: style.dash,
+      tension: 0.25,
+      pointStyle: style.pointStyle,
+      pointRadius: 3.5,
+      pointBorderColor: lineColor,
+      pointBorderWidth: 1.5,
+      // The incomplete current month ends in a hollow point (and, on solid lines, a dashed run-in).
+      pointBackgroundColor: ctx => (lastIsPartial && ctx.dataIndex === lastIdx) ? groundColor : lineColor,
+      hidden: !activeSkus.has(sku),
+      segment: { borderDash: ctx => (lastIsPartial && ctx.p1DataIndex === lastIdx && style.dash.length === 0) ? [6, 4] : undefined },
+    };
+  });
+
+  const chartWrap = document.getElementById('trendChart').parentElement;
+  const roomForEndLabels = chartWrap.clientWidth >= 640;
 
   const ctx = document.getElementById('trendChart').getContext('2d');
   if (chartInst) chartInst.destroy();
-  const styles = getComputedStyle(document.documentElement);
-  const tickColor = styles.getPropertyValue('--chart-tick').trim();
-  const gridColor = styles.getPropertyValue('--chart-grid').trim();
+  Chart.defaults.font.family = fontFamily;
+  Chart.defaults.color = inkColor;
   chartInst = new Chart(ctx, {
     type: 'line',
     data: { labels, datasets },
     options: {
       responsive: true, maintainAspectRatio: false,
       interaction: { intersect: false, mode: 'index' },
+      layout: { padding: { right: roomForEndLabels ? 150 : 8 } },
       plugins: {
         legend: { display: false },
+        lineEndLabels: { enabled: roomForEndLabels, color: inkColor, fontFamily },
         tooltip: {
-          backgroundColor: '#111', titleColor: '#fff', bodyColor: '#d1d5db',
+          backgroundColor: cssVar('--tooltip-bg'), titleColor: cssVar('--tooltip-ink'), bodyColor: cssVar('--tooltip-ink'),
+          padding: 12, cornerRadius: 6, usePointStyle: true, boxPadding: 4,
+          titleFont: { family: fontFamily, weight: 700 }, bodyFont: { family: fontFamily, weight: 500 },
           callbacks: {
             title: items => {
               const i = items[0].dataIndex;
@@ -902,19 +1019,26 @@ function renderTrend(monthly) {
         },
       },
       scales: {
-        x: { ticks: { color: tickColor, autoSkip: false, maxRotation: 0 }, grid: { color: gridColor } },
-        y: { ticks: { color: tickColor }, grid: { color: gridColor }, beginAtZero: true, title: { display: true, text: 'Units / month', color: tickColor, font: { size: 11 } } },
+        x: { ticks: { color: inkColor, autoSkip: false, maxRotation: 0, font: { size: 11, weight: 500 } }, grid: { display: false }, border: { display: false } },
+        y: { ticks: { color: inkColor, font: { size: 11, weight: 500 } }, grid: { color: gridColor }, border: { display: false }, beginAtZero: true,
+             title: { display: true, text: 'Units per month', color: inkColor, font: { size: 11, weight: 700 } } },
       },
     },
   });
 
   // Toggles
   const togWrap = document.getElementById('skuToggles');
-  togWrap.innerHTML = TRACKED_SKUS.map(sku => `
-    <div class="sku-toggle ${activeSkus.has(sku) ? 'active' : ''}" data-sku="${sku}">
-      <span class="dot" style="background:${SKU_COLORS[sku] || '#6b7280'}"></span>${sku}
-    </div>
-  `).join('');
+  // Each toggle carries a sample of its line (ink, stroke pattern, point shape) so the
+  // key always matches the chart.
+  togWrap.innerHTML = TRACKED_SKUS.map(sku => {
+    const style = seriesStyle(sku);
+    const marker = style.pointStyle === 'rect'
+      ? `<rect x="11" y="2" width="6" height="6" style="fill:var(${style.colorVar})"></rect>`
+      : `<circle cx="14" cy="5" r="3" style="fill:var(${style.colorVar})"></circle>`;
+    return `<button type="button" class="sku-toggle ${activeSkus.has(sku) ? 'active' : ''}" data-sku="${sku}" aria-pressed="${activeSkus.has(sku)}">
+      <svg width="28" height="10" viewBox="0 0 28 10" aria-hidden="true"><line x1="0" y1="5" x2="28" y2="5" style="stroke:var(${style.colorVar})" stroke-width="2" stroke-dasharray="${style.dash.join(' ')}"></line>${marker}</svg>${sku}
+    </button>`;
+  }).join('');
   togWrap.querySelectorAll('.sku-toggle').forEach(el => {
     el.addEventListener('click', () => {
       const sku = el.dataset.sku;
@@ -959,6 +1083,9 @@ document.getElementById('refreshBtn').addEventListener('click', async () => {
 });
 
 load();
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(() => { if (cachedMonthly) renderTrend(cachedMonthly); });
+}
 </script>
 </body>
 </html>

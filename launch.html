@@ -44,6 +44,7 @@
     --grid-half:  rgba(35,37,38,0.10);   /* half-month gridline, Carbon at low opacity */
     --grid-month: rgba(35,37,38,0.28);   /* month gridline                              */
     --label-w: 320px;
+    --notes-w: 200px;
   }
   [data-theme="dark"] {
     --ground: #0f1117; --tint: #1e1e22; --ink: #f4f4f5;
@@ -97,10 +98,14 @@
 
   /* ========== GANTT ========== */
   .gantt-scroll { overflow-x: auto; margin: 0 -6px; padding: 0 6px; }
-  .gantt { min-width: 900px; position: relative; }
-  body.editing .gantt { --label-w: 400px; }
+  .gantt { min-width: 1000px; position: relative; }
+  body.editing .gantt { --label-w: 380px; --notes-w: 220px; }
   .g-row { display: flex; align-items: stretch; }
   .g-label { flex: 0 0 var(--label-w); width: var(--label-w); padding: 10px 16px 10px 0; display: flex; gap: 10px; align-items: flex-start; min-width: 0; }
+  .g-notes { flex: 0 0 var(--notes-w); width: var(--notes-w); padding: 10px 16px 10px 0; min-width: 0; font-size: 12px; font-weight: 400; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .g-notes textarea { display: none; width: 100%; min-height: 64px; resize: vertical; font-size: 12px; font-weight: 400; line-height: 1.45; padding: 6px 8px; border: 1px solid var(--ink); border-radius: 6px; background: var(--ground); color: var(--ink); }
+  body.editing .g-notes .g-notes-text { display: none; }
+  body.editing .g-notes textarea { display: block; }
   .g-time { flex: 1 1 auto; position: relative; min-height: 44px;
     background-image: linear-gradient(to right, var(--grid-month) 1px, transparent 1px), linear-gradient(to right, var(--grid-half) 1px, transparent 1px);
     background-size: calc(200% / var(--ncols)) 100%, calc(100% / var(--ncols)) 100%; }
@@ -272,7 +277,7 @@ body { padding-left: 208px; }
         <h2 class="section-title">Using this page</h2>
       </div>
     </div>
-    <p><strong>Editing.</strong> Click Edit plan. Drag a bar to move it, drag either end to make it longer or shorter, or pick the start and end halves from the dropdowns. Rename, change the workstream or status, or remove an activity in the same place. Every change saves on its own.</p>
+    <p><strong>Editing.</strong> Click Edit plan. Drag a bar to move it, drag either end to make it longer or shorter, or pick the start and end halves from the dropdowns. Rename, change the workstream or status, add notes, or remove an activity in the same place. Every change saves on its own.</p>
     <p><strong>Order.</strong> Choose a new number in the # column to move an activity up or down the list. Turn on Auto-order by start date and the list re-sorts itself every time a bar moves, so the sequence always follows the timeline.</p>
     <p><strong>Reading it.</strong> A diamond is a milestone: a date, not a stretch of work. Finished activities turn Citron. Anything marked at risk carries an amber badge, and the amber line is today.</p>
     <p><strong>Starting point.</strong> The first version of this plan was seeded on 10 October 2026 from the 2026-27 Business Tracker (Goal 2 and the 13 Week Plan). Dates the tracker set are used as given; the rest are estimates to be corrected here.</p>
@@ -337,7 +342,7 @@ function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ 
 // briefs by 28 Dec, trio live 28 Feb 2027, full range and SPF30 live 30 Apr 2027.
 // ============================================================
 function defaultTasks() {
-  const t = (name, workstream, start, end, status, milestone) => ({ id: uid(), name, workstream, start, end: end || start, status: status || 'planned', milestone: !!milestone });
+  const t = (name, workstream, start, end, status, milestone) => ({ id: uid(), name, workstream, start, end: end || start, status: status || 'planned', milestone: !!milestone, notes: '' });
   return [
     t('Test formula samples and pick the acne moisturiser', 'Product', '2026-10-a', '2026-10-a', 'progress'),
     t('Final formula pricing and COGS sign-off against the P&L', 'Product', '2026-10-a', '2026-10-b'),
@@ -393,6 +398,7 @@ function normalisePlan(plan) {
       end: /^\d{4}-\d{2}-[ab]$/.test(t.end || '') ? t.end : null,
       status: STATUSES[t.status] ? t.status : 'planned',
       milestone: !!t.milestone,
+      notes: typeof t.notes === 'string' ? t.notes : '',
     };
     if (!task.end || keyToIdx(task.end) < keyToIdx(task.start)) task.end = task.start;
     if (task.milestone) task.end = task.start;
@@ -525,7 +531,7 @@ function renderGantt() {
   const tf = todayFloatIdx();
   const todayVisible = tf >= FROM && tf <= TO + 1;
   const todayPct = ((tf - FROM) / NCOLS * 100).toFixed(3) + '%';
-  let html = '<div class="g-row g-head"><div class="g-label g-head-cols"><span class="g-num">#</span><span>Activity</span></div><div class="g-time">' + months +
+  let html = '<div class="g-row g-head"><div class="g-label g-head-cols"><span class="g-num">#</span><span>Activity</span></div><div class="g-notes g-head-cols">Notes</div><div class="g-time">' + months +
     (todayVisible ? '<span class="today-tag badge" style="left:' + todayPct + '">Today</span>' : '') + '</div></div>';
 
   // Body rows
@@ -535,7 +541,7 @@ function renderGantt() {
   }
   plan.tasks.forEach((t, i) => { html += rowHtml(t, i, editing); });
   if (todayVisible && plan.tasks.length) {
-    html += '<div class="today-line" style="left: calc(var(--label-w) + (100% - var(--label-w)) * ' + ((tf - FROM) / NCOLS).toFixed(5) + ')"></div>';
+    html += '<div class="today-line" style="left: calc(var(--label-w) + var(--notes-w) + (100% - var(--label-w) - var(--notes-w)) * ' + ((tf - FROM) / NCOLS).toFixed(5) + ')"></div>';
   }
   html += '</div>';
   g.innerHTML = html;
@@ -600,7 +606,9 @@ function rowHtml(t, i, editing) {
     mark = '<div class="bar' + (t.status === 'done' ? ' done' : '') + '" data-id="' + t.id + '" style="left:' + left + ';width:' + width + '" title="' + title + '"><span class="h l"></span>' + text + '<span class="h r"></span></div>';
   }
 
-  return '<div class="g-row" data-id="' + t.id + '"><div class="g-label">' + num + view + edit + '</div><div class="g-time">' + mark + '</div></div>';
+  const notes = '<div class="g-notes"><div class="g-notes-text">' + esc(t.notes) + '</div>' +
+    (editing ? '<textarea data-act="notes" data-id="' + t.id + '" placeholder="Notes">' + esc(t.notes) + '</textarea>' : '') + '</div>';
+  return '<div class="g-row" data-id="' + t.id + '"><div class="g-label">' + num + view + edit + '</div>' + notes + '<div class="g-time">' + mark + '</div></div>';
 }
 
 // ============================================================
@@ -623,7 +631,7 @@ document.getElementById('editBtn').addEventListener('click', () => {
 
 document.getElementById('addBtn').addEventListener('click', () => {
   const start = idxToKey(clamp(todayIdx(), FROM, TO));
-  const task = { id: uid(), name: 'New activity', workstream: 'Product', start, end: idxToKey(clamp(keyToIdx(start) + 1, FROM, TO)), status: 'planned', milestone: false };
+  const task = { id: uid(), name: 'New activity', workstream: 'Product', start, end: idxToKey(clamp(keyToIdx(start) + 1, FROM, TO)), status: 'planned', milestone: false, notes: '' };
   State.plan.tasks.push(task);
   afterChange();
   const input = document.querySelector('input[data-act="name"][data-id="' + task.id + '"]');
@@ -648,18 +656,19 @@ document.getElementById('rangeTo').addEventListener('change', onRangeChange);
 const gantt = document.getElementById('gantt');
 
 gantt.addEventListener('input', ev => {
-  const el = ev.target;
-  if (el.dataset.act !== 'name') return;
+  const el = ev.target, act = el.dataset.act;
+  if (act !== 'name' && act !== 'notes') return;
   const t = taskById(el.dataset.id);
   if (!t) return;
-  t.name = el.value;
-  queueSave();   // no redraw while typing; the view label refreshes on the next render
+  if (act === 'name') t.name = el.value; else t.notes = el.value;
+  queueSave();   // no redraw while typing; the view text refreshes on the next render
 });
 
 gantt.addEventListener('change', ev => {
   const el = ev.target, act = el.dataset.act, t = taskById(el.dataset.id);
   if (!act || !t) return;
   if (act === 'name') { t.name = el.value.trim() || 'Untitled activity'; afterChange(); return; }
+  if (act === 'notes') { t.notes = el.value; queueSave(); return; }
   if (act === 'ws') { t.workstream = el.value; afterChange(); return; }
   if (act === 'status') { t.status = el.value; afterChange(); return; }
   if (act === 'ms') { t.milestone = el.checked; if (t.milestone) t.end = t.start; afterChange(); return; }

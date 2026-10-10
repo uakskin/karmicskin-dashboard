@@ -133,8 +133,8 @@
   .g-view { min-width: 0; flex: 1; }
   .g-name { font-size: 13px; font-weight: 600; line-height: 1.35; }
   .g-meta { font-size: 11px; font-weight: 500; margin-top: 3px; letter-spacing: 0.04em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .g-meta .status-progress { font-weight: 700; }
   .badge { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; padding: 2px 8px; border-radius: 100px; background: var(--mark); color: var(--mark-ink); }
+  .badge.tint { background: var(--tint); color: var(--ink); }   /* In progress: Citron behind Carbon text */
 
   /* Label column, edit mode */
   .g-edit { display: none; flex-direction: column; gap: 8px; flex: 1; min-width: 0; }
@@ -565,7 +565,7 @@ function rowHtml(t, i, editing) {
   // View label
   let statusBit = '';
   if (t.status === 'risk') statusBit = '<span class="badge">At risk</span>';
-  else if (t.status === 'progress') statusBit = '<span class="status-progress">In progress</span>';
+  else if (t.status === 'progress') statusBit = '<span class="badge tint">In progress</span>';
   else if (t.status === 'done') statusBit = '<span>Done</span>';
   const view = '<div class="g-view"><div class="g-name">' + esc(t.name) + '</div><div class="g-meta"><span>' +
     (t.milestone ? 'Milestone · ' + esc(endLabel(e, true)) : esc(t.workstream) + ' · ' + esc(span)) + '</span>' + statusBit + '</div></div>';

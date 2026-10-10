@@ -33,7 +33,7 @@
 
     /* Mapped tokens */
     --ground:    var(--porcelain);   /* page and tiles                      */
-    --tint:      var(--citron);      /* KPI band, finished bars             */
+    --tint:      var(--citron);      /* finished bars                       */
     --ink:       var(--carbon);      /* all text, icons, borders, diamonds  */
     --panel:     var(--green);       /* activity bars                       */
     --panel-ink: var(--porcelain);
@@ -64,7 +64,6 @@
   .wrap { max-width: 1200px; margin: 0 auto; padding: 0 clamp(16px, 3vw, 32px); }
   .section { padding-top: 48px; }
   .section.last { padding-bottom: 64px; }
-  .section.tint { background: var(--tint); padding: 24px 0; }
   .section-head { margin-bottom: 24px; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
   .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; }
   .section-title { font-size: 24px; margin-top: 8px; }
@@ -87,16 +86,6 @@
   .btn-small { font-size: 12px; padding: 6px 12px; border-radius: 6px; }
   .theme-toggle { padding: 8px; }
   .theme-toggle svg { width: 16px; height: 16px; fill: currentColor; }
-
-  /* ========== KPI TILES (Porcelain tiles on a Citron band) ========== */
-  .kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-  .kpi-card { background: var(--ground); border-radius: 12px; padding: 16px 20px; min-width: 0; }
-  .kpi-card .label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
-  .kpi-card .value { font-family: var(--font-heading); font-size: 24px; font-weight: 700; line-height: 1.3; }
-  .kpi-card .sub { font-size: 12px; font-weight: 600; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  /* Attention mark: amber behind Carbon text, never as the text colour. */
-  .kpi-card.urgent .value { display: inline; background: var(--mark); color: var(--mark-ink); padding: 2px 8px; border-radius: 3px; }
-  .kpi-card.urgent .sub { margin-top: 8px; }
 
   /* ========== EDIT TOOLBAR (visible in edit mode only) ========== */
   .toolbar { display: none; align-items: center; flex-wrap: wrap; gap: 12px 20px; margin-bottom: 24px; }
@@ -175,8 +164,7 @@
   .notes p:last-child { margin-bottom: 0; }
 
   /* ========== RESPONSIVE ========== */
-  @media (max-width: 1024px) { .kpi-strip { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 480px)  { .kpi-strip { grid-template-columns: 1fr; } .section { padding-top: 32px; } }
+  @media (max-width: 480px)  { .section { padding-top: 32px; } }
 </style>
 </head>
 <body>
@@ -253,42 +241,12 @@ body { padding-left: 208px; }
   </div>
 </div>
 
-<!-- ========== KPI SUMMARY (Porcelain tiles on a Citron band) ========== -->
-<section class="section tint">
-  <div class="wrap">
-    <div class="kpi-strip">
-      <div class="kpi-card" id="kpi-count">
-        <div class="label">Activities</div>
-        <div class="value">—</div>
-        <div class="sub">In the plan</div>
-      </div>
-      <div class="kpi-card" id="kpi-done">
-        <div class="label">Done</div>
-        <div class="value">—</div>
-        <div class="sub">Activities complete</div>
-      </div>
-      <div class="kpi-card" id="kpi-risk">
-        <div class="label">At risk</div>
-        <div class="value">—</div>
-        <div class="sub">Need attention</div>
-      </div>
-      <div class="kpi-card" id="kpi-next">
-        <div class="label">Next milestone</div>
-        <div class="value">—</div>
-        <div class="sub">—</div>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- ========== GANTT ========== -->
 <section class="section">
   <div class="wrap">
     <div class="section-head">
       <div>
-        <div class="eyebrow">Plan</div>
-        <h2 class="section-title">Launch timeline</h2>
-        <p class="section-intro">Every month is split in two: the 1st to the 15th, and the 16th to month end. Each activity starts and ends on one of those halves.</p>
+        <h2 class="section-title" style="margin-top:0">Launch timeline</h2>
       </div>
     </div>
 
@@ -329,7 +287,9 @@ const SUPABASE_URL = 'https://unmkzatppwftnasafhlb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVubWt6YXRwcHdmdG5hc2FmaGxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDQ5OTIsImV4cCI6MjA4NjU4MDk5Mn0.SYQm1km08xwlJSIf9jq8DXH3Ijxbxqk_LpTRh0PZhD4';
 const STATE_URL = SUPABASE_URL + '/rest/v1/launch_plan_state?id=eq.1';
 
-const WORKSTREAMS = ['Product', 'Packaging', 'Compliance', 'Content', 'Listings', 'Marketing', 'Operations', 'Launch'];
+const WORKSTREAMS = ['Product', 'Packaging', 'Compliance', 'Marketing'];
+// Names used before 10 Oct 2026, folded into the four above so older saved plans still load.
+const LEGACY_WORKSTREAMS = { Content: 'Marketing', Listings: 'Marketing', Operations: 'Product', Launch: 'Marketing' };
 const STATUSES = { planned: 'Planned', progress: 'In progress', done: 'Done', risk: 'At risk' };
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const DEFAULT_RANGE = { from: '2026-10', to: '2027-05' };
@@ -387,22 +347,22 @@ function defaultTasks() {
     t('Primary packaging production and shipping from China', 'Packaging', '2026-11-a', '2027-01-b'),
     t('Secondary packaging design: dielines and artwork final', 'Packaging', '2026-11-a', '2026-11-b'),
     t('Product safety certification and notification (10 SKUs)', 'Compliance', '2026-11-a', '2027-01-a'),
-    t('Photoshoot brief for the new range', 'Content', '2026-11-b', '2026-11-b'),
+    t('Photoshoot brief for the new range', 'Marketing', '2026-11-b', '2026-11-b'),
     t('Secondary packaging print run', 'Packaging', '2026-12-a', '2027-01-a'),
-    t('PDP content for the acne trio: copy, FAQs, ingredients', 'Content', '2026-12-a', '2026-12-b'),
+    t('PDP content for the acne trio: copy, FAQs, ingredients', 'Marketing', '2026-12-a', '2026-12-b'),
     t('One-page launch briefs per SKU with 90-day sales targets', 'Marketing', '2026-12-b', '2027-01-a'),
     t('Production run: acne trio', 'Product', '2027-01-b', '2027-02-a'),
     t('Acne trio acquisition campaign: landing page and ad creative', 'Marketing', '2027-01-b', '2027-02-b'),
-    t('New range photoshoot', 'Content', '2027-02-a', '2027-02-a'),
-    t('Acne trio stock into the warehouse', 'Operations', '2027-02-b', '2027-02-b'),
-    t('Acne trio PDPs live on Shopify and Amazon', 'Listings', '2027-02-b', '2027-02-b'),
+    t('New range photoshoot', 'Marketing', '2027-02-a', '2027-02-a'),
+    t('Acne trio stock into the warehouse', 'Product', '2027-02-b', '2027-02-b'),
+    t('Acne trio PDPs live on Shopify and Amazon', 'Marketing', '2027-02-b', '2027-02-b'),
     t('Acne trio launch email campaign', 'Marketing', '2027-02-b', '2027-02-b'),
-    t('Acne trio live', 'Launch', '2027-02-b', '2027-02-b', 'planned', true),
+    t('Acne trio live', 'Marketing', '2027-02-b', '2027-02-b', 'planned', true),
     t('Production run: remaining 8 SKUs and SPF30', 'Product', '2027-02-b', '2027-03-b'),
-    t('PDP content and photos for the remaining 8 SKUs and SPF30', 'Content', '2027-02-b', '2027-03-b'),
-    t('Full range PDPs live on Shopify and Amazon', 'Listings', '2027-04-a', '2027-04-b'),
+    t('PDP content and photos for the remaining 8 SKUs and SPF30', 'Marketing', '2027-02-b', '2027-03-b'),
+    t('Full range PDPs live on Shopify and Amazon', 'Marketing', '2027-04-a', '2027-04-b'),
     t('Full range and SPF30 launch campaign', 'Marketing', '2027-04-b', '2027-04-b'),
-    t('Full range and SPF30 live', 'Launch', '2027-04-b', '2027-04-b', 'planned', true),
+    t('Full range and SPF30 live', 'Marketing', '2027-04-b', '2027-04-b', 'planned', true),
   ];
 }
 
@@ -428,7 +388,7 @@ function normalisePlan(plan) {
     const task = {
       id: t.id || uid(),
       name: typeof t.name === 'string' ? t.name : 'Untitled activity',
-      workstream: WORKSTREAMS.includes(t.workstream) ? t.workstream : WORKSTREAMS[0],
+      workstream: WORKSTREAMS.includes(t.workstream) ? t.workstream : (LEGACY_WORKSTREAMS[t.workstream] || WORKSTREAMS[0]),
       start: /^\d{4}-\d{2}-[ab]$/.test(t.start || '') ? t.start : idxToKey(todayIdx()),
       end: /^\d{4}-\d{2}-[ab]$/.test(t.end || '') ? t.end : null,
       status: STATUSES[t.status] ? t.status : 'planned',
@@ -536,31 +496,8 @@ function render() {
   FROM = monthKeyToIdx(plan.range.from) * 2;
   TO = monthKeyToIdx(plan.range.to) * 2 + 1;
   NCOLS = TO - FROM + 1;
-  renderKpis();
   renderToolbar();
   renderGantt();
-}
-
-function renderKpis() {
-  const tasks = State.plan.tasks;
-  const n = tasks.length, ms = tasks.filter(t => t.milestone).length;
-  const done = tasks.filter(t => t.status === 'done').length;
-  const risk = tasks.filter(t => t.status === 'risk').length;
-  const today = todayIdx();
-  const next = tasks.filter(t => t.milestone && t.status !== 'done' && keyToIdx(t.end) >= today).sort((a, b) => keyToIdx(a.end) - keyToIdx(b.end))[0];
-
-  setKpi('kpi-count', String(n), ms === 1 ? '1 milestone' : ms + ' milestones');
-  setKpi('kpi-done', done + ' of ' + n, done === n && n > 0 ? 'Everything complete' : 'Activities complete');
-  setKpi('kpi-risk', String(risk), risk ? 'Need attention' : 'Nothing flagged');
-  document.getElementById('kpi-risk').classList.toggle('urgent', risk > 0);
-  if (next) setKpi('kpi-next', endLabel(keyToIdx(next.end), true), next.name);
-  else setKpi('kpi-next', '—', 'No milestone ahead');
-}
-function setKpi(id, value, sub) {
-  const el = document.getElementById(id);
-  el.querySelector('.value').textContent = value;
-  el.querySelector('.sub').textContent = sub;
-  el.querySelector('.sub').title = sub;
 }
 
 function renderToolbar() {

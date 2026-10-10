@@ -68,12 +68,10 @@
   /* ========== LAYOUT ========== */
   /* Full width: a timeline earns its width, so the page keeps only a 32px gutter either side. */
   .wrap { padding: 0 clamp(16px, 3vw, 32px); }
-  .section { padding-top: 24px; }
-  .section.last { padding-top: 48px; padding-bottom: 64px; }
+  .section { padding-top: 24px; padding-bottom: 64px; }
   .section-head { margin-bottom: 24px; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
   .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; }
   .section-title { font-size: 24px; margin-top: 8px; }
-  .section-intro { font-size: 14px; margin-top: 8px; max-width: 760px; }
 
   /* ========== HEADER ========== */
   .header { position: sticky; top: 0; z-index: 10; background: var(--ground); transition: box-shadow 0.2s; }   /* above the Gantt (max z 3), below the fixed sidebar (z 40) */
@@ -177,10 +175,6 @@
   .today-line { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--mark); z-index: 2; pointer-events: none; }
   .today-tag { position: absolute; top: 0; transform: translate(-50%, 0); z-index: 2; pointer-events: none; }
 
-  /* ========== NOTES ========== */
-  .notes p { font-size: 14px; max-width: 820px; margin-bottom: 16px; }
-  .notes p:last-child { margin-bottom: 0; }
-
   /* ========== RESPONSIVE ========== */
 </style>
 </head>
@@ -268,22 +262,6 @@ body { padding-left: 208px; }
     </div>
 
     <div class="gantt" id="gantt"></div>
-  </div>
-</section>
-
-<!-- ========== NOTES ========== -->
-<section class="section last notes">
-  <div class="wrap">
-    <div class="section-head">
-      <div>
-        <div class="eyebrow">How it works</div>
-        <h2 class="section-title">Using this page</h2>
-      </div>
-    </div>
-    <p><strong>Editing.</strong> Click Edit plan. Drag a bar to move it, drag either end to make it longer or shorter, or pick the start and end halves from the dropdowns. Rename, change the workstream or status, add notes, or remove an activity in the same place. Every change saves on its own.</p>
-    <p><strong>Order.</strong> Choose a new number in the # column to move an activity up or down the list. Turn on Auto-order by start date and the list re-sorts itself every time a bar moves, so the sequence always follows the timeline.</p>
-    <p><strong>Reading it.</strong> A diamond is a milestone: a date, not a stretch of work. Finished activities turn Citron. Anything marked at risk carries an amber badge, and the amber line is today. Planned work shows a Planned pill until today's line reaches its start, then a stronger Not started pill, so anything that should be under way but isn't stands out.</p>
-    <p><strong>Starting point.</strong> The first version of this plan was seeded on 10 October 2026 from the 2026-27 Business Tracker (Goal 2 and the 13 Week Plan). Dates the tracker set are used as given; the rest are estimates to be corrected here.</p>
   </div>
 </section>
 

@@ -74,9 +74,7 @@
   .section-title { font-size: 24px; margin-top: 8px; }
 
   /* ========== HEADER ========== */
-  .header { position: sticky; top: 0; z-index: 10; background: var(--ground); transition: box-shadow 0.2s; }   /* above the Gantt (max z 3), below the fixed sidebar (z 40) */
-  .header.raised { box-shadow: 0 8px 24px -12px rgba(35,37,38,0.35); }   /* once the page has scrolled, rows pass beneath the header */
-  [data-theme="dark"] .header.raised { box-shadow: 0 8px 24px -12px rgba(0,0,0,0.7); }
+  .header { position: sticky; top: 0; z-index: 10; background: var(--ground); }   /* above the Gantt, below the fixed sidebar (z 40) */
   .header .wrap { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding-top: 16px; padding-bottom: 12px; }
   .header h1 { font-size: 24px; margin-top: 4px; display: inline-block; margin-right: 12px; }
   .save-status { font-size: 12px; font-weight: 500; white-space: nowrap; display: none; }
@@ -105,10 +103,16 @@
   .check input { accent-color: var(--btn-fill); width: 16px; height: 16px; cursor: pointer; }
 
   /* ========== GANTT ========== */
-  /* Two panes: the left one (#, Activity, Notes) never moves; the right one is the only thing that scrolls.
+  /* Two panes: the left one (#, Activity, Notes) never moves sideways; the right one is the only thing that
+     scrolls sideways. The column headers sit in their own block that stays pinned under the page header
+     while the page scrolls; its month row mirrors the timeline's horizontal position.
      Row heights are kept equal across the panes by syncRowHeights(). */
-  .gantt { display: flex; align-items: flex-start; }
-  .g-fixed { flex: 0 0 calc(var(--label-w) + var(--notes-w)); width: calc(var(--label-w) + var(--notes-w)); }
+  .g-sticky { position: sticky; top: var(--header-h, 76px); z-index: 5; background: var(--ground); display: flex; align-items: flex-end; transition: box-shadow 0.2s; }
+  .g-sticky.raised { box-shadow: 0 8px 24px -12px rgba(35,37,38,0.35); }   /* rows pass beneath the frozen headers */
+  [data-theme="dark"] .g-sticky.raised { box-shadow: 0 8px 24px -12px rgba(0,0,0,0.7); }
+  .g-hscroll { flex: 1 1 auto; min-width: 0; overflow: hidden; }
+  .g-panes { display: flex; align-items: flex-start; }
+  .g-fixed, .g-sticky > .g-row { flex: 0 0 calc(var(--label-w) + var(--notes-w)); width: calc(var(--label-w) + var(--notes-w)); }
   .g-scroll { flex: 1 1 auto; min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; }
   .g-track { min-width: calc(var(--ncols) * var(--cell-w)); }
   body.editing .gantt { --label-w: 380px; --notes-w: 220px; }
@@ -518,13 +522,13 @@ function renderGantt() {
   const tf = todayFloatIdx();
   const todayVisible = tf >= FROM && tf <= TO + 1;
   const todayPct = ((tf - FROM) / NCOLS * 100).toFixed(3) + '%';
-  let left = '<div class="g-row g-head"><div class="g-label g-head-cols"><span class="g-num">#</span><span>Activity</span></div><div class="g-notes g-head-cols">Notes</div></div>';
-  let right = '<div class="g-row g-head"><div class="g-time">' + months +
+  const headLeft = '<div class="g-row g-head g-l"><div class="g-label g-head-cols"><span class="g-num">#</span><span>Activity</span></div><div class="g-notes g-head-cols">Notes</div></div>';
+  const headRight = '<div class="g-row g-head g-r"><div class="g-time">' + months +
     (todayVisible ? '<span class="today-tag badge" style="left:' + todayPct + '">Today</span>' : '') + '</div></div>';
 
   // Body rows
-  left += '<div class="g-body">';
-  right += '<div class="g-body">';
+  let left = '<div class="g-body">';
+  let right = '<div class="g-body">';
   if (!plan.tasks.length) {
     left += '<div class="g-empty">No activities yet. Click Edit plan, then Add activity.</div>';
   }
@@ -534,10 +538,21 @@ function renderGantt() {
   }
   left += '</div>';
   right += '</div>';
-  g.innerHTML = '<div class="g-fixed">' + left + '</div><div class="g-scroll"><div class="g-track">' + right + '</div></div>';
-  g.querySelector('.g-scroll').scrollLeft = prevScroll;
+  g.innerHTML =
+    '<div class="g-sticky">' + headLeft + '<div class="g-hscroll"><div class="g-track">' + headRight + '</div></div></div>' +
+    '<div class="g-panes"><div class="g-fixed">' + left + '</div><div class="g-scroll"><div class="g-track">' + right + '</div></div></div>';
+
+  // The month row follows the timeline sideways; a sideways wheel over the month row drives the timeline.
+  const bodyScroll = g.querySelector('.g-scroll'), headScroll = g.querySelector('.g-hscroll');
+  bodyScroll.addEventListener('scroll', () => { headScroll.scrollLeft = bodyScroll.scrollLeft; }, { passive: true });
+  headScroll.addEventListener('wheel', ev => {
+    if (Math.abs(ev.deltaX) > Math.abs(ev.deltaY)) { bodyScroll.scrollLeft += ev.deltaX; ev.preventDefault(); }
+  }, { passive: false });
+  bodyScroll.scrollLeft = prevScroll;
+  headScroll.scrollLeft = prevScroll;
   syncRowHeights();
   watchRowHeights();
+  updateStickyShadow();
 }
 
 // The two panes are separate columns, so each row is forced to the taller of its two halves.
@@ -545,7 +560,7 @@ let syncing = false;
 function syncRowHeights() {
   if (syncing) return;
   syncing = true;
-  const L = document.querySelectorAll('#gantt .g-fixed .g-row'), R = document.querySelectorAll('#gantt .g-track .g-row');
+  const L = document.querySelectorAll('#gantt .g-row.g-l'), R = document.querySelectorAll('#gantt .g-row.g-r');
   L.forEach((l, i) => {
     const r = R[i];
     if (!r) return;
@@ -558,7 +573,7 @@ function syncRowHeights() {
 const rowObserver = new ResizeObserver(() => syncRowHeights());
 function watchRowHeights() {
   rowObserver.disconnect();
-  document.querySelectorAll('#gantt .g-fixed .g-row, #gantt .g-fixed textarea').forEach(el => rowObserver.observe(el));
+  document.querySelectorAll('#gantt .g-row.g-l, #gantt .g-fixed textarea').forEach(el => rowObserver.observe(el));
 }
 window.addEventListener('resize', syncRowHeights);
 
@@ -631,8 +646,8 @@ function rowHtml(t, i, editing) {
   }
 
   return {
-    left: '<div class="g-row" data-id="' + t.id + '"><div class="g-label">' + num + view + edit + '</div>' + notes + '</div>',
-    right: '<div class="g-row" data-id="' + t.id + '"><div class="g-time">' + mark + '</div></div>',
+    left: '<div class="g-row g-l" data-id="' + t.id + '"><div class="g-label">' + num + view + edit + '</div>' + notes + '</div>',
+    right: '<div class="g-row g-r" data-id="' + t.id + '"><div class="g-time">' + mark + '</div></div>',
   };
 }
 
@@ -801,11 +816,19 @@ document.getElementById('themeToggle').addEventListener('click', () => {
 // ============================================================
 // BOOT
 // ============================================================
-// Lift the header once the page has scrolled.
+// The frozen column headers sit directly under the page header, so they need its height.
 const headerEl = document.querySelector('.header');
-function updateHeaderShadow() { headerEl.classList.toggle('raised', window.scrollY > 0); }
-window.addEventListener('scroll', updateHeaderShadow, { passive: true });
-updateHeaderShadow();
+function setHeaderHeight() { document.documentElement.style.setProperty('--header-h', headerEl.offsetHeight + 'px'); }
+// Lift the frozen headers once rows start passing beneath them.
+function updateStickyShadow() {
+  const st = document.querySelector('#gantt .g-sticky');
+  if (!st) return;
+  st.classList.toggle('raised', st.getBoundingClientRect().top <= headerEl.offsetHeight + 1 && window.scrollY > 0);
+}
+window.addEventListener('scroll', updateStickyShadow, { passive: true });
+window.addEventListener('resize', () => { setHeaderHeight(); updateStickyShadow(); });
+setHeaderHeight();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(setHeaderHeight);
 // Pick up edits made on another device when the tab comes back, unless a save is in flight here.
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && !State.editing && !State.dirty && !State.isSaving) loadPlan();

@@ -41,6 +41,8 @@
     --mark-ink:  var(--carbon);
     --btn-fill:  var(--carbon);      /* secondary button fill               */
     --btn-ink:   var(--porcelain);
+    --neutral-soft:   rgba(35,37,38,0.10);   /* Planned pill: Carbon at low opacity      */
+    --neutral-strong: rgba(35,37,38,0.24);   /* Not started pill: the same, stronger     */
     --grid-half:  rgba(35,37,38,0.10);   /* half-month gridline, Carbon at low opacity */
     --grid-month: rgba(35,37,38,0.28);   /* month gridline                              */
     --label-w: 320px;
@@ -52,6 +54,7 @@
     --btn-fill: #f4f4f5; --btn-ink: #0f1117;
     --panel: #34d399; --panel-ink: #0f1117;
     --grid-half: rgba(244,244,245,0.08); --grid-month: rgba(244,244,245,0.22);
+    --neutral-soft: rgba(244,244,245,0.12); --neutral-strong: rgba(244,244,245,0.28);
   }
 
   /* ========== BASE ========== */
@@ -135,6 +138,8 @@
   .g-meta { font-size: 11px; font-weight: 500; margin-top: 3px; letter-spacing: 0.04em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .badge { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; padding: 2px 8px; border-radius: 100px; background: var(--mark); color: var(--mark-ink); }
   .badge.tint { background: var(--tint); color: var(--ink); }   /* In progress: Citron behind Carbon text */
+  .badge.neutral { background: var(--neutral-soft); color: var(--ink); }      /* Planned: start date still ahead of today */
+  .badge.neutral.strong { background: var(--neutral-strong); }               /* Not started: today has reached the start */
 
   /* Label column, edit mode */
   .g-edit { display: none; flex-direction: column; gap: 8px; flex: 1; min-width: 0; }
@@ -274,7 +279,7 @@ body { padding-left: 208px; }
     </div>
     <p><strong>Editing.</strong> Click Edit plan. Drag a bar to move it, drag either end to make it longer or shorter, or pick the start and end halves from the dropdowns. Rename, change the workstream or status, add notes, or remove an activity in the same place. Every change saves on its own.</p>
     <p><strong>Order.</strong> Choose a new number in the # column to move an activity up or down the list. Turn on Auto-order by start date and the list re-sorts itself every time a bar moves, so the sequence always follows the timeline.</p>
-    <p><strong>Reading it.</strong> A diamond is a milestone: a date, not a stretch of work. Finished activities turn Citron. Anything marked at risk carries an amber badge, and the amber line is today.</p>
+    <p><strong>Reading it.</strong> A diamond is a milestone: a date, not a stretch of work. Finished activities turn Citron. Anything marked at risk carries an amber badge, and the amber line is today. Planned work shows a Planned pill until today's line reaches its start, then a stronger Not started pill, so anything that should be under way but isn't stands out.</p>
     <p><strong>Starting point.</strong> The first version of this plan was seeded on 10 October 2026 from the 2026-27 Business Tracker (Goal 2 and the 13 Week Plan). Dates the tracker set are used as given; the rest are estimates to be corrected here.</p>
   </div>
 </section>
@@ -550,7 +555,11 @@ function renderGantt() {
 function rowHtml(t, i, editing) {
   const s = keyToIdx(t.start), e = keyToIdx(t.end), n = State.plan.tasks.length;
   const span = spanLabel(s, e);
-  const title = esc(t.name) + ' · ' + (t.milestone ? endLabel(e, true) : span) + ' · ' + STATUSES[t.status];
+  // Planned work is 'Planned' until today's line reaches its start (a milestone's date), then 'Not started'.
+  const startEdge = t.milestone ? s + 1 : s;
+  const plannedLabel = todayFloatIdx() >= startEdge ? 'Not started' : 'Planned';
+  const statusLabel = t.status === 'planned' ? plannedLabel : STATUSES[t.status];
+  const title = esc(t.name) + ' · ' + (t.milestone ? endLabel(e, true) : span) + ' · ' + statusLabel;
 
   // Number column: plain in view mode or when auto-ordered; a dropdown when ordering by hand.
   let num;
@@ -567,6 +576,7 @@ function rowHtml(t, i, editing) {
   if (t.status === 'risk') statusBit = '<span class="badge">At risk</span>';
   else if (t.status === 'progress') statusBit = '<span class="badge tint">In progress</span>';
   else if (t.status === 'done') statusBit = '<span>Done</span>';
+  else if (t.status === 'planned') statusBit = '<span class="badge neutral' + (plannedLabel === 'Not started' ? ' strong' : '') + '">' + plannedLabel + '</span>';
   const view = '<div class="g-view"><div class="g-name">' + esc(t.name) + '</div><div class="g-meta"><span>' +
     (t.milestone ? 'Milestone · ' + esc(endLabel(e, true)) : esc(t.workstream) + ' · ' + esc(span)) + '</span>' + statusBit + '</div></div>';
 

@@ -45,6 +45,7 @@
     --grid-month: rgba(35,37,38,0.28);   /* month gridline                              */
     --label-w: 320px;
     --notes-w: 200px;
+    --cell-w: 48px;        /* minimum width of one half-month; the Gantt scrolls sideways beyond the page */
   }
   [data-theme="dark"] {
     --ground: #0f1117; --tint: #1e1e22; --ink: #f4f4f5;
@@ -84,46 +85,45 @@
   .btn-secondary:hover { filter: brightness(0.9); }
   .btn-ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--ink); }
   .btn-ghost:hover { background: var(--btn-fill); color: var(--btn-ink); }
-  .btn-small { font-size: 12px; padding: 6px 12px; border-radius: 6px; }
+  .btn-small { font-size: 12px; padding: 8px 12px; }
   .theme-toggle { padding: 8px; }
   .theme-toggle svg { width: 16px; height: 16px; fill: currentColor; }
 
   /* ========== EDIT TOOLBAR (visible in edit mode only) ========== */
-  .toolbar { display: none; align-items: center; flex-wrap: wrap; gap: 12px 20px; margin-bottom: 24px; }
+  .toolbar { display: none; align-items: center; flex-wrap: wrap; gap: 12px 24px; margin-bottom: 24px; }
   body.editing .toolbar { display: flex; }
   .field { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; }
-  .ctl { font-size: 12px; font-weight: 500; color: var(--ink); background: var(--ground); border: 1px solid var(--ink); border-radius: 6px; padding: 5px 8px; line-height: 1.4; }
+  /* Compact inline selects carry the 6px pill radius (same as the inventory toggles); typed fields carry the 12px input radius. */
+  .ctl { font-size: 12px; font-weight: 500; color: var(--ink); background: var(--ground); border: 1px solid var(--ink); border-radius: 6px; padding: 4px 8px; line-height: 1.5; }
+  .ctl:focus-visible, .g-edit input:focus-visible, .g-notes textarea:focus-visible, .check input:focus-visible, .btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
   .check { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
-  .check input { accent-color: var(--panel); width: 14px; height: 14px; cursor: pointer; }
+  .check input { accent-color: var(--btn-fill); width: 16px; height: 16px; cursor: pointer; }
 
   /* ========== GANTT ========== */
-  .gantt-scroll { overflow-x: auto; margin: 0 -6px; padding: 0 6px; }
-  .gantt { min-width: 1000px; position: relative; }
+  .gantt-scroll { overflow-x: auto; }
+  .gantt { min-width: calc(var(--label-w) + var(--notes-w) + var(--ncols) * var(--cell-w)); position: relative; }
   body.editing .gantt { --label-w: 380px; --notes-w: 220px; }
   .g-row { display: flex; align-items: stretch; }
-  .g-label { flex: 0 0 var(--label-w); width: var(--label-w); padding: 10px 16px 10px 0; display: flex; gap: 10px; align-items: flex-start; min-width: 0; }
-  .g-notes { flex: 0 0 var(--notes-w); width: var(--notes-w); padding: 10px 16px 10px 0; min-width: 0; font-size: 12px; font-weight: 400; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
-  .g-notes textarea { display: none; width: 100%; min-height: 64px; resize: vertical; font-size: 12px; font-weight: 400; line-height: 1.45; padding: 6px 8px; border: 1px solid var(--ink); border-radius: 6px; background: var(--ground); color: var(--ink); }
+  .g-label { flex: 0 0 var(--label-w); width: var(--label-w); padding: 12px 16px 12px 0; display: flex; gap: 8px; align-items: flex-start; min-width: 0; position: sticky; left: 0; background: var(--ground); z-index: 3; }
+  .g-notes { flex: 0 0 var(--notes-w); width: var(--notes-w); padding: 12px 16px 12px 0; min-width: 0; font-size: 12px; font-weight: 400; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; position: sticky; left: var(--label-w); background: var(--ground); z-index: 3; }
+  .g-notes textarea { display: none; width: 100%; min-height: 64px; resize: vertical; font-size: 12px; font-weight: 400; line-height: 1.45; padding: 8px 12px; border: 1px solid var(--ink); border-radius: 12px; background: var(--ground); color: var(--ink); }
   body.editing .g-notes .g-notes-text { display: none; }
   body.editing .g-notes textarea { display: block; }
-  .g-time { flex: 1 1 auto; position: relative; min-height: 44px;
+  .g-time { flex: 1 1 auto; position: relative; min-height: 48px;
     background-image: linear-gradient(to right, var(--grid-month) 1px, transparent 1px), linear-gradient(to right, var(--grid-half) 1px, transparent 1px);
     background-size: calc(200% / var(--ncols)) 100%, calc(100% / var(--ncols)) 100%; }
-  .g-time::after { content: ''; position: absolute; top: 0; bottom: 0; right: 0; width: 1px; background: var(--grid-month); }
 
   /* Header row: month names, each spanning two half-month cells */
-  .g-head .g-label { padding-bottom: 12px; align-items: flex-end; }
-  .g-head .g-time { display: flex; min-height: 0; background: none; padding-top: 22px; }   /* room for the Today badge above the month names */
-  .g-head .g-time::after { display: none; }
+  .g-head .g-label, .g-head .g-notes { padding-bottom: 12px; display: flex; align-items: flex-end; }
+  .g-head .g-time { display: flex; min-height: 0; background: none; padding-top: 24px; }   /* room for the Today badge above the month names */
   .g-month { flex: 0 0 calc(200% / var(--ncols)); width: calc(200% / var(--ncols)); min-width: 0; text-align: center; padding-bottom: 6px; }
   .g-month .m-name { font-size: 12px; font-weight: 700; white-space: nowrap; }
   .g-month .m-ticks { display: flex; margin-top: 2px; }
-  .g-month .m-ticks span { flex: 1; text-align: left; padding-left: 4px; font-size: 10px; font-weight: 500; letter-spacing: 0.04em; }
+  .g-month .m-ticks span { flex: 1; text-align: left; padding-left: 4px; font-size: 11px; font-weight: 500; letter-spacing: 0.04em; }
   .g-head-cols { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
 
   /* Body: rows separated by space, not rules */
   .g-body { position: relative; }
-  .g-body .g-row + .g-row .g-label { padding-top: 10px; }
   .g-empty { padding: 24px 0; font-size: 14px; }
 
   /* Label column, view mode */
@@ -132,15 +132,15 @@
   .g-name { font-size: 13px; font-weight: 600; line-height: 1.35; }
   .g-meta { font-size: 11px; font-weight: 500; margin-top: 3px; letter-spacing: 0.04em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .g-meta .status-progress { font-weight: 700; }
-  .badge { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; padding: 2px 8px; border-radius: 100px; background: var(--mark); color: var(--mark-ink); }
+  .badge { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; padding: 2px 8px; border-radius: 100px; background: var(--mark); color: var(--mark-ink); }
 
   /* Label column, edit mode */
-  .g-edit { display: none; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
+  .g-edit { display: none; flex-direction: column; gap: 8px; flex: 1; min-width: 0; }
   body.editing .g-view { display: none; }
   body.editing .g-edit { display: flex; }
-  .g-edit input[type="text"] { width: 100%; font-size: 13px; font-weight: 600; padding: 6px 8px; border: 1px solid var(--ink); border-radius: 6px; background: var(--ground); color: var(--ink); }
-  .g-edit .erow { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-  .g-edit .ctl { padding: 4px 6px; font-size: 11px; }
+  .g-edit input[type="text"] { width: 100%; font-size: 13px; font-weight: 600; padding: 8px 12px; border: 1px solid var(--ink); border-radius: 12px; background: var(--ground); color: var(--ink); }
+  .g-edit .erow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .g-edit .ctl { padding: 4px 8px; font-size: 11px; }
   .g-edit .check { font-size: 11px; }
   body.editing .g-body .g-num { flex-basis: 52px; }
   .g-num select.ctl { width: 100%; padding: 4px 0 4px 4px; font-weight: 700; font-size: 12px; }
@@ -148,14 +148,14 @@
   .rm:hover { opacity: 0.7; }
 
   /* Bars and milestones */
-  .bar { position: absolute; top: 50%; transform: translateY(-50%); height: 22px; border-radius: 6px; background: var(--panel); color: var(--panel-ink); font-size: 11px; font-weight: 600; display: flex; align-items: center; padding: 0 8px; white-space: nowrap; overflow: hidden; user-select: none; z-index: 1; }
+  .bar { position: absolute; top: 50%; transform: translateY(-50%); height: 24px; border-radius: 6px; background: var(--panel); color: var(--panel-ink); font-size: 11px; font-weight: 600; display: flex; align-items: center; padding: 0 8px; white-space: nowrap; overflow: hidden; user-select: none; z-index: 1; }
   .bar.done { background: var(--tint); color: var(--ink); }
   .bar .h { position: absolute; top: 0; bottom: 0; width: 10px; display: none; cursor: ew-resize; }
   .bar .h.l { left: 0; } .bar .h.r { right: 0; }
   body.editing .bar { cursor: grab; }
   body.editing .bar.dragging { cursor: grabbing; filter: brightness(1.08); }
   body.editing .bar .h { display: block; }
-  .ms { position: absolute; top: 50%; width: 14px; height: 14px; transform: translate(-50%, -50%) rotate(45deg); background: var(--ink); border-radius: 2px; z-index: 1; user-select: none; }
+  .ms { position: absolute; top: 50%; width: 16px; height: 16px; transform: translate(-50%, -50%) rotate(45deg); background: var(--ink); border-radius: 2px; z-index: 1; user-select: none; }
   .ms.done { background: var(--tint); box-shadow: inset 0 0 0 2px var(--ink); }
   body.editing .ms { cursor: grab; }
   body.editing .ms.dragging { cursor: grabbing; }
@@ -302,7 +302,8 @@ const RANGE_OPTIONS = { from: '2026-01', to: '2028-12' };   // what the range dr
 
 // ============================================================
 // HALF-MONTH HELPERS
-// A half-month key is "YYYY-MM-a" (1st to 15th) or "YYYY-MM-b" (16th to month end).
+// A half-month key is "YYYY-MM-a" (1st to 15th) or "YYYY-MM-b" (15th to month end).
+// The 15th is the shared mid-month boundary, so the first half ends on it and the second starts on it.
 // Internally every half-month is an integer index so bars can be moved by adding cells.
 // ============================================================
 function keyToIdx(key) {
@@ -315,10 +316,10 @@ function idxToKey(i) {
 }
 function monthKeyToIdx(mk) { const p = mk.split('-'); return (+p[0]) * 12 + (+p[1] - 1); }   // month index
 function monthIdxToKey(mi) { return Math.floor(mi / 12) + '-' + String((mi % 12) + 1).padStart(2, '0'); }
-function monthIdxLabel(mi) { return MONTHS[mi % 12] + ' ' + Math.floor(mi / 12); }
+function monthIdxLabel(mi) { return MONTHS[mi % 12] + ' ' + String(Math.floor(mi / 12)).slice(2); }   // "Aug 26"
 function daysInMonth(y, m1) { return new Date(y, m1, 0).getDate(); }
 function idxParts(i) { const mi = Math.floor(i / 2); return { y: Math.floor(mi / 12), m: (mi % 12) + 1, half: i % 2 }; }
-function startLabel(i, withYear) { const p = idxParts(i); return (p.half ? 16 : 1) + ' ' + MONTHS[p.m - 1] + (withYear ? ' ' + p.y : ''); }
+function startLabel(i, withYear) { const p = idxParts(i); return (p.half ? 15 : 1) + ' ' + MONTHS[p.m - 1] + (withYear ? ' ' + p.y : ''); }
 function endLabel(i, withYear) { const p = idxParts(i); return (p.half ? daysInMonth(p.y, p.m) : 15) + ' ' + MONTHS[p.m - 1] + (withYear ? ' ' + p.y : ''); }
 function spanLabel(s, e) {
   const ps = idxParts(s), pe = idxParts(e);
@@ -326,7 +327,7 @@ function spanLabel(s, e) {
   return startLabel(s, true) + ' to ' + endLabel(e, true);
 }
 function halfOptionLabel(i) { return startLabel(i, true); }   // dropdown text: the half's first day
-function todayIdx() { const d = new Date(); return (d.getFullYear() * 12 + d.getMonth()) * 2 + (d.getDate() >= 16 ? 1 : 0); }
+function todayIdx() { const d = new Date(); return (d.getFullYear() * 12 + d.getMonth()) * 2 + (d.getDate() >= 15 ? 1 : 0); }
 function todayFloatIdx() {
   const d = new Date();
   return (d.getFullYear() * 12 + d.getMonth()) * 2 + ((d.getDate() - 1) / daysInMonth(d.getFullYear(), d.getMonth() + 1)) * 2;
@@ -526,7 +527,7 @@ function renderGantt() {
   // Header row
   let months = '';
   for (let mi = monthFrom; mi <= monthTo; mi++) {
-    months += '<div class="g-month"><div class="m-name">' + monthIdxLabel(mi) + '</div><div class="m-ticks"><span>1</span><span>16</span></div></div>';
+    months += '<div class="g-month"><div class="m-name">' + monthIdxLabel(mi) + '</div><div class="m-ticks"><span>1</span><span>15</span></div></div>';
   }
   const tf = todayFloatIdx();
   const todayVisible = tf >= FROM && tf <= TO + 1;

@@ -64,7 +64,7 @@
   h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 600; line-height: 1.2; color: var(--ink); }
   a { color: inherit; text-decoration: none; }
   strong, b { font-weight: 700; }
-  select, input, button { font-family: var(--font-body); color: var(--ink); }
+  select, input, button, textarea { font-family: var(--font-body); color: var(--ink); }
 
   /* ========== LAYOUT ========== */
   /* Full width: a timeline earns its width, so the page keeps only a 32px gutter either side. */
@@ -80,7 +80,7 @@
   .header h1 { font-size: 24px; margin-top: 4px; display: inline-block; margin-right: 12px; }
   .save-status { font-size: 12px; font-weight: 500; white-space: nowrap; display: none; }
   body.editing .save-status, .save-status.error { display: inline; }
-  .header-right { display: flex; align-items: center; gap: 8px; }
+  .header-right { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 
   /* ========== BUTTONS ========== */
   .btn { font-family: var(--font-body); font-weight: 600; font-size: 13px; line-height: 1; padding: 8px 16px; border-radius: 12px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: filter 0.15s, background 0.15s, color 0.15s; }
@@ -89,12 +89,11 @@
   .btn-secondary:hover { filter: brightness(0.9); }
   .btn-ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--ink); }
   .btn-ghost:hover { background: var(--btn-fill); color: var(--btn-ink); }
-  .btn-small { font-size: 12px; padding: 8px 12px; }
   .theme-toggle { padding: 8px; }
   .theme-toggle svg { width: 16px; height: 16px; fill: currentColor; }
 
-  /* ========== EDIT TOOLBAR (visible in edit mode only) ========== */
-  .toolbar { display: none; align-items: center; flex-wrap: wrap; gap: 12px 24px; margin-bottom: 24px; }
+  /* ========== EDIT TOOLBAR (in the header, visible in edit mode only) ========== */
+  .toolbar { display: none; align-items: center; flex-wrap: wrap; gap: 12px 16px; margin-right: 8px; }
   body.editing .toolbar { display: flex; }
   .field { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; }
   /* Compact inline selects carry the 6px pill radius (same as the inventory toggles); typed fields carry the 12px input radius. */
@@ -251,6 +250,12 @@ body { padding-left: 208px; }
       <span class="save-status" id="saveStatus">Loading…</span>
     </div>
     <div class="header-right">
+      <div class="toolbar" id="toolbar">
+        <label class="field">Show from <select class="ctl" id="rangeFrom"></select></label>
+        <label class="field">to <select class="ctl" id="rangeTo"></select></label>
+        <label class="check"><input type="checkbox" id="autoOrder"> Auto-order by start date</label>
+        <button class="btn btn-ghost" id="addBtn" type="button">Add activity</button>
+      </div>
       <button class="btn btn-ghost" id="editBtn" type="button">Edit plan</button>
       <button class="btn btn-ghost theme-toggle" id="themeToggle" type="button" title="Switch theme" aria-label="Switch theme"></button>
     </div>
@@ -260,13 +265,6 @@ body { padding-left: 208px; }
 <!-- ========== GANTT ========== -->
 <section class="section">
   <div class="wrap">
-    <div class="toolbar" id="toolbar">
-      <label class="field">Show from <select class="ctl" id="rangeFrom"></select></label>
-      <label class="field">to <select class="ctl" id="rangeTo"></select></label>
-      <label class="check"><input type="checkbox" id="autoOrder"> Auto-order by start date</label>
-      <button class="btn btn-ghost btn-small" id="addBtn" type="button">Add activity</button>
-    </div>
-
     <div class="gantt" id="gantt"></div>
   </div>
 </section>

@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Karmic Skin — New Product Launch</title>
+<link rel="icon" type="image/svg+xml" href="favicon-latest.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Domine:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ========== TOKENS ==========
+     Palette and type come from design-system.html, mapped the same way as inventory.html:
+     six colours only, all text Carbon Black, hierarchy from size and weight, content
+     separated by space and background tone, borders only on things a user interacts with.
+     On this page: Dark Green is the activity bar, Citron is a finished bar, Amber marks
+     today and anything at risk, Carbon is the milestone diamond. */
+  :root {
+    /* Brand palette */
+    --porcelain: #F6F5F0;   /* background, default      */
+    --citron:    #CAD183;   /* background, section tint */
+    --carbon:    #232526;   /* text, icons and borders  */
+    --green:     #2F5350;   /* branded background       */
+    --red:       #B22222;   /* main action button       */
+    --amber:     #EFA71D;   /* highlight mark           */
+
+    /* Typography */
+    --font-heading: 'Domine', Georgia, serif;
+    --font-body:    'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+    /* Mapped tokens */
+    --ground:    var(--porcelain);   /* page and tiles                      */
+    --tint:      var(--citron);      /* KPI band, finished bars             */
+    --ink:       var(--carbon);      /* all text, icons, borders, diamonds  */
+    --panel:     var(--green);       /* activity bars                       */
+    --panel-ink: var(--porcelain);
+    --mark:      var(--amber);       /* today line, at-risk badge           */
+    --mark-ink:  var(--carbon);
+    --btn-fill:  var(--carbon);      /* secondary button fill               */
+    --btn-ink:   var(--porcelain);
+    --grid-half:  rgba(35,37,38,0.10);   /* half-month gridline, Carbon at low opacity */
+    --grid-month: rgba(35,37,38,0.28);   /* month gridline                              */
+    --label-w: 320px;
+  }
+  [data-theme="dark"] {
+    --ground: #0f1117; --tint: #1e1e22; --ink: #f4f4f5;
+    --btn-fill: #f4f4f5; --btn-ink: #0f1117;
+    --panel: #34d399; --panel-ink: #0f1117;
+    --grid-half: rgba(244,244,245,0.08); --grid-month: rgba(244,244,245,0.22);
+  }
+
+  /* ========== BASE ========== */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--font-body); background: var(--ground); color: var(--ink); min-height: 100vh; line-height: 1.5; -webkit-font-smoothing: antialiased; transition: background 0.2s, color 0.2s; }
+  h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 600; line-height: 1.2; color: var(--ink); }
+  a { color: inherit; text-decoration: none; }
+  strong, b { font-weight: 700; }
+  select, input, button { font-family: var(--font-body); color: var(--ink); }
+
+  /* ========== LAYOUT ========== */
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 clamp(16px, 3vw, 32px); }
+  .section { padding-top: 48px; }
+  .section.last { padding-bottom: 64px; }
+  .section.tint { background: var(--tint); padding: 24px 0; }
+  .section-head { margin-bottom: 24px; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; }
+  .section-title { font-size: 24px; margin-top: 8px; }
+  .section-intro { font-size: 14px; margin-top: 8px; max-width: 760px; }
+
+  /* ========== HEADER ========== */
+  .header { position: sticky; top: 0; z-index: 101; background: var(--ground); }
+  .header .wrap { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding-top: 16px; padding-bottom: 12px; }
+  .header h1 { font-size: 24px; margin-top: 4px; display: inline-block; margin-right: 12px; }
+  .save-status { font-size: 12px; font-weight: 500; white-space: nowrap; }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+
+  /* ========== BUTTONS ========== */
+  .btn { font-family: var(--font-body); font-weight: 600; font-size: 13px; line-height: 1; padding: 8px 16px; border-radius: 12px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: filter 0.15s, background 0.15s, color 0.15s; }
+  .btn svg { width: 14px; height: 14px; display: block; }
+  .btn-secondary { background: var(--btn-fill); color: var(--btn-ink); border: 1.5px solid var(--btn-fill); }
+  .btn-secondary:hover { filter: brightness(0.9); }
+  .btn-ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--ink); }
+  .btn-ghost:hover { background: var(--btn-fill); color: var(--btn-ink); }
+  .btn-small { font-size: 12px; padding: 6px 12px; border-radius: 6px; }
+  .theme-toggle { padding: 8px; }
+  .theme-toggle svg { width: 16px; height: 16px; fill: currentColor; }
+
+  /* ========== KPI TILES (Porcelain tiles on a Citron band) ========== */
+  .kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .kpi-card { background: var(--ground); border-radius: 12px; padding: 16px 20px; min-width: 0; }
+  .kpi-card .label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+  .kpi-card .value { font-family: var(--font-heading); font-size: 24px; font-weight: 700; line-height: 1.3; }
+  .kpi-card .sub { font-size: 12px; font-weight: 600; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* Attention mark: amber behind Carbon text, never as the text colour. */
+  .kpi-card.urgent .value { display: inline; background: var(--mark); color: var(--mark-ink); padding: 2px 8px; border-radius: 3px; }
+  .kpi-card.urgent .sub { margin-top: 8px; }
+
+  /* ========== EDIT TOOLBAR (visible in edit mode only) ========== */
+  .toolbar { display: none; align-items: center; flex-wrap: wrap; gap: 12px 20px; margin-bottom: 24px; }
+  body.editing .toolbar { display: flex; }
+  .field { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; }
+  .ctl { font-size: 12px; font-weight: 500; color: var(--ink); background: var(--ground); border: 1px solid var(--ink); border-radius: 6px; padding: 5px 8px; line-height: 1.4; }
+  .check { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .check input { accent-color: var(--panel); width: 14px; height: 14px; cursor: pointer; }
+
+  /* ========== GANTT ========== */
+  .gantt-scroll { overflow-x: auto; margin: 0 -6px; padding: 0 6px; }
+  .gantt { min-width: 900px; position: relative; }
+  body.editing .gantt { --label-w: 400px; }
+  .g-row { display: flex; align-items: stretch; }
+  .g-label { flex: 0 0 var(--label-w); width: var(--label-w); padding: 10px 16px 10px 0; display: flex; gap: 10px; align-items: flex-start; min-width: 0; }
+  .g-time { flex: 1 1 auto; position: relative; min-height: 44px;
+    background-image: linear-gradient(to right, var(--grid-month) 1px, transparent 1px), linear-gradient(to right, var(--grid-half) 1px, transparent 1px);
+    background-size: calc(200% / var(--ncols)) 100%, calc(100% / var(--ncols)) 100%; }
+  .g-time::after { content: ''; position: absolute; top: 0; bottom: 0; right: 0; width: 1px; background: var(--grid-month); }
+
+  /* Header row: month names, each spanning two half-month cells */
+  .g-head .g-label { padding-bottom: 12px; align-items: flex-end; }
+  .g-head .g-time { display: flex; min-height: 0; background: none; padding-top: 22px; }   /* room for the Today badge above the month names */
+  .g-head .g-time::after { display: none; }
+  .g-month { flex: 0 0 calc(200% / var(--ncols)); width: calc(200% / var(--ncols)); min-width: 0; text-align: center; padding-bottom: 6px; }
+  .g-month .m-name { font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .g-month .m-ticks { display: flex; margin-top: 2px; }
+  .g-month .m-ticks span { flex: 1; text-align: left; padding-left: 4px; font-size: 10px; font-weight: 500; letter-spacing: 0.04em; }
+  .g-head-cols { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+
+  /* Body: rows separated by space, not rules */
+  .g-body { position: relative; }
+  .g-body .g-row + .g-row .g-label { padding-top: 10px; }
+  .g-empty { padding: 24px 0; font-size: 14px; }
+
+  /* Label column, view mode */
+  .g-num { flex: 0 0 32px; font-size: 12px; font-weight: 700; padding-top: 2px; }
+  .g-view { min-width: 0; flex: 1; }
+  .g-name { font-size: 13px; font-weight: 600; line-height: 1.35; }
+  .g-meta { font-size: 11px; font-weight: 500; margin-top: 3px; letter-spacing: 0.04em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .g-meta .status-progress { font-weight: 700; }
+  .badge { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; padding: 2px 8px; border-radius: 100px; background: var(--mark); color: var(--mark-ink); }
+
+  /* Label column, edit mode */
+  .g-edit { display: none; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
+  body.editing .g-view { display: none; }
+  body.editing .g-edit { display: flex; }
+  .g-edit input[type="text"] { width: 100%; font-size: 13px; font-weight: 600; padding: 6px 8px; border: 1px solid var(--ink); border-radius: 6px; background: var(--ground); color: var(--ink); }
+  .g-edit .erow { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .g-edit .ctl { padding: 4px 6px; font-size: 11px; }
+  .g-edit .check { font-size: 11px; }
+  body.editing .g-body .g-num { flex-basis: 52px; }
+  .g-num select.ctl { width: 100%; padding: 4px 0 4px 4px; font-weight: 700; font-size: 12px; }
+  .rm { background: none; border: none; color: var(--ink); font-size: 11px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 4px 0; margin-left: auto; }
+  .rm:hover { opacity: 0.7; }
+
+  /* Bars and milestones */
+  .bar { position: absolute; top: 50%; transform: translateY(-50%); height: 22px; border-radius: 6px; background: var(--panel); color: var(--panel-ink); font-size: 11px; font-weight: 600; display: flex; align-items: center; padding: 0 8px; white-space: nowrap; overflow: hidden; user-select: none; z-index: 1; }
+  .bar.done { background: var(--tint); color: var(--ink); }
+  .bar .h { position: absolute; top: 0; bottom: 0; width: 10px; display: none; cursor: ew-resize; }
+  .bar .h.l { left: 0; } .bar .h.r { right: 0; }
+  body.editing .bar { cursor: grab; }
+  body.editing .bar.dragging { cursor: grabbing; filter: brightness(1.08); }
+  body.editing .bar .h { display: block; }
+  .ms { position: absolute; top: 50%; width: 14px; height: 14px; transform: translate(-50%, -50%) rotate(45deg); background: var(--ink); border-radius: 2px; z-index: 1; user-select: none; }
+  .ms.done { background: var(--tint); box-shadow: inset 0 0 0 2px var(--ink); }
+  body.editing .ms { cursor: grab; }
+  body.editing .ms.dragging { cursor: grabbing; }
+
+  /* Today: one amber line across every row, with a badge in the header */
+  .today-line { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--mark); z-index: 2; pointer-events: none; }
+  .today-tag { position: absolute; top: 0; transform: translate(-50%, 0); z-index: 2; pointer-events: none; }
+
+  /* ========== NOTES ========== */
+  .notes p { font-size: 14px; max-width: 820px; margin-bottom: 16px; }
+  .notes p:last-child { margin-bottom: 0; }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 1024px) { .kpi-strip { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px)  { .kpi-strip { grid-template-columns: 1fr; } .section { padding-top: 32px; } }
+</style>
+</head>
+<body>
+
+<!-- ========== SHARED SIDEBAR (identical block on every page) ========== -->
+<aside id="ksb" class="ksb">
+<div class="ksb-brand">Karmic Skin</div>
+<nav class="ksb-section">
+<button type="button" class="ksb-head">Analytics<span class="ksb-chev">&#9662;</span></button>
+<div class="ksb-links">
+<a href="index.html" data-page="dashboard">Shopify</a>
+<a href="meta.html" data-page="meta">Meta</a>
+<a href="email.html" data-page="email">Email</a>
+<a href="amazon.html" data-page="amazon">Amazon</a>
+<a href="pnl.html" data-page="pnl">P&amp;L</a>
+</div>
+</nav>
+<nav class="ksb-section">
+<button type="button" class="ksb-head">Operations<span class="ksb-chev">&#9662;</span></button>
+<div class="ksb-links">
+<a href="launch.html" data-page="launch">New Product Launch</a>
+<a href="instagram-scheduler.html" data-page="instagram-scheduler">Instagram</a>
+<a href="inventory.html" data-page="inventory">Inventory</a>
+<a href="worklist.html" data-page="worklist">Work List</a>
+<a href="ugc.html" data-page="ugc">UGC</a>
+<a href="design-system.html" data-page="design-system">Design System</a>
+<a href="diary.html" data-page="diary">Diary</a>
+</div>
+</nav>
+</aside>
+<style>
+body { padding-left: 208px; }
+.header { top: 0 !important; }
+.page-nav, .nav-bar { display: none !important; }
+.ksb { position: fixed; top: 0; left: 0; bottom: 0; width: 208px; background: #26403d; color: #c8dbd8; z-index: 40; overflow-y: auto; transform: translateZ(0); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+.ksb-brand { color: #fff; font-weight: 700; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; padding: 17px 20px; border-bottom: 1px solid rgba(255,255,255,.09); }
+.ksb-section { border-bottom: 1px solid rgba(255,255,255,.07); }
+.ksb-head { width: 100%; text-align: left; background: none; border: none; cursor: pointer; color: #7fa39d; font-size: 11px; font-weight: 700; letter-spacing: .9px; text-transform: uppercase; padding: 15px 20px 9px; display: flex; justify-content: space-between; align-items: center; }
+.ksb-chev { font-size: 9px; transition: transform .15s; }
+.ksb-section.ksb-closed .ksb-chev { transform: rotate(-90deg); }
+.ksb-section.ksb-closed .ksb-links { display: none; }
+.ksb-links { padding-bottom: 9px; }
+.ksb-links a { display: block; padding: 8px 20px; color: #c8dbd8; text-decoration: none; font-size: 13.5px; border-left: 3px solid transparent; }
+.ksb-links a:hover { background: rgba(255,255,255,.06); color: #fff; }
+.ksb-links a.ksb-active { background: rgba(255,255,255,.1); color: #fff; border-left-color: #c79a3e; font-weight: 600; }
+@media (max-width: 820px) { body { padding-left: 0; } .ksb { position: static; width: auto; bottom: auto; } }
+</style>
+<script>
+(function () {
+  var sb = document.getElementById('ksb');
+  if (!sb) return;
+  sb.querySelectorAll('.ksb-head').forEach(function (h) {
+    h.addEventListener('click', function () { h.parentElement.classList.toggle('ksb-closed'); });
+  });
+  var f = (location.pathname.split('/').pop() || '').replace('.html', '');
+  if (f === '' || f === 'index') f = 'dashboard';
+  var a = sb.querySelector('.ksb-links a[data-page="' + f + '"]');
+  if (a) a.classList.add('ksb-active');
+})();
+</script>
+
+<!-- ========== HEADER ========== -->
+<div class="header">
+  <div class="wrap">
+    <div class="header-left">
+      <div class="eyebrow">Karmic Skin</div>
+      <h1>New product launch</h1>
+      <span class="save-status" id="saveStatus">Loading…</span>
+    </div>
+    <div class="header-right">
+      <button class="btn btn-ghost" id="editBtn" type="button">Edit plan</button>
+      <button class="btn btn-ghost theme-toggle" id="themeToggle" type="button" title="Switch theme" aria-label="Switch theme"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== KPI SUMMARY (Porcelain tiles on a Citron band) ========== -->
+<section class="section tint">
+  <div class="wrap">
+    <div class="kpi-strip">
+      <div class="kpi-card" id="kpi-count">
+        <div class="label">Activities</div>
+        <div class="value">—</div>
+        <div class="sub">In the plan</div>
+      </div>
+      <div class="kpi-card" id="kpi-done">
+        <div class="label">Done</div>
+        <div class="value">—</div>
+        <div class="sub">Activities complete</div>
+      </div>
+      <div class="kpi-card" id="kpi-risk">
+        <div class="label">At risk</div>
+        <div class="value">—</div>
+        <div class="sub">Need attention</div>
+      </div>
+      <div class="kpi-card" id="kpi-next">
+        <div class="label">Next milestone</div>
+        <div class="value">—</div>
+        <div class="sub">—</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== GANTT ========== -->
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Plan</div>
+        <h2 class="section-title">Launch timeline</h2>
+        <p class="section-intro">Every month is split in two: the 1st to the 15th, and the 16th to month end. Each activity starts and ends on one of those halves.</p>
+      </div>
+    </div>
+
+    <div class="toolbar" id="toolbar">
+      <label class="field">Show from <select class="ctl" id="rangeFrom"></select></label>
+      <label class="field">to <select class="ctl" id="rangeTo"></select></label>
+      <label class="check"><input type="checkbox" id="autoOrder"> Auto-order by start date</label>
+      <button class="btn btn-ghost btn-small" id="addBtn" type="button">Add activity</button>
+    </div>
+
+    <div class="gantt-scroll">
+      <div class="gantt" id="gantt"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== NOTES ========== -->
+<section class="section last notes">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">How it works</div>
+        <h2 class="section-title">Using this page</h2>
+      </div>
+    </div>
+    <p><strong>Editing.</strong> Click Edit plan. Drag a bar to move it, drag either end to make it longer or shorter, or pick the start and end halves from the dropdowns. Rename, change the workstream or status, or remove an activity in the same place. Every change saves on its own.</p>
+    <p><strong>Order.</strong> Choose a new number in the # column to move an activity up or down the list. Turn on Auto-order by start date and the list re-sorts itself every time a bar moves, so the sequence always follows the timeline.</p>
+    <p><strong>Reading it.</strong> A diamond is a milestone: a date, not a stretch of work. Finished activities turn Citron. Anything marked at risk carries an amber badge, and the amber line is today.</p>
+    <p><strong>Starting point.</strong> The first version of this plan was seeded on 10 October 2026 from the 2026-27 Business Tracker (Goal 2 and the 13 Week Plan). Dates the tracker set are used as given; the rest are estimates to be corrected here.</p>
+  </div>
+</section>
+
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const SUPABASE_URL = 'https://unmkzatppwftnasafhlb.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVubWt6YXRwcHdmdG5hc2FmaGxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDQ5OTIsImV4cCI6MjA4NjU4MDk5Mn0.SYQm1km08xwlJSIf9jq8DXH3Ijxbxqk_LpTRh0PZhD4';
+const STATE_URL = SUPABASE_URL + '/rest/v1/launch_plan_state?id=eq.1';
+
+const WORKSTREAMS = ['Product', 'Packaging', 'Compliance', 'Content', 'Listings', 'Marketing', 'Operations', 'Launch'];
+const STATUSES = { planned: 'Planned', progress: 'In progress', done: 'Done', risk: 'At risk' };
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const DEFAULT_RANGE = { from: '2026-10', to: '2027-05' };
+const RANGE_OPTIONS = { from: '2026-01', to: '2028-12' };   // what the range dropdowns offer
+
+// ============================================================
+// HALF-MONTH HELPERS
+// A half-month key is "YYYY-MM-a" (1st to 15th) or "YYYY-MM-b" (16th to month end).
+// Internally every half-month is an integer index so bars can be moved by adding cells.
+// ============================================================
+function keyToIdx(key) {
+  const p = key.split('-');
+  return ((+p[0]) * 12 + (+p[1] - 1)) * 2 + (p[2] === 'b' ? 1 : 0);
+}
+function idxToKey(i) {
+  const mi = Math.floor(i / 2), y = Math.floor(mi / 12), m = (mi % 12) + 1;
+  return y + '-' + String(m).padStart(2, '0') + '-' + (i % 2 ? 'b' : 'a');
+}
+function monthKeyToIdx(mk) { const p = mk.split('-'); return (+p[0]) * 12 + (+p[1] - 1); }   // month index
+function monthIdxToKey(mi) { return Math.floor(mi / 12) + '-' + String((mi % 12) + 1).padStart(2, '0'); }
+function monthIdxLabel(mi) { return MONTHS[mi % 12] + ' ' + Math.floor(mi / 12); }
+function daysInMonth(y, m1) { return new Date(y, m1, 0).getDate(); }
+function idxParts(i) { const mi = Math.floor(i / 2); return { y: Math.floor(mi / 12), m: (mi % 12) + 1, half: i % 2 }; }
+function startLabel(i, withYear) { const p = idxParts(i); return (p.half ? 16 : 1) + ' ' + MONTHS[p.m - 1] + (withYear ? ' ' + p.y : ''); }
+function endLabel(i, withYear) { const p = idxParts(i); return (p.half ? daysInMonth(p.y, p.m) : 15) + ' ' + MONTHS[p.m - 1] + (withYear ? ' ' + p.y : ''); }
+function spanLabel(s, e) {
+  const ps = idxParts(s), pe = idxParts(e);
+  if (ps.y === pe.y) return startLabel(s, false) + ' to ' + endLabel(e, true);
+  return startLabel(s, true) + ' to ' + endLabel(e, true);
+}
+function halfOptionLabel(i) { return startLabel(i, true); }   // dropdown text: the half's first day
+function todayIdx() { const d = new Date(); return (d.getFullYear() * 12 + d.getMonth()) * 2 + (d.getDate() >= 16 ? 1 : 0); }
+function todayFloatIdx() {
+  const d = new Date();
+  return (d.getFullYear() * 12 + d.getMonth()) * 2 + ((d.getDate() - 1) / daysInMonth(d.getFullYear(), d.getMonth() + 1)) * 2;
+}
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+function uid() { return 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+// ============================================================
+// DEFAULT PLAN
+// Seeded once, when the Supabase row is empty. Tracker-set dates: samples and COGS in
+// October, China PO by 30 Oct, secondary packaging by 30 Nov, trio PDP content and launch
+// briefs by 28 Dec, trio live 28 Feb 2027, full range and SPF30 live 30 Apr 2027.
+// ============================================================
+function defaultTasks() {
+  const t = (name, workstream, start, end, status, milestone) => ({ id: uid(), name, workstream, start, end: end || start, status: status || 'planned', milestone: !!milestone });
+  return [
+    t('Test formula samples and pick the acne moisturiser', 'Product', '2026-10-a', '2026-10-a', 'progress'),
+    t('Final formula pricing and COGS sign-off against the P&L', 'Product', '2026-10-a', '2026-10-b'),
+    t('Finish primary packaging design', 'Packaging', '2026-10-a', '2026-10-b', 'progress'),
+    t('Fix order quantities per SKU (10k trio, 5k others)', 'Product', '2026-10-b', '2026-10-b'),
+    t('Place China PO for primary packaging and pay deposit', 'Packaging', '2026-10-b', '2026-10-b'),
+    t('Primary packaging production and shipping from China', 'Packaging', '2026-11-a', '2027-01-b'),
+    t('Secondary packaging design: dielines and artwork final', 'Packaging', '2026-11-a', '2026-11-b'),
+    t('Product safety certification and notification (10 SKUs)', 'Compliance', '2026-11-a', '2027-01-a'),
+    t('Photoshoot brief for the new range', 'Content', '2026-11-b', '2026-11-b'),
+    t('Secondary packaging print run', 'Packaging', '2026-12-a', '2027-01-a'),
+    t('PDP content for the acne trio: copy, FAQs, ingredients', 'Content', '2026-12-a', '2026-12-b'),
+    t('One-page launch briefs per SKU with 90-day sales targets', 'Marketing', '2026-12-b', '2027-01-a'),
+    t('Production run: acne trio', 'Product', '2027-01-b', '2027-02-a'),
+    t('Acne trio acquisition campaign: landing page and ad creative', 'Marketing', '2027-01-b', '2027-02-b'),
+    t('New range photoshoot', 'Content', '2027-02-a', '2027-02-a'),
+    t('Acne trio stock into the warehouse', 'Operations', '2027-02-b', '2027-02-b'),
+    t('Acne trio PDPs live on Shopify and Amazon', 'Listings', '2027-02-b', '2027-02-b'),
+    t('Acne trio launch email campaign', 'Marketing', '2027-02-b', '2027-02-b'),
+    t('Acne trio live', 'Launch', '2027-02-b', '2027-02-b', 'planned', true),
+    t('Production run: remaining 8 SKUs and SPF30', 'Product', '2027-02-b', '2027-03-b'),
+    t('PDP content and photos for the remaining 8 SKUs and SPF30', 'Content', '2027-02-b', '2027-03-b'),
+    t('Full range PDPs live on Shopify and Amazon', 'Listings', '2027-04-a', '2027-04-b'),
+    t('Full range and SPF30 launch campaign', 'Marketing', '2027-04-b', '2027-04-b'),
+    t('Full range and SPF30 live', 'Launch', '2027-04-b', '2027-04-b', 'planned', true),
+  ];
+}
+
+// ============================================================
+// STATE
+// ============================================================
+const State = {
+  plan: null,          // { version, range:{from,to}, autoOrder, tasks:[...] }
+  editing: false,
+  saveTimer: null,
+  isSaving: false,
+  savePending: false,
+  dirty: false,
+};
+let FROM = 0, TO = 0, NCOLS = 1;   // visible half-month index range, recomputed on render
+
+function normalisePlan(plan) {
+  if (!plan || !Array.isArray(plan.tasks)) return null;
+  plan.version = 1;
+  plan.autoOrder = !!plan.autoOrder;
+  plan.range = Object.assign({}, DEFAULT_RANGE, plan.range || {});
+  plan.tasks = plan.tasks.filter(t => t && typeof t === 'object').map(t => {
+    const task = {
+      id: t.id || uid(),
+      name: typeof t.name === 'string' ? t.name : 'Untitled activity',
+      workstream: WORKSTREAMS.includes(t.workstream) ? t.workstream : WORKSTREAMS[0],
+      start: /^\d{4}-\d{2}-[ab]$/.test(t.start || '') ? t.start : idxToKey(todayIdx()),
+      end: /^\d{4}-\d{2}-[ab]$/.test(t.end || '') ? t.end : null,
+      status: STATUSES[t.status] ? t.status : 'planned',
+      milestone: !!t.milestone,
+    };
+    if (!task.end || keyToIdx(task.end) < keyToIdx(task.start)) task.end = task.start;
+    if (task.milestone) task.end = task.start;
+    return task;
+  });
+  fitRange(plan);
+  if (plan.autoOrder) sortTasks(plan.tasks);
+  return plan;
+}
+
+// The visible range always covers every task; it can only be widened beyond that.
+function fitRange(plan) {
+  let from = monthKeyToIdx(plan.range.from), to = monthKeyToIdx(plan.range.to);
+  if (to < from) to = from;
+  for (const t of plan.tasks) {
+    from = Math.min(from, Math.floor(keyToIdx(t.start) / 2));
+    to = Math.max(to, Math.floor(keyToIdx(t.end) / 2));
+  }
+  plan.range.from = monthIdxToKey(from);
+  plan.range.to = monthIdxToKey(to);
+}
+
+function sortTasks(tasks) {
+  tasks.sort((a, b) => (keyToIdx(a.start) - keyToIdx(b.start)) || (keyToIdx(a.end) - keyToIdx(b.end)));
+}
+
+function taskById(id) { return State.plan.tasks.find(t => t.id === id); }
+
+// ============================================================
+// SUPABASE
+// Single-row JSON state, same pattern as diary.html (diary_state).
+// ============================================================
+async function loadPlan() {
+  setSaveStatus('Loading');
+  try {
+    const resp = await fetch(STATE_URL + '&select=state', { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const rows = await resp.json();
+    const remote = rows[0] ? rows[0].state : null;
+    const plan = normalisePlan(remote);
+    if (plan) {
+      State.plan = plan;
+      setSaveStatus('Saved');
+    } else {
+      // Empty row: seed the default plan and store it.
+      State.plan = normalisePlan({ version: 1, range: DEFAULT_RANGE, autoOrder: false, tasks: defaultTasks() });
+      await savePlan();
+    }
+  } catch (err) {
+    console.error('loadPlan failed:', err);
+    setSaveStatus('Offline: showing the default plan');
+    State.plan = normalisePlan({ version: 1, range: DEFAULT_RANGE, autoOrder: false, tasks: defaultTasks() });
+  }
+  render();
+}
+
+async function savePlan() {
+  if (State.isSaving) { State.savePending = true; return; }
+  State.isSaving = true;
+  setSaveStatus('Saving');
+  try {
+    const resp = await fetch(STATE_URL, {
+      method: 'PATCH',
+      headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ state: State.plan }),
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    State.dirty = false;
+    setSaveStatus('Saved');
+  } catch (err) {
+    console.error('savePlan failed:', err);
+    setSaveStatus('Save failed. Check the connection and try again.');
+  } finally {
+    State.isSaving = false;
+    if (State.savePending) { State.savePending = false; savePlan(); }
+  }
+}
+
+function queueSave() {
+  State.dirty = true;
+  if (State.saveTimer) clearTimeout(State.saveTimer);
+  setSaveStatus('Saving');
+  State.saveTimer = setTimeout(() => { State.saveTimer = null; savePlan(); }, 500);
+}
+
+function setSaveStatus(text) { document.getElementById('saveStatus').textContent = text; }
+
+// Any change to the plan goes through here: re-sort if asked, redraw, save.
+function afterChange() {
+  if (State.plan.autoOrder) sortTasks(State.plan.tasks);
+  fitRange(State.plan);
+  render();
+  queueSave();
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function render() {
+  const plan = State.plan;
+  FROM = monthKeyToIdx(plan.range.from) * 2;
+  TO = monthKeyToIdx(plan.range.to) * 2 + 1;
+  NCOLS = TO - FROM + 1;
+  renderKpis();
+  renderToolbar();
+  renderGantt();
+}
+
+function renderKpis() {
+  const tasks = State.plan.tasks;
+  const n = tasks.length, ms = tasks.filter(t => t.milestone).length;
+  const done = tasks.filter(t => t.status === 'done').length;
+  const risk = tasks.filter(t => t.status === 'risk').length;
+  const today = todayIdx();
+  const next = tasks.filter(t => t.milestone && t.status !== 'done' && keyToIdx(t.end) >= today).sort((a, b) => keyToIdx(a.end) - keyToIdx(b.end))[0];
+
+  setKpi('kpi-count', String(n), ms === 1 ? '1 milestone' : ms + ' milestones');
+  setKpi('kpi-done', done + ' of ' + n, done === n && n > 0 ? 'Everything complete' : 'Activities complete');
+  setKpi('kpi-risk', String(risk), risk ? 'Need attention' : 'Nothing flagged');
+  document.getElementById('kpi-risk').classList.toggle('urgent', risk > 0);
+  if (next) setKpi('kpi-next', endLabel(keyToIdx(next.end), true), next.name);
+  else setKpi('kpi-next', '—', 'No milestone ahead');
+}
+function setKpi(id, value, sub) {
+  const el = document.getElementById(id);
+  el.querySelector('.value').textContent = value;
+  el.querySelector('.sub').textContent = sub;
+  el.querySelector('.sub').title = sub;
+}
+
+function renderToolbar() {
+  const plan = State.plan;
+  const from = document.getElementById('rangeFrom'), to = document.getElementById('rangeTo');
+  const lo = monthKeyToIdx(RANGE_OPTIONS.from), hi = monthKeyToIdx(RANGE_OPTIONS.to);
+  let opts = '';
+  for (let mi = lo; mi <= hi; mi++) opts += '<option value="' + monthIdxToKey(mi) + '">' + monthIdxLabel(mi) + '</option>';
+  from.innerHTML = opts; to.innerHTML = opts;
+  from.value = plan.range.from; to.value = plan.range.to;
+  document.getElementById('autoOrder').checked = plan.autoOrder;
+}
+
+function renderGantt() {
+  const plan = State.plan, g = document.getElementById('gantt');
+  g.style.setProperty('--ncols', NCOLS);
+  const editing = State.editing;
+  const monthFrom = Math.floor(FROM / 2), monthTo = Math.floor(TO / 2);
+
+  // Header row
+  let months = '';
+  for (let mi = monthFrom; mi <= monthTo; mi++) {
+    months += '<div class="g-month"><div class="m-name">' + monthIdxLabel(mi) + '</div><div class="m-ticks"><span>1</span><span>16</span></div></div>';
+  }
+  const tf = todayFloatIdx();
+  const todayVisible = tf >= FROM && tf <= TO + 1;
+  const todayPct = ((tf - FROM) / NCOLS * 100).toFixed(3) + '%';
+  let html = '<div class="g-row g-head"><div class="g-label g-head-cols"><span class="g-num">#</span><span>Activity</span></div><div class="g-time">' + months +
+    (todayVisible ? '<span class="today-tag badge" style="left:' + todayPct + '">Today</span>' : '') + '</div></div>';
+
+  // Body rows
+  html += '<div class="g-body">';
+  if (!plan.tasks.length) {
+    html += '<div class="g-empty">No activities yet. Click Edit plan, then Add activity.</div>';
+  }
+  plan.tasks.forEach((t, i) => { html += rowHtml(t, i, editing); });
+  if (todayVisible && plan.tasks.length) {
+    html += '<div class="today-line" style="left: calc(var(--label-w) + (100% - var(--label-w)) * ' + ((tf - FROM) / NCOLS).toFixed(5) + ')"></div>';
+  }
+  html += '</div>';
+  g.innerHTML = html;
+}
+
+function rowHtml(t, i, editing) {
+  const s = keyToIdx(t.start), e = keyToIdx(t.end), n = State.plan.tasks.length;
+  const span = spanLabel(s, e);
+  const title = esc(t.name) + ' · ' + (t.milestone ? endLabel(e, true) : span) + ' · ' + STATUSES[t.status];
+
+  // Number column: plain in view mode or when auto-ordered; a dropdown when ordering by hand.
+  let num;
+  if (editing && !State.plan.autoOrder) {
+    let o = '';
+    for (let k = 1; k <= n; k++) o += '<option value="' + k + '"' + (k === i + 1 ? ' selected' : '') + '>' + k + '</option>';
+    num = '<div class="g-num"><select class="ctl" data-act="num" data-id="' + t.id + '" title="Move to position">' + o + '</select></div>';
+  } else {
+    num = '<div class="g-num">' + (i + 1) + '</div>';
+  }
+
+  // View label
+  let statusBit = '';
+  if (t.status === 'risk') statusBit = '<span class="badge">At risk</span>';
+  else if (t.status === 'progress') statusBit = '<span class="status-progress">In progress</span>';
+  else if (t.status === 'done') statusBit = '<span>Done</span>';
+  const view = '<div class="g-view"><div class="g-name">' + esc(t.name) + '</div><div class="g-meta"><span>' +
+    (t.milestone ? 'Milestone · ' + esc(endLabel(e, true)) : esc(t.workstream) + ' · ' + esc(span)) + '</span>' + statusBit + '</div></div>';
+
+  // Edit label
+  let edit = '';
+  if (editing) {
+    const wsOpts = WORKSTREAMS.map(w => '<option' + (w === t.workstream ? ' selected' : '') + '>' + w + '</option>').join('');
+    const stOpts = Object.keys(STATUSES).map(k => '<option value="' + k + '"' + (k === t.status ? ' selected' : '') + '>' + STATUSES[k] + '</option>').join('');
+    let startOpts = '', endOpts = '';
+    for (let k = FROM; k <= TO; k++) {
+      startOpts += '<option value="' + idxToKey(k) + '"' + (k === s ? ' selected' : '') + '>' + halfOptionLabel(k) + '</option>';
+      endOpts += '<option value="' + idxToKey(k) + '"' + (k === e ? ' selected' : '') + '>' + endLabel(k, true) + '</option>';
+    }
+    edit = '<div class="g-edit">' +
+      '<input type="text" data-act="name" data-id="' + t.id + '" value="' + esc(t.name) + '" placeholder="Activity name">' +
+      '<div class="erow">' +
+        '<select class="ctl" data-act="ws" data-id="' + t.id + '" title="Workstream">' + wsOpts + '</select>' +
+        '<select class="ctl" data-act="status" data-id="' + t.id + '" title="Status">' + stOpts + '</select>' +
+        '<label class="check"><input type="checkbox" data-act="ms" data-id="' + t.id + '"' + (t.milestone ? ' checked' : '') + '> Milestone</label>' +
+      '</div>' +
+      '<div class="erow">' +
+        '<select class="ctl" data-act="start" data-id="' + t.id + '" title="Start">' + startOpts + '</select>' +
+        (t.milestone ? '' : '<span style="font-size:11px;font-weight:600">to</span><select class="ctl" data-act="end" data-id="' + t.id + '" title="End">' + endOpts + '</select>') +
+        '<button type="button" class="rm" data-act="rm" data-id="' + t.id + '">Remove</button>' +
+      '</div>' +
+    '</div>';
+  }
+
+  // Timeline cell: a bar, or a diamond for a milestone
+  let mark;
+  if (t.milestone) {
+    const left = ((s - FROM + 1) / NCOLS * 100).toFixed(3) + '%';
+    mark = '<div class="ms' + (t.status === 'done' ? ' done' : '') + '" data-id="' + t.id + '" style="left:' + left + '" title="' + title + '"></div>';
+  } else {
+    const left = ((s - FROM) / NCOLS * 100).toFixed(3) + '%', width = ((e - s + 1) / NCOLS * 100).toFixed(3) + '%';
+    const text = (e - s + 1) >= 3 ? esc(startLabel(s, false) + ' to ' + endLabel(e, false)) : '';
+    mark = '<div class="bar' + (t.status === 'done' ? ' done' : '') + '" data-id="' + t.id + '" style="left:' + left + ';width:' + width + '" title="' + title + '"><span class="h l"></span>' + text + '<span class="h r"></span></div>';
+  }
+
+  return '<div class="g-row" data-id="' + t.id + '"><div class="g-label">' + num + view + edit + '</div><div class="g-time">' + mark + '</div></div>';
+}
+
+// ============================================================
+// EDIT MODE
+// ============================================================
+function setEditing(on) {
+  State.editing = on;
+  document.body.classList.toggle('editing', on);
+  const b = document.getElementById('editBtn');
+  b.textContent = on ? 'Done' : 'Edit plan';
+  b.classList.toggle('btn-secondary', on);
+  b.classList.toggle('btn-ghost', !on);
+  render();
+}
+
+document.getElementById('editBtn').addEventListener('click', () => {
+  if (State.editing && State.saveTimer) { clearTimeout(State.saveTimer); State.saveTimer = null; savePlan(); }
+  setEditing(!State.editing);
+});
+
+document.getElementById('addBtn').addEventListener('click', () => {
+  const start = idxToKey(clamp(todayIdx(), FROM, TO));
+  const task = { id: uid(), name: 'New activity', workstream: 'Product', start, end: idxToKey(clamp(keyToIdx(start) + 1, FROM, TO)), status: 'planned', milestone: false };
+  State.plan.tasks.push(task);
+  afterChange();
+  const input = document.querySelector('input[data-act="name"][data-id="' + task.id + '"]');
+  if (input) { input.focus(); input.select(); input.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+});
+
+document.getElementById('autoOrder').addEventListener('change', ev => {
+  State.plan.autoOrder = ev.target.checked;
+  afterChange();
+});
+
+function onRangeChange() {
+  const from = document.getElementById('rangeFrom').value, to = document.getElementById('rangeTo').value;
+  State.plan.range.from = from;
+  State.plan.range.to = monthKeyToIdx(to) < monthKeyToIdx(from) ? from : to;
+  afterChange();   // fitRange widens the range again if it no longer covers every task
+}
+document.getElementById('rangeFrom').addEventListener('change', onRangeChange);
+document.getElementById('rangeTo').addEventListener('change', onRangeChange);
+
+// Field edits inside the label column (event delegation on the gantt)
+const gantt = document.getElementById('gantt');
+
+gantt.addEventListener('input', ev => {
+  const el = ev.target;
+  if (el.dataset.act !== 'name') return;
+  const t = taskById(el.dataset.id);
+  if (!t) return;
+  t.name = el.value;
+  queueSave();   // no redraw while typing; the view label refreshes on the next render
+});
+
+gantt.addEventListener('change', ev => {
+  const el = ev.target, act = el.dataset.act, t = taskById(el.dataset.id);
+  if (!act || !t) return;
+  if (act === 'name') { t.name = el.value.trim() || 'Untitled activity'; afterChange(); return; }
+  if (act === 'ws') { t.workstream = el.value; afterChange(); return; }
+  if (act === 'status') { t.status = el.value; afterChange(); return; }
+  if (act === 'ms') { t.milestone = el.checked; if (t.milestone) t.end = t.start; afterChange(); return; }
+  if (act === 'start') {
+    t.start = el.value;
+    if (t.milestone || keyToIdx(t.end) < keyToIdx(t.start)) t.end = t.start;
+    afterChange(); return;
+  }
+  if (act === 'end') {
+    t.end = el.value;
+    if (keyToIdx(t.end) < keyToIdx(t.start)) t.start = t.end;
+    afterChange(); return;
+  }
+  if (act === 'num') {
+    const to = clamp(parseInt(el.value, 10) - 1, 0, State.plan.tasks.length - 1);
+    const from = State.plan.tasks.indexOf(t);
+    State.plan.tasks.splice(from, 1);
+    State.plan.tasks.splice(to, 0, t);
+    afterChange(); return;
+  }
+});
+
+gantt.addEventListener('click', ev => {
+  const el = ev.target.closest('button[data-act="rm"]');
+  if (!el) return;
+  const t = taskById(el.dataset.id);
+  if (!t) return;
+  if (!confirm('Remove "' + t.name + '" from the plan?')) return;
+  State.plan.tasks = State.plan.tasks.filter(x => x.id !== t.id);
+  afterChange();
+});
+
+// ============================================================
+// DRAG: move a bar, or resize it from either end, snapping to half-months
+// ============================================================
+gantt.addEventListener('pointerdown', ev => {
+  if (!State.editing || ev.button !== 0) return;
+  const el = ev.target.closest('.bar, .ms');
+  if (!el) return;
+  const t = taskById(el.dataset.id);
+  if (!t) return;
+  const rect = el.parentElement.getBoundingClientRect();
+  const cellW = rect.width / NCOLS;
+  const mode = ev.target.classList.contains('h') ? (ev.target.classList.contains('l') ? 'l' : 'r') : 'move';
+  const drag = { x0: ev.clientX, s: keyToIdx(t.start), e: keyToIdx(t.end), mode, delta: 0 };
+  el.classList.add('dragging');
+  el.setPointerCapture(ev.pointerId);
+  ev.preventDefault();
+
+  const apply = () => {
+    let s = drag.s, e = drag.e, d = drag.delta;
+    if (t.milestone || drag.mode === 'move') { const len = e - s; s = clamp(s + d, FROM, TO - len); e = s + len; }
+    else if (drag.mode === 'l') { s = clamp(s + d, FROM, e); }
+    else { e = clamp(e + d, s, TO); }
+    return { s, e };
+  };
+  const position = r => {
+    if (t.milestone) { el.style.left = ((r.s - FROM + 1) / NCOLS * 100).toFixed(3) + '%'; }
+    else { el.style.left = ((r.s - FROM) / NCOLS * 100).toFixed(3) + '%'; el.style.width = ((r.e - r.s + 1) / NCOLS * 100).toFixed(3) + '%'; }
+  };
+  const onMove = mv => {
+    const d = Math.round((mv.clientX - drag.x0) / cellW);
+    if (d === drag.delta) return;
+    drag.delta = d;
+    position(apply());
+  };
+  const onUp = up => {
+    el.removeEventListener('pointermove', onMove);
+    el.removeEventListener('pointerup', onUp);
+    el.removeEventListener('pointercancel', onUp);
+    el.classList.remove('dragging');
+    try { el.releasePointerCapture(up.pointerId); } catch (e) {}
+    const r = apply();
+    if (r.s !== drag.s || r.e !== drag.e) {
+      t.start = idxToKey(r.s);
+      t.end = idxToKey(r.e);
+      afterChange();
+    }
+  };
+  el.addEventListener('pointermove', onMove);
+  el.addEventListener('pointerup', onUp);
+  el.addEventListener('pointercancel', onUp);
+});
+
+// ============================================================
+// THEME (same storage key as the other dashboards)
+// ============================================================
+const SUN = '<svg viewBox="0 0 24 24"><path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0-5a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1zm0 18a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0v-2a1 1 0 0 1 1-1zm10-8a1 1 0 0 1-1 1h-2a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1zM5 12a1 1 0 0 1-1 1H2a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1zm13.07-6.66a1 1 0 0 1 0 1.41l-1.42 1.42a1 1 0 1 1-1.41-1.42l1.41-1.41a1 1 0 0 1 1.42 0zM7.76 16.24a1 1 0 0 1 0 1.42l-1.42 1.41a1 1 0 0 1-1.41-1.41l1.41-1.42a1 1 0 0 1 1.42 0zm10.31 2.83a1 1 0 0 1-1.42 0l-1.41-1.41a1 1 0 0 1 1.41-1.42l1.42 1.42a1 1 0 0 1 0 1.41zM7.76 7.76a1 1 0 0 1-1.42 0L4.93 6.34a1 1 0 0 1 1.41-1.41l1.42 1.41a1 1 0 0 1 0 1.42z"/></svg>';
+const MOON = '<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>';
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  document.getElementById('themeToggle').innerHTML = theme === 'dark' ? SUN : MOON;
+}
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  try { localStorage.setItem('ks-theme', next); } catch (e) {}
+  applyTheme(next);
+});
+(function initTheme() {
+  let saved = null;
+  try { saved = localStorage.getItem('ks-theme'); } catch (e) {}
+  applyTheme(saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+})();
+
+// ============================================================
+// BOOT
+// ============================================================
+// Pick up edits made on another device when the tab comes back, unless a save is in flight here.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && !State.editing && !State.dirty && !State.isSaving) loadPlan();
+});
+window.addEventListener('beforeunload', ev => {
+  if (State.dirty) { ev.preventDefault(); ev.returnValue = ''; }
+});
+loadPlan();
+</script>
+</body>
+</html>

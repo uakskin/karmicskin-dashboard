@@ -63,7 +63,8 @@
   select, input, button { font-family: var(--font-body); color: var(--ink); }
 
   /* ========== LAYOUT ========== */
-  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 clamp(16px, 3vw, 32px); }
+  /* Full width: a timeline earns its width, so the page keeps only a 32px gutter either side. */
+  .wrap { padding: 0 clamp(16px, 3vw, 32px); }
   .section { padding-top: 48px; }
   .section.last { padding-bottom: 64px; }
   .section-head { margin-bottom: 24px; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }

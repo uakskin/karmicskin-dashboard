@@ -571,16 +571,16 @@ function syncRowHeights() {
   L.forEach((l, i) => {
     const r = R[i];
     if (!r) return;
-    l.style.height = ''; r.style.height = '';
+    l.style.minHeight = ''; r.style.minHeight = '';
     const h = Math.max(l.offsetHeight, r.offsetHeight) + 'px';
-    l.style.height = h; r.style.height = h;
+    l.style.minHeight = h; r.style.minHeight = h;   // min-height, so a notes box dragged taller still grows its row
   });
   syncing = false;
 }
 const rowObserver = new ResizeObserver(() => syncRowHeights());
 function watchRowHeights() {
   rowObserver.disconnect();
-  document.querySelectorAll('#gantt .g-fixed .g-row').forEach(el => rowObserver.observe(el));
+  document.querySelectorAll('#gantt .g-fixed .g-row, #gantt .g-fixed textarea').forEach(el => rowObserver.observe(el));
 }
 window.addEventListener('resize', syncRowHeights);
 

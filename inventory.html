@@ -418,14 +418,15 @@ const BUNDLE_MAP = {
 };
 // Incoming purchase orders. Units land in the forecast at their ETA: stockout dates,
 // PO-due dates and status pills all account for stock already on order.
-// EDITABLE — update ship_date/eta when the supplier confirms; delete the PO object once goods are received
-// and counted into Shopify.
+// EDITABLE — update port_arrival/eta when the forwarder confirms; delete the PO object once goods are received
+// and counted into Shopify. `eta` is the date stock reaches our warehouse (the date it lands in the forecast).
 const INCOMING_POS = [
   {
     po: 'PO #011',
+    stage: 'in transit',
     placed: '2026-06-17',
-    ship_date: '2026-09-10',  // estimated ship from India (in production as of Aug 2026)
-    eta: '2026-11-10',        // Uday's arrival estimate (10 Nov 2026)
+    port_arrival: '2026-11-17', // ship due at Felixstowe (Uday, 18 Oct 2026)
+    eta: '2026-11-24',          // ~1 week from Felixstowe to the Stoke warehouse
     lines: {
       'Sunlight Serum': 10000,
       'Moonlight Serum': 8500,
@@ -433,7 +434,7 @@ const INCOMING_POS = [
       'Pot of Gold': 2000,
       'Top of the Morning': 1500,
       'Richie Rich Rich': 500,
-      'Clean as a Whistle': 250,
+      // No Clean as a Whistle in this batch (Uday, 18 Oct 2026)
     },
   },
 ];
@@ -548,7 +549,8 @@ async function triggerInventorySync() {
 
 // ── MATH ──
 function fmt(n, d=0) { return n == null || isNaN(n) ? '—' : Number(n).toLocaleString('en-GB', { minimumFractionDigits: d, maximumFractionDigits: d }); }
-function fmtDate(d) { if (!d || !(d instanceof Date) || isNaN(d)) return '—'; return d.toISOString().slice(0,10); }
+// Local calendar date (toISOString would shift local-midnight dates back a day east of UTC, incl. UK summer time)
+function fmtDate(d) { if (!d || !(d instanceof Date) || isNaN(d)) return '—'; return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
 function daysBetween(a, b) { return Math.round((b - a) / 86400000); }
 
 // Aggregate weekly sales rows into per-SKU totals for the last 90 / 180 days,
@@ -594,7 +596,7 @@ function incomingForSku(sku, today) {
     const units = po.lines[sku];
     if (!units) continue;
     qty += units;
-    pos.push(`${po.po} (placed ${po.placed}, ships ${po.ship_date})`);
+    pos.push(`${po.po} (placed ${po.placed}, Felixstowe ${po.port_arrival})`);
     if (!eta || poEta < eta) eta = poEta;
   }
   return { qty, eta, pos };
@@ -688,8 +690,8 @@ function renderPoBanner() {
     const total = Object.values(po.lines).reduce((a, b) => a + b, 0);
     const lineStr = Object.entries(po.lines).map(([sku, q]) => `${sku} ${fmt(q)}`).join(' · ');
     return `<div class="eyebrow">Open purchase order</div>
-      <h3>${po.po} in production · ${fmt(total)} units</h3>
-      <p>Placed <strong>${po.placed}</strong> · est. ship from India <strong>${po.ship_date}</strong> · ETA UK <strong>~${po.eta}</strong>.
+      <h3>${po.po} ${po.stage} · ${fmt(total)} units</h3>
+      <p>Placed <strong>${po.placed}</strong> · arrives Felixstowe <strong>${po.port_arrival}</strong> · at our warehouse <strong>~${po.eta}</strong>.
       Incoming units are already included in the stockout dates, PO-due dates and statuses below.</p>
       <p class="po-lines">${lineStr}</p>`;
   }).join('<div class="po-gap"></div>');

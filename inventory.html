@@ -140,6 +140,7 @@
   .pill, .badge { display: inline-block; font-size: 11px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; padding: 4px 12px; border-radius: 100px; }
   .pill.overdue, .pill.urgent, .badge { background: var(--mark); color: var(--mark-ink); font-weight: 700; }
   .pill.soon { font-weight: 700; }
+  .pill.hold { box-shadow: inset 0 0 0 1px var(--ink); }
   table.inv-table .pill, table.inv-table .badge { padding: 3px 10px; }
   /* A stock gap is an alarm state: the badge drops to its own line so the column stays narrow. */
   .gap-badge { display: block; width: fit-content; margin: 4px 0 0 auto; }
@@ -384,7 +385,7 @@ body { padding-left: 208px; }
       <h2 class="section-title">How this dashboard is calculated</h2>
     </div>
     <p><strong>Sales rate per SKU</strong> = direct unit sales + bundle-component allocation (when a bundle is sold, each listed component's count goes up by the bundle's quantity). 90-day window is the primary forecast; 180-day shown alongside for trend comparison.</p>
-    <p><strong>Days of cover</strong> = current Shopify on-hand ÷ daily rate (current stock only). <strong>Stockout date</strong> = when stock hits zero <em>including incoming PO units</em>, which land in the forecast on their ETA (see <code>INCOMING_POS</code> in the page source). If current stock would run dry before a shipment lands, a <span class="badge">gap</span> badge appears in the Incoming column. <strong>PO due</strong> = stockout date − 120 days lead time, i.e. the latest date to place the <em>next</em> PO. <strong>Status</strong> drives off PO due: <span class="pill overdue">Overdue</span> if PO due is in the past · <span class="pill urgent">Urgent</span> if within 30 days · <span class="pill soon">Soon</span> if within 60 days · <span class="pill ok">OK</span> otherwise. Amber marks the rows that need action now.</p>
+    <p><strong>Days of cover</strong> = current Shopify on-hand ÷ daily rate (current stock only). <strong>Stockout date</strong> = when stock hits zero <em>including incoming PO units</em>, which land in the forecast on their ETA (see <code>INCOMING_POS</code> in the page source). If current stock would run dry before a shipment lands, a <span class="badge">gap</span> badge appears in the Incoming column. <strong>PO due</strong> = stockout date − 120 days lead time, i.e. the latest date to place the <em>next</em> PO. <strong>Status</strong> drives off PO due: <span class="pill overdue">Overdue</span> if PO due is in the past · <span class="pill urgent">Urgent</span> if within 30 days · <span class="pill soon">Soon</span> if within 60 days · <span class="pill ok">OK</span> otherwise. Amber marks the rows that need action now. <span class="pill hold">On hold</span> marks a SKU that cannot be reordered yet (see <code>PO_ON_HOLD</code> in the page source; hover the pill for the reason). On-hold SKUs show no PO due date and are left out of the Next PO and SKUs-needing-PO cards.</p>
     <p><strong>Bundles tracked</strong> (1 bundle sold = 1 unit each component): The Heroes Kit, Dew It Right, Age Confidence, Bright Future, Mama's Glow, Soft Intentions, The Hair Affair Bundle. Component map is in the page source — see <code>BUNDLE_MAP</code> if you need to correct it. Bundle SKUs are hidden from this list per directive (you only see the underlying components).</p>
     <p><strong>Why some rates differ between 90d and 180d</strong>: a stockout in the window will lower the rate for that period (Sleepytime Gelly hit zero in late March), and recently-launched products (Featherweight, Maui Waui, Tropic Thunder, Espresso Bar, The One &amp; Only — all launched Sep 2025) won't have a meaningful 180d picture. The dashboard auto-uses the more conservative (faster) of the two when there's a strong divergence.</p>
     <p><strong>Packaging materials</strong> = the latest count of primary packs (jars / bottles) and secondary packs (cartons) held per SKU, stored in <code>PACKAGING_STOCK</code> in the page source (paste the next count there and update the date). <strong>Units fillable</strong> = the lower of the two (cartons only for bars, which have no primary pack). <strong>Cover</strong> = units fillable ÷ the same daily rate used in the forecast above, in months. Status: <span class="pill urgent">Low</span> if packaging covers less than one lead time (120 days) of sales · <span class="pill soon">Watch</span> if under two lead times · <span class="pill ok">OK</span> otherwise. The count is used as reported; if a count was taken before an open PO was filled, subtract that PO's quantities first.</p>
@@ -427,17 +428,29 @@ const INCOMING_POS = [
     placed: '2026-06-17',
     port_arrival: '2026-11-17', // ship due at Felixstowe (Uday, 18 Oct 2026)
     eta: '2026-11-24',          // ~1 week from Felixstowe to the Stoke warehouse
+    invoice: 'RA26023',
+    // Shipped quantities per commercial invoice RA26023 (22 Sep 2026), batches summed.
+    // No Clean as a Whistle in this batch (Uday, 18 Oct 2026).
     lines: {
-      'Sunlight Serum': 10000,
-      'Moonlight Serum': 8500,
-      'Sleepytime Gelly': 2500,
-      'Pot of Gold': 2000,
-      'Top of the Morning': 1500,
-      'Richie Rich Rich': 500,
-      // No Clean as a Whistle in this batch (Uday, 18 Oct 2026)
+      'Sunlight Serum': 10073,
+      'Moonlight Serum': 8558,
+      'Sleepytime Gelly': 2733,
+      'Pot of Gold': 2013,
+      'Top of the Morning': 1569,
+      'Richie Rich Rich': 514,
+    },
+    // Also on board but not a forecast SKU: shown in the banner only.
+    other_lines: {
+      'Cotton printed pouches': 1460,
     },
   },
 ];
+// SKUs whose next PO cannot be placed yet. They stay in the forecast table with an "On hold"
+// status, but are left out of the Next PO and SKUs-needing-PO cards.
+// EDITABLE — delete the entry once the issue is fixed and a PO can be placed.
+const PO_ON_HOLD = {
+  'Clean as a Whistle': 'Formula issue being fixed with the formulation team. No PO until it is resolved; no timeline yet (Uday, 18 Oct 2026).',
+};
 // Packaging stock held per SKU: primary = jars / bottles, cartons = secondary printed cartons.
 // Bars (Maui Waui, Espresso Bar, Tropic Thunder, The One & Only) have no primary pack.
 // Source: the "Karmic Primary & Secondary Packing Material 2026" count sheet.
@@ -650,6 +663,8 @@ function buildForecast(inventory, rates) {
     else if (daysToPo <= 30) { status = 'urgent';  urgencyRank = 1; }
     else if (daysToPo <= 60) { status = 'soon';    urgencyRank = 2; }
     else                     { status = 'ok';      urgencyRank = 3; }
+    const poHold = PO_ON_HOLD[sku] || null;
+    if (poHold) { status = 'hold'; urgencyRank = 4; }
 
     // Trend: 90d rate vs 180d rate
     let trend = 'flat', trendPct = 0;
@@ -673,6 +688,7 @@ function buildForecast(inventory, rates) {
       stockout_at: stockoutAt,
       po_due: poDue,
       days_to_po: daysToPo,
+      po_hold: poHold,
       status, urgency_rank: urgencyRank,
       trend, trendPct,
       units_90d: u90, units_180d: u180,
@@ -689,11 +705,13 @@ function renderPoBanner() {
   const html = openPos.map(po => {
     const total = Object.values(po.lines).reduce((a, b) => a + b, 0);
     const lineStr = Object.entries(po.lines).map(([sku, q]) => `${sku} ${fmt(q)}`).join(' · ');
+    const otherStr = Object.entries(po.other_lines || {}).map(([item, q]) => `${fmt(q)} ${item.toLowerCase()}`).join(' · ');
     return `<div class="eyebrow">Open purchase order</div>
       <h3>${po.po} ${po.stage} · ${fmt(total)} units</h3>
       <p>Placed <strong>${po.placed}</strong> · arrives Felixstowe <strong>${po.port_arrival}</strong> · at our warehouse <strong>~${po.eta}</strong>.
       Incoming units are already included in the stockout dates, PO-due dates and statuses below.</p>
-      <p class="po-lines">${lineStr}</p>`;
+      <p class="po-lines">${lineStr}</p>
+      ${otherStr ? `<p>Also on board: ${otherStr}.${po.invoice ? ` Quantities per invoice ${po.invoice}.` : ''}</p>` : ''}`;
   }).join('<div class="po-gap"></div>');
   document.getElementById('poBanner').innerHTML = html;
   wrap.style.display = '';
@@ -701,8 +719,10 @@ function renderPoBanner() {
 
 // ── RENDER: KPI ──
 function renderKPIs(rows, inventoryMeta) {
-  // Next PO date = earliest po_due among all SKUs (or today if any overdue)
-  const sortedByPo = [...rows].sort((a,b) => a.po_due - b.po_due);
+  // Next PO date = earliest po_due among SKUs that can be ordered (PO_ON_HOLD SKUs excluded)
+  const orderableRows = rows.filter(r => !r.po_hold);
+  const holdNote = rows.length > orderableRows.length ? ` · excl. ${rows.length - orderableRows.length} on hold` : '';
+  const sortedByPo = [...orderableRows].sort((a,b) => a.po_due - b.po_due);
   const earliest = sortedByPo[0];
   const nextPoEl = document.getElementById('kpi-next-po');
   if (earliest) {
@@ -714,7 +734,7 @@ function renderKPIs(rows, inventoryMeta) {
     else if (daysAway <= 60) urgencyCls = 'warn';
     nextPoEl.className = `kpi-card ${urgencyCls}`;
     nextPoEl.querySelector('.value').textContent = fmtDate(earliest.po_due);
-    nextPoEl.querySelector('.sub').textContent = `${earliest.product_title} · ${daysAway >= 0 ? `in ${daysAway}d` : `${-daysAway}d overdue`}`;
+    nextPoEl.querySelector('.sub').textContent = `${earliest.product_title} · ${daysAway >= 0 ? `in ${daysAway}d` : `${-daysAway}d overdue`}${holdNote}`;
   }
 
   // Highest risk = lowest days of cover
@@ -727,8 +747,8 @@ function renderKPIs(rows, inventoryMeta) {
   }
 
   // SKUs at risk = need PO within 30 days
-  const atRiskCount = rows.filter(r => r.urgency_rank <= 1).length;
-  const atRiskSoon = rows.filter(r => r.urgency_rank <= 2).length;
+  const atRiskCount = orderableRows.filter(r => r.urgency_rank <= 1).length;
+  const atRiskSoon = orderableRows.filter(r => r.urgency_rank <= 2).length;
   const atRiskEl = document.getElementById('kpi-at-risk');
   atRiskEl.className = atRiskCount > 0 ? 'kpi-card urgent' : 'kpi-card ok';
   atRiskEl.querySelector('.value').textContent = atRiskCount;
@@ -772,7 +792,8 @@ function renderTable() {
     const trendArrow = r.trend === 'up' ? '▲' : r.trend === 'down' ? '▼' : '—';
     const trendCls = r.trend === 'up' ? 'trend-up' : r.trend === 'down' ? 'trend-down' : 'trend-flat';
     const trendText = r.trend === 'flat' ? '—' : `${trendArrow} ${Math.abs(r.trendPct).toFixed(0)}%`;
-    const statusLabel = { overdue: 'Overdue', urgent: 'Urgent', soon: 'Soon', ok: 'OK' }[r.status];
+    const statusLabel = { overdue: 'Overdue', urgent: 'Urgent', soon: 'Soon', ok: 'OK', hold: 'On hold' }[r.status];
+    const statusTitle = r.po_hold ? ` title="${r.po_hold}"` : '';
     let incomingCell = '—';
     if (r.incoming_qty > 0) {
       const etaStr = r.incoming_eta ? r.incoming_eta.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
@@ -788,8 +809,8 @@ function renderTable() {
       <td><span class="trend-chip ${trendCls}">${trendText}</span></td>
       <td>${fmt(r.days_of_cover)}</td>
       <td>${fmtDate(r.stockout_at)}</td>
-      <td>${fmtDate(r.po_due)}</td>
-      <td><span class="pill ${r.status}">${statusLabel}</span></td>
+      <td>${r.po_hold ? '—' : fmtDate(r.po_due)}</td>
+      <td><span class="pill ${r.status}"${statusTitle}>${statusLabel}</span></td>
     </tr>`;
   }).join('');
   tbody.innerHTML = html;

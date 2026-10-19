@@ -204,6 +204,8 @@ body.role-unknown { padding-left: 0 !important; }
 .mrow .l i { width: 8px; height: 8px; border-radius: 3px; display: inline-block; }
 .mrow .v { font-weight: 600; padding: 1px 6px; border-radius: 5px; font-variant-numeric: tabular-nums; }
 .mrow .dl { font-size: 10.5px; font-weight: 600; margin-left: 4px; }
+.mrow .pills { display: inline-flex; gap: 3px; }
+.mrow .pills .score { min-width: 24px; padding: 1px 5px; font-size: 11px; }
 .up { color: var(--green); } .down { color: var(--red); }
 .score { display: inline-block; min-width: 26px; text-align: center; padding: 1px 6px; border-radius: 6px; font-weight: 700; font-size: 11.5px; }
 .score.s4 { background: #15803d; color: #fff; } .score.s3 { background: #bbf7d0; color: #14532d; } .score.s2 { background: #fde68a; color: #713f12; } .score.s1 { background: #fecaca; color: #7f1d1d; } .score.s0 { background: var(--bg-sub); color: var(--faint); }
@@ -1435,9 +1437,11 @@ function cardHtml(g, st, cols, maxRows = 6) {
     const dl = g.pm && !M[k].score ? fmtDelta(v, g.pm[k], k) : '';
     return `<div class="mrow"><span class="l"><i style="background:${CHIP_COLORS[i % 6]}"></i>${esc(M[k].l)}</span><span>${val}${dl}</span></div>`;
   }).join('');
+  const sc = g.scores || { hook: null, watch: null, click: null, convert: null };
+  const scoresRow = `<div class="mrow" title="Hook · Watch · Click · Convert scores, 1 to 100, ranked within the same campaign"><span class="l"><i style="background:var(--faint)"></i>Scores H·W·C·C</span><span class="pills">${scoreHtml(sc.hook)}${scoreHtml(sc.watch)}${scoreHtml(sc.click)}${scoreHtml(sc.convert)}</span></div>`;
   const badges = (g.badges || []).map(b => `<span class="badge" title="${b.t}">${b.e}</span>`).join('');
   const sub = st.groupBy === 'ad' ? `${esc((D.campaigns.get(ad && ad.campaign_id) || {}).name || g.anyCampaignName || '')}` : `${g.nAds} ad${g.nAds === 1 ? '' : 's'}`;
-  return `<div class="card" data-g="${esc(g.key)}"><div class="thumb${aspectClass(ad)}">${thumbImg(ad)}<span class="st ${adStatusClass(ad)}" title="${esc((ad && ad.effective_status) || '')}"></span>${badges ? `<span class="badges">${badges}</span>` : ''}${vid ? '<span class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>' : ''}<span class="pill">${esc(ad ? formatLabel(ad) : '')}</span>${isDynamic(ad) ? '<span class="pill dct">Dynamic</span>' : ''}</div><div class="body"><div class="name" title="${esc(g.name)}">${esc(g.name)}</div><div class="meta">${sub}${g.launch ? ` · launched ${fmtD(g.launch)}` : ''}</div></div><div class="rows">${metricsRows}</div></div>`;
+  return `<div class="card" data-g="${esc(g.key)}"><div class="thumb${aspectClass(ad)}">${thumbImg(ad)}<span class="st ${adStatusClass(ad)}" title="${esc((ad && ad.effective_status) || '')}"></span>${badges ? `<span class="badges">${badges}</span>` : ''}${vid ? '<span class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>' : ''}<span class="pill">${esc(ad ? formatLabel(ad) : '')}</span>${isDynamic(ad) ? '<span class="pill dct">Dynamic</span>' : ''}</div><div class="body"><div class="name" title="${esc(g.name)}">${esc(g.name)}</div><div class="meta">${sub}${g.launch ? ` · launched ${fmtD(g.launch)}` : ''}</div></div><div class="rows">${metricsRows}${scoresRow}</div></div>`;
 }
 function columnValues(groups, metrics) { const cols = {}; for (const k of metrics) cols[k] = groups.map(g => g.m[k]).filter(v => v !== null && v !== undefined); return cols; }
 function renderCards(body, st, res) {

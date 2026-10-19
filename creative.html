@@ -179,10 +179,11 @@ body.role-unknown { padding-left: 0 !important; }
 .pop .grp { font-size: 10.5px; color: var(--faint); text-transform: uppercase; letter-spacing: .5px; padding: 8px 9px 2px; font-weight: 600; }
 
 /* ========== CARDS ========== */
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(228px, 1fr)); gap: 14px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(228px, 1fr)); gap: 14px; align-items: start; }
 .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); cursor: pointer; display: flex; flex-direction: column; transition: transform .12s, box-shadow .12s; }
 .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
 .thumb { position: relative; aspect-ratio: 4 / 5; background: var(--thumb-bg); overflow: hidden; }
+.thumb.v916 { aspect-ratio: 9 / 16; }
 .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .thumb .ph { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 11px; text-align: center; padding: 12px; }
 .thumb .pill { position: absolute; left: 8px; bottom: 8px; background: rgba(20,20,30,.78); color: #fff; font-size: 10.5px; font-weight: 600; padding: 3px 7px; border-radius: 6px; letter-spacing: .2px; }
@@ -191,7 +192,7 @@ body.role-unknown { padding-left: 0 !important; }
 .thumb .play svg { width: 16px; height: 16px; fill: #fff; margin-left: 2px; }
 .thumb .st { position: absolute; top: 8px; left: 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--faint); box-shadow: 0 0 0 2px rgba(255,255,255,.7); }
 .thumb .st.on { background: var(--green); }
-.thumb .st.off { background: var(--amber); }
+.thumb .st.off { background: var(--red); }
 .thumb .badges { position: absolute; top: 8px; right: 8px; display: flex; gap: 3px; }
 .badge { width: 20px; height: 20px; border-radius: 6px; background: rgba(255,255,255,.92); display: grid; place-items: center; font-size: 11px; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
 .card .body { padding: 10px 11px 6px; }
@@ -227,6 +228,11 @@ table.rt td .prev { color: var(--muted); font-size: 11.5px; }
 table.rt td .dl { font-size: 11px; font-weight: 600; }
 .rowname { display: flex; align-items: center; gap: 10px; cursor: pointer; }
 .rowname .th { width: 36px; height: 45px; border-radius: 6px; background: var(--thumb-bg); overflow: hidden; flex: 0 0 36px; position: relative; }
+.rowname .th.v916 { width: 32px; height: 57px; flex-basis: 32px; }
+.stpill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: .2px; }
+.stpill.on { background: var(--green-soft); color: var(--green); }
+.stpill.off { background: var(--red-soft); color: var(--red); }
+.stpill.other { background: var(--bg-sub); color: var(--muted); }
 .rowname .th img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .rowname .th .vd { position: absolute; right: 2px; bottom: 2px; width: 12px; height: 12px; border-radius: 50%; background: rgba(20,20,30,.7); display: grid; place-items: center; }
 .rowname .th .vd svg { width: 6px; height: 6px; fill: #fff; margin-left: 1px; }
@@ -262,6 +268,7 @@ table.rt td .dl { font-size: 11px; font-weight: 600; }
 .trend .it { display: flex; align-items: center; gap: 8px; padding: 6px 4px; border-radius: 8px; cursor: pointer; }
 .trend .it:hover { background: var(--bg-hover); }
 .trend .it .th { width: 30px; height: 38px; border-radius: 5px; background: var(--thumb-bg); overflow: hidden; flex: 0 0 30px; }
+.trend .it .th.v916 { height: 53px; }
 .trend .it .th img { width: 100%; height: 100%; object-fit: cover; }
 .trend .it .nm { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
 .trend .it .nm small { display: block; color: var(--muted); font-weight: 400; font-size: 11px; }
@@ -301,6 +308,7 @@ table.rt td .dl { font-size: 11px; font-weight: 600; }
 .cg .h .n { font-size: 11px; color: var(--muted); }
 .cg .thumbs { display: flex; gap: 4px; margin-bottom: 8px; }
 .cg .thumbs .th { width: 44px; height: 55px; border-radius: 6px; background: var(--thumb-bg); overflow: hidden; }
+.cg .thumbs .th.v916 { height: 78px; }
 .cg .thumbs .th img { width: 100%; height: 100%; object-fit: cover; }
 .cg .bar { height: 6px; border-radius: 3px; background: var(--bg-sub); overflow: hidden; margin: 6px 0 8px; }
 .cg .bar i { display: block; height: 100%; background: var(--accent); }
@@ -327,6 +335,7 @@ table.rt td .dl { font-size: 11px; font-weight: 600; }
 .modal .close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--muted); padding: 2px 6px; line-height: 1; }
 .dd { display: grid; grid-template-columns: 360px 1fr; gap: 20px; }
 .dd .media { background: var(--bg-sub); border-radius: var(--radius); overflow: hidden; position: relative; aspect-ratio: 4 / 5; display: grid; place-items: center; }
+.dd .media.v916 { aspect-ratio: 9 / 16; max-width: 330px; margin: 0 auto; }
 .dd .media img, .dd .media video { width: 100%; height: 100%; object-fit: contain; display: block; background: #000; }
 .dd .media iframe { width: 100%; height: 100%; border: none; background: #fff; }
 .dd .media .playbtn { position: absolute; inset: 0; display: grid; place-items: center; cursor: pointer; }
@@ -484,7 +493,7 @@ body { padding-left: 208px; }
     <section class="view" id="viewHome">
       <div class="vhead">
         <div><h1>Home</h1><div class="sub" id="homeSub">Last 7 days</div></div>
-        <div class="acts"><span class="kbox hidden" id="homeKing"></span></div>
+        <div class="acts"><span class="kbox hidden" id="homeRoas"></span></div>
       </div>
       <div class="tiles" id="homeTiles"></div>
       <div class="sect"><h2>Performance trends</h2><span class="sub">Biggest weekly shifts: last 7 days vs the 7 days before</span></div>
@@ -580,7 +589,7 @@ body { padding-left: 208px; }
       <div id="settingsRO" class="readonly-note hidden">You have strategist access: settings are read-only. Ask Uday to change them.</div>
       <div class="form">
         <h3>Goal and thresholds</h3>
-        <p class="hint">The goal metric drives Winners, the Convert score and the Home overview. Targets are the Meta-platform targets from the operator context (not the blended King ROAS).</p>
+        <p class="hint">The goal metric drives Winners, the Convert score and the Home overview. Targets are the Meta-platform targets from the operator context (not the blended ROAS shown on the Shopify dashboard).</p>
         <div class="frow"><label>Goal metric</label><select id="setGoalMetric"><option value="roas">ROAS (purchase value ÷ spend)</option><option value="cpa">CPA (spend ÷ purchases)</option></select></div>
         <div class="frow"><label>ROAS target</label><input id="setRoas" type="number" step="0.01" min="0"></div>
         <div class="frow"><label>CPA target (£)</label><input id="setCpa" type="number" step="0.1" min="0"></div>
@@ -975,6 +984,9 @@ function formatLabel(ad) {
 function isDynamic(ad) { const c = ad && ad.asset_counts; return !!(c && !c.customized && ((c.images || 0) + (c.videos || 0) > 1)); }
 function adLaunch(adId) { const l = D.lifetime.get(adId); if (l && l.first_spend_date) return l.first_spend_date; const c = D.creatives.get(adId); return c && c.created_time ? c.created_time.slice(0, 10) : null; }
 function adStatusClass(ad) { const s = ad && ad.effective_status; if (!s) return ''; return s === 'ACTIVE' ? 'on' : (s.includes('PAUSED') ? 'off' : ''); }
+// Videos display at 9:16, images and carousels at 4:5.
+function aspectClass(ad) { return (ad && (ad.format === 'video' || ad.video_id)) ? ' v916' : ''; }
+function statusPill(ad) { const st = ad && ad.effective_status; const cls = !st ? 'other' : st === 'ACTIVE' ? 'on' : st.includes('PAUSED') ? 'off' : 'other'; return `<span class="stpill ${cls}">${esc(st || 'UNKNOWN')}</span>`; }
 
 // ========== GROUPING OPTIONS ==========
 function groupOptions() {
@@ -1396,7 +1408,7 @@ function cardHtml(g, st, cols, maxRows = 6) {
   }).join('');
   const badges = (g.badges || []).map(b => `<span class="badge" title="${b.t}">${b.e}</span>`).join('');
   const sub = st.groupBy === 'ad' ? `${esc((D.campaigns.get(ad && ad.campaign_id) || {}).name || g.anyCampaignName || '')}` : `${g.nAds} ad${g.nAds === 1 ? '' : 's'}`;
-  return `<div class="card" data-g="${esc(g.key)}"><div class="thumb">${thumbImg(ad)}<span class="st ${adStatusClass(ad)}" title="${esc((ad && ad.effective_status) || '')}"></span>${badges ? `<span class="badges">${badges}</span>` : ''}${vid ? '<span class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>' : ''}<span class="pill">${esc(ad ? formatLabel(ad) : '')}</span>${isDynamic(ad) ? '<span class="pill dct">Dynamic</span>' : ''}</div><div class="body"><div class="name" title="${esc(g.name)}">${esc(g.name)}</div><div class="meta">${sub}${g.launch ? ` · launched ${fmtD(g.launch)}` : ''}</div></div><div class="rows">${metricsRows}</div></div>`;
+  return `<div class="card" data-g="${esc(g.key)}"><div class="thumb${aspectClass(ad)}">${thumbImg(ad)}<span class="st ${adStatusClass(ad)}" title="${esc((ad && ad.effective_status) || '')}"></span>${badges ? `<span class="badges">${badges}</span>` : ''}${vid ? '<span class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>' : ''}<span class="pill">${esc(ad ? formatLabel(ad) : '')}</span>${isDynamic(ad) ? '<span class="pill dct">Dynamic</span>' : ''}</div><div class="body"><div class="name" title="${esc(g.name)}">${esc(g.name)}</div><div class="meta">${sub}${g.launch ? ` · launched ${fmtD(g.launch)}` : ''}</div></div><div class="rows">${metricsRows}</div></div>`;
 }
 function columnValues(groups, metrics) { const cols = {}; for (const k of metrics) cols[k] = groups.map(g => g.m[k]).filter(v => v !== null && v !== undefined); return cols; }
 function renderCards(body, st, res) {
@@ -1409,7 +1421,7 @@ function renderTable(body, st, res) {
   const th = st.metrics.map((k, i) => `<th class="${st.sort.key === k ? 'sorted' : ''}" data-k="${k}"><span class="num" style="background:${CHIP_COLORS[i % 6]}">${i + 1}</span>${esc(M[k].l)}${st.sort.key === k ? `<span class="arr">${st.sort.dir === 'desc' ? '▼' : '▲'}</span>` : ''}</th>${cmp && !M[k].score ? `<th data-k="${k}" class="muted">prev</th><th data-k="${k}" class="muted">Δ</th>` : ''}`).join('');
   const cell = (g, k) => { const v = g.m[k]; const main = M[k].score ? `<td>${scoreHtml(v)}</td>` : `<td><span class="cell" style="${heatStyle(k, v, cols[k])}">${fmtV(k, v)}</span></td>`; return main + (cmp && !M[k].score ? `<td class="prev">${fmtV(k, g.pm[k])}</td><td>${fmtDelta(v, g.pm[k], k) || '—'}</td>` : ''); };
   const totalRow = `<tr class="total"><td class="first">All (${res.groups.length} rows, ${res.totals.ads.size} ads)</td>${st.metrics.map(k => M[k].score ? '<td>—</td>' : `<td>${fmtV(k, res.tm[k])}</td>` + (cmp ? `<td class="prev">${fmtV(k, res.tpm[k])}</td><td>${fmtDelta(res.tm[k], res.tpm[k], k) || '—'}</td>` : '')).join('')}</tr>`;
-  const rows = res.groups.map(g => { const ad = g.topAd; const vid = g.isVideo || (ad && ad.format === 'video'); return `<tr data-g="${esc(g.key)}"><td class="first"><div class="rowname"><div class="th">${thumbImg(ad)}${vid ? '<span class="vd"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>' : ''}</div><div><div class="nm" title="${esc(g.name)}">${esc(g.name)}${(g.badges || []).length ? `<span class="bd">${g.badges.map(b => `<span class="badge" title="${b.t}">${b.e}</span>`).join('')}</span>` : ''}</div><div class="sb">${g.nAds} ad${g.nAds === 1 ? '' : 's'} · ${esc(ad ? formatLabel(ad) : '')}${g.launch ? ' · ' + fmtD(g.launch) : ''}</div></div></div></td>${st.metrics.map(k => cell(g, k)).join('')}</tr>`; }).join('');
+  const rows = res.groups.map(g => { const ad = g.topAd; const vid = g.isVideo || (ad && ad.format === 'video'); return `<tr data-g="${esc(g.key)}"><td class="first"><div class="rowname"><div class="th${aspectClass(ad)}">${thumbImg(ad)}${vid ? '<span class="vd"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>' : ''}</div><div><div class="nm" title="${esc(g.name)}">${esc(g.name)}${(g.badges || []).length ? `<span class="bd">${g.badges.map(b => `<span class="badge" title="${b.t}">${b.e}</span>`).join('')}</span>` : ''}</div><div class="sb">${g.nAds} ad${g.nAds === 1 ? '' : 's'} · ${esc(ad ? formatLabel(ad) : '')}${g.launch ? ' · ' + fmtD(g.launch) : ''}</div></div></div></td>${st.metrics.map(k => cell(g, k)).join('')}</tr>`; }).join('');
   body.innerHTML = `<div class="tablewrap"><table class="rt"><thead><tr><th class="first" data-k="name">Creative</th>${th}</tr></thead><tbody>${totalRow}${rows}</tbody></table></div>`;
   body.querySelectorAll('th[data-k]').forEach(h => h.addEventListener('click', () => { const k = h.dataset.k; if (st.sort.key === k) st.sort.dir = st.sort.dir === 'desc' ? 'asc' : 'desc'; else { st.sort.key = k; st.sort.dir = k === 'name' ? 'asc' : 'desc'; } markDirty(st); renderReport(); }));
   body.querySelectorAll('tbody tr[data-g]').forEach(tr => tr.addEventListener('click', () => openGroup(st, res, tr.dataset.g)));
@@ -1504,14 +1516,17 @@ async function renderHome() {
   const tile = (l, k, v, pv, extra = '') => `<div class="tile ${extra}"><div class="l">${l}</div><div class="v">${k ? fmtV(k, v) : v}</div><div class="d">${k ? (fmtDelta(v, pv, k) || '<span>no change</span>') : ''} <span>vs prior 7 days${pv !== null && pv !== undefined && k ? ' (' + fmtV(k, pv) + ')' : ''}</span></div></div>`;
   $('homeTiles').innerHTML = tile('Spend', 'spend', tm.spend, tpm.spend) + tile(`${M[goalKey].l} <span class="muted">· goal ${goalKey === 'roas' ? S.goal.roas_target : '£' + S.goal.cpa_target}</span>`, goalKey, tm[goalKey], tpm[goalKey], 'goal') + tile('Purchases', 'purchases', tm.purchases, tpm.purchases) + tile(goalKey === 'roas' ? 'CPA' : 'ROAS', goalKey === 'roas' ? 'cpa' : 'roas', tm[goalKey === 'roas' ? 'cpa' : 'roas'], tpm[goalKey === 'roas' ? 'cpa' : 'roas']) + tile('Thumbstop (hook rate)', 'thumbstop', tm.thumbstop, tpm.thumbstop) + `<div class="tile"><div class="l">Creatives launched</div><div class="v">${launched1.length}</div><div class="d">${fmtDelta(launched1.length, launched0.length, 'purchases') || '<span>no change</span>'} <span>vs prior 7 days (${launched0.length})</span></div></div>`;
 
-  // King ROAS context (admins only; the view is RLS-protected for strategists)
-  const king = $('homeKing'); king.classList.add('hidden');
+  // ROAS box: Meta ROAS from this app's data, plus blended ROAS exactly as the Shopify dashboard
+  // computes it (total Shopify sales inc. VAT ÷ Meta + Google spend). Blended needs rpt_daily_overview,
+  // which only admins can read.
+  const roasBox = $('homeRoas');
+  roasBox.innerHTML = `Meta ROAS <b>${fmtV('roas', tm.roas)}</b> <span>7d</span>`; roasBox.classList.remove('hidden');
   if (USER_ROLE === 'admin') {
     try {
-      const rows = await rest(`rpt_daily_overview?select=report_date,total_sales,total_refunds,total_ad_spend&report_date=gte.${w1.from}&report_date=lte.${w1.to}`);
-      const rev = rows.reduce((s, r) => s + (Number(r.total_sales) || 0) - (Number(r.total_refunds) || 0), 0), sp = rows.reduce((s, r) => s + (Number(r.total_ad_spend) || 0), 0);
-      if (sp > 0) { king.innerHTML = `King ROAS (blended, 7d) <b>${(rev / sp).toFixed(2)}</b> <span>target 2.20</span>`; king.classList.remove('hidden'); }
-    } catch (e) { console.warn('King ROAS unavailable', e.message); }
+      const rows = await rest(`rpt_daily_overview?select=report_date,total_sales,total_ad_spend&report_date=gte.${w1.from}&report_date=lte.${w1.to}`);
+      const rev = rows.reduce((s, r) => s + (Number(r.total_sales) || 0), 0), sp = rows.reduce((s, r) => s + (Number(r.total_ad_spend) || 0), 0);
+      if (sp > 0) roasBox.innerHTML += ` <span style="margin:0 4px">·</span> Blended ROAS <b>${(rev / sp).toFixed(2)}</b> <span>7d, Shopify revenue ÷ Meta + Google spend</span>`;
+    } catch (e) { console.warn('Blended ROAS unavailable', e.message); }
   }
 
   // Performance trends
@@ -1523,14 +1538,14 @@ async function renderHome() {
   const scaling = allIds.filter(id => spend1(id) >= 50 && s0(id) >= 10 && spend1(id) >= 1.3 * s0(id)).sort((a, b) => (spend1(b) - s0(b)) - (spend1(a) - s0(a))).slice(0, 6);
   const declining = allIds.filter(id => s0(id) >= 50 && spend1(id) <= 0.7 * s0(id) && !(D.creatives.get(id)?.effective_status || '').includes('PAUSED')).sort((a, b) => (s0(b) - spend1(b)) - (s0(a) - spend1(a))).slice(0, 6);
   const fresh = launched1.map(a => a.ad_id).sort((a, b) => spend1(b) - spend1(a)).slice(0, 6);
-  const paused = allIds.filter(id => s0(id) >= 20 && (D.creatives.get(id)?.effective_status || '').includes('PAUSED')).sort((a, b) => s0(b) - s0(a)).slice(0, 6);
-  const item = (id, right) => { const ad = D.creatives.get(id); return `<div class="it" data-ad="${id}"><div class="th">${thumbImg(ad)}</div><div class="nm">${esc(ad ? ad.ad_name : id)}<small>${esc((D.campaigns.get(ad?.campaign_id) || {}).name || '')}</small></div><div class="vl">${right}</div></div>`; };
+  const paused = allIds.filter(id => (D.creatives.get(id)?.effective_status || '').includes('PAUSED') && (spend1(id) >= 10 || s0(id) >= 20)).sort((a, b) => (spend1(b) + s0(b)) - (spend1(a) + s0(a))).slice(0, 6);
+  const item = (id, right) => { const ad = D.creatives.get(id); return `<div class="it" data-ad="${id}"><div class="th${aspectClass(ad)}">${thumbImg(ad)}</div><div class="nm">${esc(ad ? ad.ad_name : id)}<small>${esc((D.campaigns.get(ad?.campaign_id) || {}).name || '')}</small></div><div class="vl">${right}</div></div>`; };
   const trend = (title, emoji, ids, right) => `<div class="trend"><h3>${emoji} ${title}<span class="n">${ids.length}</span></h3>${ids.length ? ids.map(id => item(id, right(id))).join('') : '<div class="empty">Nothing this week</div>'}</div>`;
   $('homeTrends').innerHTML =
     trend('Scaling', '📈', scaling, id => `${fmtV('spend', spend1(id))}<small class="up">+${Math.round(pct(spend1(id), s0(id)) * 100)}% spend</small>`) +
     trend('Declining', '📉', declining, id => `${fmtV('spend', spend1(id))}<small class="down">${Math.round(pct(spend1(id), s0(id)) * 100)}% spend</small>`) +
     trend('New', '✨', fresh, id => `${fmtV('spend', spend1(id))}<small>${byAd.get(id) ? 'ROAS ' + fmtV('roas', byAd.get(id).m.roas) : 'no spend yet'}</small>`) +
-    trend('Paused', '⏸', paused, id => `${fmtV('spend', s0(id))}<small>prior week</small>`);
+    trend('Paused', '⏸', paused, id => spend1(id) > 0 ? `${fmtV('spend', spend1(id))}<small>last 7 days</small>` : `${fmtV('spend', s0(id))}<small>prior week</small>`);
   $('homeTrends').querySelectorAll('.it').forEach(el => el.addEventListener('click', () => openDeepDive(el.dataset.ad, { ...base, range: w1, metrics: DEFAULT_METRICS })));
 
   // Leaderboard: top 10 by spend this week, with rank history over the last 8 weeks
@@ -1544,7 +1559,7 @@ async function renderHome() {
     let peakW = 0, peakV = -1; weeks.forEach((w, idx) => { const v = weekSpend[idx].get(g.key) || 0; if (v > peakV) { peakV = v; peakW = idx; } });
     const rk = prevRank === null ? '<span class="rk up">new</span>' : prevRank === i + 1 ? '<span class="rk muted">—</span>' : prevRank > i + 1 ? `<span class="rk up">▲${prevRank - (i + 1)}</span>` : `<span class="rk down">▼${(i + 1) - prevRank}</span>`;
     const ad = g.topAd; const badges = (BADGES.get(g.key) || []).map(b => `<span class="badge" title="${b.t}">${b.e}</span>`).join('');
-    return `<tr data-ad="${g.key}"><td class="l"><span class="rank">${i + 1}</span>${rk}</td><td class="l"><div class="rowname"><div class="th">${thumbImg(ad)}</div><div><div class="nm">${esc(g.name)}</div><div class="sb">${esc((D.campaigns.get(ad?.campaign_id) || {}).name || '')} · ${esc(ad ? formatLabel(ad) : '')}</div></div></div></td><td><span class="ach">${badges || '<span class="muted">—</span>'}</span></td><td>${fmtV('spend', g.m.spend)} ${fmtDelta(g.m.spend, g.pm.spend, 'spend')}</td><td>${fmtV(goalKey, g.m[goalKey])} ${fmtDelta(g.m[goalKey], g.pm[goalKey], goalKey)}</td><td>${fmtV('purchases', g.m.purchases)}</td><td>${scoreHtml(g.scores.hook)} ${scoreHtml(g.scores.watch)} ${scoreHtml(g.scores.click)} ${scoreHtml(g.scores.convert)}</td><td>${streak} wk${streak === 1 ? '' : 's'}</td><td>${peakW === 0 ? 'this week' : peakW === 1 ? 'last week' : peakW + ' weeks ago'}</td></tr>`;
+    return `<tr data-ad="${g.key}"><td class="l"><span class="rank">${i + 1}</span>${rk}</td><td class="l"><div class="rowname"><div class="th${aspectClass(ad)}">${thumbImg(ad)}</div><div><div class="nm">${esc(g.name)}</div><div class="sb">${esc((D.campaigns.get(ad?.campaign_id) || {}).name || '')} · ${esc(ad ? formatLabel(ad) : '')}</div></div></div></td><td><span class="ach">${badges || '<span class="muted">—</span>'}</span></td><td>${fmtV('spend', g.m.spend)} ${fmtDelta(g.m.spend, g.pm.spend, 'spend')}</td><td>${fmtV(goalKey, g.m[goalKey])} ${fmtDelta(g.m[goalKey], g.pm[goalKey], goalKey)}</td><td>${fmtV('purchases', g.m.purchases)}</td><td>${scoreHtml(g.scores.hook)} ${scoreHtml(g.scores.watch)} ${scoreHtml(g.scores.click)} ${scoreHtml(g.scores.convert)}</td><td>${streak} wk${streak === 1 ? '' : 's'}</td><td>${peakW === 0 ? 'this week' : peakW === 1 ? 'last week' : peakW + ' weeks ago'}</td></tr>`;
   }).join('');
   $('homeLeaderboard').innerHTML = top.length ? `<table><thead><tr><th class="l">#</th><th class="l">Creative</th><th>Badges</th><th>Spend</th><th>${M[goalKey].l}</th><th>Purchases</th><th title="Hook · Watch · Click · Convert">Scores H·W·C·C</th><th>On board</th><th>Peaked</th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">No spend in the last 7 days.</div>';
   $('homeLeaderboard').querySelectorAll('tr[data-ad]').forEach(tr => tr.addEventListener('click', () => openDeepDive(tr.dataset.ad, { ...base, range: w1, metrics: DEFAULT_METRICS })));
@@ -1588,7 +1603,7 @@ async function renderLaunch() {
   const cols = [['launch', 'Launched'], ['daysLive', 'Days live'], ['lifeSpend', 'Lifetime spend'], ['lifeRoas', 'Lifetime ROAS'], ['lifeCpa', 'Lifetime CPA'], ['lifePurch', 'Purchases'], ['wSpend', `Spend (${win}d)`], ['wRoas', `ROAS (${win}d)`], ['wCpa', `CPA (${win}d)`]];
   const fmtCol = (k, v) => k === 'launch' ? fmtD(v, true) : k === 'daysLive' || k === 'lifePurch' ? fmtV('purchases', v) : k.endsWith('Roas') ? fmtV('roas', v) : fmtV('spend', v);
   const heat = (k, v) => { if (k === 'launch') return ''; const vals = rows.map(r => r[k]).filter(x => x !== null && x !== undefined); const key = k.endsWith('Cpa') ? 'cpa' : k.endsWith('Roas') ? 'roas' : 'spend'; return heatStyle(key, v, vals); };
-  $('launchBody').innerHTML = rows.length ? `<div class="tablewrap"><table class="rt"><thead><tr><th class="first">Creative</th><th>Badges</th>${cols.map(([k, l]) => `<th data-k="${k}" class="${sortKey === k ? 'sorted' : ''}">${l}${sortKey === k ? `<span class="arr">${dir < 0 ? '▼' : '▲'}</span>` : ''}</th>`).join('')}<th title="Hook · Watch · Click · Convert">Scores H·W·C·C</th><th>Status</th></tr></thead><tbody>${rows.map(r => `<tr data-ad="${r.ad.ad_id}"><td class="first"><div class="rowname"><div class="th">${thumbImg(r.ad)}</div><div><div class="nm">${esc(r.ad.ad_name)}</div><div class="sb">${esc((D.campaigns.get(r.ad.campaign_id) || {}).name || '')} · ${esc(formatLabel(r.ad))}</div></div></div></td><td><span class="ach">${r.badges.map(b => `<span class="badge" title="${b.t}">${b.e}</span>`).join('') || '<span class="muted">—</span>'}</span></td>${cols.map(([k]) => `<td><span class="cell" style="${heat(k, r[k])}">${fmtCol(k, r[k])}</span></td>`).join('')}<td>${scoreHtml(r.scores.hook)} ${scoreHtml(r.scores.watch)} ${scoreHtml(r.scores.click)} ${scoreHtml(r.scores.convert)}</td><td>${esc(r.ad.effective_status || '')}</td></tr>`).join('')}</tbody></table></div>` : `<div class="empty-state">No creatives in this tab for the chosen launch window.</div>`;
+  $('launchBody').innerHTML = rows.length ? `<div class="tablewrap"><table class="rt"><thead><tr><th class="first">Creative</th><th>Badges</th>${cols.map(([k, l]) => `<th data-k="${k}" class="${sortKey === k ? 'sorted' : ''}">${l}${sortKey === k ? `<span class="arr">${dir < 0 ? '▼' : '▲'}</span>` : ''}</th>`).join('')}<th title="Hook · Watch · Click · Convert">Scores H·W·C·C</th><th>Status</th></tr></thead><tbody>${rows.map(r => `<tr data-ad="${r.ad.ad_id}"><td class="first"><div class="rowname"><div class="th${aspectClass(r.ad)}">${thumbImg(r.ad)}</div><div><div class="nm">${esc(r.ad.ad_name)}</div><div class="sb">${esc((D.campaigns.get(r.ad.campaign_id) || {}).name || '')} · ${esc(formatLabel(r.ad))}</div></div></div></td><td><span class="ach">${r.badges.map(b => `<span class="badge" title="${b.t}">${b.e}</span>`).join('') || '<span class="muted">—</span>'}</span></td>${cols.map(([k]) => `<td><span class="cell" style="${heat(k, r[k])}">${fmtCol(k, r[k])}</span></td>`).join('')}<td>${scoreHtml(r.scores.hook)} ${scoreHtml(r.scores.watch)} ${scoreHtml(r.scores.click)} ${scoreHtml(r.scores.convert)}</td><td>${statusPill(r.ad)}</td></tr>`).join('')}</tbody></table></div>` : `<div class="empty-state">No creatives in this tab for the chosen launch window.</div>`;
   $('launchBody').querySelectorAll('th[data-k]').forEach(h => h.addEventListener('click', () => { const k = h.dataset.k; if (st.sort.key === k) st.sort.dir = st.sort.dir === 'desc' ? 'asc' : 'desc'; else { st.sort.key = k; st.sort.dir = 'desc'; } renderLaunch(); }));
   $('launchBody').querySelectorAll('tr[data-ad]').forEach(tr => tr.addEventListener('click', () => openDeepDive(tr.dataset.ad, { range: { from: wFrom, to: y }, compare: 'off', groupBy: 'ad', filters: [], search: '', sort: { key: 'spend', dir: 'desc' }, metrics: DEFAULT_METRICS })));
   $('launchFoot').innerHTML = `<span>Scaled = lifetime spend ≥ £${thr}. Winner = scaled and ${S.goal.metric === 'cpa' ? 'CPA ≤ £' + S.goal.cpa_target : 'ROAS ≥ ' + S.goal.roas_target} over the last ${win} days. Lifetime = since ${fmtD(DATA_START, true)} (no earlier history).</span>`;
@@ -1615,11 +1630,11 @@ async function renderCompare() {
   CHARTS.cmp = new Chart($('cChart'), { type: 'bar', data: { labels: groups.map(g => g.name.length > 40 ? g.name.slice(0, 38) + '…' : g.name), datasets: [{ data: groups.map(g => g.m[k] === null ? null : (M[k].f === 'pct' ? g.m[k] * 100 : g.m[k])), backgroundColor: groups.map((_, i) => SERIES_COLORS[i % 10]), borderRadius: 5 }] }, options: { responsive: true, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => M[k].f === 'pct' ? c.parsed.y.toFixed(2) + '%' : fmtV(k, c.parsed.y) } } }, scales: { y: { grid: { color: Chart.defaults.borderColor }, ticks: { callback: v => M[k].f === 'pct' ? v + '%' : M[k].f === 'gbp' ? '£' + v : v } }, x: { grid: { display: false } } } } });
   const maxSpend = Math.max(...res.groups.map(g => g.m.spend), 1);
   const cols = columnValues(res.groups, st.metrics);
-  $('cGroups').innerHTML = res.groups.map(g => { const ads = Array.from(g.adSpend.entries()).sort((a, b) => b[1] - a[1]).slice(0, 4).map(e => D.creatives.get(e[0])); return `<div class="cg" data-g="${esc(g.key)}"><div class="h"><span class="t" title="${esc(g.name)}">${esc(g.name)}</span><span class="n">${g.nAds} ad${g.nAds === 1 ? '' : 's'}</span></div><div class="thumbs">${ads.map(a => `<div class="th">${thumbImg(a)}</div>`).join('')}</div><div class="bar" title="Share of spend"><i style="width:${Math.round(100 * g.m.spend / maxSpend)}%"></i></div>${st.metrics.slice(0, 6).map((mk, i) => `<div class="mrow"><span class="l"><i style="background:${CHIP_COLORS[i % 6]}"></i>${esc(M[mk].l)}</span><span>${M[mk].score ? scoreHtml(g.m[mk]) : `<span class="v" style="${heatStyle(mk, g.m[mk], cols[mk])}">${fmtV(mk, g.m[mk])}</span>`}${g.pm && !M[mk].score ? fmtDelta(g.m[mk], g.pm[mk], mk) : ''}</span></div>`).join('')}</div>`; }).join('') || '<div class="empty-state">No ads match.</div>';
+  $('cGroups').innerHTML = res.groups.map(g => { const ads = Array.from(g.adSpend.entries()).sort((a, b) => b[1] - a[1]).slice(0, 4).map(e => D.creatives.get(e[0])); return `<div class="cg" data-g="${esc(g.key)}"><div class="h"><span class="t" title="${esc(g.name)}">${esc(g.name)}</span><span class="n">${g.nAds} ad${g.nAds === 1 ? '' : 's'}</span></div><div class="thumbs">${ads.map(a => `<div class="th${aspectClass(a)}">${thumbImg(a)}</div>`).join('')}</div><div class="bar" title="Share of spend"><i style="width:${Math.round(100 * g.m.spend / maxSpend)}%"></i></div>${st.metrics.slice(0, 6).map((mk, i) => `<div class="mrow"><span class="l"><i style="background:${CHIP_COLORS[i % 6]}"></i>${esc(M[mk].l)}</span><span>${M[mk].score ? scoreHtml(g.m[mk]) : `<span class="v" style="${heatStyle(mk, g.m[mk], cols[mk])}">${fmtV(mk, g.m[mk])}</span>`}${g.pm && !M[mk].score ? fmtDelta(g.m[mk], g.pm[mk], mk) : ''}</span></div>`).join('')}</div>`; }).join('') || '<div class="empty-state">No ads match.</div>';
   $('cGroups').querySelectorAll('.cg').forEach(c => c.addEventListener('click', () => openGroup(st, res, c.dataset.g)));
   // table
   const cmp = !!res.prevRange;
-  $('cTableWrap').innerHTML = res.groups.length ? `<table class="rt"><thead><tr><th class="first">${esc(groupLabelFor(st.groupBy))}</th><th>Ads</th>${st.metrics.map((mk, i) => `<th><span class="num" style="background:${CHIP_COLORS[i % 6]}">${i + 1}</span>${esc(M[mk].l)}</th>${cmp && !M[mk].score ? '<th class="muted">prev</th><th class="muted">Δ</th>' : ''}`).join('')}</tr></thead><tbody><tr class="total"><td class="first">All</td><td>${res.totals.ads.size}</td>${st.metrics.map(mk => (M[mk].score ? '<td>—</td>' : `<td>${fmtV(mk, res.tm[mk])}</td>`) + (cmp && !M[mk].score ? `<td class="prev">${fmtV(mk, res.tpm[mk])}</td><td>${fmtDelta(res.tm[mk], res.tpm[mk], mk) || '—'}</td>` : '')).join('')}</tr>${res.groups.map(g => `<tr data-g="${esc(g.key)}"><td class="first"><div class="rowname"><div class="th">${thumbImg(g.topAd)}</div><div class="nm" title="${esc(g.name)}">${esc(g.name)}</div></div></td><td>${g.nAds}</td>${st.metrics.map(mk => (M[mk].score ? `<td>${scoreHtml(g.m[mk])}</td>` : `<td><span class="cell" style="${heatStyle(mk, g.m[mk], cols[mk])}">${fmtV(mk, g.m[mk])}</span></td>`) + (cmp && !M[mk].score ? `<td class="prev">${fmtV(mk, g.pm[mk])}</td><td>${fmtDelta(g.m[mk], g.pm[mk], mk) || '—'}</td>` : '')).join('')}</tr>`).join('')}</tbody></table>` : '';
+  $('cTableWrap').innerHTML = res.groups.length ? `<table class="rt"><thead><tr><th class="first">${esc(groupLabelFor(st.groupBy))}</th><th>Ads</th>${st.metrics.map((mk, i) => `<th><span class="num" style="background:${CHIP_COLORS[i % 6]}">${i + 1}</span>${esc(M[mk].l)}</th>${cmp && !M[mk].score ? '<th class="muted">prev</th><th class="muted">Δ</th>' : ''}`).join('')}</tr></thead><tbody><tr class="total"><td class="first">All</td><td>${res.totals.ads.size}</td>${st.metrics.map(mk => (M[mk].score ? '<td>—</td>' : `<td>${fmtV(mk, res.tm[mk])}</td>`) + (cmp && !M[mk].score ? `<td class="prev">${fmtV(mk, res.tpm[mk])}</td><td>${fmtDelta(res.tm[mk], res.tpm[mk], mk) || '—'}</td>` : '')).join('')}</tr>${res.groups.map(g => `<tr data-g="${esc(g.key)}"><td class="first"><div class="rowname"><div class="th${aspectClass(g.topAd)}">${thumbImg(g.topAd)}</div><div class="nm" title="${esc(g.name)}">${esc(g.name)}</div></div></td><td>${g.nAds}</td>${st.metrics.map(mk => (M[mk].score ? `<td>${scoreHtml(g.m[mk])}</td>` : `<td><span class="cell" style="${heatStyle(mk, g.m[mk], cols[mk])}">${fmtV(mk, g.m[mk])}</span></td>`) + (cmp && !M[mk].score ? `<td class="prev">${fmtV(mk, g.pm[mk])}</td><td>${fmtDelta(g.m[mk], g.pm[mk], mk) || '—'}</td>` : '')).join('')}</tr>`).join('')}</tbody></table>` : '';
   $('cTableWrap').querySelectorAll('tr[data-g]').forEach(tr => tr.addEventListener('click', () => openGroup(st, res, tr.dataset.g)));
   hydrateThumbs($('viewCompare'));
 }
@@ -1668,14 +1683,14 @@ async function openDeepDive(adId, st) {
   const funnel = funnelSteps.map((s, i) => `<div class="f"><b>${fmtV('purchases', s[1])}</b>${s[0]}<br><small>${i === 0 ? '' : (funnelSteps[i - 1][1] ? (100 * s[1] / funnelSteps[i - 1][1]).toFixed(1) + '% of prev' : '—')}</small></div>`).join('');
   $('ddBody').innerHTML = `<div class="dd">
     <div>
-      <div class="media" id="ddMedia">${thumbImg(ad)}${vid ? '<div class="playbtn" id="ddPlay"><span><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>' : ''}</div>
+      <div class="media${vid ? ' v916' : ''}" id="ddMedia">${thumbImg(ad)}${vid ? '<div class="playbtn" id="ddPlay"><span><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>' : ''}</div>
       <div class="muted" style="font-size:11px;margin-top:6px">${vid ? 'Click to play. Video streams from Meta; if the file is not available the Meta ad preview is shown instead.' : 'Static image ad.'}</div>
       <h4>Naming segments</h4><div class="kv">${segs.map((s, i) => `<span class="k">${esc(s)}</span><span>${esc(i === 1 ? productLabel(seg[i]) : seg[i]) || '—'}</span>`).join('')}</div>
       <h4>Tags <small>shared with everyone who uses this app</small></h4><div class="tags" id="ddTags"></div>
     </div>
     <div class="info">
       <h3>${esc(ad.ad_name)}</h3>
-      <div class="kv">${kv.map(([k, v]) => `<span class="k">${k}</span><span>${esc(v)}</span>`).join('')}</div>
+      <div class="kv">${kv.map(([k, v]) => `<span class="k">${k}</span><span>${k === 'Status' ? statusPill(ad) : esc(v)}</span>`).join('')}</div>
       <div class="copy">${ad.title ? `<b>${esc(ad.title)}</b>` : ''}${esc(ad.body || '(no primary text)')}${ad.description ? `\n<span class="muted">${esc(ad.description)}</span>` : ''}</div>
       <h4>Performance <small>${fmtRange(range.from, range.to)}</small></h4>
       <div class="kpis">${['spend', 'roas', 'cpa', 'purchases', 'ctr_outbound', 'thumbstop', 'hold_rate', 'cpm'].map(k => `<div class="kpi"><div class="l">${esc(M[k].l)}</div><div class="v">${fmtV(k, m[k])}</div></div>`).join('')}<div class="kpi"><div class="l">Scores H·W·C·C</div><div class="v">${scoreHtml(sc.hook)} ${scoreHtml(sc.watch)} ${scoreHtml(sc.click)} ${scoreHtml(sc.convert)}</div></div></div>

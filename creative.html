@@ -1606,7 +1606,7 @@ async function renderLaunch() {
   });
   const scaledN = LAUNCH_ROWS.filter(r => r.scaled).length, winN = LAUNCH_ROWS.filter(r => r.winner).length;
   $('cntLaunched').textContent = LAUNCH_ROWS.length; $('cntScaled').textContent = scaledN; $('cntWinners').textContent = winN;
-  $('launchSub').textContent = `${LAUNCH_ROWS.length} creatives launched ${fmtRange(st.range.from, st.range.to)} · ${scaledN} scaled past £${thr} · ${winN} winners (${LAUNCH_ROWS.length ? Math.round(100 * winN / LAUNCH_ROWS.length) : 0}% hit rate) · goal checked over the last ${win} days`;
+  $('launchSub').textContent = `${LAUNCH_ROWS.length} creatives launched ${fmtRange(st.range.from, st.range.to)} · ${scaledN} scaled past £${thr} · ${winN} winners (${LAUNCH_ROWS.length ? Math.round(100 * winN / LAUNCH_ROWS.length) : 0}% hit rate) · winners judged on the last ${win} days`;
   // Weekly strip (weeks start Monday)
   const weekKey = (d) => { const dt = dparse(d); const day = (dt.getDay() + 6) % 7; dt.setDate(dt.getDate() - day); return dstr(dt); };
   const weeks = new Map(); for (const r of LAUNCH_ROWS) { const k = weekKey(r.launch); const w = weeks.get(k) || { launched: 0, scaled: 0, winners: 0 }; w.launched++; if (r.scaled) w.scaled++; if (r.winner) w.winners++; weeks.set(k, w); }

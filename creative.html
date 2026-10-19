@@ -589,7 +589,7 @@ body { padding-left: 208px; }
       <div id="settingsRO" class="readonly-note hidden">You have strategist access: settings are read-only. Ask Uday to change them.</div>
       <div class="form">
         <h3>Goal and thresholds</h3>
-        <p class="hint">The goal metric drives Winners, the Convert score and the Home overview. Targets are the Meta-platform targets from the operator context (not the blended ROAS shown on the Shopify dashboard).</p>
+        <p class="hint">The goal metric and targets only decide Winners, badges and the Convert score; they are not shown on Home. Targets are the Meta-platform targets from the operator context (not the blended ROAS shown on the Shopify dashboard).</p>
         <div class="frow"><label>Goal metric</label><select id="setGoalMetric"><option value="roas">ROAS (purchase value ÷ spend)</option><option value="cpa">CPA (spend ÷ purchases)</option></select></div>
         <div class="frow"><label>ROAS target</label><input id="setRoas" type="number" step="0.01" min="0"></div>
         <div class="frow"><label>CPA target (£)</label><input id="setCpa" type="number" step="0.1" min="0"></div>
@@ -874,7 +874,21 @@ function thumbUrl(path) { const c = THUMB_CACHE.get(path); return c && c.exp > D
 async function hydrateThumbs(root) {
   const imgs = Array.from(root.querySelectorAll('img[data-thumb]'));
   await signThumbs(imgs.map(i => i.dataset.thumb));
-  for (const img of imgs) { const u = thumbUrl(img.dataset.thumb); if (u) { img.src = u; img.removeAttribute('data-thumb'); } }
+  for (const img of imgs) {
+    const u = thumbUrl(img.dataset.thumb); if (!u) continue;
+    img.addEventListener('load', () => fitThumb(img), { once: true });
+    img.src = u; img.removeAttribute('data-thumb');
+    if (img.complete && img.naturalWidth) fitThumb(img);
+  }
+}
+// Default box is 4:5. A static whose image is another shape (Karmic feed images are often 1:1) gets a box
+// of its own ratio, clamped between 9:16 and 1:1, so the whole creative shows with nothing cropped.
+// Video boxes stay 9:16 by rule.
+function fitThumb(img) {
+  const box = img.closest('.thumb, .dd .media'); if (!box || box.classList.contains('v916')) return;
+  const w = img.naturalWidth, h = img.naturalHeight; if (!w || !h) return;
+  const r = w / h; if (Math.abs(r - 0.8) < 0.03) return;
+  box.style.aspectRatio = String(clamp(r, 9 / 16, 1));
 }
 function thumbImg(ad, cls = '') { return ad && ad.thumb_path ? `<img data-thumb="${esc(ad.thumb_path)}" alt="" loading="lazy" class="${cls}">` : `<div class="ph">${ad ? 'No preview yet' : ''}</div>`; }
 
@@ -985,7 +999,8 @@ function isDynamic(ad) { const c = ad && ad.asset_counts; return !!(c && !c.cust
 function adLaunch(adId) { const l = D.lifetime.get(adId); if (l && l.first_spend_date) return l.first_spend_date; const c = D.creatives.get(adId); return c && c.created_time ? c.created_time.slice(0, 10) : null; }
 function adStatusClass(ad) { const s = ad && ad.effective_status; if (!s) return ''; return s === 'ACTIVE' ? 'on' : (s.includes('PAUSED') ? 'off' : ''); }
 // Videos display at 9:16, images and carousels at 4:5.
-function aspectClass(ad) { return (ad && (ad.format === 'video' || ad.video_id)) ? ' v916' : ''; }
+function isVideoAd(ad) { return !!(ad && (ad.format === 'video' || ad.video_id)); }
+function aspectClass(ad) { return isVideoAd(ad) ? ' v916' : ''; }
 function statusPill(ad) { const st = ad && ad.effective_status; const cls = !st ? 'other' : st === 'ACTIVE' ? 'on' : st.includes('PAUSED') ? 'off' : 'other'; return `<span class="stpill ${cls}">${esc(st || 'UNKNOWN')}</span>`; }
 
 // ========== GROUPING OPTIONS ==========
@@ -1400,7 +1415,7 @@ async function renderReport() {
   hydrateThumbs(body);
 }
 function cardHtml(g, st, cols, maxRows = 6) {
-  const ad = g.topAd; const vid = g.isVideo || (ad && ad.format === 'video');
+  const ad = g.topAd; const vid = isVideoAd(ad);
   const metricsRows = st.metrics.slice(0, maxRows).map((k, i) => {
     const v = g.m[k]; const val = M[k].score ? scoreHtml(v) : `<span class="v" style="${heatStyle(k, v, cols[k])}">${fmtV(k, v)}</span>`;
     const dl = g.pm && !M[k].score ? fmtDelta(v, g.pm[k], k) : '';
@@ -1421,7 +1436,7 @@ function renderTable(body, st, res) {
   const th = st.metrics.map((k, i) => `<th class="${st.sort.key === k ? 'sorted' : ''}" data-k="${k}"><span class="num" style="background:${CHIP_COLORS[i % 6]}">${i + 1}</span>${esc(M[k].l)}${st.sort.key === k ? `<span class="arr">${st.sort.dir === 'desc' ? '▼' : '▲'}</span>` : ''}</th>${cmp && !M[k].score ? `<th data-k="${k}" class="muted">prev</th><th data-k="${k}" class="muted">Δ</th>` : ''}`).join('');
   const cell = (g, k) => { const v = g.m[k]; const main = M[k].score ? `<td>${scoreHtml(v)}</td>` : `<td><span class="cell" style="${heatStyle(k, v, cols[k])}">${fmtV(k, v)}</span></td>`; return main + (cmp && !M[k].score ? `<td class="prev">${fmtV(k, g.pm[k])}</td><td>${fmtDelta(v, g.pm[k], k) || '—'}</td>` : ''); };
   const totalRow = `<tr class="total"><td class="first">All (${res.groups.length} rows, ${res.totals.ads.size} ads)</td>${st.metrics.map(k => M[k].score ? '<td>—</td>' : `<td>${fmtV(k, res.tm[k])}</td>` + (cmp ? `<td class="prev">${fmtV(k, res.tpm[k])}</td><td>${fmtDelta(res.tm[k], res.tpm[k], k) || '—'}</td>` : '')).join('')}</tr>`;
-  const rows = res.groups.map(g => { const ad = g.topAd; const vid = g.isVideo || (ad && ad.format === 'video'); return `<tr data-g="${esc(g.key)}"><td class="first"><div class="rowname"><div class="th${aspectClass(ad)}">${thumbImg(ad)}${vid ? '<span class="vd"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>' : ''}</div><div><div class="nm" title="${esc(g.name)}">${esc(g.name)}${(g.badges || []).length ? `<span class="bd">${g.badges.map(b => `<span class="badge" title="${b.t}">${b.e}</span>`).join('')}</span>` : ''}</div><div class="sb">${g.nAds} ad${g.nAds === 1 ? '' : 's'} · ${esc(ad ? formatLabel(ad) : '')}${g.launch ? ' · ' + fmtD(g.launch) : ''}</div></div></div></td>${st.metrics.map(k => cell(g, k)).join('')}</tr>`; }).join('');
+  const rows = res.groups.map(g => { const ad = g.topAd; const vid = isVideoAd(ad); return `<tr data-g="${esc(g.key)}"><td class="first"><div class="rowname"><div class="th${aspectClass(ad)}">${thumbImg(ad)}${vid ? '<span class="vd"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>' : ''}</div><div><div class="nm" title="${esc(g.name)}">${esc(g.name)}${(g.badges || []).length ? `<span class="bd">${g.badges.map(b => `<span class="badge" title="${b.t}">${b.e}</span>`).join('')}</span>` : ''}</div><div class="sb">${g.nAds} ad${g.nAds === 1 ? '' : 's'} · ${esc(ad ? formatLabel(ad) : '')}${g.launch ? ' · ' + fmtD(g.launch) : ''}</div></div></div></td>${st.metrics.map(k => cell(g, k)).join('')}</tr>`; }).join('');
   body.innerHTML = `<div class="tablewrap"><table class="rt"><thead><tr><th class="first" data-k="name">Creative</th>${th}</tr></thead><tbody>${totalRow}${rows}</tbody></table></div>`;
   body.querySelectorAll('th[data-k]').forEach(h => h.addEventListener('click', () => { const k = h.dataset.k; if (st.sort.key === k) st.sort.dir = st.sort.dir === 'desc' ? 'asc' : 'desc'; else { st.sort.key = k; st.sort.dir = k === 'name' ? 'asc' : 'desc'; } markDirty(st); renderReport(); }));
   body.querySelectorAll('tbody tr[data-g]').forEach(tr => tr.addEventListener('click', () => openGroup(st, res, tr.dataset.g)));
@@ -1514,7 +1529,7 @@ async function renderHome() {
   const launched0 = Array.from(D.creatives.values()).filter(a => { const l = adLaunch(a.ad_id); return l && l >= w0.from && l <= w0.to; });
   const goalKey = S.goal.metric === 'cpa' ? 'cpa' : 'roas';
   const tile = (l, k, v, pv, extra = '') => `<div class="tile ${extra}"><div class="l">${l}</div><div class="v">${k ? fmtV(k, v) : v}</div><div class="d">${k ? (fmtDelta(v, pv, k) || '<span>no change</span>') : ''} <span>vs prior 7 days${pv !== null && pv !== undefined && k ? ' (' + fmtV(k, pv) + ')' : ''}</span></div></div>`;
-  $('homeTiles').innerHTML = tile('Spend', 'spend', tm.spend, tpm.spend) + tile(`${M[goalKey].l} <span class="muted">· goal ${goalKey === 'roas' ? S.goal.roas_target : '£' + S.goal.cpa_target}</span>`, goalKey, tm[goalKey], tpm[goalKey], 'goal') + tile('Purchases', 'purchases', tm.purchases, tpm.purchases) + tile(goalKey === 'roas' ? 'CPA' : 'ROAS', goalKey === 'roas' ? 'cpa' : 'roas', tm[goalKey === 'roas' ? 'cpa' : 'roas'], tpm[goalKey === 'roas' ? 'cpa' : 'roas']) + tile('Thumbstop (hook rate)', 'thumbstop', tm.thumbstop, tpm.thumbstop) + `<div class="tile"><div class="l">Creatives launched</div><div class="v">${launched1.length}</div><div class="d">${fmtDelta(launched1.length, launched0.length, 'purchases') || '<span>no change</span>'} <span>vs prior 7 days (${launched0.length})</span></div></div>`;
+  $('homeTiles').innerHTML = tile('Spend', 'spend', tm.spend, tpm.spend) + tile(M[goalKey].l, goalKey, tm[goalKey], tpm[goalKey]) + tile('Purchases', 'purchases', tm.purchases, tpm.purchases) + tile(goalKey === 'roas' ? 'CPA' : 'ROAS', goalKey === 'roas' ? 'cpa' : 'roas', tm[goalKey === 'roas' ? 'cpa' : 'roas'], tpm[goalKey === 'roas' ? 'cpa' : 'roas']) + tile('Thumbstop (hook rate)', 'thumbstop', tm.thumbstop, tpm.thumbstop) + `<div class="tile"><div class="l">Creatives launched</div><div class="v">${launched1.length}</div><div class="d">${fmtDelta(launched1.length, launched0.length, 'purchases') || '<span>no change</span>'} <span>vs prior 7 days (${launched0.length})</span></div></div>`;
 
   // ROAS box: Meta ROAS from this app's data, plus blended ROAS exactly as the Shopify dashboard
   // computes it (total Shopify sales inc. VAT ÷ Meta + Google spend). Blended needs rpt_daily_overview,
@@ -1674,7 +1689,7 @@ async function openDeepDive(adId, st) {
   const sums = emptySums(); const daily = dailyRows(range.from, range.to).filter(r => r.ad_id === adId); for (const r of daily) addRow(sums, r);
   const m = deriveMetrics(sums);
   const res = buildGroups({ range, compare: 'off', groupBy: 'ad', filters: [], search: '', sort: { key: 'spend', dir: 'desc' } }); const g = res.groups.find(x => x.key === adId); const sc = g ? g.scores : { hook: null, watch: null, click: null, convert: null };
-  const vid = ad.format === 'video' || !!ad.video_id || sums.video_plays > 0;
+  const vid = isVideoAd(ad); const hasPlays = sums.video_plays > 0;   // statics can carry auto-generated video plays
   const tags = D.tags.get(adId) || [];
   const campaign = D.campaigns.get(ad.campaign_id), adset = D.adsets.get(ad.adset_id);
   const kv = [['Status', ad.effective_status || '—'], ['Campaign', campaign ? campaign.name : ad.campaign_name || '—'], ['Ad set', adset ? adset.name : ad.adset_name || '—'], ['Format', formatLabel(ad) + (isDynamic(ad) ? ' · dynamic' : '')], ['Launched', life.first_spend_date ? `${fmtD(life.first_spend_date, true)} (${life.days_active} active days)` : (ad.created_time ? 'created ' + fmtD(ad.created_time, true) : '—')], ['Lifetime', life.lifetime_spend !== undefined ? `${fmtV('spend', Number(life.lifetime_spend))} spend · ${life.lifetime_purchases} purchases · ROAS ${fmtV('roas', div(Number(life.lifetime_purchase_value), Number(life.lifetime_spend)))}` : '—'], ['CTA', ad.cta_type ? ad.cta_type.replace(/_/g, ' ').toLowerCase() : '—']];
@@ -1684,7 +1699,7 @@ async function openDeepDive(adId, st) {
   $('ddBody').innerHTML = `<div class="dd">
     <div>
       <div class="media${vid ? ' v916' : ''}" id="ddMedia">${thumbImg(ad)}${vid ? '<div class="playbtn" id="ddPlay"><span><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>' : ''}</div>
-      <div class="muted" style="font-size:11px;margin-top:6px">${vid ? 'Click to play. Video streams from Meta; if the file is not available the Meta ad preview is shown instead.' : 'Static image ad.'}</div>
+      <div class="muted" style="font-size:11px;margin-top:6px">${vid ? 'Click to play. Video streams from Meta; if the file is not available the Meta ad preview is shown instead.' : (hasPlays ? 'Static image ad. Meta also served an auto-generated clip of it in some placements.' : 'Static image ad.')}</div>
       <h4>Naming segments</h4><div class="kv">${segs.map((s, i) => `<span class="k">${esc(s)}</span><span>${esc(i === 1 ? productLabel(seg[i]) : seg[i]) || '—'}</span>`).join('')}</div>
       <h4>Tags <small>shared with everyone who uses this app</small></h4><div class="tags" id="ddTags"></div>
     </div>
@@ -1697,7 +1712,7 @@ async function openDeepDive(adId, st) {
       <h4>Funnel</h4><div class="funnel">${funnel}</div>
       <div class="two" style="margin-top:14px">
         <div><h4>Spend and ROAS by day</h4><div class="mini-chart"><canvas id="ddDaily"></canvas></div></div>
-        ${vid ? `<div><h4>Video retention <small>share of plays still watching</small></h4><div class="mini-chart"><canvas id="ddRet"></canvas></div></div>` : '<div></div>'}
+        ${(vid || hasPlays) ? `<div><h4>Video retention <small>share of plays still watching${vid ? '' : ' · Meta auto-generated a clip from this static'}</small></h4><div class="mini-chart"><canvas id="ddRet"></canvas></div></div>` : '<div></div>'}
       </div>
       <div class="two" style="margin-top:14px">
         <div><h4>Placements <small id="ddPlSub">loading…</small></h4><div id="ddPlacement"></div></div>
@@ -1713,7 +1728,7 @@ async function openDeepDive(adId, st) {
   const dates = []; for (let d = range.from; d <= range.to; d = addDays(d, 1)) dates.push(d);
   const byDay = new Map(daily.map(r => [r.report_date, r]));
   CHARTS.ddDaily = new Chart($('ddDaily'), { data: { labels: dates.map(d => fmtD(d)), datasets: [{ type: 'bar', label: 'Spend', data: dates.map(d => Number(byDay.get(d)?.spend) || 0), backgroundColor: 'rgba(90,72,245,.55)', yAxisID: 'y', borderRadius: 3 }, { type: 'line', label: 'ROAS', data: dates.map(d => { const r = byDay.get(d); return r && Number(r.spend) > 0 ? Number(r.purchase_value) / Number(r.spend) : null; }), borderColor: '#10b981', backgroundColor: '#10b981', yAxisID: 'y1', tension: .3, pointRadius: 2, spanGaps: true }] }, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: true, position: 'bottom' } }, scales: { y: { ticks: { callback: v => '£' + v }, grid: { color: Chart.defaults.borderColor } }, y1: { position: 'right', grid: { display: false }, ticks: { callback: v => v.toFixed(1) } }, x: { grid: { display: false } } } } });
-  if (vid) {
+  if (vid || hasPlays) {
     const p = sums.video_plays || 0; const pts = [['Play', p], ['3s', sums.video_views_3s], ['25%', sums.video_p25], ['50%', sums.video_p50], ['75%', sums.video_p75], ['95%', sums.video_p95], ['100%', sums.video_p100]];
     CHARTS.ddRet = new Chart($('ddRet'), { type: 'line', data: { labels: pts.map(x => x[0]), datasets: [{ data: pts.map(x => p ? 100 * x[1] / p : 0), borderColor: '#5a48f5', backgroundColor: 'rgba(90,72,245,.15)', fill: true, tension: .25, pointRadius: 3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.y.toFixed(1) + '% of plays' } } }, scales: { y: { min: 0, max: 100, ticks: { callback: v => v + '%' }, grid: { color: Chart.defaults.borderColor } }, x: { grid: { display: false } } } } });
   }

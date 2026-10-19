@@ -605,6 +605,11 @@ body { padding-left: 208px; }
         <div class="frow" style="align-items:start"><label>Product codes</label><div><div class="codes" id="codesList"></div><button class="ibtn sm" id="btnAddCode" style="margin-top:8px">+ Add code</button></div></div>
       </div>
       <div class="form">
+        <h3>Home overview campaigns (NC)</h3>
+        <p class="hint">The Home tiles and the NC Meta ROAS only count the campaigns ticked here. NC = new customer. Trends, the leaderboard and all reports still cover every campaign.</p>
+        <div id="ncCampaigns"></div>
+      </div>
+      <div class="form">
         <h3>Access</h3>
         <p class="hint" id="accessHint"></p>
         <p class="hint">To add someone, insert their email into the <code>creative_access</code> table in Supabase with role <code>strategist</code> (app only) or <code>admin</code> (app plus the KS dashboard sidebar). Nothing is emailed until they sign in themselves.</p>
@@ -809,7 +814,7 @@ const D = {
   dailyRange: null,       // {from, to}
   loadedAt: null,
 };
-const S = { goal: { metric: 'roas', roas_target: 1.61, cpa_target: 28.8, spend_threshold: 86, window_days: 14, min_score_spend: 40 }, naming: { delimiter: '|', segments: ['Format', 'Product', 'Concept', 'Version', 'Date'], product_codes: {} } };
+const S = { goal: { metric: 'roas', roas_target: 1.61, cpa_target: 28.8, spend_threshold: 86, window_days: 14, min_score_spend: 40 }, naming: { delimiter: '|', segments: ['Format', 'Product', 'Concept', 'Version', 'Date'], product_codes: {} }, home: { nc_campaign_ids: [] } };
 
 const DAILY_COLS = 'report_date,campaign_id,campaign_name,adset_id,adset_name,ad_id,ad_name,spend,impressions,clicks,link_clicks,outbound_clicks,landing_page_views,add_to_carts,initiate_checkouts,purchases,purchase_value,video_plays,video_views_3s,thruplays,video_p25,video_p50,video_p75,video_p95,video_p100,video_avg_time_sec,post_engagements';
 
@@ -828,7 +833,7 @@ async function loadCatalog() {
   D.adsets = new Map(adsets.map(a => [a.adset_id, a]));
   D.lifetime = new Map(lifetime.map(l => [l.ad_id, l]));
   D.tags = new Map(); for (const t of tags) { if (!D.tags.has(t.ad_id)) D.tags.set(t.ad_id, []); D.tags.get(t.ad_id).push(t); }
-  for (const s of settings) { if (s.key === 'goal') S.goal = { ...S.goal, ...s.value }; if (s.key === 'naming') S.naming = { ...S.naming, ...s.value }; }
+  for (const s of settings) { if (s.key === 'goal') S.goal = { ...S.goal, ...s.value }; if (s.key === 'naming') S.naming = { ...S.naming, ...s.value }; if (s.key === 'home') S.home = { ...S.home, ...s.value }; }
   D.reports = reports;
   D.loadedAt = new Date();
   NAME_CACHE.clear();
@@ -1001,6 +1006,12 @@ function adStatusClass(ad) { const s = ad && ad.effective_status; if (!s) return
 // Videos display at 9:16, images and carousels at 4:5.
 function isVideoAd(ad) { return !!(ad && (ad.format === 'video' || ad.video_id)); }
 function aspectClass(ad) { return isVideoAd(ad) ? ' v916' : ''; }
+// NC = new customer. The Home aggregates only count these campaigns (Settings > Home overview).
+function ncCampaignIds() {
+  const ids = (S.home.nc_campaign_ids || []).filter(id => D.campaigns.has(id));
+  if (ids.length) return ids;
+  return Array.from(D.campaigns.values()).filter(c => /prospecting|offers/i.test(c.name || '') && !/^old/i.test(c.name || '')).map(c => c.campaign_id);
+}
 function statusPill(ad) { const st = ad && ad.effective_status; const cls = !st ? 'other' : st === 'ACTIVE' ? 'on' : st.includes('PAUSED') ? 'off' : 'other'; return `<span class="stpill ${cls}">${esc(st || 'UNKNOWN')}</span>`; }
 
 // ========== GROUPING OPTIONS ==========
@@ -1518,29 +1529,32 @@ function applyBadges(res, st) { if (st.groupBy !== 'ad') return; for (const g of
 async function renderHome() {
   const y = addDays(ukToday(), -1);
   const w1 = { from: addDays(y, -6), to: y }, w0 = { from: addDays(y, -13), to: addDays(y, -7) };
-  $('homeSub').textContent = `${fmtRange(w1.from, w1.to)} vs ${fmtRange(w0.from, w0.to)}`;
+  const ncIds = ncCampaignIds(); const ncNames = ncIds.map(id => (D.campaigns.get(id) || {}).name || id);
+  $('homeSub').textContent = `${fmtRange(w1.from, w1.to)} vs ${fmtRange(w0.from, w0.to)} · NC = new customer: ${ncNames.join(' + ') || 'no campaigns selected'}`;
   $('homeTiles').innerHTML = `<div class="loading-row"><span class="spin"></span>Loading…</div>`;
   await ensureDaily(addDays(y, -55), ukToday());
   computeBadges();
   const base = { compare: 'prev', groupBy: 'ad', filters: [], search: '', sort: { key: 'spend', dir: 'desc' } };
-  const res = buildGroups({ ...base, range: w1, preset: 'custom' });
-  const tm = res.tm, tpm = res.tpm;
-  const launched1 = Array.from(D.creatives.values()).filter(a => { const l = adLaunch(a.ad_id); return l && l >= w1.from && l <= w1.to; });
-  const launched0 = Array.from(D.creatives.values()).filter(a => { const l = adLaunch(a.ad_id); return l && l >= w0.from && l <= w0.to; });
+  const res = buildGroups({ ...base, range: w1, preset: 'custom' });                                   // every campaign: trends + leaderboard
+  const resNC = buildGroups({ ...base, range: w1, preset: 'custom', filters: [{ type: 'campaign', values: ncIds }] });   // NC campaigns only: tiles + Meta ROAS
+  const tm = resNC.tm, tpm = resNC.tpm;
+  const ncAds = Array.from(D.creatives.values()).filter(a => ncIds.includes(a.campaign_id));
+  const launched1 = ncAds.filter(a => { const l = adLaunch(a.ad_id); return l && l >= w1.from && l <= w1.to; });
+  const launched0 = ncAds.filter(a => { const l = adLaunch(a.ad_id); return l && l >= w0.from && l <= w0.to; });
   const goalKey = S.goal.metric === 'cpa' ? 'cpa' : 'roas';
   const tile = (l, k, v, pv, extra = '') => `<div class="tile ${extra}"><div class="l">${l}</div><div class="v">${k ? fmtV(k, v) : v}</div><div class="d">${k ? (fmtDelta(v, pv, k) || '<span>no change</span>') : ''} <span>vs prior 7 days${pv !== null && pv !== undefined && k ? ' (' + fmtV(k, pv) + ')' : ''}</span></div></div>`;
-  $('homeTiles').innerHTML = tile('Spend', 'spend', tm.spend, tpm.spend) + tile(M[goalKey].l, goalKey, tm[goalKey], tpm[goalKey]) + tile('Purchases', 'purchases', tm.purchases, tpm.purchases) + tile(goalKey === 'roas' ? 'CPA' : 'ROAS', goalKey === 'roas' ? 'cpa' : 'roas', tm[goalKey === 'roas' ? 'cpa' : 'roas'], tpm[goalKey === 'roas' ? 'cpa' : 'roas']) + tile('Thumbstop (hook rate)', 'thumbstop', tm.thumbstop, tpm.thumbstop) + `<div class="tile"><div class="l">Creatives launched</div><div class="v">${launched1.length}</div><div class="d">${fmtDelta(launched1.length, launched0.length, 'purchases') || '<span>no change</span>'} <span>vs prior 7 days (${launched0.length})</span></div></div>`;
+  $('homeTiles').innerHTML = tile('NC Spend', 'spend', tm.spend, tpm.spend) + tile('NC ' + M[goalKey].l, goalKey, tm[goalKey], tpm[goalKey]) + tile('NC Purchases', 'purchases', tm.purchases, tpm.purchases) + tile(goalKey === 'roas' ? 'NC CPA' : 'NC ROAS', goalKey === 'roas' ? 'cpa' : 'roas', tm[goalKey === 'roas' ? 'cpa' : 'roas'], tpm[goalKey === 'roas' ? 'cpa' : 'roas']) + tile('NC Thumbstop (hook rate)', 'thumbstop', tm.thumbstop, tpm.thumbstop) + `<div class="tile"><div class="l">NC Creatives launched</div><div class="v">${launched1.length}</div><div class="d">${fmtDelta(launched1.length, launched0.length, 'purchases') || '<span>no change</span>'} <span>vs prior 7 days (${launched0.length})</span></div></div>`;
 
   // ROAS box: Meta ROAS from this app's data, plus blended ROAS exactly as the Shopify dashboard
   // computes it (total Shopify sales inc. VAT ÷ Meta + Google spend). Blended needs rpt_daily_overview,
   // which only admins can read.
   const roasBox = $('homeRoas');
-  roasBox.innerHTML = `Meta ROAS <b>${fmtV('roas', tm.roas)}</b> <span>7d</span>`; roasBox.classList.remove('hidden');
+  roasBox.innerHTML = `NC Meta ROAS <b>${fmtV('roas', tm.roas)}</b> <span>7d</span>`; roasBox.classList.remove('hidden');
   if (USER_ROLE === 'admin') {
     try {
       const rows = await rest(`rpt_daily_overview?select=report_date,total_sales,total_ad_spend&report_date=gte.${w1.from}&report_date=lte.${w1.to}`);
       const rev = rows.reduce((s, r) => s + (Number(r.total_sales) || 0), 0), sp = rows.reduce((s, r) => s + (Number(r.total_ad_spend) || 0), 0);
-      if (sp > 0) roasBox.innerHTML += ` <span style="margin:0 4px">·</span> Blended ROAS <b>${(rev / sp).toFixed(2)}</b> <span>7d, Shopify revenue ÷ Meta + Google spend</span>`;
+      if (sp > 0) roasBox.innerHTML += ` <span style="margin:0 4px">·</span> Blended ROAS <b>${(rev / sp).toFixed(2)}</b> <span>7d, all campaigns: Shopify revenue ÷ Meta + Google spend</span>`;
     } catch (e) { console.warn('Blended ROAS unavailable', e.message); }
   }
 
@@ -1665,6 +1679,8 @@ function renderSettings() {
   const renderCodes = () => { $('codesList').innerHTML = Object.keys(codes).map(c => `<input type="text" value="${esc(c)}" data-code="${esc(c)}" placeholder="Code"><input type="text" value="${esc(codes[c])}" data-label="${esc(c)}" placeholder="Label"><button class="ibtn sm" data-del="${esc(c)}">×</button>`).join(''); $('codesList').querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => { delete codes[b.dataset.del]; renderCodes(); })); };
   renderCodes();
   $('btnAddCode').onclick = () => { codes[''] = ''; renderCodes(); };
+  const ncNow = ncCampaignIds();
+  $('ncCampaigns').innerHTML = Array.from(D.campaigns.values()).sort((a, b) => (a.name || '').localeCompare(b.name || '')).map(c => `<label class="check" style="padding:4px 0"><input type="checkbox" value="${esc(c.campaign_id)}" ${ncNow.includes(c.campaign_id) ? 'checked' : ''}> ${esc(c.name || c.campaign_id)} <span class="cnt">${esc(c.effective_status || '')}</span></label>`).join('');
   $('accessHint').textContent = `Signed in as ${USER_EMAIL} (${USER_ROLE}).`;
   document.querySelectorAll('#viewSettings input, #viewSettings select, #viewSettings .ibtn').forEach(el => el.disabled = ro);
   $('btnSaveSettings').onclick = async () => {
@@ -1672,9 +1688,10 @@ function renderSettings() {
     const goal = { metric: $('setGoalMetric').value, roas_target: Number($('setRoas').value), cpa_target: Number($('setCpa').value), spend_threshold: Number($('setThreshold').value), window_days: Number($('setWindow').value), min_score_spend: Number($('setMinScore').value), currency: 'GBP' };
     const pc = {}; $('codesList').querySelectorAll('input[data-code]').forEach(inp => { const code = inp.value.trim(); const lbl = $('codesList').querySelector(`input[data-label="${CSS.escape(inp.dataset.code)}"]`); if (code) pc[code] = (lbl ? lbl.value.trim() : '') || code; });
     const naming = { delimiter: $('setDelim').value || '|', segments: [0, 1, 2, 3, 4].map(i => $('seg' + i).value.trim() || `Segment ${i + 1}`), product_codes: pc };
+    const home = { nc_campaign_ids: Array.from($('ncCampaigns').querySelectorAll('input:checked')).map(i => i.value) };
     try {
-      await rest('creative_settings', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates' }, body: JSON.stringify([{ key: 'goal', value: goal, updated_at: new Date().toISOString(), updated_by: USER_EMAIL }, { key: 'naming', value: naming, updated_at: new Date().toISOString(), updated_by: USER_EMAIL }]) });
-      S.goal = goal; S.naming = naming; NAME_CACHE.clear(); computeBadges(); $('settingsMsg').textContent = 'Saved.'; toast('Settings saved'); renderSettings();
+      await rest('creative_settings', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates' }, body: JSON.stringify([{ key: 'goal', value: goal, updated_at: new Date().toISOString(), updated_by: USER_EMAIL }, { key: 'naming', value: naming, updated_at: new Date().toISOString(), updated_by: USER_EMAIL }, { key: 'home', value: home, updated_at: new Date().toISOString(), updated_by: USER_EMAIL }]) });
+      S.goal = goal; S.naming = naming; S.home = home; NAME_CACHE.clear(); computeBadges(); $('settingsMsg').textContent = 'Saved.'; toast('Settings saved'); renderSettings();
     } catch (e) { $('settingsMsg').textContent = 'Save failed: ' + e.message; }
   };
 }

@@ -3,6 +3,83 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+// ========== KS ADMIN GATE ==========
+// Identical block on every KS dashboard page except creative.html (which keeps its own creative_access gate).
+// Keep it byte-for-byte the same across pages. It runs before anything paints:
+//   1. hides the document,
+//   2. reads the magic-link session index.html stores under localStorage 'ks-dashboard-auth',
+//   3. verifies the signed-in email against allowed_emails (the same REST check index.html runs),
+//   4. reveals the page only on success, then keeps the session refreshed while the page is open.
+// No session, expired session, or not on the list -> index.html (the login). A creative_access
+// strategist (signed in through creative.html) -> creative.html. A magic link that lands here is
+// forwarded to index.html, which adopts it. Data is protected by RLS regardless; this gate stops
+// the page shell loading for anyone who is not an admin.
+(function ksAdminGate() {
+  var SUPABASE_URL = 'https://unmkzatppwftnasafhlb.supabase.co';
+  var ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVubWt6YXRwcHdmdG5hc2FmaGxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDQ5OTIsImV4cCI6MjA4NjU4MDk5Mn0.SYQm1km08xwlJSIf9jq8DXH3Ijxbxqk_LpTRh0PZhD4';
+  var STORAGE_KEY = 'ks-dashboard-auth';
+  var root = document.documentElement;
+  root.style.visibility = 'hidden';
+
+  function leave(page) { window.location.replace(page); }
+  function reveal() { root.style.visibility = ''; window.KS_ADMIN_OK = true; }
+  function readSession() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch (err) { return null; }
+  }
+  function isLive(session) {
+    return !!(session && session.access_token && session.expires_at && session.expires_at > Math.floor(Date.now() / 1000));
+  }
+  function rows(path, token) {
+    return fetch(SUPABASE_URL + '/rest/v1/' + path, { headers: { apikey: ANON_KEY, Authorization: 'Bearer ' + token } })
+      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (data) { return Array.isArray(data) ? data : []; });
+  }
+  // Refresh 60s before expiry so long-lived pages (diary, launch plan) keep saving. If another tab
+  // already refreshed, adopt its newer session instead of spending the same refresh token twice.
+  function scheduleRefresh(session) {
+    var ms = Math.max(15000, session.expires_at * 1000 - Date.now() - 60000);
+    setTimeout(function () {
+      var stored = readSession();
+      if (stored && stored.expires_at > session.expires_at && isLive(stored)) { announce(stored); return; }
+      fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
+        method: 'POST',
+        headers: { apikey: ANON_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: session.refresh_token })
+      })
+        .then(function (r) { if (!r.ok) throw new Error('refresh failed: ' + r.status); return r.json(); })
+        .then(function (fresh) {
+          if (!fresh.expires_at) fresh.expires_at = Math.floor(Date.now() / 1000) + (fresh.expires_in || 3600);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
+          announce(fresh);
+        })
+        .catch(function (err) { console.error('[gate] session refresh failed', err); leave('index.html'); });
+    }, ms);
+  }
+  function announce(session) {
+    window.KS_SESSION = session;
+    window.dispatchEvent(new CustomEvent('ks-session', { detail: session }));
+    scheduleRefresh(session);
+  }
+
+  // A magic link that lands on this page: let index.html adopt the tokens.
+  if (/access_token=/.test(window.location.hash)) { leave('index.html' + window.location.hash); return; }
+
+  var session = readSession();
+  if (!isLive(session)) { leave('index.html'); return; }
+
+  window.KS_GATE = rows('allowed_emails?select=email&limit=1', session.access_token)
+    .then(function (allowed) {
+      if (allowed.length) { reveal(); announce(session); return true; }
+      // Signed in but not an admin: a creative_access strategist goes to their app, anyone else to the login.
+      return rows('creative_access?select=role&limit=1', session.access_token).then(function (creative) {
+        leave(creative.length ? 'creative.html' : 'index.html');
+        return false;
+      });
+    })
+    .catch(function (err) { console.error('[gate] allowlist check failed', err); leave('index.html'); return false; });
+})();
+</script>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -402,6 +479,8 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const AUTH_STORAGE_KEY = 'ks-dashboard-auth';
 const LEAD_TIME_DAYS = 120;
 let USER_JWT = SUPABASE_KEY;
+// The KS admin gate (in <head>) refreshes the session before it expires; pick up the new token.
+window.addEventListener('ks-session', (e) => { USER_JWT = e.detail.access_token; });
 
 // Bundle composition map. Each bundle sold deducts 1 unit of each component.
 // Sourced from the canonical product list (cs-agent-laila/brand-knowledge/shopify-products.md),

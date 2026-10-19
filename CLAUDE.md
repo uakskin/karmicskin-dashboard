@@ -24,7 +24,8 @@ JS in one `<script>`).
 ## Pages
 
 - `dashboard.html` + `index.html` — Shopify dashboard (`index.html` is a copy of `dashboard.html`)
-- `amazon.html`, `meta.html`, `email.html`, `pnl.html` — channel dashboards
+- `amazon.html`, `meta.html`, `email.html`, `pnl.html` — channel dashboards (`pnl.html` loads its figures from
+  Supabase `pnl_monthly` at runtime; see "P&L data" below)
 - `creative.html` — **Creative Analytics** (Motion-style creative reporting for the Meta account). Login gate is the
   `creative_access` table (roles `admin` / `strategist`), NOT `allowed_emails`: strategists see this page only, with no
   KS sidebar, and RLS limits them to the Meta tables. Data: `meta_ad_creatives`, `raw_meta_ads_ad_daily`,
@@ -54,3 +55,38 @@ page — it must stay identical across all of them.
 
 Dashboards use the Supabase **anon key** only (public, RLS-protected). This repo is
 public — never commit service-role keys or Shopify / Meta / Klaviyo / Amazon tokens.
+
+### Admin gate (every page except creative.html)
+
+Every page other than `creative.html` carries an identical `<script>` block in `<head>`, marked
+`KS ADMIN GATE` (added 19 Oct 2026). Before anything paints it reads the magic-link session
+`index.html` stores under localStorage `ks-dashboard-auth`, checks the signed-in email against
+`allowed_emails` (the same REST self-read `index.html` does), and only then reveals the page.
+No session, an expired session, or an email not on the list -> `index.html` (the login); a
+`creative_access` strategist -> `creative.html`; a magic link that lands on a gated page is
+forwarded to `index.html`, which adopts it. The gate also refreshes the token a minute before
+it expires and announces the new one with a `ks-session` window event, which every page's
+`USER_JWT` listens for. Keep the block **byte-identical across pages** (same rule as the
+sidebar). `creative.html` keeps its own `creative_access` gate and is not part of this rule.
+
+The gate is the front door, not the only lock: every table behind these pages is RLS-limited
+to `public.is_allowed_user()` (allowed_emails) for the `authenticated` role, with no anon
+policies. That includes `launch_plan_state`, `diary_state`, `ugc_creators`,
+`mod_shopify_inventory`, `pnl_monthly`, `mod_orders`, `raw_shopify_refunds` and the daily spend
+tables. `launch.html`, `diary.html` and `ugc.html` therefore send the admin's token, not the
+anon key. Edge Functions use the service role and are unaffected.
+
+### P&L data (`pnl.html`)
+
+The P&L figures are **not in this repo** any more. The repo is public, so anything in the HTML
+can be read with curl whether or not the viewer is logged in; a JavaScript gate hides nothing
+from that. Since 19 Oct 2026 the figures live in Supabase table `pnl_monthly` (admin-only RLS):
+one row per fiscal year and month, `fy` = `fy2025` / `fy2026`, `month_idx` 0 = June .. 11 = May,
+`label` e.g. `May 26`, and total / Shopify / Amazon columns that mirror the old arrays:
+`revenue`, `shop_rev`, `amz_rev`, `prod_cost`, `shop_prod_cost`, `amz_prod_cost`, `fulfilment`,
+`shop_fulf`, `amz_fulf`, `ad_spend`, `shop_ads`, `amz_ads`, `fixed_subs`, `shop_fixed`,
+`amz_fixed`, `other_exp`, `other_inc`, `ebitda`, `shop_ebitda`, `amz_ebitda`. `pnl.html` loads
+the table at runtime with the signed-in admin's token and derives `activeMonths` from the row
+count. To add or restate a month, upsert its row (SQL through the Supabase MCP or the service
+role); never put figures back into the HTML. Commits before 19 Oct 2026 still carry the old
+figures in `pnl.html`'s history.

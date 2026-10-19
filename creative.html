@@ -742,6 +742,9 @@ function uniq(arr) { return Array.from(new Set(arr)); }
     if (!access) { clearStored(); USER_JWT = SUPABASE_KEY; showOverlay(); showStep('email'); setMsg('That email is not on the Creative Analytics access list. Contact Uday to be added.', 'error'); return false; }
     saveStored(s);
     USER_EMAIL = access.email; USER_ROLE = access.role;
+    // Admin preview: ?as=strategist shows exactly what a strategist sees (no sidebar, no blended ROAS,
+    // read-only settings). UI only; the signed-in account is unchanged.
+    if (new URLSearchParams(window.location.search).get('as') === 'strategist' && USER_ROLE === 'admin') { USER_ROLE = 'strategist'; window.PREVIEW_STRATEGIST = true; }
     hideOverlay(); scheduleRefresh(s);
     document.body.classList.remove('role-unknown'); document.body.classList.add(USER_ROLE === 'admin' ? 'admin' : 'strategist');
     window.dispatchEvent(new Event('ks-auth-ready'));
@@ -1879,7 +1882,8 @@ function wireUi() {
 }
 function updateFresh() { const to = D.dailyRange ? D.dailyRange.to : null; const latest = D.daily.length ? D.daily[D.daily.length - 1].report_date : null; $('navFresh').textContent = `Performance to ${latest ? fmtD(latest) : '—'} · creatives synced ${D.loadedAt ? D.loadedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : ''} · ${D.creatives.size} ads catalogued`; }
 window.addEventListener('ks-auth-ready', async () => {
-  $('navEmail').textContent = USER_EMAIL; $('navRole').textContent = USER_ROLE;
+  $('navEmail').textContent = USER_EMAIL; $('navRole').textContent = USER_ROLE + (window.PREVIEW_STRATEGIST ? ' preview' : '');
+  if (window.PREVIEW_STRATEGIST) banner('Previewing the strategist view: this is exactly what a strategist sees. Remove ?as=strategist from the address to return to your admin view.');
   applyTheme(localStorage.getItem(THEME_KEY) || 'light');
   wireUi();
   try {

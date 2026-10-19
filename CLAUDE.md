@@ -32,6 +32,11 @@ JS in one `<script>`).
   video via the `creative-media` Edge Function. Saved reports / tags / settings live in `creative_reports`,
   `creative_tags`, `creative_settings`. Sync: `sync-meta-creatives` hourly, `sync-meta-ads` every 30 min,
   breakdowns nightly. See memory `project_creative_analytics_app`.
+  **Deployment rule (Uday, 19 Oct 2026): every change to `creative.html` must reach every surface strategists
+  use, in the same session, without being reminded. Today that is this one file at this one URL (role decides
+  the view). If a separate strategist portal is ever added (other repo, domain or host), push the identical
+  file to BOTH, verify BOTH live, and record the second location here and in memory
+  `feedback_creative_analytics_deploy_everywhere`. Never leave them out of sync.**
 - `launch.html` — New Product Launch Gantt (half-month grid, editable, state in Supabase `launch_plan_state` row 1)
 - `inventory.html`, `ugc.html`, `instagram-scheduler.html` — operations tools (Inventory sits under Analytics in the sidebar; `worklist.html` was removed 2026-10-10)
 - `design-system.html` — brand design system (working draft)

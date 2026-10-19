@@ -25,6 +25,13 @@ JS in one `<script>`).
 
 - `dashboard.html` + `index.html` — Shopify dashboard (`index.html` is a copy of `dashboard.html`)
 - `amazon.html`, `meta.html`, `email.html`, `pnl.html` — channel dashboards
+- `creative.html` — **Creative Analytics** (Motion-style creative reporting for the Meta account). Login gate is the
+  `creative_access` table (roles `admin` / `strategist`), NOT `allowed_emails`: strategists see this page only, with no
+  KS sidebar, and RLS limits them to the Meta tables. Data: `meta_ad_creatives`, `raw_meta_ads_ad_daily`,
+  `v_meta_ad_lifetime`, breakdown snapshots; thumbnails in the private `creative-media` bucket (signed URLs);
+  video via the `creative-media` Edge Function. Saved reports / tags / settings live in `creative_reports`,
+  `creative_tags`, `creative_settings`. Sync: `sync-meta-creatives` hourly, `sync-meta-ads` every 30 min,
+  breakdowns nightly. See memory `project_creative_analytics_app`.
 - `launch.html` — New Product Launch Gantt (half-month grid, editable, state in Supabase `launch_plan_state` row 1)
 - `inventory.html`, `ugc.html`, `instagram-scheduler.html` — operations tools (Inventory sits under Analytics in the sidebar; `worklist.html` was removed 2026-10-10)
 - `design-system.html` — brand design system (working draft)

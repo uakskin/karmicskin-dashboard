@@ -1,0 +1,1847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Karmic Skin - Creative Analytics</title>
+<link rel="icon" type="image/svg+xml" href="favicon-latest.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* ==========================================================================
+   CREATIVE ANALYTICS — Motion-style creative reporting for the Karmic Skin
+   Meta ads account. Single-file app: CSS here, HTML below, JS at the bottom.
+   ========================================================================== */
+
+/* ========== TOKENS ========== */
+:root {
+  --bg: #f6f6f9; --bg-card: #ffffff; --bg-sub: #f1f1f5; --bg-input: #ffffff; --bg-hover: #f3f2fb;
+  --border: #e6e6ec; --border-strong: #d5d5dd;
+  --text: #1b1b22; --text-2: #4b4b57; --muted: #7a7a88; --faint: #a3a3b1;
+  --accent: #5a48f5; --accent-hover: #4a3ae0; --accent-soft: #eeebff; --accent-text: #4a3ae0;
+  --green: #16a34a; --green-soft: #dcfce7; --red: #dc2626; --red-soft: #fee2e2; --amber: #d97706; --amber-soft: #fef3c7;
+  --chip1: #3b82f6; --chip2: #ec4899; --chip3: #10b981; --chip4: #f59e0b; --chip5: #8b5cf6; --chip6: #06b6d4;
+  --shadow: 0 1px 2px rgba(16,16,32,.05), 0 4px 16px rgba(16,16,32,.05);
+  --shadow-lg: 0 12px 48px rgba(16,16,32,.18);
+  --radius: 12px; --radius-sm: 8px;
+  --chart-grid: #ececf2; --chart-tick: #8a8a98;
+  --thumb-bg: linear-gradient(135deg,#e9e7f6,#d8d4f0);
+}
+[data-theme="dark"] {
+  --bg: #0f0f14; --bg-card: #17171e; --bg-sub: #1e1e27; --bg-input: #12121a; --bg-hover: #22222d;
+  --border: #272731; --border-strong: #363644;
+  --text: #ededf2; --text-2: #c2c2cc; --muted: #8e8e9c; --faint: #5f5f6c;
+  --accent: #7b6cff; --accent-hover: #8f82ff; --accent-soft: #272352; --accent-text: #b4abff;
+  --green: #22c55e; --green-soft: #14311f; --red: #f87171; --red-soft: #3b1a1a; --amber: #fbbf24; --amber-soft: #3a2f10;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.35);
+  --shadow-lg: 0 12px 48px rgba(0,0,0,.6);
+  --chart-grid: #26262f; --chart-tick: #70707e;
+  --thumb-bg: linear-gradient(135deg,#2a2840,#1f1d33);
+}
+
+/* ========== BASE ========== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 14px; }
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+a { color: var(--accent-text); text-decoration: none; }
+button { font-family: inherit; font-size: inherit; color: inherit; }
+input, select, textarea { font-family: inherit; font-size: 13px; color: var(--text); background: var(--bg-input); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: 7px 10px; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+::-webkit-scrollbar { width: 10px; height: 10px; } ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 6px; border: 2px solid var(--bg); }
+.hidden { display: none !important; }
+.muted { color: var(--muted); }
+.mono { font-variant-numeric: tabular-nums; }
+
+/* ========== LOGIN OVERLAY (same mechanism as index.html) ========== */
+#authOverlay { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 100000; padding: 20px; }
+#authOverlay .auth-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 28px 26px; width: 100%; max-width: 380px; box-shadow: var(--shadow); }
+#authOverlay h1 { margin: 0 0 6px; font-size: 18px; font-weight: 700; }
+#authOverlay p.auth-sub { margin: 0 0 18px; font-size: 13px; color: var(--muted); line-height: 1.5; }
+#authOverlay label { display: block; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin: 14px 0 6px; }
+#authOverlay input { width: 100%; padding: 9px 11px; font-size: 14px; }
+#authOverlay .auth-btn { width: 100%; padding: 10px; border-radius: var(--radius-sm); border: none; background: var(--accent); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 14px; }
+#authOverlay .auth-btn:hover { background: var(--accent-hover); }
+#authOverlay .auth-btn:disabled { opacity: .55; cursor: not-allowed; }
+#authOverlay .auth-msg { margin: 12px 0 0; font-size: 12.5px; line-height: 1.5; min-height: 18px; }
+#authOverlay .auth-msg.error { color: var(--red); }
+#authOverlay .auth-msg.info { color: var(--muted); }
+#authOverlay .auth-back { margin-top: 10px; background: none; border: none; color: var(--muted); font-size: 12px; cursor: pointer; padding: 4px; text-decoration: underline; }
+#authOverlay .auth-brand { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1.4px; margin-bottom: 4px; }
+.auth-hidden { display: none !important; }
+
+/* ========== APP SHELL ========== */
+/* The KS sidebar (#ksb) is only shown for admins; body.strategist removes its offset. */
+body.strategist { padding-left: 0 !important; }
+body.strategist #ksb { display: none !important; }
+body.role-unknown #ksb { display: none !important; }
+body.role-unknown { padding-left: 0 !important; }
+.app { display: flex; min-height: 100vh; }
+.mnav { width: 224px; flex: 0 0 224px; background: var(--bg-card); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.mnav-brand { padding: 18px 18px 12px; display: flex; align-items: center; gap: 10px; }
+.mnav-logo { width: 28px; height: 28px; border-radius: 8px; background: var(--accent); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 13px; }
+.mnav-brand .t { font-weight: 700; font-size: 13.5px; line-height: 1.1; }
+.mnav-brand .s { font-size: 11px; color: var(--muted); }
+.mnav-item { display: flex; align-items: center; gap: 9px; padding: 8px 18px; margin: 1px 8px; border-radius: var(--radius-sm); color: var(--text-2); font-size: 13px; font-weight: 500; cursor: pointer; border: none; background: none; text-align: left; width: calc(100% - 16px); }
+.mnav-item:hover { background: var(--bg-hover); color: var(--text); }
+.mnav-item.active { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
+.mnav-item svg { width: 16px; height: 16px; flex: 0 0 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.mnav-create { margin: 8px 16px 6px; padding: 8px 12px; border-radius: var(--radius-sm); background: var(--accent); color: #fff; border: none; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; justify-content: center; }
+.mnav-create:hover { background: var(--accent-hover); }
+.mnav-section { padding: 14px 18px 4px; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; display: flex; justify-content: space-between; align-items: center; }
+.mnav-folder { padding: 6px 18px 2px; font-size: 12px; font-weight: 600; color: var(--text-2); display: flex; align-items: center; gap: 6px; }
+.mnav-report { display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 28px; margin: 0 8px; border-radius: var(--radius-sm); font-size: 12.5px; color: var(--text-2); cursor: pointer; }
+.mnav-report:hover { background: var(--bg-hover); color: var(--text); }
+.mnav-report.active { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
+.mnav-report .e { width: 16px; text-align: center; }
+.mnav-report .n { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+.mnav-report .k { font-size: 10px; color: var(--faint); text-transform: uppercase; }
+.mnav-empty { padding: 4px 18px 8px 28px; font-size: 12px; color: var(--faint); }
+.mnav-foot { margin-top: auto; padding: 12px 14px 14px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); }
+.mnav-foot .u { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.mnav-foot .email { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mnav-foot .role { display: inline-block; padding: 1px 6px; border-radius: 10px; background: var(--bg-sub); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; }
+.mnav-foot .acts { display: flex; gap: 6px; margin-top: 8px; }
+.ibtn { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 5px 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-2); line-height: 1; }
+.ibtn:hover { background: var(--bg-hover); color: var(--text); }
+.ibtn svg { width: 14px; height: 14px; fill: currentColor; }
+.ibtn.sm { padding: 4px 6px; font-size: 11px; }
+.ibtn.icon { padding: 5px; }
+.ibtn.active { background: var(--accent-soft); color: var(--accent-text); border-color: transparent; }
+.ibtn.primary { background: var(--accent); color: #fff; border-color: transparent; font-weight: 600; }
+.ibtn.primary:hover { background: var(--accent-hover); color: #fff; }
+.ibtn.danger { color: var(--red); }
+
+.mmain { flex: 1; min-width: 0; padding: 20px 24px 60px; }
+.view { display: none; } .view.active { display: block; }
+.vhead { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+.vhead h1 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.vhead h1 .emoji { font-size: 20px; }
+.vhead h1 input { font-size: 18px; font-weight: 700; padding: 4px 8px; border-color: transparent; background: transparent; min-width: 240px; }
+.vhead h1 input:hover, .vhead h1 input:focus { border-color: var(--border-strong); background: var(--bg-input); }
+.vhead .sub { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+.vhead .acts { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.unsaved-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); display: inline-block; margin-left: 4px; }
+
+/* ========== TOOLBAR (date range, group by, filters, search) ========== */
+.toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.toolbar .spacer { flex: 1; }
+.tb-btn { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--text); font-weight: 500; white-space: nowrap; }
+.tb-btn:hover { border-color: var(--border-strong); background: var(--bg-hover); }
+.tb-btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tb-btn .lbl { color: var(--muted); font-weight: 400; }
+.tb-btn.on { border-color: var(--accent); color: var(--accent-text); background: var(--accent-soft); }
+.search { position: relative; }
+.search input { padding-left: 30px; width: 260px; height: 32px; }
+.search svg { position: absolute; left: 10px; top: 9px; width: 14px; height: 14px; stroke: var(--muted); fill: none; stroke-width: 1.8; }
+.filters { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+.fchip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px 4px 10px; border-radius: 999px; background: var(--bg-card); border: 1px solid var(--border); font-size: 12px; color: var(--text-2); cursor: pointer; }
+.fchip:hover { border-color: var(--border-strong); }
+.fchip b { color: var(--text); font-weight: 600; }
+.fchip .x { width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center; color: var(--muted); font-size: 12px; }
+.fchip .x:hover { background: var(--bg-sub); color: var(--text); }
+
+/* ========== METRIC CHIPS ========== */
+.mchips { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.mchip { display: inline-flex; align-items: center; gap: 7px; padding: 4px 6px 4px 5px; border-radius: var(--radius-sm); background: var(--bg-card); border: 1px solid var(--border); font-size: 12.5px; font-weight: 500; cursor: grab; user-select: none; }
+.mchip.dragging { opacity: .4; }
+.mchip .num { width: 18px; height: 18px; border-radius: 5px; color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; }
+.mchip .x { color: var(--muted); font-size: 13px; padding: 0 2px; cursor: pointer; }
+.mchip .x:hover { color: var(--text); }
+.mchip.add { color: var(--accent-text); border-style: dashed; cursor: pointer; padding: 4px 10px; }
+.mchip.add:hover { background: var(--accent-soft); }
+.views { margin-left: auto; display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: var(--bg-card); }
+.views button { border: none; background: none; padding: 5px 9px; cursor: pointer; color: var(--muted); display: grid; place-items: center; }
+.views button svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.views button.active { background: var(--accent-soft); color: var(--accent-text); }
+.views button + button { border-left: 1px solid var(--border); }
+
+/* ========== POPOVERS / MENUS ========== */
+.pop { position: absolute; z-index: 5000; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: 8px; min-width: 220px; max-width: 360px; max-height: 70vh; overflow: auto; }
+.pop .title { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; padding: 6px 8px 4px; }
+.pop .item { display: flex; align-items: center; gap: 8px; padding: 7px 9px; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; }
+.pop .item:hover { background: var(--bg-hover); }
+.pop .item.on { color: var(--accent-text); font-weight: 600; }
+.pop .item .d { margin-left: auto; font-size: 11px; color: var(--faint); }
+.pop .sep { height: 1px; background: var(--border); margin: 6px 0; }
+.pop .row { display: flex; gap: 6px; align-items: center; padding: 4px 8px; }
+.pop input[type="text"], .pop input[type="number"], .pop input[type="date"], .pop select { width: 100%; }
+.pop .check { display: flex; align-items: center; gap: 8px; padding: 5px 9px; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; }
+.pop .check:hover { background: var(--bg-hover); }
+.pop .check input { width: auto; margin: 0; }
+.pop .check .cnt { margin-left: auto; color: var(--faint); font-size: 11px; }
+.pop .foot { display: flex; gap: 6px; justify-content: flex-end; padding: 8px 6px 2px; }
+.pop .search-in { padding: 4px 6px 8px; }
+.pop .grp { font-size: 10.5px; color: var(--faint); text-transform: uppercase; letter-spacing: .5px; padding: 8px 9px 2px; font-weight: 600; }
+
+/* ========== CARDS ========== */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(228px, 1fr)); gap: 14px; }
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); cursor: pointer; display: flex; flex-direction: column; transition: transform .12s, box-shadow .12s; }
+.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.thumb { position: relative; aspect-ratio: 4 / 5; background: var(--thumb-bg); overflow: hidden; }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.thumb .ph { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 11px; text-align: center; padding: 12px; }
+.thumb .pill { position: absolute; left: 8px; bottom: 8px; background: rgba(20,20,30,.78); color: #fff; font-size: 10.5px; font-weight: 600; padding: 3px 7px; border-radius: 6px; letter-spacing: .2px; }
+.thumb .pill.dct { left: auto; right: 8px; background: rgba(90,72,245,.85); }
+.thumb .play { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 40px; height: 40px; border-radius: 50%; background: rgba(20,20,30,.6); display: grid; place-items: center; }
+.thumb .play svg { width: 16px; height: 16px; fill: #fff; margin-left: 2px; }
+.thumb .st { position: absolute; top: 8px; left: 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--faint); box-shadow: 0 0 0 2px rgba(255,255,255,.7); }
+.thumb .st.on { background: var(--green); }
+.thumb .st.off { background: var(--amber); }
+.thumb .badges { position: absolute; top: 8px; right: 8px; display: flex; gap: 3px; }
+.badge { width: 20px; height: 20px; border-radius: 6px; background: rgba(255,255,255,.92); display: grid; place-items: center; font-size: 11px; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+.card .body { padding: 10px 11px 6px; }
+.card .name { font-size: 12.5px; font-weight: 600; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 32px; }
+.card .meta { font-size: 11px; color: var(--muted); margin-top: 3px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.card .rows { padding: 4px 6px 8px; }
+.mrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 5px; border-radius: 6px; font-size: 12px; }
+.mrow .l { color: var(--muted); display: flex; align-items: center; gap: 5px; }
+.mrow .l i { width: 8px; height: 8px; border-radius: 3px; display: inline-block; }
+.mrow .v { font-weight: 600; padding: 1px 6px; border-radius: 5px; font-variant-numeric: tabular-nums; }
+.mrow .dl { font-size: 10.5px; font-weight: 600; margin-left: 4px; }
+.up { color: var(--green); } .down { color: var(--red); }
+.score { display: inline-block; min-width: 26px; text-align: center; padding: 1px 6px; border-radius: 6px; font-weight: 700; font-size: 11.5px; }
+.score.s4 { background: #15803d; color: #fff; } .score.s3 { background: #bbf7d0; color: #14532d; } .score.s2 { background: #fde68a; color: #713f12; } .score.s1 { background: #fecaca; color: #7f1d1d; } .score.s0 { background: var(--bg-sub); color: var(--faint); }
+[data-theme="dark"] .score.s3 { background: #1d4d2b; color: #bbf7d0; } [data-theme="dark"] .score.s2 { background: #4a3a0f; color: #fde68a; } [data-theme="dark"] .score.s1 { background: #5a1f1f; color: #fecaca; }
+
+/* ========== TABLE ========== */
+.tablewrap { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); overflow: auto; box-shadow: var(--shadow); max-height: calc(100vh - 220px); }
+table.rt { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 12.5px; }
+table.rt th { position: sticky; top: 0; z-index: 3; background: var(--bg-card); text-align: right; font-weight: 600; font-size: 11.5px; color: var(--muted); padding: 10px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; cursor: pointer; user-select: none; }
+table.rt th:hover { color: var(--text); }
+table.rt th.sorted { color: var(--accent-text); }
+table.rt th .arr { font-size: 9px; margin-left: 3px; }
+table.rt th .num, table.rt td .num { display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 4px; color: #fff; font-size: 10px; font-weight: 700; margin-right: 5px; vertical-align: middle; }
+table.rt th.first, table.rt td.first { position: sticky; left: 0; z-index: 2; text-align: left; background: var(--bg-card); min-width: 280px; max-width: 360px; }
+table.rt th.first { z-index: 4; }
+table.rt td { padding: 7px 10px; border-bottom: 1px solid var(--border); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; vertical-align: middle; }
+table.rt tr:hover td { background: var(--bg-hover); }
+table.rt tr.total td { font-weight: 600; background: var(--bg-sub); position: sticky; top: 37px; z-index: 2; }
+table.rt tr.total td.first { z-index: 3; }
+table.rt td .cell { display: inline-block; padding: 2px 7px; border-radius: 6px; min-width: 56px; }
+table.rt td .prev { color: var(--muted); font-size: 11.5px; }
+table.rt td .dl { font-size: 11px; font-weight: 600; }
+.rowname { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.rowname .th { width: 36px; height: 45px; border-radius: 6px; background: var(--thumb-bg); overflow: hidden; flex: 0 0 36px; position: relative; }
+.rowname .th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.rowname .th .vd { position: absolute; right: 2px; bottom: 2px; width: 12px; height: 12px; border-radius: 50%; background: rgba(20,20,30,.7); display: grid; place-items: center; }
+.rowname .th .vd svg { width: 6px; height: 6px; fill: #fff; margin-left: 1px; }
+.rowname .nm { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px; }
+.rowname .sb { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px; }
+.rowname .bd { display: inline-flex; gap: 2px; margin-left: 4px; vertical-align: middle; }
+.rowname .bd .badge { width: 16px; height: 16px; font-size: 9px; border-radius: 4px; }
+.tfoot { display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: var(--muted); padding: 8px 2px; }
+
+/* ========== CHARTS ========== */
+.chartbox { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); }
+.chartbox .chead { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.chartbox .chead .t { font-weight: 600; font-size: 13px; }
+.chartbox canvas { width: 100% !important; max-height: 420px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; font-size: 11.5px; color: var(--text-2); }
+.legend span i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+
+/* ========== HOME ========== */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.tile { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); }
+.tile .l { font-size: 11.5px; color: var(--muted); font-weight: 500; }
+.tile .v { font-size: 22px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.tile .d { font-size: 11.5px; margin-top: 4px; font-weight: 600; }
+.tile .d span { color: var(--muted); font-weight: 400; }
+.tile.goal { border-color: var(--accent); }
+.sect { margin: 22px 0 10px; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.sect h2 { font-size: 15px; font-weight: 700; }
+.sect .sub { font-size: 12px; color: var(--muted); }
+.trends { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+.trend { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 12px; }
+.trend h3 { font-size: 12.5px; font-weight: 700; display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.trend h3 .n { margin-left: auto; font-size: 11px; color: var(--muted); font-weight: 500; }
+.trend .it { display: flex; align-items: center; gap: 8px; padding: 6px 4px; border-radius: 8px; cursor: pointer; }
+.trend .it:hover { background: var(--bg-hover); }
+.trend .it .th { width: 30px; height: 38px; border-radius: 5px; background: var(--thumb-bg); overflow: hidden; flex: 0 0 30px; }
+.trend .it .th img { width: 100%; height: 100%; object-fit: cover; }
+.trend .it .nm { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+.trend .it .nm small { display: block; color: var(--muted); font-weight: 400; font-size: 11px; }
+.trend .it .vl { font-size: 11.5px; font-weight: 600; text-align: right; white-space: nowrap; }
+.trend .it .vl small { display: block; font-weight: 500; font-size: 10.5px; }
+.trend .empty { font-size: 12px; color: var(--faint); padding: 8px 4px; }
+.lb { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.lb table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.lb th { text-align: right; font-size: 11px; color: var(--muted); font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.lb th:first-child, .lb td:first-child, .lb th.l, .lb td.l { text-align: left; }
+.lb td { padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: right; font-variant-numeric: tabular-nums; }
+.lb tr:last-child td { border-bottom: none; }
+.lb tr:hover td { background: var(--bg-hover); }
+.rank { font-weight: 700; width: 28px; display: inline-block; }
+.rk { font-size: 11px; font-weight: 600; }
+.ach { display: inline-flex; gap: 3px; }
+.ach .badge { width: 22px; height: 22px; font-size: 12px; cursor: default; }
+.kbox { display: inline-flex; align-items: center; gap: 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 10px; font-size: 12px; color: var(--muted); }
+.kbox b { color: var(--text); font-size: 13px; }
+
+/* ========== LAUNCH / COMPARE ========== */
+.tabs { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: var(--bg-card); margin-bottom: 12px; }
+.tabs button { border: none; background: none; padding: 7px 14px; font-size: 12.5px; font-weight: 500; color: var(--muted); cursor: pointer; }
+.tabs button.active { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
+.tabs button + button { border-left: 1px solid var(--border); }
+.tabs button .c { margin-left: 6px; font-size: 11px; background: var(--bg-sub); padding: 1px 6px; border-radius: 10px; color: var(--text-2); }
+.weeks { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 12px; }
+.week { flex: 0 0 150px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; font-size: 12px; }
+.week .w { font-weight: 600; font-size: 11.5px; color: var(--muted); }
+.week .r { display: flex; justify-content: space-between; margin-top: 4px; }
+.week .r b { font-variant-numeric: tabular-nums; }
+.cmp-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin-top: 12px; }
+.cg { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 12px; cursor: pointer; }
+.cg:hover { box-shadow: var(--shadow-lg); }
+.cg .h { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.cg .h .t { font-weight: 700; font-size: 13px; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cg .h .n { font-size: 11px; color: var(--muted); }
+.cg .thumbs { display: flex; gap: 4px; margin-bottom: 8px; }
+.cg .thumbs .th { width: 44px; height: 55px; border-radius: 6px; background: var(--thumb-bg); overflow: hidden; }
+.cg .thumbs .th img { width: 100%; height: 100%; object-fit: cover; }
+.cg .bar { height: 6px; border-radius: 3px; background: var(--bg-sub); overflow: hidden; margin: 6px 0 8px; }
+.cg .bar i { display: block; height: 100%; background: var(--accent); }
+
+/* ========== SETTINGS ========== */
+.form { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px 20px; max-width: 760px; margin-bottom: 16px; }
+.form h3 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.form p.hint { font-size: 12px; color: var(--muted); margin-bottom: 12px; line-height: 1.5; }
+.frow { display: grid; grid-template-columns: 200px 1fr; gap: 10px 14px; align-items: center; margin-bottom: 10px; font-size: 13px; }
+.frow label { color: var(--text-2); font-weight: 500; }
+.frow input, .frow select { max-width: 320px; }
+.codes { display: grid; grid-template-columns: 120px 1fr auto; gap: 6px; align-items: center; max-width: 520px; }
+.codes input { width: 100%; }
+.readonly-note { font-size: 12px; color: var(--amber); background: var(--amber-soft); padding: 8px 10px; border-radius: var(--radius-sm); margin-bottom: 12px; }
+
+/* ========== MODAL (creative deep dive, save report, metric picker) ========== */
+.modal-bg { position: fixed; inset: 0; background: rgba(10,10,20,.55); z-index: 9000; display: none; align-items: center; justify-content: center; padding: 24px; }
+.modal-bg.open { display: flex; }
+.modal { background: var(--bg-card); border-radius: 16px; box-shadow: var(--shadow-lg); width: min(1180px, 100%); max-height: 92vh; overflow: hidden; display: flex; flex-direction: column; }
+.modal.sm { width: min(460px, 100%); }
+.modal .mh { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+.modal .mh h2 { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.modal .mb { overflow: auto; padding: 18px; }
+.modal .close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--muted); padding: 2px 6px; line-height: 1; }
+.dd { display: grid; grid-template-columns: 360px 1fr; gap: 20px; }
+.dd .media { background: var(--bg-sub); border-radius: var(--radius); overflow: hidden; position: relative; aspect-ratio: 4 / 5; display: grid; place-items: center; }
+.dd .media img, .dd .media video { width: 100%; height: 100%; object-fit: contain; display: block; background: #000; }
+.dd .media iframe { width: 100%; height: 100%; border: none; background: #fff; }
+.dd .media .playbtn { position: absolute; inset: 0; display: grid; place-items: center; cursor: pointer; }
+.dd .media .playbtn span { width: 64px; height: 64px; border-radius: 50%; background: rgba(20,20,30,.7); display: grid; place-items: center; }
+.dd .media .playbtn svg { width: 24px; height: 24px; fill: #fff; margin-left: 4px; }
+.dd .media .loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 12px; background: rgba(0,0,0,.25); }
+.dd .info h3 { font-size: 15px; font-weight: 700; line-height: 1.3; }
+.dd .kv { display: grid; grid-template-columns: 120px 1fr; gap: 6px 12px; font-size: 12.5px; margin: 10px 0 12px; }
+.dd .kv .k { color: var(--muted); }
+.dd .copy { background: var(--bg-sub); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 12.5px; white-space: pre-wrap; line-height: 1.5; max-height: 160px; overflow: auto; }
+.dd .copy b { display: block; margin-bottom: 4px; }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+.tag { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-text); font-size: 11.5px; font-weight: 600; }
+.tag .x { cursor: pointer; opacity: .7; } .tag .x:hover { opacity: 1; }
+.tags input { width: 140px; padding: 4px 8px; font-size: 12px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin: 14px 0; }
+.kpi { background: var(--bg-sub); border-radius: var(--radius-sm); padding: 8px 10px; }
+.kpi .l { font-size: 10.5px; color: var(--muted); } .kpi .v { font-size: 15px; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.dd h4 { font-size: 12.5px; font-weight: 700; margin: 16px 0 8px; display: flex; align-items: center; gap: 8px; }
+.dd h4 small { color: var(--muted); font-weight: 400; font-size: 11px; }
+.funnel { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.funnel .f { background: var(--bg-sub); border-radius: 6px; padding: 6px; text-align: center; font-size: 11px; }
+.funnel .f b { display: block; font-size: 13px; }
+.funnel .f small { color: var(--muted); }
+.minitable { width: 100%; border-collapse: collapse; font-size: 12px; }
+.minitable th { text-align: right; color: var(--muted); font-weight: 600; font-size: 11px; padding: 5px 8px; border-bottom: 1px solid var(--border); }
+.minitable th:first-child, .minitable td:first-child { text-align: left; }
+.minitable td { padding: 5px 8px; border-bottom: 1px solid var(--border); text-align: right; font-variant-numeric: tabular-nums; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.retention { height: 220px; }
+.mini-chart { height: 200px; }
+.dd-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+
+/* ========== STATUS / TOAST ========== */
+.banner { background: var(--amber-soft); color: var(--amber); font-size: 12.5px; padding: 8px 12px; border-radius: var(--radius-sm); margin-bottom: 12px; }
+.banner.err { background: var(--red-soft); color: var(--red); }
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 9px 14px; border-radius: 10px; font-size: 12.5px; z-index: 20000; opacity: 0; transition: opacity .2s; pointer-events: none; }
+.toast.show { opacity: 1; }
+.loading-row { padding: 40px; text-align: center; color: var(--muted); font-size: 13px; }
+.spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border-strong); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; vertical-align: middle; margin-right: 6px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty-state { padding: 50px 20px; text-align: center; color: var(--muted); background: var(--bg-card); border: 1px dashed var(--border-strong); border-radius: var(--radius); font-size: 13px; }
+
+@media (max-width: 1100px) { .dd { grid-template-columns: 1fr; } .dd .media { max-width: 360px; } .two { grid-template-columns: 1fr; } }
+@media (max-width: 820px) { .mnav { display: none; } .mmain { padding: 14px; } .search input { width: 180px; } .funnel { grid-template-columns: repeat(4,1fr); } }
+</style>
+</head>
+<body class="role-unknown">
+
+<!-- ==================== LOGIN OVERLAY ==================== -->
+<div id="authOverlay">
+  <div class="auth-card">
+    <div class="auth-brand">Karmic Skin</div>
+    <h1>Creative Analytics</h1>
+    <p class="auth-sub" id="authSub">Enter your email and we'll send you a sign-in link. Only authorised emails can sign in.</p>
+    <div id="authStepEmail">
+      <label for="authEmail">Email</label>
+      <input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com" />
+      <button class="auth-btn" id="authSendCode" type="button">Send sign-in link</button>
+    </div>
+    <div id="authStepSent" class="auth-hidden">
+      <button class="auth-back" id="authBackToEmail" type="button">Use a different email</button>
+    </div>
+    <p class="auth-msg" id="authMsg"></p>
+  </div>
+</div>
+
+<!-- ==================== KS SIDEBAR (admins only; identical block on every dashboard page) ==================== -->
+<aside id="ksb" class="ksb">
+<div class="ksb-brand">Karmic Skin</div>
+<nav class="ksb-section">
+<button type="button" class="ksb-head">Analytics<span class="ksb-chev">&#9662;</span></button>
+<div class="ksb-links">
+<a href="index.html" data-page="dashboard">Shopify</a>
+<a href="meta.html" data-page="meta">Meta</a>
+<a href="creative.html" data-page="creative">Creative</a>
+<a href="email.html" data-page="email">Email</a>
+<a href="amazon.html" data-page="amazon">Amazon</a>
+<a href="pnl.html" data-page="pnl">P&amp;L</a>
+<a href="inventory.html" data-page="inventory">Inventory</a>
+</div>
+</nav>
+<nav class="ksb-section">
+<button type="button" class="ksb-head">Operations<span class="ksb-chev">&#9662;</span></button>
+<div class="ksb-links">
+<a href="launch.html" data-page="launch">New Product Launch</a>
+<a href="instagram-scheduler.html" data-page="instagram-scheduler">Instagram</a>
+<a href="ugc.html" data-page="ugc">UGC</a>
+<a href="design-system.html" data-page="design-system">Design System</a>
+<a href="diary.html" data-page="diary">Diary</a>
+</div>
+</nav>
+</aside>
+<style>
+body { padding-left: 208px; }
+.header { top: 0 !important; }
+.page-nav, .nav-bar { display: none !important; }
+.ksb { position: fixed; top: 0; left: 0; bottom: 0; width: 208px; background: #26403d; color: #c8dbd8; z-index: 40; overflow-y: auto; transform: translateZ(0); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+.ksb-brand { color: #fff; font-weight: 700; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; padding: 17px 20px; border-bottom: 1px solid rgba(255,255,255,.09); }
+.ksb-section { border-bottom: 1px solid rgba(255,255,255,.07); }
+.ksb-head { width: 100%; text-align: left; background: none; border: none; cursor: pointer; color: #7fa39d; font-size: 11px; font-weight: 700; letter-spacing: .9px; text-transform: uppercase; padding: 15px 20px 9px; display: flex; justify-content: space-between; align-items: center; }
+.ksb-chev { font-size: 9px; transition: transform .15s; }
+.ksb-section.ksb-closed .ksb-chev { transform: rotate(-90deg); }
+.ksb-section.ksb-closed .ksb-links { display: none; }
+.ksb-links { padding-bottom: 9px; }
+.ksb-links a { display: block; padding: 8px 20px; color: #c8dbd8; text-decoration: none; font-size: 13.5px; border-left: 3px solid transparent; }
+.ksb-links a:hover { background: rgba(255,255,255,.06); color: #fff; }
+.ksb-links a.ksb-active { background: rgba(255,255,255,.1); color: #fff; border-left-color: #c79a3e; font-weight: 600; }
+@media (max-width: 820px) { body { padding-left: 0; } .ksb { position: static; width: auto; bottom: auto; } }
+</style>
+<script>
+(function () {
+  var sb = document.getElementById('ksb');
+  if (!sb) return;
+  sb.querySelectorAll('.ksb-head').forEach(function (h) {
+    h.addEventListener('click', function () { h.parentElement.classList.toggle('ksb-closed'); });
+  });
+  var f = (location.pathname.split('/').pop() || '').replace('.html', '');
+  if (f === '' || f === 'index') f = 'dashboard';
+  var a = sb.querySelector('.ksb-links a[data-page="' + f + '"]');
+  if (a) a.classList.add('ksb-active');
+})();
+</script>
+
+<!-- ==================== APP SHELL ==================== -->
+<div class="app">
+  <nav class="mnav" id="mnav">
+    <div class="mnav-brand">
+      <div class="mnav-logo">K</div>
+      <div><div class="t">Creative Analytics</div><div class="s">Karmic Skin · Meta ads</div></div>
+    </div>
+    <button class="mnav-create" id="btnCreate"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Create report</button>
+    <button class="mnav-item" data-route="home"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</button>
+    <button class="mnav-item" data-route="report"><svg viewBox="0 0 24 24"><path d="M4 19V5m0 14h16M8 15V9m4 6V6m4 9v-4"/></svg>Top performing</button>
+    <button class="mnav-item" data-route="launch"><svg viewBox="0 0 24 24"><path d="M5 19l4-4m0-6l6-6 5 5-6 6m-5 1l5 5m-9-9l9 9"/></svg>Launch analysis</button>
+    <button class="mnav-item" data-route="compare"><svg viewBox="0 0 24 24"><path d="M4 6h7v12H4zM13 10h7v8h-7z"/></svg>Compare</button>
+    <button class="mnav-item" data-route="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Settings</button>
+    <div class="mnav-section">Saved reports <button class="ibtn sm icon" id="btnRefreshReports" title="Reload saved reports">↻</button></div>
+    <div id="navReports"><div class="mnav-empty">Loading…</div></div>
+    <div class="mnav-foot">
+      <div class="u"><span class="email" id="navEmail">…</span><span class="role" id="navRole"></span></div>
+      <div class="acts">
+        <button class="ibtn sm" id="btnTheme" title="Toggle light / dark">Dark mode</button>
+        <button class="ibtn sm" id="btnRefresh" title="Reload data from Supabase">Refresh</button>
+        <button class="ibtn sm" id="btnSignOut">Sign out</button>
+      </div>
+      <div id="navFresh" style="margin-top:8px;font-size:11px;color:var(--faint)"></div>
+    </div>
+  </nav>
+
+  <main class="mmain">
+    <div id="banner" class="banner hidden"></div>
+
+    <!-- ==================== HOME ==================== -->
+    <section class="view" id="viewHome">
+      <div class="vhead">
+        <div><h1>Home</h1><div class="sub" id="homeSub">Last 7 days</div></div>
+        <div class="acts"><span class="kbox hidden" id="homeKing"></span></div>
+      </div>
+      <div class="tiles" id="homeTiles"></div>
+      <div class="sect"><h2>Performance trends</h2><span class="sub">Biggest weekly shifts: last 7 days vs the 7 days before</span></div>
+      <div class="trends" id="homeTrends"></div>
+      <div class="sect"><h2>Top creatives</h2><span class="sub">Ranked by spend over the last 7 days. Badges use the last 14 days.</span></div>
+      <div class="lb" id="homeLeaderboard"></div>
+    </section>
+
+    <!-- ==================== TOP PERFORMING REPORT ==================== -->
+    <section class="view" id="viewReport">
+      <div class="vhead">
+        <div>
+          <h1><span class="emoji" id="repEmoji">⭐</span><input id="repName" value="Top performing" spellcheck="false"><span id="repUnsaved" class="unsaved-dot hidden" title="Unsaved changes"></span></h1>
+          <div class="sub" id="repSub"></div>
+        </div>
+        <div class="acts">
+          <button class="ibtn" id="btnCsv" title="Download the current table as CSV">Export CSV</button>
+          <button class="ibtn" id="btnDup">Duplicate</button>
+          <button class="ibtn danger hidden" id="btnDel">Delete</button>
+          <button class="ibtn primary" id="btnSave">Save report</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <button class="tb-btn" id="btnDate"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span id="dateLabel">Last 14 days</span></button>
+        <button class="tb-btn" id="btnCompare"><span class="lbl">Compare</span><span id="cmpLabel">Off</span></button>
+        <button class="tb-btn" id="btnGroup"><span class="lbl">Group by</span><span id="groupLabel">Ad name</span></button>
+        <button class="tb-btn" id="btnAddFilter"><svg viewBox="0 0 24 24"><path d="M4 5h16l-6 7v6l-4 2v-8z"/></svg>Add filter</button>
+        <div class="spacer"></div>
+        <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="searchIn" type="text" placeholder="Search ads, copy, headlines" autocomplete="off"></div>
+        <button class="tb-btn" id="btnSort"><span class="lbl">Sort</span><span id="sortLabel">Spend ↓</span></button>
+      </div>
+      <div class="filters" id="filterChips"></div>
+      <div class="mchips" id="metricChips"></div>
+      <div id="repBody"><div class="loading-row"><span class="spin"></span>Loading…</div></div>
+      <div class="tfoot" id="repFoot"></div>
+    </section>
+
+    <!-- ==================== LAUNCH ANALYSIS ==================== -->
+    <section class="view" id="viewLaunch">
+      <div class="vhead">
+        <div><h1><span class="emoji">🚀</span>Launch analysis</h1><div class="sub" id="launchSub"></div></div>
+        <div class="acts"><button class="ibtn" id="btnLaunchCsv">Export CSV</button></div>
+      </div>
+      <div class="toolbar">
+        <button class="tb-btn" id="btnLDate"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span class="lbl">Launched</span><span id="lDateLabel">Last 30 days</span></button>
+        <button class="tb-btn" id="btnLAddFilter"><svg viewBox="0 0 24 24"><path d="M4 5h16l-6 7v6l-4 2v-8z"/></svg>Add filter</button>
+        <div class="spacer"></div>
+        <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="lSearchIn" type="text" placeholder="Search launched ads" autocomplete="off"></div>
+      </div>
+      <div class="filters" id="lFilterChips"></div>
+      <div class="weeks" id="launchWeeks"></div>
+      <div class="tabs" id="launchTabs">
+        <button data-tab="launched" class="active">Launched <span class="c" id="cntLaunched">0</span></button>
+        <button data-tab="scaled">Scaled <span class="c" id="cntScaled">0</span></button>
+        <button data-tab="winners">Winners <span class="c" id="cntWinners">0</span></button>
+      </div>
+      <div id="launchBody"></div>
+      <div class="tfoot" id="launchFoot"></div>
+    </section>
+
+    <!-- ==================== COMPARATIVE REPORT ==================== -->
+    <section class="view" id="viewCompare">
+      <div class="vhead">
+        <div>
+          <h1><span class="emoji" id="cmpEmoji">🔍</span><input id="cmpName" value="Comparative analysis" spellcheck="false"><span id="cmpUnsaved" class="unsaved-dot hidden"></span></h1>
+          <div class="sub" id="cmpSub">Group creatives by a shared element to see which patterns win.</div>
+        </div>
+        <div class="acts">
+          <button class="ibtn" id="btnCDup">Duplicate</button>
+          <button class="ibtn danger hidden" id="btnCDel">Delete</button>
+          <button class="ibtn primary" id="btnCSave">Save report</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <button class="tb-btn" id="btnCDate"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span id="cDateLabel">Last 30 days</span></button>
+        <button class="tb-btn" id="btnCCompare"><span class="lbl">Compare</span><span id="cCmpLabel">Off</span></button>
+        <button class="tb-btn" id="btnCDim"><span class="lbl">Group by</span><span id="cDimLabel">Format</span></button>
+        <button class="tb-btn" id="btnCMetric"><span class="lbl">Chart</span><span id="cMetricLabel">ROAS</span></button>
+        <button class="tb-btn" id="btnCAddFilter"><svg viewBox="0 0 24 24"><path d="M4 5h16l-6 7v6l-4 2v-8z"/></svg>Add filter</button>
+        <div class="spacer"></div>
+        <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="cSearchIn" type="text" placeholder="Search ads, copy, headlines" autocomplete="off"></div>
+      </div>
+      <div class="filters" id="cFilterChips"></div>
+      <div class="mchips" id="cMetricChips"></div>
+      <div class="chartbox"><div class="chead"><span class="t" id="cChartTitle">ROAS by Format</span><span class="muted" id="cChartSub"></span></div><canvas id="cChart" height="120"></canvas></div>
+      <div class="cmp-groups" id="cGroups"></div>
+      <div class="tablewrap" id="cTableWrap" style="margin-top:14px"></div>
+    </section>
+
+    <!-- ==================== SETTINGS ==================== -->
+    <section class="view" id="viewSettings">
+      <div class="vhead"><div><h1>Settings</h1><div class="sub">Goal metric, thresholds and how ad names are read.</div></div></div>
+      <div id="settingsRO" class="readonly-note hidden">You have strategist access: settings are read-only. Ask Uday to change them.</div>
+      <div class="form">
+        <h3>Goal and thresholds</h3>
+        <p class="hint">The goal metric drives Winners, the Convert score and the Home overview. Targets are the Meta-platform targets from the operator context (not the blended King ROAS).</p>
+        <div class="frow"><label>Goal metric</label><select id="setGoalMetric"><option value="roas">ROAS (purchase value ÷ spend)</option><option value="cpa">CPA (spend ÷ purchases)</option></select></div>
+        <div class="frow"><label>ROAS target</label><input id="setRoas" type="number" step="0.01" min="0"></div>
+        <div class="frow"><label>CPA target (£)</label><input id="setCpa" type="number" step="0.1" min="0"></div>
+        <div class="frow"><label>Spend threshold (£)</label><input id="setThreshold" type="number" step="1" min="0"><span class="muted" style="grid-column:2;font-size:12px">An ad must reach this lifetime spend to count as Scaled and to earn badges. Default £86 = 3× target CPA.</span></div>
+        <div class="frow"><label>Performance window (days)</label><input id="setWindow" type="number" step="1" min="3" max="60"></div>
+        <div class="frow"><label>Min spend for scores (£)</label><input id="setMinScore" type="number" step="1" min="0"><span class="muted" style="grid-column:2;font-size:12px">Ads under this spend in the report range get no Hook/Watch/Click/Convert score.</span></div>
+      </div>
+      <div class="form">
+        <h3>Naming convention</h3>
+        <p class="hint">Ad names are split on the delimiter into segments. Segment 1 is the format, segment 2 the product. Any later part starting with V plus a number is the version, a date-looking part is the date, and everything else joins into the concept.</p>
+        <div class="frow"><label>Delimiter</label><input id="setDelim" type="text" maxlength="3" style="max-width:80px"></div>
+        <div class="frow"><label>Segment labels</label><div style="display:flex;gap:6px;flex-wrap:wrap"><input id="seg0" type="text" style="width:110px"><input id="seg1" type="text" style="width:110px"><input id="seg2" type="text" style="width:110px"><input id="seg3" type="text" style="width:110px"><input id="seg4" type="text" style="width:110px"></div></div>
+        <div class="frow" style="align-items:start"><label>Product codes</label><div><div class="codes" id="codesList"></div><button class="ibtn sm" id="btnAddCode" style="margin-top:8px">+ Add code</button></div></div>
+      </div>
+      <div class="form">
+        <h3>Access</h3>
+        <p class="hint" id="accessHint"></p>
+        <p class="hint">To add someone, insert their email into the <code>creative_access</code> table in Supabase with role <code>strategist</code> (app only) or <code>admin</code> (app plus the KS dashboard sidebar). Nothing is emailed until they sign in themselves.</p>
+      </div>
+      <div style="display:flex;gap:8px"><button class="ibtn primary" id="btnSaveSettings">Save settings</button><span class="muted" id="settingsMsg" style="font-size:12px;align-self:center"></span></div>
+    </section>
+  </main>
+</div>
+
+<!-- ==================== POPOVER CONTAINER ==================== -->
+<div id="pop" class="pop hidden"></div>
+
+<!-- ==================== CREATIVE DEEP DIVE ==================== -->
+<div class="modal-bg" id="ddModal">
+  <div class="modal">
+    <div class="mh"><h2 id="ddTitle">Creative</h2><div style="display:flex;gap:6px;align-items:center"><a class="ibtn sm" id="ddIg" target="_blank" rel="noopener" style="display:none">Instagram post ↗</a><a class="ibtn sm" id="ddLp" target="_blank" rel="noopener" style="display:none">Landing page ↗</a><button class="close" data-close="ddModal">×</button></div></div>
+    <div class="mb" id="ddBody"></div>
+  </div>
+</div>
+
+<!-- ==================== SAVE REPORT ==================== -->
+<div class="modal-bg" id="saveModal">
+  <div class="modal sm">
+    <div class="mh"><h2>Save report</h2><button class="close" data-close="saveModal">×</button></div>
+    <div class="mb">
+      <div class="frow"><label>Name</label><input id="svName" type="text"></div>
+      <div class="frow"><label>Emoji</label><input id="svEmoji" type="text" maxlength="4" style="max-width:70px"></div>
+      <div class="frow"><label>Folder</label><input id="svFolder" type="text" list="folderList" placeholder="Reports"><datalist id="folderList"></datalist></div>
+      <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:10px"><button class="ibtn" data-close="saveModal">Cancel</button><button class="ibtn primary" id="svConfirm">Save</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== GROUP ADS (comparative drill-down) ==================== -->
+<div class="modal-bg" id="groupModal">
+  <div class="modal">
+    <div class="mh"><h2 id="gmTitle">Group</h2><div style="display:flex;gap:6px;align-items:center"><button class="ibtn sm" id="gmToReport">Create top performing report from this group</button><button class="close" data-close="groupModal">×</button></div></div>
+    <div class="mb" id="gmBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script>
+// ============================================================
+// CREATIVE ANALYTICS — application script
+// Sections: CONFIG · AUTH · REST/DATA · METRICS · NAMING ·
+//           AGGREGATION & SCORES · STATE/ROUTING · POPOVERS ·
+//           TOP PERFORMING REPORT · (part b) HOME · LAUNCH ·
+//           COMPARE · SETTINGS · DEEP DIVE · SAVED REPORTS · BOOT
+// ============================================================
+
+// ========== CONFIG ==========
+const SUPABASE_URL = 'https://unmkzatppwftnasafhlb.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVubWt6YXRwcHdmdG5hc2FmaGxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDQ5OTIsImV4cCI6MjA4NjU4MDk5Mn0.SYQm1km08xwlJSIf9jq8DXH3Ijxbxqk_LpTRh0PZhD4';
+const AUTH_STORAGE_KEY = 'ks-dashboard-auth';   // shared with the other dashboard pages
+const THEME_KEY = 'ks-creative-theme';
+const MEDIA_BUCKET = 'creative-media';
+const DATA_START = '2025-11-01';                // ad-level daily data begins here (no backfill, by decision)
+let USER_JWT = SUPABASE_KEY;
+let USER_EMAIL = '';
+let USER_ROLE = '';                               // 'admin' | 'strategist'
+
+// ========== SMALL HELPERS ==========
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+function toast(msg, ms = 2200) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), ms); }
+function banner(msg, kind = '') { const b = $('banner'); if (!msg) { b.classList.add('hidden'); return; } b.textContent = msg; b.className = 'banner' + (kind ? ' ' + kind : ''); }
+function ukToday() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London' }).format(new Date()); }
+function dstr(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function dparse(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); }
+function addDays(s, n) { const d = dparse(s); d.setDate(d.getDate() + n); return dstr(d); }
+function addMonths(s, n) { const d = dparse(s); const day = d.getDate(); d.setDate(1); d.setMonth(d.getMonth() + n); const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate(); d.setDate(Math.min(day, last)); return dstr(d); }
+function daysBetween(a, b) { return Math.round((dparse(b) - dparse(a)) / 86400000); }
+function fmtD(s, withYear = false) { if (!s) return '—'; const d = dparse(s.slice(0, 10)); return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', ...(withYear ? { year: 'numeric' } : {}) }); }
+function fmtRange(a, b) { return a === b ? fmtD(a, true) : `${fmtD(a)} – ${fmtD(b, true)}`; }
+function pct(a, b) { return b ? (a - b) / Math.abs(b) : null; }
+function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+function uniq(arr) { return Array.from(new Set(arr)); }
+
+// ========== AUTH (magic link via Supabase Auth REST + creative_access gate) ==========
+// Same mechanism as index.html. The gate table is creative_access (role-aware), not allowed_emails,
+// so strategists can use this page without seeing or reading the rest of the dashboard.
+(function authBoot() {
+  const overlay = $('authOverlay'), stepEmail = $('authStepEmail'), stepSent = $('authStepSent');
+  const emailInput = $('authEmail'), sendBtn = $('authSendCode'), backBtn = $('authBackToEmail'), msgEl = $('authMsg');
+  let pendingEmail = '', refreshTimer = null;
+
+  function setMsg(text, kind) { msgEl.textContent = text || ''; msgEl.classList.remove('error', 'info'); if (kind) msgEl.classList.add(kind); }
+  function showStep(step) {
+    stepEmail.classList.toggle('auth-hidden', step !== 'email');
+    stepSent.classList.toggle('auth-hidden', step !== 'sent');
+    if (step === 'email') { setMsg(''); emailInput.focus(); }
+    if (step === 'sent') setMsg(`Email sent to ${pendingEmail}. Click the sign-in link in your inbox and you'll be brought right back here. (Check Spam if you don't see it.)`, 'info');
+  }
+  const hideOverlay = () => overlay.style.display = 'none';
+  const showOverlay = () => overlay.style.display = 'flex';
+  function readStored() { try { return JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY) || 'null'); } catch { return null; } }
+  const saveStored = (s) => localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(s));
+  const clearStored = () => localStorage.removeItem(AUTH_STORAGE_KEY);
+  const isExpired = (s) => !s || !s.expires_at || s.expires_at <= Math.floor(Date.now() / 1000);
+
+  async function verifyAccess(accessToken) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/creative_access?select=email,role&limit=1`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${accessToken}` } });
+    if (!r.ok) return null;
+    const data = await r.json();
+    return Array.isArray(data) && data.length ? data[0] : null;
+  }
+  async function refreshAccessToken(refreshToken) {
+    const r = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, { method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: refreshToken }) });
+    if (!r.ok) throw new Error('refresh failed: ' + r.status);
+    return await r.json();
+  }
+  async function sendMagicLink(email) {
+    const redirectTo = window.location.origin + window.location.pathname;
+    const r = await fetch(`${SUPABASE_URL}/auth/v1/otp?redirect_to=${encodeURIComponent(redirectTo)}`, { method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ email, create_user: true, gotrue_meta_security: {} }) });
+    if (!r.ok) { let m = 'Failed to send link.'; try { const e = await r.json(); m = e.msg || e.error_description || e.error || m; } catch {} throw new Error(m); }
+  }
+  function scheduleRefresh(s) {
+    if (refreshTimer) clearTimeout(refreshTimer);
+    const refreshIn = Math.max(15000, (s.expires_at * 1000) - Date.now() - 60000);
+    refreshTimer = setTimeout(async () => {
+      try { const refreshed = await refreshAccessToken(s.refresh_token); USER_JWT = refreshed.access_token; saveStored(refreshed); scheduleRefresh(refreshed); }
+      catch (e) { console.error('[auth] refresh failed', e); clearStored(); USER_JWT = SUPABASE_KEY; showOverlay(); showStep('email'); setMsg('Your session expired. Sign in again.', 'info'); }
+    }, refreshIn);
+  }
+  async function adoptSession(s) {
+    USER_JWT = s.access_token;
+    const access = await verifyAccess(s.access_token);
+    if (!access) { clearStored(); USER_JWT = SUPABASE_KEY; showOverlay(); showStep('email'); setMsg('That email is not on the Creative Analytics access list. Contact Uday to be added.', 'error'); return false; }
+    saveStored(s);
+    USER_EMAIL = access.email; USER_ROLE = access.role;
+    hideOverlay(); scheduleRefresh(s);
+    document.body.classList.remove('role-unknown'); document.body.classList.add(USER_ROLE === 'admin' ? 'admin' : 'strategist');
+    window.dispatchEvent(new Event('ks-auth-ready'));
+    return true;
+  }
+  sendBtn.addEventListener('click', async () => {
+    const email = emailInput.value.trim().toLowerCase();
+    if (!email || !email.includes('@')) { setMsg('Please enter a valid email.', 'error'); return; }
+    sendBtn.disabled = true; setMsg('Sending link…', 'info');
+    try { await sendMagicLink(email); pendingEmail = email; showStep('sent'); }
+    catch (e) { setMsg(e.message || 'Failed to send link.', 'error'); }
+    finally { sendBtn.disabled = false; }
+  });
+  emailInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendBtn.click(); });
+  backBtn.addEventListener('click', () => { pendingEmail = ''; showStep('email'); });
+  window.ksSignOut = () => { clearStored(); location.reload(); };
+
+  (async () => {
+    if (window.location.hash.includes('access_token')) {
+      const params = new URLSearchParams(window.location.hash.slice(1));
+      const access_token = params.get('access_token'), refresh_token = params.get('refresh_token');
+      const expires_at = parseInt(params.get('expires_at') || '0', 10), expires_in = parseInt(params.get('expires_in') || '0', 10);
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+      if (access_token && refresh_token && (expires_at || expires_in)) {
+        const s = { access_token, refresh_token, expires_at: expires_at || (Math.floor(Date.now() / 1000) + expires_in), expires_in, token_type: 'bearer' };
+        if (await adoptSession(s)) return;
+      }
+    }
+    const stored = readStored();
+    if (stored && stored.access_token) {
+      if (!isExpired(stored)) { if (await adoptSession(stored)) return; }
+      else if (stored.refresh_token) {
+        try { const refreshed = await refreshAccessToken(stored.refresh_token); if (await adoptSession(refreshed)) return; }
+        catch (e) { console.warn('[auth] boot refresh failed', e); clearStored(); }
+      }
+    }
+    showOverlay(); showStep('email');
+  })();
+})();
+
+// ========== REST / DATA LAYER ==========
+function authHeaders(extra = {}) { return { apikey: SUPABASE_KEY, Authorization: `Bearer ${USER_JWT}`, 'Content-Type': 'application/json', ...extra }; }
+async function rest(path, opts = {}) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { ...opts, headers: authHeaders(opts.headers || {}) });
+  if (!r.ok) { const t = await r.text(); throw new Error(`${r.status} ${t.slice(0, 240)}`); }
+  if (r.status === 204) return null;
+  const txt = await r.text(); return txt ? JSON.parse(txt) : null;
+}
+// PostgREST caps at 1000 rows per request: page with Range headers until a short page comes back.
+async function fetchAll(path) {
+  const out = []; const PAGE = 1000; let from = 0;
+  while (true) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { headers: authHeaders({ Range: `${from}-${from + PAGE - 1}`, 'Range-Unit': 'items' }) });
+    if (!r.ok) { const t = await r.text(); throw new Error(`${r.status} ${t.slice(0, 240)}`); }
+    const rows = await r.json(); out.push(...rows);
+    if (rows.length < PAGE) break; from += PAGE;
+  }
+  return out;
+}
+
+// In-memory store
+const D = {
+  creatives: new Map(),   // ad_id -> creative row
+  campaigns: new Map(),   // campaign_id -> row
+  adsets: new Map(),
+  lifetime: new Map(),    // ad_id -> v_meta_ad_lifetime row
+  tags: new Map(),        // ad_id -> [{id, tag}]
+  reports: [],            // creative_reports rows
+  daily: [],              // raw_meta_ads_ad_daily rows (contiguous cached range)
+  dailyRange: null,       // {from, to}
+  loadedAt: null,
+};
+const S = { goal: { metric: 'roas', roas_target: 1.61, cpa_target: 28.8, spend_threshold: 86, window_days: 14, min_score_spend: 40 }, naming: { delimiter: '|', segments: ['Format', 'Product', 'Concept', 'Version', 'Date'], product_codes: {} } };
+
+const DAILY_COLS = 'report_date,campaign_id,campaign_name,adset_id,adset_name,ad_id,ad_name,spend,impressions,clicks,link_clicks,outbound_clicks,landing_page_views,add_to_carts,initiate_checkouts,purchases,purchase_value,video_plays,video_views_3s,thruplays,video_p25,video_p50,video_p75,video_p95,video_p100,video_avg_time_sec,post_engagements';
+
+async function loadCatalog() {
+  const [creatives, campaigns, adsets, lifetime, tags, settings, reports] = await Promise.all([
+    fetchAll('meta_ad_creatives?select=ad_id,ad_name,adset_id,adset_name,campaign_id,campaign_name,creative_id,status,effective_status,created_time,format,video_id,thumb_path,body,title,description,cta_type,landing_page,instagram_permalink,asset_counts&order=created_time.desc'),
+    fetchAll('meta_campaigns?select=campaign_id,name,status,effective_status,objective,daily_budget,lifetime_budget'),
+    fetchAll('meta_adsets?select=adset_id,campaign_id,name,status,effective_status,daily_budget,optimization_goal'),
+    fetchAll('v_meta_ad_lifetime?select=*'),
+    fetchAll('creative_tags?select=id,ad_id,tag,added_by'),
+    fetchAll('creative_settings?select=key,value'),
+    fetchAll('creative_reports?select=*&order=folder.asc,name.asc'),
+  ]);
+  D.creatives = new Map(creatives.map(c => [c.ad_id, c]));
+  D.campaigns = new Map(campaigns.map(c => [c.campaign_id, c]));
+  D.adsets = new Map(adsets.map(a => [a.adset_id, a]));
+  D.lifetime = new Map(lifetime.map(l => [l.ad_id, l]));
+  D.tags = new Map(); for (const t of tags) { if (!D.tags.has(t.ad_id)) D.tags.set(t.ad_id, []); D.tags.get(t.ad_id).push(t); }
+  for (const s of settings) { if (s.key === 'goal') S.goal = { ...S.goal, ...s.value }; if (s.key === 'naming') S.naming = { ...S.naming, ...s.value }; }
+  D.reports = reports;
+  D.loadedAt = new Date();
+  NAME_CACHE.clear();
+}
+
+// Ensure the daily cache covers [from, to]; only the missing edges are fetched.
+async function ensureDaily(from, to) {
+  from = from < DATA_START ? DATA_START : from;
+  if (to < from) return;
+  const fetchRange = async (a, b) => fetchAll(`raw_meta_ads_ad_daily?select=${DAILY_COLS}&report_date=gte.${a}&report_date=lte.${b}&order=report_date.asc`);
+  if (!D.dailyRange) { D.daily = await fetchRange(from, to); D.dailyRange = { from, to }; return; }
+  const r = D.dailyRange;
+  if (from < r.from) { const rows = await fetchRange(from, addDays(r.from, -1)); D.daily = rows.concat(D.daily); r.from = from; }
+  if (to > r.to) { const rows = await fetchRange(addDays(r.to, 1), to); D.daily = D.daily.concat(rows); r.to = to; }
+}
+// Re-fetch the recent edge (today/yesterday change intraday).
+async function refreshRecent() {
+  if (!D.dailyRange) return;
+  const today = ukToday(); const from = addDays(today, -2);
+  if (D.dailyRange.to < from) return;
+  const rows = await fetchAll(`raw_meta_ads_ad_daily?select=${DAILY_COLS}&report_date=gte.${from}&report_date=lte.${today}&order=report_date.asc`);
+  D.daily = D.daily.filter(r => r.report_date < from).concat(rows);
+  D.dailyRange.to = today > D.dailyRange.to ? today : D.dailyRange.to;
+}
+function dailyRows(from, to) { return D.daily.filter(r => r.report_date >= from && r.report_date <= to); }
+
+// Thumbnails live in a private bucket: sign in batches, cache for the session.
+const THUMB_CACHE = new Map();
+async function signThumbs(paths) {
+  const need = uniq(paths.filter(p => p && !(THUMB_CACHE.has(p) && THUMB_CACHE.get(p).exp > Date.now())));
+  if (!need.length) return;
+  for (let i = 0; i < need.length; i += 200) {
+    const slice = need.slice(i, i + 200);
+    try {
+      const r = await fetch(`${SUPABASE_URL}/storage/v1/object/sign/${MEDIA_BUCKET}`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ expiresIn: 3600, paths: slice }) });
+      if (!r.ok) { console.warn('sign thumbs', r.status); return; }
+      const res = await r.json();
+      for (const it of res) if (it.signedURL && !it.error) THUMB_CACHE.set(it.path, { url: `${SUPABASE_URL}/storage/v1${it.signedURL}`, exp: Date.now() + 3300000 });
+    } catch (e) { console.warn('sign thumbs failed', e); }
+  }
+}
+function thumbUrl(path) { const c = THUMB_CACHE.get(path); return c && c.exp > Date.now() ? c.url : null; }
+async function hydrateThumbs(root) {
+  const imgs = Array.from(root.querySelectorAll('img[data-thumb]'));
+  await signThumbs(imgs.map(i => i.dataset.thumb));
+  for (const img of imgs) { const u = thumbUrl(img.dataset.thumb); if (u) { img.src = u; img.removeAttribute('data-thumb'); } }
+}
+function thumbImg(ad, cls = '') { return ad && ad.thumb_path ? `<img data-thumb="${esc(ad.thumb_path)}" alt="" loading="lazy" class="${cls}">` : `<div class="ph">${ad ? 'No preview yet' : ''}</div>`; }
+
+// ========== METRICS ==========
+// Every metric is derived from summed raw fields so any grouping and any date range stay exact.
+const SUM_FIELDS = ['spend', 'impressions', 'clicks', 'link_clicks', 'outbound_clicks', 'landing_page_views', 'add_to_carts', 'initiate_checkouts', 'purchases', 'purchase_value', 'video_plays', 'video_views_3s', 'thruplays', 'video_p25', 'video_p50', 'video_p75', 'video_p95', 'video_p100', 'post_engagements'];
+function emptySums() { const s = {}; for (const f of SUM_FIELDS) s[f] = 0; s.avg_time_w = 0; s.days = new Set(); s.ads = new Set(); return s; }
+function addRow(s, r) {
+  for (const f of SUM_FIELDS) s[f] += Number(r[f]) || 0;
+  s.avg_time_w += (Number(r.video_avg_time_sec) || 0) * (Number(r.video_plays) || 0);
+  s.days.add(r.report_date); s.ads.add(r.ad_id);
+}
+const div = (a, b) => (b > 0 ? a / b : null);
+const M = {
+  spend:        { l: 'Spend', g: 'Core', f: 'gbp', better: 'high', c: s => s.spend },
+  purchase_value:{ l: 'Purchase value', g: 'Core', f: 'gbp', better: 'high', c: s => s.purchase_value },
+  roas:         { l: 'ROAS', g: 'Core', f: 'x', better: 'high', c: s => div(s.purchase_value, s.spend) },
+  cpa:          { l: 'CPA', g: 'Core', f: 'gbp', better: 'low', c: s => div(s.spend, s.purchases) },
+  purchases:    { l: 'Purchases', g: 'Core', f: 'int', better: 'high', c: s => s.purchases },
+  aov:          { l: 'AOV', g: 'Core', f: 'gbp', better: 'high', c: s => div(s.purchase_value, s.purchases) },
+  impressions:  { l: 'Impressions', g: 'Core', f: 'int', better: 'high', c: s => s.impressions },
+  cpm:          { l: 'CPM', g: 'Core', f: 'gbp', better: 'low', c: s => div(s.spend * 1000, s.impressions) },
+  ctr_all:      { l: 'CTR (all)', g: 'Clicks', f: 'pct', better: 'high', c: s => div(s.clicks, s.impressions) },
+  ctr_link:     { l: 'CTR (link)', g: 'Clicks', f: 'pct', better: 'high', c: s => div(s.link_clicks, s.impressions) },
+  ctr_outbound: { l: 'CTR (outbound)', g: 'Clicks', f: 'pct', better: 'high', c: s => div(s.outbound_clicks, s.impressions) },
+  link_clicks:  { l: 'Link clicks', g: 'Clicks', f: 'int', better: 'high', c: s => s.link_clicks },
+  cpc_link:     { l: 'CPC (link)', g: 'Clicks', f: 'gbp', better: 'low', c: s => div(s.spend, s.link_clicks) },
+  cpc_all:      { l: 'CPC (all)', g: 'Clicks', f: 'gbp', better: 'low', c: s => div(s.spend, s.clicks) },
+  lpv:          { l: 'Landing page views', g: 'Funnel', f: 'int', better: 'high', c: s => s.landing_page_views },
+  lpv_rate:     { l: 'LPV / link click', g: 'Funnel', f: 'pct', better: 'high', c: s => div(s.landing_page_views, s.link_clicks) },
+  atc:          { l: 'Add to carts', g: 'Funnel', f: 'int', better: 'high', c: s => s.add_to_carts },
+  cost_atc:     { l: 'Cost per ATC', g: 'Funnel', f: 'gbp', better: 'low', c: s => div(s.spend, s.add_to_carts) },
+  ic:           { l: 'Checkouts', g: 'Funnel', f: 'int', better: 'high', c: s => s.initiate_checkouts },
+  cost_ic:      { l: 'Cost per checkout', g: 'Funnel', f: 'gbp', better: 'low', c: s => div(s.spend, s.initiate_checkouts) },
+  click_to_atc: { l: 'Click to ATC', g: 'Funnel', f: 'pct', better: 'high', c: s => div(s.add_to_carts, s.link_clicks) },
+  atc_to_purchase:{ l: 'ATC to purchase', g: 'Funnel', f: 'pct', better: 'high', c: s => div(s.purchases, s.add_to_carts) },
+  click_to_purchase:{ l: 'Click to purchase', g: 'Funnel', f: 'pct', better: 'high', c: s => div(s.purchases, s.link_clicks) },
+  first_frame:  { l: '1st frame retention', g: 'Video', f: 'pct', better: 'high', video: true, c: s => div(s.video_plays, s.impressions) },
+  thumbstop:    { l: 'Thumbstop (hook rate)', g: 'Video', f: 'pct', better: 'high', video: true, c: s => div(s.video_views_3s, s.impressions) },
+  hold_rate:    { l: 'Hold rate (15s / 3s)', g: 'Video', f: 'pct', better: 'high', video: true, c: s => div(s.thruplays, s.video_views_3s) },
+  thruplay_rate:{ l: 'ThruPlay rate', g: 'Video', f: 'pct', better: 'high', video: true, c: s => div(s.thruplays, s.impressions) },
+  p50_rate:     { l: '50% watched', g: 'Video', f: 'pct', better: 'high', video: true, c: s => div(s.video_p50, s.video_plays) },
+  p100_rate:    { l: '100% watched', g: 'Video', f: 'pct', better: 'high', video: true, c: s => div(s.video_p100, s.video_plays) },
+  avg_watch:    { l: 'Avg watch time', g: 'Video', f: 'sec', better: 'high', video: true, c: s => div(s.avg_time_w, s.video_plays) },
+  thumbstop_ctr:{ l: 'Thumbstop CTR', g: 'Video', f: 'pct', better: 'high', video: true, c: s => div(s.link_clicks, s.video_views_3s) },
+  video_views_3s:{ l: '3s video views', g: 'Video', f: 'int', better: 'high', video: true, c: s => s.video_views_3s },
+  thruplays:    { l: 'ThruPlays', g: 'Video', f: 'int', better: 'high', video: true, c: s => s.thruplays },
+  post_engagements:{ l: 'Post engagements', g: 'Engagement', f: 'int', better: 'high', c: s => s.post_engagements },
+  hook_score:   { l: 'Hook score', g: 'Scores', f: 'score', better: 'high', score: true },
+  watch_score:  { l: 'Watch score', g: 'Scores', f: 'score', better: 'high', score: true },
+  click_score:  { l: 'Click score', g: 'Scores', f: 'score', better: 'high', score: true },
+  convert_score:{ l: 'Convert score', g: 'Scores', f: 'score', better: 'high', score: true },
+  ads:          { l: 'Ads', g: 'Meta', f: 'int', better: null, c: s => s.ads.size },
+  days_active:  { l: 'Days active', g: 'Meta', f: 'int', better: null, c: s => s.days.size },
+};
+const DEFAULT_METRICS = ['spend', 'roas', 'cpa', 'purchases', 'thumbstop', 'ctr_outbound'];
+function fmtV(key, v) {
+  if (v === null || v === undefined || Number.isNaN(v)) return '—';
+  const f = M[key] ? M[key].f : 'num';
+  if (f === 'gbp') return '£' + v.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (f === 'int') return Math.round(v).toLocaleString('en-GB');
+  if (f === 'x') return v.toFixed(2);
+  if (f === 'pct') return (v * 100).toFixed(2) + '%';
+  if (f === 'sec') return v.toFixed(1) + 's';
+  if (f === 'score') return String(Math.round(v));
+  return String(v);
+}
+function fmtDelta(cur, prev, key) {
+  const p = pct(cur, prev);
+  if (p === null || cur === null || prev === null) return '';
+  const better = M[key] && M[key].better; const good = better === 'low' ? p < 0 : p > 0;
+  const cls = Math.abs(p) < 0.005 ? 'muted' : (good ? 'up' : 'down');
+  return `<span class="dl ${cls}">${p > 0 ? '+' : ''}${(p * 100).toFixed(0)}%</span>`;
+}
+function scoreClass(v) { if (v === null || v === undefined) return 's0'; return v >= 80 ? 's4' : v >= 60 ? 's3' : v >= 40 ? 's2' : 's1'; }
+function scoreHtml(v) { return `<span class="score ${scoreClass(v)}">${v === null || v === undefined ? '—' : Math.round(v)}</span>`; }
+
+// ========== NAMING CONVENTION ==========
+const NAME_CACHE = new Map();
+function parseName(name) {
+  if (NAME_CACHE.has(name)) return NAME_CACHE.get(name);
+  const delim = S.naming.delimiter || '|';
+  const parts = String(name || '').split(delim).map(p => p.trim()).filter(Boolean);
+  const out = ['', '', '', '', ''];
+  if (parts.length) {
+    out[0] = parts[0] || '';
+    out[1] = parts[1] || '';
+    const rest = parts.slice(2); const concept = [];
+    for (const p of rest) {
+      if (!out[3] && /^v\s?\d+[a-z]?$/i.test(p)) out[3] = p.toUpperCase().replace(/\s/g, '');
+      else if (!out[4] && (/\d{1,2}\s?[A-Za-z]{3,9}\s?\d{2,4}/.test(p) || /^\d{4}-\d{2}-\d{2}$/.test(p) || /^\d{1,2}[\/.]\d{1,2}[\/.]\d{2,4}$/.test(p))) out[4] = p;
+      else concept.push(p);
+    }
+    out[2] = concept.join(' · ');
+  }
+  NAME_CACHE.set(name, out);
+  return out;
+}
+function productLabel(code) { if (!code) return ''; const m = S.naming.product_codes || {}; return m[code] && m[code] !== code ? `${m[code]} (${code})` : code; }
+function formatLabel(ad) {
+  if (!ad) return 'Unknown';
+  const f = ad.format;
+  if (f === 'video') return 'Video'; if (f === 'carousel') return 'Carousel'; if (f === 'image') return 'Image';
+  const seg = parseName(ad.ad_name)[0].toLowerCase();
+  return seg.startsWith('video') ? 'Video' : seg.startsWith('static') ? 'Image' : 'Other';
+}
+function isDynamic(ad) { const c = ad && ad.asset_counts; return !!(c && !c.customized && ((c.images || 0) + (c.videos || 0) > 1)); }
+function adLaunch(adId) { const l = D.lifetime.get(adId); if (l && l.first_spend_date) return l.first_spend_date; const c = D.creatives.get(adId); return c && c.created_time ? c.created_time.slice(0, 10) : null; }
+function adStatusClass(ad) { const s = ad && ad.effective_status; if (!s) return ''; return s === 'ACTIVE' ? 'on' : (s.includes('PAUSED') ? 'off' : ''); }
+
+// ========== GROUPING OPTIONS ==========
+function groupOptions() {
+  const seg = S.naming.segments || [];
+  return [
+    { k: 'ad', l: 'Ad name' }, { k: 'creative', l: 'Creative' }, { k: 'adset', l: 'Ad set' }, { k: 'campaign', l: 'Campaign' },
+    { k: 'copy', l: 'Copy' }, { k: 'headline', l: 'Headline' }, { k: 'lp', l: 'Landing page' }, { k: 'format', l: 'Format' },
+    ...seg.map((s, i) => ({ k: 'seg' + i, l: s || ('Segment ' + (i + 1)) })),
+    { k: 'tag', l: 'Tag' }, { k: 'status', l: 'Status' },
+  ];
+}
+function groupLabelFor(k) { const o = groupOptions().find(o => o.k === k); return o ? o.l : k; }
+// Returns the group key(s) a daily row belongs to under a group-by mode.
+function groupKeys(mode, r, ad) {
+  switch (mode) {
+    case 'ad': return [r.ad_id];
+    case 'creative': return [(ad && ad.creative_id) || r.ad_id];
+    case 'adset': return [r.adset_id];
+    case 'campaign': return [r.campaign_id];
+    case 'copy': return [ad && ad.body ? ad.body.trim() : '(no copy)'];
+    case 'headline': return [ad && ad.title ? ad.title.trim() : '(no headline)'];
+    case 'lp': return [ad && ad.landing_page ? ad.landing_page : '(unknown)'];
+    case 'format': return [formatLabel(ad)];
+    case 'status': return [ad && ad.effective_status ? ad.effective_status : 'UNKNOWN'];
+    case 'tag': { const t = D.tags.get(r.ad_id); return t && t.length ? t.map(x => x.tag) : ['(untagged)']; }
+    default:
+      if (mode.startsWith('seg')) { const i = Number(mode.slice(3)); const v = parseName(ad ? ad.ad_name : r.ad_name)[i]; return [v || '(none)']; }
+      return [r.ad_id];
+  }
+}
+function groupDisplayName(mode, key, g) {
+  switch (mode) {
+    case 'ad': { const a = D.creatives.get(key); return a ? a.ad_name : (g.anyName || key); }
+    case 'creative': { const a = g.topAd; return a ? a.ad_name : key; }
+    case 'adset': { const a = D.adsets.get(key); return a ? a.name : (g.anyAdsetName || key); }
+    case 'campaign': { const c = D.campaigns.get(key); return c ? c.name : (g.anyCampaignName || key); }
+    case 'seg1': return productLabel(key);
+    default: return key;
+  }
+}
+
+// ========== FILTERS ==========
+// Ad-level filters decide which daily rows take part; group-level filters apply after aggregation.
+function adPasses(filters, search, ad, r) {
+  if (search) {
+    const q = search.toLowerCase();
+    const hay = [(ad && ad.ad_name) || r.ad_name, ad && ad.body, ad && ad.title, ad && ad.landing_page, r.campaign_name, r.adset_name].filter(Boolean).join(' \n ').toLowerCase();
+    if (!hay.includes(q)) return false;
+  }
+  for (const f of filters) {
+    if (f.type === 'campaign' && f.values.length && !f.values.includes(r.campaign_id)) return false;
+    if (f.type === 'adset' && f.values.length && !f.values.includes(r.adset_id)) return false;
+    if (f.type === 'status' && f.values.length && !f.values.includes((ad && ad.effective_status) || 'UNKNOWN')) return false;
+    if (f.type === 'format' && f.values.length && !f.values.includes(formatLabel(ad))) return false;
+    if (f.type === 'tag' && f.values.length) { const t = (D.tags.get(r.ad_id) || []).map(x => x.tag); if (!t.some(x => f.values.includes(x))) return false; }
+    if (f.type === 'seg' && f.values.length) { const v = parseName(ad ? ad.ad_name : r.ad_name)[f.seg] || '(none)'; if (!f.values.includes(v)) return false; }
+    if (f.type === 'name' && f.q) { const n = ((ad && ad.ad_name) || r.ad_name || '').toLowerCase(); if (f.mode === 'excludes' ? n.includes(f.q.toLowerCase()) : !n.includes(f.q.toLowerCase())) return false; }
+    if (f.type === 'launch') { const ld = adLaunch(r.ad_id); if (!ld) return false; if (f.from && ld < f.from) return false; if (f.to && ld > f.to) return false; }
+  }
+  return true;
+}
+function groupPasses(filters, g) {
+  for (const f of filters) {
+    if (f.type === 'metric') { const v = g.m[f.metric]; if (v === null || v === undefined) return false; if (f.op === '>=' ? v < f.value : v > f.value) return false; }
+    if (f.type === 'change') { const d = g.delta ? g.delta[f.metric] : null; if (d === null || d === undefined) return false; if (Math.abs(d) * 100 < f.value) return false; if (f.dir === 'up' && d <= 0) return false; if (f.dir === 'down' && d >= 0) return false; }
+  }
+  return true;
+}
+function filterChipLabel(f) {
+  const segs = S.naming.segments || [];
+  if (f.type === 'campaign') return `<b>Campaign</b> ${f.values.map(v => esc((D.campaigns.get(v) || {}).name || v)).join(', ') || 'any'}`;
+  if (f.type === 'adset') return `<b>Ad set</b> ${f.values.length} selected`;
+  if (f.type === 'status') return `<b>Status</b> ${f.values.map(esc).join(', ')}`;
+  if (f.type === 'format') return `<b>Format</b> ${f.values.map(esc).join(', ')}`;
+  if (f.type === 'tag') return `<b>Tag</b> ${f.values.map(esc).join(', ')}`;
+  if (f.type === 'seg') return `<b>${esc(segs[f.seg] || 'Segment')}</b> ${f.values.map(esc).join(', ')}`;
+  if (f.type === 'name') return `<b>Ad name</b> ${f.mode === 'excludes' ? 'excludes' : 'contains'} “${esc(f.q)}”`;
+  if (f.type === 'launch') return `<b>Launched</b> ${f.from ? fmtD(f.from) : '…'} – ${f.to ? fmtD(f.to) : '…'}`;
+  if (f.type === 'metric') return `<b>${esc(M[f.metric].l)}</b> ${f.op} ${fmtV(f.metric, f.value)}`;
+  if (f.type === 'change') return `<b>${esc(M[f.metric].l)}</b> ${f.dir === 'up' ? 'up' : f.dir === 'down' ? 'down' : 'moved'} ≥ ${f.value}% vs prev`;
+  return esc(f.type);
+}
+
+// ========== AGGREGATION, SCORES ==========
+// Build groups for a report state. Returns { groups: [...], totals, prevTotals, series }.
+function buildGroups(st, opts = {}) {
+  const rows = dailyRows(st.range.from, st.range.to);
+  const prevRange = compareRange(st);
+  const prevRows = prevRange ? dailyRows(prevRange.from, prevRange.to) : [];
+  const mode = st.groupBy || 'ad';
+  const wantSeries = !!opts.series;
+  const groups = new Map();
+  const totals = emptySums(), prevTotals = emptySums();
+  const getGroup = (k) => { let g = groups.get(k); if (!g) { g = { key: k, sums: emptySums(), prev: emptySums(), adSpend: new Map(), series: wantSeries ? new Map() : null, anyName: null, anyAdsetName: null, anyCampaignName: null, campaigns: new Set() }; groups.set(k, g); } return g; };
+  for (const r of rows) {
+    const ad = D.creatives.get(r.ad_id);
+    if (!adPasses(st.filters, st.search, ad, r)) continue;
+    addRow(totals, r);
+    for (const k of groupKeys(mode, r, ad)) {
+      const g = getGroup(k); addRow(g.sums, r);
+      g.adSpend.set(r.ad_id, (g.adSpend.get(r.ad_id) || 0) + (Number(r.spend) || 0));
+      g.anyName = g.anyName || r.ad_name; g.anyAdsetName = g.anyAdsetName || r.adset_name; g.anyCampaignName = g.anyCampaignName || r.campaign_name; g.campaigns.add(r.campaign_id);
+      if (wantSeries) { let s = g.series.get(r.report_date); if (!s) { s = emptySums(); g.series.set(r.report_date, s); } addRow(s, r); }
+    }
+  }
+  for (const r of prevRows) {
+    const ad = D.creatives.get(r.ad_id);
+    if (!adPasses(st.filters, st.search, ad, r)) continue;
+    addRow(prevTotals, r);
+    for (const k of groupKeys(mode, r, ad)) { const g = groups.get(k); if (g) addRow(g.prev, r); }
+  }
+  let list = [];
+  for (const g of groups.values()) {
+    g.topAdId = Array.from(g.adSpend.entries()).sort((a, b) => b[1] - a[1])[0][0];
+    g.topAd = D.creatives.get(g.topAdId) || null;
+    g.name = groupDisplayName(mode, g.key, g);
+    g.m = deriveMetrics(g.sums);
+    g.pm = prevRange ? deriveMetrics(g.prev) : null;
+    g.delta = g.pm ? Object.fromEntries(Object.keys(M).map(k => [k, pct(g.m[k], g.pm[k])])) : null;
+    g.nAds = g.sums.ads.size;
+    g.launch = mode === 'ad' ? adLaunch(g.key) : Array.from(g.adSpend.keys()).map(adLaunch).filter(Boolean).sort()[0] || null;
+    g.isVideo = g.sums.video_plays > 0;
+    list.push(g);
+  }
+  computeScores(list, mode);
+  for (const g of list) { g.m.hook_score = g.scores.hook; g.m.watch_score = g.scores.watch; g.m.click_score = g.scores.click; g.m.convert_score = g.scores.convert; if (g.pm) { g.pm.hook_score = null; g.pm.watch_score = null; g.pm.click_score = null; g.pm.convert_score = null; } }
+  list = list.filter(g => groupPasses(st.filters, g));
+  sortGroups(list, st.sort);
+  const tm = deriveMetrics(totals), tpm = prevRange ? deriveMetrics(prevTotals) : null;
+  return { groups: list, totals, prevTotals, tm, tpm, prevRange, rowsCount: rows.length };
+}
+function deriveMetrics(s) { const m = {}; for (const k in M) if (M[k].c) m[k] = M[k].c(s); return m; }
+function sortGroups(list, sort) {
+  const key = sort.key, dir = sort.dir === 'asc' ? 1 : -1;
+  list.sort((a, b) => {
+    if (key === 'name') return a.name.localeCompare(b.name) * dir;
+    if (key === 'launch') return ((a.launch || '') > (b.launch || '') ? 1 : -1) * dir;
+    const va = a.m[key], vb = b.m[key];
+    if (va === null || va === undefined) return 1; if (vb === null || vb === undefined) return -1;
+    return (va - vb) * dir || b.m.spend - a.m.spend;
+  });
+}
+// Motion-style 1–100 scores: percentile rank of each component against the comparison set
+// (same campaign when grouping by ad/creative, otherwise everything in the report). Needs min spend.
+function percentileRank(values, v) { if (v === null || v === undefined || !values.length) return null; let below = 0, eq = 0; for (const x of values) { if (x < v) below++; else if (x === v) eq++; } return 100 * (below + 0.5 * eq) / values.length; }
+function computeScores(list, mode) {
+  const minSpend = Number(S.goal.min_score_spend) || 0;
+  const perCampaign = mode === 'ad' || mode === 'creative';
+  const setKey = g => (perCampaign && g.campaigns.size === 1) ? Array.from(g.campaigns)[0] : '_all';
+  const pools = new Map();
+  for (const g of list) { if (g.m.spend < minSpend) continue; const k = setKey(g); if (!pools.has(k)) pools.set(k, []); pools.get(k).push(g); }
+  const comp = {
+    hook: ['first_frame', 'thumbstop'], watch: ['hold_rate', 'p100_rate', 'avg_watch'],
+    click: ['ctr_outbound', 'thumbstop_ctr'], convert: [S.goal.metric === 'cpa' ? 'cpa' : 'roas', 'click_to_purchase'],
+  };
+  for (const g of list) {
+    g.scores = { hook: null, watch: null, click: null, convert: null };
+    if (g.m.spend < minSpend) continue;
+    let pool = pools.get(setKey(g)) || [];
+    if (pool.length < 5) pool = Array.from(pools.values()).flat();
+    for (const name in comp) {
+      const parts = [];
+      for (const mk of comp[name]) {
+        if (M[mk].video && !g.isVideo) continue;
+        let v = g.m[mk]; if (v === null || v === undefined) continue;
+        const vals = pool.filter(p => !M[mk].video || p.isVideo).map(p => p.m[mk]).filter(x => x !== null && x !== undefined);
+        if (M[mk].better === 'low') { v = -v; const neg = vals.map(x => -x); parts.push(percentileRank(neg, v)); } else parts.push(percentileRank(vals, v));
+      }
+      const valid = parts.filter(p => p !== null);
+      g.scores[name] = valid.length ? Math.round(valid.reduce((a, b) => a + b, 0) / valid.length) : null;
+    }
+  }
+}
+function compareRange(st) {
+  if (!st.compare || st.compare === 'off') return null;
+  const len = daysBetween(st.range.from, st.range.to);
+  if (st.compare === 'prev') { const to = addDays(st.range.from, -1); return { from: addDays(to, -len), to }; }
+  if (st.compare === 'month') return { from: addMonths(st.range.from, -1), to: addMonths(st.range.to, -1) };
+  if (st.compare === 'year') return { from: addMonths(st.range.from, -12), to: addMonths(st.range.to, -12) };
+  return null;
+}
+function compareLabel(st) { return st.compare === 'prev' ? 'Previous period' : st.compare === 'month' ? 'Same period last month' : st.compare === 'year' ? 'Same period last year' : 'Off'; }
+// Heat shading: percentile among visible groups, green above the middle, soft red below.
+function heatStyle(key, v, values) {
+  const better = M[key] && M[key].better; if (!better || v === null || v === undefined || values.length < 2) return '';
+  let p = percentileRank(values, v) / 100; if (better === 'low') p = 1 - p;
+  if (p >= 0.5) { const a = 0.08 + (p - 0.5) * 0.7; return `background:rgba(34,197,94,${a.toFixed(2)})`; }
+  const a = 0.05 + (0.5 - p) * 0.45; return `background:rgba(239,68,68,${a.toFixed(2)})`;
+}
+
+// ========== DATE PRESETS ==========
+const PRESETS = [
+  { k: 'today', l: 'Today' }, { k: 'yesterday', l: 'Yesterday' }, { k: 'last7', l: 'Last 7 days' }, { k: 'last14', l: 'Last 14 days' },
+  { k: 'last30', l: 'Last 30 days' }, { k: 'last90', l: 'Last 90 days' }, { k: 'mtd', l: 'This month' }, { k: 'lastmonth', l: 'Last month' }, { k: 'all', l: 'All data' },
+];
+function presetRange(k) {
+  const t = ukToday(), y = addDays(t, -1);
+  switch (k) {
+    case 'today': return { from: t, to: t };
+    case 'yesterday': return { from: y, to: y };
+    case 'last7': return { from: addDays(y, -6), to: y };
+    case 'last14': return { from: addDays(y, -13), to: y };
+    case 'last30': return { from: addDays(y, -29), to: y };
+    case 'last90': return { from: addDays(y, -89), to: y };
+    case 'mtd': return { from: t.slice(0, 8) + '01', to: t };
+    case 'lastmonth': { const first = addMonths(t.slice(0, 8) + '01', -1); return { from: first, to: addDays(t.slice(0, 8) + '01', -1) }; }
+    case 'all': return { from: DATA_START, to: t };
+  }
+  return null;
+}
+function rangeLabel(st) { const p = PRESETS.find(p => p.k === st.preset); return p && st.preset !== 'custom' ? `${p.l} · ${fmtRange(st.range.from, st.range.to)}` : fmtRange(st.range.from, st.range.to); }
+
+// ========== STATE / ROUTING ==========
+function defaultTop() { return { kind: 'top', id: null, name: 'Top performing', emoji: '⭐', folder: 'Reports', preset: 'last14', range: presetRange('last14'), compare: 'off', groupBy: 'ad', filters: [], search: '', metrics: DEFAULT_METRICS.slice(), view: 'cards', sort: { key: 'spend', dir: 'desc' }, chartMetric: 'spend', dirty: false }; }
+function defaultCompare() { return { kind: 'comparative', id: null, name: 'Comparative analysis', emoji: '🔍', folder: 'Reports', preset: 'last30', range: presetRange('last30'), compare: 'off', groupBy: 'format', filters: [], search: '', metrics: ['spend', 'roas', 'cpa', 'thumbstop', 'ctr_outbound', 'hook_score'], view: 'bar', sort: { key: 'spend', dir: 'desc' }, chartMetric: 'roas', dirty: false }; }
+function defaultLaunch() { return { kind: 'launch', preset: 'last30', range: presetRange('last30'), filters: [], search: '', tab: 'launched', sort: { key: 'launch', dir: 'desc' } }; }
+const ST = { top: defaultTop(), compare: defaultCompare(), launch: defaultLaunch() };
+let ROUTE = 'home';
+let CHARTS = {};
+
+function go(hash) { location.hash = hash; }
+async function route() {
+  const h = (location.hash || '#home').slice(1);
+  const [view, id] = h.split('/');
+  if (id && (view === 'report' || view === 'compare')) {
+    const rep = D.reports.find(r => r.id === id);
+    if (rep) loadReportIntoState(rep);
+  }
+  ROUTE = view || 'home';
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const el = $({ home: 'viewHome', report: 'viewReport', launch: 'viewLaunch', compare: 'viewCompare', settings: 'viewSettings' }[ROUTE] || 'viewHome');
+  el.classList.add('active');
+  document.querySelectorAll('.mnav-item').forEach(b => b.classList.toggle('active', b.dataset.route === ROUTE));
+  renderNavReports();
+  closePop();
+  try {
+    if (ROUTE === 'home') await renderHome();
+    else if (ROUTE === 'report') await renderReport();
+    else if (ROUTE === 'launch') await renderLaunch();
+    else if (ROUTE === 'compare') await renderCompare();
+    else if (ROUTE === 'settings') renderSettings();
+  } catch (e) { console.error(e); banner('Something went wrong loading this view: ' + e.message, 'err'); }
+}
+function loadReportIntoState(rep) {
+  const base = rep.kind === 'comparative' ? defaultCompare() : defaultTop();
+  const cfg = rep.config || {};
+  const st = { ...base, ...cfg, id: rep.id, name: rep.name, emoji: rep.emoji || base.emoji, folder: rep.folder || 'Reports', kind: rep.kind, dirty: false };
+  if (st.preset && st.preset !== 'custom') st.range = presetRange(st.preset) || st.range;   // presets roll forward
+  if (rep.kind === 'comparative') ST.compare = st; else ST.top = st;
+}
+
+// ========== POPOVERS ==========
+let popAnchor = null;
+function openPop(anchor, html, onMount) {
+  const pop = $('pop'); pop.innerHTML = html; pop.classList.remove('hidden'); popAnchor = anchor;
+  const r = anchor.getBoundingClientRect();
+  pop.style.top = (window.scrollY + r.bottom + 6) + 'px';
+  let left = window.scrollX + r.left; pop.style.left = left + 'px';
+  requestAnimationFrame(() => { const pr = pop.getBoundingClientRect(); if (pr.right > window.innerWidth - 10) pop.style.left = Math.max(8, window.scrollX + window.innerWidth - pr.width - 12) + 'px'; });
+  if (onMount) onMount(pop);
+}
+function closePop() { $('pop').classList.add('hidden'); $('pop').innerHTML = ''; popAnchor = null; }
+document.addEventListener('mousedown', (e) => { const pop = $('pop'); if (pop.classList.contains('hidden')) return; if (pop.contains(e.target) || (popAnchor && popAnchor.contains(e.target))) return; closePop(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closePop(); document.querySelectorAll('.modal-bg.open').forEach(m => m.classList.remove('open')); } });
+document.addEventListener('click', (e) => { const c = e.target.closest('[data-close]'); if (c) $(c.dataset.close).classList.remove('open'); });
+
+// Date range picker (shared by all report kinds)
+function datePop(anchor, st, onChange) {
+  const html = `<div class="title">Date range</div>` + PRESETS.map(p => `<div class="item ${st.preset === p.k ? 'on' : ''}" data-k="${p.k}">${p.l}<span class="d">${(() => { const r = presetRange(p.k); return r ? fmtRange(r.from, r.to) : ''; })()}</span></div>`).join('')
+    + `<div class="sep"></div><div class="title">Custom</div><div class="row"><input type="date" id="dpFrom" value="${st.range.from}" min="${DATA_START}"><span>to</span><input type="date" id="dpTo" value="${st.range.to}"></div><div class="foot"><button class="ibtn primary" id="dpApply">Apply</button></div>`;
+  openPop(anchor, html, (pop) => {
+    pop.querySelectorAll('.item[data-k]').forEach(el => el.addEventListener('click', () => { st.preset = el.dataset.k; st.range = presetRange(el.dataset.k); closePop(); onChange(); }));
+    pop.querySelector('#dpApply').addEventListener('click', () => { const f = pop.querySelector('#dpFrom').value, t = pop.querySelector('#dpTo').value; if (!f || !t || f > t) return; st.preset = 'custom'; st.range = { from: f, to: t }; closePop(); onChange(); });
+  });
+}
+function comparePop(anchor, st, onChange) {
+  const opts = [['off', 'Off'], ['prev', 'Previous period'], ['month', 'Same period last month'], ['year', 'Same period last year']];
+  openPop(anchor, `<div class="title">Compare to</div>` + opts.map(([k, l]) => `<div class="item ${st.compare === k ? 'on' : ''}" data-k="${k}">${l}</div>`).join(''), (pop) => {
+    pop.querySelectorAll('.item').forEach(el => el.addEventListener('click', () => { st.compare = el.dataset.k; closePop(); onChange(); }));
+  });
+}
+function groupPop(anchor, st, onChange, opts = groupOptions()) {
+  openPop(anchor, `<div class="title">Group by</div>` + opts.map(o => `<div class="item ${st.groupBy === o.k ? 'on' : ''}" data-k="${o.k}">${esc(o.l)}</div>`).join(''), (pop) => {
+    pop.querySelectorAll('.item').forEach(el => el.addEventListener('click', () => { st.groupBy = el.dataset.k; closePop(); onChange(); }));
+  });
+}
+function sortPop(anchor, st, onChange) {
+  const items = [['name', 'Name'], ['launch', 'Launch date'], ...st.metrics.map(k => [k, M[k].l])];
+  openPop(anchor, `<div class="title">Sort by</div>` + items.map(([k, l]) => `<div class="item ${st.sort.key === k ? 'on' : ''}" data-k="${k}">${esc(l)}</div>`).join('') + `<div class="sep"></div><div class="item" data-dir="desc">Highest first</div><div class="item" data-dir="asc">Lowest first</div>`, (pop) => {
+    pop.querySelectorAll('.item[data-k]').forEach(el => el.addEventListener('click', () => { st.sort.key = el.dataset.k; closePop(); onChange(); }));
+    pop.querySelectorAll('.item[data-dir]').forEach(el => el.addEventListener('click', () => { st.sort.dir = el.dataset.dir; closePop(); onChange(); }));
+  });
+}
+function metricPickerPop(anchor, st, onChange, single = false) {
+  const groups = {};
+  for (const k in M) { (groups[M[k].g] = groups[M[k].g] || []).push(k); }
+  const html = `<div class="search-in"><input type="text" id="mpSearch" placeholder="Search metrics" autocomplete="off"></div>` + Object.keys(groups).map(g => `<div class="grp">${g}</div>` + groups[g].map(k => single
+    ? `<div class="item ${st.chartMetric === k ? 'on' : ''}" data-k="${k}">${esc(M[k].l)}</div>`
+    : `<label class="check" data-k="${k}"><input type="checkbox" ${st.metrics.includes(k) ? 'checked' : ''}> ${esc(M[k].l)}</label>`).join('')).join('');
+  openPop(anchor, html, (pop) => {
+    pop.querySelector('#mpSearch').focus();
+    pop.querySelector('#mpSearch').addEventListener('input', (e) => { const q = e.target.value.toLowerCase(); pop.querySelectorAll('[data-k]').forEach(el => el.style.display = M[el.dataset.k].l.toLowerCase().includes(q) ? '' : 'none'); });
+    if (single) pop.querySelectorAll('.item[data-k]').forEach(el => el.addEventListener('click', () => { st.chartMetric = el.dataset.k; closePop(); onChange(); }));
+    else pop.querySelectorAll('input[type=checkbox]').forEach(cb => cb.addEventListener('change', () => { const k = cb.closest('[data-k]').dataset.k; if (cb.checked) { if (!st.metrics.includes(k)) st.metrics.push(k); } else st.metrics = st.metrics.filter(x => x !== k); onChange(); }));
+  });
+}
+// Add-filter flow: pick a type, then its values
+function addFilterPop(anchor, st, onChange, allowChange = true) {
+  const segs = S.naming.segments || [];
+  const types = [['campaign', 'Campaign'], ['adset', 'Ad set'], ['status', 'Status'], ['format', 'Format'], ...segs.map((s, i) => ['seg' + i, s || 'Segment ' + (i + 1)]), ['tag', 'Tag'], ['name', 'Ad name contains'], ['launch', 'Launch date'], ['metric', 'Performance metric']];
+  if (allowChange && st.compare && st.compare !== 'off') types.push(['change', '% change vs previous']);
+  openPop(anchor, `<div class="title">Add filter</div>` + types.map(([k, l]) => `<div class="item" data-k="${k}">${esc(l)}</div>`).join(''), (pop) => {
+    pop.querySelectorAll('.item').forEach(el => el.addEventListener('click', () => filterValuePop(anchor, st, el.dataset.k, null, onChange)));
+  });
+}
+function distinctValues(st, kind, segIndex) {
+  const rows = dailyRows(st.range.from, st.range.to); const counts = new Map();
+  for (const r of rows) {
+    const ad = D.creatives.get(r.ad_id); let vals = [];
+    if (kind === 'campaign') vals = [r.campaign_id]; else if (kind === 'adset') vals = [r.adset_id]; else if (kind === 'status') vals = [(ad && ad.effective_status) || 'UNKNOWN'];
+    else if (kind === 'format') vals = [formatLabel(ad)]; else if (kind === 'tag') vals = (D.tags.get(r.ad_id) || []).map(t => t.tag); else if (kind === 'seg') vals = [parseName(ad ? ad.ad_name : r.ad_name)[segIndex] || '(none)'];
+    for (const v of vals) { const c = counts.get(v) || { n: new Set(), spend: 0 }; c.n.add(r.ad_id); c.spend += Number(r.spend) || 0; counts.set(v, c); }
+  }
+  return Array.from(counts.entries()).sort((a, b) => b[1].spend - a[1].spend);
+}
+function filterValuePop(anchor, st, typeKey, existing, onChange) {
+  const isSeg = typeKey.startsWith('seg'); const segIndex = isSeg ? Number(typeKey.slice(3)) : null; const type = isSeg ? 'seg' : typeKey;
+  const f = existing || (type === 'metric' ? { type, metric: 'spend', op: '>=', value: 50 } : type === 'change' ? { type, metric: 'roas', dir: 'any', value: 20 } : type === 'name' ? { type, q: '', mode: 'contains' } : type === 'launch' ? { type, from: '', to: '' } : { type, seg: segIndex, values: [] });
+  let html = '';
+  if (['campaign', 'adset', 'status', 'format', 'tag', 'seg'].includes(type)) {
+    const vals = distinctValues(st, type, segIndex);
+    const label = v => type === 'campaign' ? ((D.campaigns.get(v) || {}).name || v) : type === 'adset' ? ((D.adsets.get(v) || {}).name || v) : type === 'seg' && segIndex === 1 ? productLabel(v) : v;
+    html = `<div class="title">${esc(isSeg ? (S.naming.segments[segIndex] || 'Segment') : type)}</div><div class="search-in"><input type="text" id="fvSearch" placeholder="Search" autocomplete="off"></div>` + (vals.length ? vals.map(([v, c]) => `<label class="check" data-v="${esc(v)}"><input type="checkbox" ${f.values.includes(v) ? 'checked' : ''}> <span>${esc(label(v))}</span><span class="cnt">${c.n.size} ads · £${Math.round(c.spend).toLocaleString('en-GB')}</span></label>`).join('') : '<div class="mnav-empty">Nothing in this date range</div>') + `<div class="foot"><button class="ibtn primary" id="fvApply">Apply</button></div>`;
+  } else if (type === 'metric') {
+    html = `<div class="title">Performance metric</div><div class="row"><select id="fvMetric">${Object.keys(M).filter(k => M[k].f !== 'score' || true).map(k => `<option value="${k}" ${f.metric === k ? 'selected' : ''}>${esc(M[k].l)}</option>`).join('')}</select></div><div class="row"><select id="fvOp" style="width:80px"><option value=">=" ${f.op === '>=' ? 'selected' : ''}>≥</option><option value="<=" ${f.op === '<=' ? 'selected' : ''}>≤</option></select><input type="number" id="fvVal" value="${f.value}" step="any"></div><div class="row muted" style="font-size:11px">Percent metrics are entered as decimals, e.g. 0.25 for 25%.</div><div class="foot"><button class="ibtn primary" id="fvApply">Apply</button></div>`;
+  } else if (type === 'change') {
+    html = `<div class="title">% change vs previous period</div><div class="row"><select id="fvMetric">${Object.keys(M).filter(k => !M[k].score).map(k => `<option value="${k}" ${f.metric === k ? 'selected' : ''}>${esc(M[k].l)}</option>`).join('')}</select></div><div class="row"><select id="fvDir" style="width:110px"><option value="any" ${f.dir === 'any' ? 'selected' : ''}>Up or down</option><option value="up" ${f.dir === 'up' ? 'selected' : ''}>Up</option><option value="down" ${f.dir === 'down' ? 'selected' : ''}>Down</option></select><span>by ≥</span><input type="number" id="fvVal" value="${f.value}" step="1" style="width:80px"><span>%</span></div><div class="foot"><button class="ibtn primary" id="fvApply">Apply</button></div>`;
+  } else if (type === 'name') {
+    html = `<div class="title">Ad name</div><div class="row"><select id="fvMode" style="width:110px"><option value="contains" ${f.mode === 'contains' ? 'selected' : ''}>contains</option><option value="excludes" ${f.mode === 'excludes' ? 'selected' : ''}>excludes</option></select><input type="text" id="fvQ" value="${esc(f.q)}" placeholder="text"></div><div class="foot"><button class="ibtn primary" id="fvApply">Apply</button></div>`;
+  } else if (type === 'launch') {
+    html = `<div class="title">Launch date (first spend)</div><div class="row"><input type="date" id="fvFrom" value="${f.from || ''}"><span>to</span><input type="date" id="fvTo" value="${f.to || ''}"></div><div class="foot"><button class="ibtn primary" id="fvApply">Apply</button></div>`;
+  }
+  openPop(anchor, html, (pop) => {
+    const s = pop.querySelector('#fvSearch'); if (s) { s.focus(); s.addEventListener('input', () => { const q = s.value.toLowerCase(); pop.querySelectorAll('label.check').forEach(l => l.style.display = l.textContent.toLowerCase().includes(q) ? '' : 'none'); }); }
+    pop.querySelector('#fvApply').addEventListener('click', () => {
+      if (f.values) f.values = Array.from(pop.querySelectorAll('label.check input:checked')).map(cb => cb.closest('label').dataset.v);
+      if (type === 'metric') { f.metric = pop.querySelector('#fvMetric').value; f.op = pop.querySelector('#fvOp').value; f.value = Number(pop.querySelector('#fvVal').value); }
+      if (type === 'change') { f.metric = pop.querySelector('#fvMetric').value; f.dir = pop.querySelector('#fvDir').value; f.value = Number(pop.querySelector('#fvVal').value); }
+      if (type === 'name') { f.q = pop.querySelector('#fvQ').value.trim(); f.mode = pop.querySelector('#fvMode').value; }
+      if (type === 'launch') { f.from = pop.querySelector('#fvFrom').value; f.to = pop.querySelector('#fvTo').value; }
+      if (!existing) st.filters.push(f);
+      closePop(); onChange();
+    });
+  });
+}
+function renderFilterChips(container, st, onChange) {
+  container.innerHTML = st.filters.map((f, i) => `<span class="fchip" data-i="${i}">${filterChipLabel(f)}<span class="x" data-x="${i}" title="Remove">×</span></span>`).join('') + (st.filters.length ? `<span class="fchip" id="clearFilters_${container.id}" style="border-style:dashed">Clear all</span>` : '');
+  container.querySelectorAll('.fchip[data-i]').forEach(el => el.addEventListener('click', (e) => {
+    if (e.target.dataset.x !== undefined) { st.filters.splice(Number(e.target.dataset.x), 1); onChange(); return; }
+    const f = st.filters[Number(el.dataset.i)]; filterValuePop(el, st, f.type === 'seg' ? 'seg' + f.seg : f.type, f, onChange);
+  }));
+  const clr = container.querySelector(`#clearFilters_${container.id}`); if (clr) clr.addEventListener('click', () => { st.filters = []; onChange(); });
+}
+const CHIP_COLORS = ['var(--chip1)', 'var(--chip2)', 'var(--chip3)', 'var(--chip4)', 'var(--chip5)', 'var(--chip6)'];
+function renderMetricChips(container, st, onChange, viewsHtml = '') {
+  container.innerHTML = st.metrics.map((k, i) => `<span class="mchip" draggable="true" data-k="${k}"><span class="num" style="background:${CHIP_COLORS[i % 6]}">${i + 1}</span>${esc(M[k].l)}<span class="x" data-x="${k}" title="Remove">×</span></span>`).join('') + `<span class="mchip add" id="addMetric_${container.id}">+ Add metric</span>` + viewsHtml;
+  container.querySelectorAll('.mchip .x').forEach(x => x.addEventListener('click', () => { st.metrics = st.metrics.filter(m => m !== x.dataset.x); onChange(); }));
+  container.querySelector(`#addMetric_${container.id}`).addEventListener('click', (e) => metricPickerPop(e.currentTarget, st, onChange));
+  let dragK = null;
+  container.querySelectorAll('.mchip[draggable]').forEach(ch => {
+    ch.addEventListener('dragstart', () => { dragK = ch.dataset.k; ch.classList.add('dragging'); });
+    ch.addEventListener('dragend', () => ch.classList.remove('dragging'));
+    ch.addEventListener('dragover', (e) => e.preventDefault());
+    ch.addEventListener('drop', (e) => { e.preventDefault(); const to = ch.dataset.k; if (!dragK || dragK === to) return; const a = st.metrics.indexOf(dragK), b = st.metrics.indexOf(to); st.metrics.splice(a, 1); st.metrics.splice(b, 0, dragK); onChange(); });
+  });
+}
+
+// ========== TOP PERFORMING REPORT ==========
+const VIEW_ICONS = { cards: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>', table: '<svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>', line: '<svg viewBox="0 0 24 24"><path d="M3 17l5-6 4 4 4-7 5 5"/></svg>', bar: '<svg viewBox="0 0 24 24"><path d="M5 20V10M11 20V4M17 20v-8M3 20h18"/></svg>' };
+function viewsHtml(st, id) { return `<span class="views" id="${id}">${['cards', 'table', 'line', 'bar'].map(v => `<button data-v="${v}" class="${st.view === v ? 'active' : ''}" title="${v}">${VIEW_ICONS[v]}</button>`).join('')}</span>`; }
+function markDirty(st) { st.dirty = true; const el = st.kind === 'comparative' ? $('cmpUnsaved') : $('repUnsaved'); if (el) el.classList.remove('hidden'); }
+let repRender = 0;
+async function renderReport() {
+  const st = ST.top;
+  $('repName').value = st.name; $('repEmoji').textContent = st.emoji || '⭐';
+  $('repUnsaved').classList.toggle('hidden', !st.dirty); $('btnDel').classList.toggle('hidden', !st.id);
+  $('dateLabel').textContent = rangeLabel(st); $('cmpLabel').textContent = compareLabel(st); $('groupLabel').textContent = groupLabelFor(st.groupBy);
+  $('sortLabel').textContent = (st.sort.key === 'name' ? 'Name' : st.sort.key === 'launch' ? 'Launch' : M[st.sort.key].l) + (st.sort.dir === 'desc' ? ' ↓' : ' ↑');
+  $('btnCompare').classList.toggle('on', st.compare !== 'off');
+  if ($('searchIn').value !== st.search) $('searchIn').value = st.search;
+  const rerender = () => { markDirty(st); renderReport(); };
+  renderFilterChips($('filterChips'), st, rerender);
+  renderMetricChips($('metricChips'), st, rerender, viewsHtml(st, 'repViews'));
+  $('repViews').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { st.view = b.dataset.v; rerender(); }));
+  const token = ++repRender;
+  $('repSub').textContent = 'Loading…';
+  const prev = compareRange(st); const from = prev ? (prev.from < st.range.from ? prev.from : st.range.from) : st.range.from;
+  await ensureDaily(from, st.range.to);
+  if (token !== repRender) return;
+  const res = buildGroups(st, { series: st.view === 'line' });
+  applyBadges(res, st);
+  const n = res.groups.length;
+  $('repSub').textContent = `${st.groupBy === 'ad' ? `${n} ads with delivery` : `${n} groups · ${res.totals.ads.size} ads with delivery`} · ${fmtRange(st.range.from, st.range.to)}${prev ? ' vs ' + fmtRange(prev.from, prev.to) : ''}`;
+  const body = $('repBody');
+  if (!n) { body.innerHTML = `<div class="empty-state">No ads match. Widen the date range or remove a filter.</div>`; $('repFoot').textContent = ''; return; }
+  if (st.view === 'cards') renderCards(body, st, res);
+  else if (st.view === 'table') renderTable(body, st, res);
+  else if (st.view === 'line') renderLine(body, st, res);
+  else renderBar(body, st, res);
+  $('repFoot').innerHTML = `<span>Colour shading compares each column across the ${n} rows shown. Scores need £${S.goal.min_score_spend} spend and rank within the same campaign.</span><span>Data to ${D.dailyRange ? fmtD(D.dailyRange.to) : ''} · Meta 7-day click / 1-day view</span>`;
+  hydrateThumbs(body);
+}
+function cardHtml(g, st, cols, maxRows = 6) {
+  const ad = g.topAd; const vid = g.isVideo || (ad && ad.format === 'video');
+  const metricsRows = st.metrics.slice(0, maxRows).map((k, i) => {
+    const v = g.m[k]; const val = M[k].score ? scoreHtml(v) : `<span class="v" style="${heatStyle(k, v, cols[k])}">${fmtV(k, v)}</span>`;
+    const dl = g.pm && !M[k].score ? fmtDelta(v, g.pm[k], k) : '';
+    return `<div class="mrow"><span class="l"><i style="background:${CHIP_COLORS[i % 6]}"></i>${esc(M[k].l)}</span><span>${val}${dl}</span></div>`;
+  }).join('');
+  const badges = (g.badges || []).map(b => `<span class="badge" title="${b.t}">${b.e}</span>`).join('');
+  const sub = st.groupBy === 'ad' ? `${esc((D.campaigns.get(ad && ad.campaign_id) || {}).name || g.anyCampaignName || '')}` : `${g.nAds} ad${g.nAds === 1 ? '' : 's'}`;
+  return `<div class="card" data-g="${esc(g.key)}"><div class="thumb">${thumbImg(ad)}<span class="st ${adStatusClass(ad)}" title="${esc((ad && ad.effective_status) || '')}"></span>${badges ? `<span class="badges">${badges}</span>` : ''}${vid ? '<span class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>' : ''}<span class="pill">${esc(ad ? formatLabel(ad) : '')}</span>${isDynamic(ad) ? '<span class="pill dct">Dynamic</span>' : ''}</div><div class="body"><div class="name" title="${esc(g.name)}">${esc(g.name)}</div><div class="meta">${sub}${g.launch ? ` · launched ${fmtD(g.launch)}` : ''}</div></div><div class="rows">${metricsRows}</div></div>`;
+}
+function columnValues(groups, metrics) { const cols = {}; for (const k of metrics) cols[k] = groups.map(g => g.m[k]).filter(v => v !== null && v !== undefined); return cols; }
+function renderCards(body, st, res) {
+  const cols = columnValues(res.groups, st.metrics);
+  body.innerHTML = `<div class="grid">${res.groups.map(g => cardHtml(g, st, cols)).join('')}</div>`;
+  body.querySelectorAll('.card').forEach(c => c.addEventListener('click', () => openGroup(st, res, c.dataset.g)));
+}
+function renderTable(body, st, res) {
+  const cols = columnValues(res.groups, st.metrics); const cmp = !!res.prevRange;
+  const th = st.metrics.map((k, i) => `<th class="${st.sort.key === k ? 'sorted' : ''}" data-k="${k}"><span class="num" style="background:${CHIP_COLORS[i % 6]}">${i + 1}</span>${esc(M[k].l)}${st.sort.key === k ? `<span class="arr">${st.sort.dir === 'desc' ? '▼' : '▲'}</span>` : ''}</th>${cmp && !M[k].score ? `<th data-k="${k}" class="muted">prev</th><th data-k="${k}" class="muted">Δ</th>` : ''}`).join('');
+  const cell = (g, k) => { const v = g.m[k]; const main = M[k].score ? `<td>${scoreHtml(v)}</td>` : `<td><span class="cell" style="${heatStyle(k, v, cols[k])}">${fmtV(k, v)}</span></td>`; return main + (cmp && !M[k].score ? `<td class="prev">${fmtV(k, g.pm[k])}</td><td>${fmtDelta(v, g.pm[k], k) || '—'}</td>` : ''); };
+  const totalRow = `<tr class="total"><td class="first">All (${res.groups.length} rows, ${res.totals.ads.size} ads)</td>${st.metrics.map(k => M[k].score ? '<td>—</td>' : `<td>${fmtV(k, res.tm[k])}</td>` + (cmp ? `<td class="prev">${fmtV(k, res.tpm[k])}</td><td>${fmtDelta(res.tm[k], res.tpm[k], k) || '—'}</td>` : '')).join('')}</tr>`;
+  const rows = res.groups.map(g => { const ad = g.topAd; const vid = g.isVideo || (ad && ad.format === 'video'); return `<tr data-g="${esc(g.key)}"><td class="first"><div class="rowname"><div class="th">${thumbImg(ad)}${vid ? '<span class="vd"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>' : ''}</div><div><div class="nm" title="${esc(g.name)}">${esc(g.name)}${(g.badges || []).length ? `<span class="bd">${g.badges.map(b => `<span class="badge" title="${b.t}">${b.e}</span>`).join('')}</span>` : ''}</div><div class="sb">${g.nAds} ad${g.nAds === 1 ? '' : 's'} · ${esc(ad ? formatLabel(ad) : '')}${g.launch ? ' · ' + fmtD(g.launch) : ''}</div></div></div></td>${st.metrics.map(k => cell(g, k)).join('')}</tr>`; }).join('');
+  body.innerHTML = `<div class="tablewrap"><table class="rt"><thead><tr><th class="first" data-k="name">Creative</th>${th}</tr></thead><tbody>${totalRow}${rows}</tbody></table></div>`;
+  body.querySelectorAll('th[data-k]').forEach(h => h.addEventListener('click', () => { const k = h.dataset.k; if (st.sort.key === k) st.sort.dir = st.sort.dir === 'desc' ? 'asc' : 'desc'; else { st.sort.key = k; st.sort.dir = k === 'name' ? 'asc' : 'desc'; } markDirty(st); renderReport(); }));
+  body.querySelectorAll('tbody tr[data-g]').forEach(tr => tr.addEventListener('click', () => openGroup(st, res, tr.dataset.g)));
+}
+const SERIES_COLORS = ['#5a48f5', '#ec4899', '#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#06b6d4', '#ef4444', '#84cc16', '#f97316'];
+function chartDefaults() { const dark = document.documentElement.getAttribute('data-theme') === 'dark'; Chart.defaults.color = dark ? '#9a9aa8' : '#6b6b76'; Chart.defaults.borderColor = dark ? '#26262f' : '#ececf2'; Chart.defaults.font.family = 'Inter, sans-serif'; Chart.defaults.font.size = 11; }
+function destroyChart(id) { if (CHARTS[id]) { CHARTS[id].destroy(); delete CHARTS[id]; } }
+function renderLine(body, st, res) {
+  const k = st.chartMetric || 'spend'; const top = res.groups.slice(0, 8);
+  const dates = []; for (let d = st.range.from; d <= st.range.to; d = addDays(d, 1)) dates.push(d);
+  body.innerHTML = `<div class="chartbox"><div class="chead"><span class="t">${esc(M[k].l)} by day</span><button class="tb-btn" id="lineMetric"><span class="lbl">Metric</span>${esc(M[k].l)}</button><span class="muted">Top ${top.length} by current sort</span></div><canvas id="lineChart" height="110"></canvas><div class="legend" id="lineLegend"></div></div>`;
+  $('lineMetric').addEventListener('click', (e) => metricPickerPop(e.currentTarget, st, () => { markDirty(st); renderReport(); }, true));
+  chartDefaults(); destroyChart('line');
+  const datasets = top.map((g, i) => ({ label: g.name, data: dates.map(d => { const s = g.series && g.series.get(d); if (!s) return null; const v = M[k].c ? M[k].c(s) : null; return v === null ? null : (M[k].f === 'pct' ? v * 100 : v); }), borderColor: SERIES_COLORS[i % 10], backgroundColor: SERIES_COLORS[i % 10], tension: .3, pointRadius: 2, spanGaps: true, borderWidth: 2 }));
+  CHARTS.line = new Chart($('lineChart'), { type: 'line', data: { labels: dates.map(d => fmtD(d)), datasets }, options: { responsive: true, maintainAspectRatio: true, interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.dataset.label.slice(0, 40)}: ${M[k].f === 'pct' ? c.parsed.y.toFixed(2) + '%' : fmtV(k, c.parsed.y)}` } } }, scales: { y: { grid: { color: Chart.defaults.borderColor }, ticks: { callback: v => M[k].f === 'pct' ? v + '%' : M[k].f === 'gbp' ? '£' + v : v } }, x: { grid: { display: false } } } } });
+  $('lineLegend').innerHTML = top.map((g, i) => `<span><i style="background:${SERIES_COLORS[i % 10]}"></i>${esc(g.name.slice(0, 48))}</span>`).join('');
+}
+function renderBar(body, st, res) {
+  const k = st.chartMetric || 'spend'; const top = res.groups.slice(0, 25);
+  body.innerHTML = `<div class="chartbox"><div class="chead"><span class="t">${esc(M[k].l)} by ${esc(groupLabelFor(st.groupBy).toLowerCase())}</span><button class="tb-btn" id="barMetric"><span class="lbl">Metric</span>${esc(M[k].l)}</button><span class="muted">Top ${top.length} by current sort</span></div><canvas id="barChart" height="${Math.max(90, top.length * 9)}"></canvas></div>`;
+  $('barMetric').addEventListener('click', (e) => metricPickerPop(e.currentTarget, st, () => { markDirty(st); renderReport(); }, true));
+  chartDefaults(); destroyChart('bar');
+  CHARTS.bar = new Chart($('barChart'), { type: 'bar', data: { labels: top.map(g => g.name.length > 48 ? g.name.slice(0, 46) + '…' : g.name), datasets: [{ data: top.map(g => g.m[k] === null ? null : (M[k].f === 'pct' ? g.m[k] * 100 : g.m[k])), backgroundColor: top.map((_, i) => SERIES_COLORS[i % 10]), borderRadius: 4 }] }, options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => M[k].f === 'pct' ? c.parsed.x.toFixed(2) + '%' : fmtV(k, c.parsed.x) } } }, scales: { x: { grid: { color: Chart.defaults.borderColor }, ticks: { callback: v => M[k].f === 'pct' ? v + '%' : M[k].f === 'gbp' ? '£' + v : v } }, y: { grid: { display: false }, ticks: { autoSkip: false } } } } });
+}
+// Clicking a group: single ad -> deep dive; multi-ad group -> list its ads as cards.
+function openGroup(st, res, key) {
+  const g = res.groups.find(x => String(x.key) === String(key)); if (!g) return;
+  if (g.nAds === 1 || st.groupBy === 'ad') { openDeepDive(st.groupBy === 'ad' ? g.key : g.topAdId, st); return; }
+  const sub = { ...st, groupBy: 'ad', filters: st.filters.filter(f => f.type !== 'metric' && f.type !== 'change'), search: st.search };
+  const adIds = new Set(g.adSpend.keys());
+  const r2 = buildGroups(sub); r2.groups = r2.groups.filter(x => adIds.has(x.key)); applyBadges(r2, sub);
+  const cols = columnValues(r2.groups, st.metrics);
+  $('gmTitle').textContent = `${g.name} · ${g.nAds} ads`;
+  $('gmBody').innerHTML = `<div class="dd-cards">${r2.groups.map(x => cardHtml(x, st, cols, 4)).join('')}</div>`;
+  $('gmBody').querySelectorAll('.card').forEach(c => c.addEventListener('click', () => openDeepDive(c.dataset.g, st)));
+  $('gmToReport').onclick = () => { const nt = defaultTop(); nt.range = { ...st.range }; nt.preset = st.preset; nt.filters = [{ type: 'name', q: '', mode: 'contains' }]; nt.filters = []; nt.name = `${g.name} — top performing`; nt.search = st.search; nt.metrics = st.metrics.slice(); nt.filters = st.filters.filter(f => f.type !== 'metric' && f.type !== 'change').concat(groupToFilter(st.groupBy, g)); nt.dirty = true; ST.top = nt; $('groupModal').classList.remove('open'); go('report'); };
+  $('groupModal').classList.add('open');
+  hydrateThumbs($('gmBody'));
+}
+function groupToFilter(mode, g) {
+  if (mode === 'campaign') return [{ type: 'campaign', values: [g.key] }];
+  if (mode === 'adset') return [{ type: 'adset', values: [g.key] }];
+  if (mode === 'format') return [{ type: 'format', values: [g.key] }];
+  if (mode === 'status') return [{ type: 'status', values: [g.key] }];
+  if (mode === 'tag') return [{ type: 'tag', values: [g.key] }];
+  if (mode.startsWith('seg')) return [{ type: 'seg', seg: Number(mode.slice(3)), values: [g.key] }];
+  return [];   // copy / headline / landing page / creative: the modal already lists the ads
+}
+</script>
+<script>
+// ============================================================
+// PART B — HOME · ACHIEVEMENTS · LAUNCH · COMPARE · SETTINGS ·
+//          DEEP DIVE · SAVED REPORTS · BOOT
+// ============================================================
+
+// ========== ACHIEVEMENTS (last 14 days, ads over the spend threshold) ==========
+let BADGES = new Map();   // ad_id -> [{e, t}]
+const BADGE_DEFS = { hook: { e: '🎣', t: 'Top hook: stops the scroll in the first seconds (Hook score 80+)' }, watch: { e: '👀', t: 'Top watch: viewers keep watching (Watch score 80+)' }, click: { e: '👆', t: 'Top click: drives clicks (Click score 80+)' }, win: { e: '🏆', t: 'Winning: over the spend threshold and beating the goal metric' } };
+function goalMet(m) { return S.goal.metric === 'cpa' ? (m.cpa !== null && m.cpa <= Number(S.goal.cpa_target)) : (m.roas !== null && m.roas >= Number(S.goal.roas_target)); }
+function computeBadges() {
+  const y = addDays(ukToday(), -1); const win = Number(S.goal.window_days) || 14;
+  const st = { range: { from: addDays(y, -(win - 1)), to: y }, compare: 'off', groupBy: 'ad', filters: [], search: '', sort: { key: 'spend', dir: 'desc' } };
+  const res = buildGroups(st); const thr = Number(S.goal.spend_threshold) || 0;
+  BADGES = new Map();
+  for (const g of res.groups) {
+    const life = D.lifetime.get(g.key); const lifeSpend = life ? Number(life.lifetime_spend) : g.m.spend;
+    if (lifeSpend < thr) continue;
+    const b = [];
+    if (g.scores.hook !== null && g.scores.hook >= 80) b.push(BADGE_DEFS.hook);
+    if (g.scores.watch !== null && g.scores.watch >= 80) b.push(BADGE_DEFS.watch);
+    if (g.scores.click !== null && g.scores.click >= 80) b.push(BADGE_DEFS.click);
+    if (g.m.spend >= thr && goalMet(g.m)) b.push(BADGE_DEFS.win);
+    if (b.length) BADGES.set(g.key, b);
+  }
+}
+function applyBadges(res, st) { if (st.groupBy !== 'ad') return; for (const g of res.groups) g.badges = BADGES.get(g.key) || []; }
+
+// ========== HOME ==========
+async function renderHome() {
+  const y = addDays(ukToday(), -1);
+  const w1 = { from: addDays(y, -6), to: y }, w0 = { from: addDays(y, -13), to: addDays(y, -7) };
+  $('homeSub').textContent = `${fmtRange(w1.from, w1.to)} vs ${fmtRange(w0.from, w0.to)}`;
+  $('homeTiles').innerHTML = `<div class="loading-row"><span class="spin"></span>Loading…</div>`;
+  await ensureDaily(addDays(y, -55), ukToday());
+  computeBadges();
+  const base = { compare: 'prev', groupBy: 'ad', filters: [], search: '', sort: { key: 'spend', dir: 'desc' } };
+  const res = buildGroups({ ...base, range: w1, preset: 'custom' });
+  const tm = res.tm, tpm = res.tpm;
+  const launched1 = Array.from(D.creatives.values()).filter(a => { const l = adLaunch(a.ad_id); return l && l >= w1.from && l <= w1.to; });
+  const launched0 = Array.from(D.creatives.values()).filter(a => { const l = adLaunch(a.ad_id); return l && l >= w0.from && l <= w0.to; });
+  const goalKey = S.goal.metric === 'cpa' ? 'cpa' : 'roas';
+  const tile = (l, k, v, pv, extra = '') => `<div class="tile ${extra}"><div class="l">${l}</div><div class="v">${k ? fmtV(k, v) : v}</div><div class="d">${k ? (fmtDelta(v, pv, k) || '<span>no change</span>') : ''} <span>vs prior 7 days${pv !== null && pv !== undefined && k ? ' (' + fmtV(k, pv) + ')' : ''}</span></div></div>`;
+  $('homeTiles').innerHTML = tile('Spend', 'spend', tm.spend, tpm.spend) + tile(`${M[goalKey].l} <span class="muted">· goal ${goalKey === 'roas' ? S.goal.roas_target : '£' + S.goal.cpa_target}</span>`, goalKey, tm[goalKey], tpm[goalKey], 'goal') + tile('Purchases', 'purchases', tm.purchases, tpm.purchases) + tile(goalKey === 'roas' ? 'CPA' : 'ROAS', goalKey === 'roas' ? 'cpa' : 'roas', tm[goalKey === 'roas' ? 'cpa' : 'roas'], tpm[goalKey === 'roas' ? 'cpa' : 'roas']) + tile('Thumbstop (hook rate)', 'thumbstop', tm.thumbstop, tpm.thumbstop) + `<div class="tile"><div class="l">Creatives launched</div><div class="v">${launched1.length}</div><div class="d">${fmtDelta(launched1.length, launched0.length, 'purchases') || '<span>no change</span>'} <span>vs prior 7 days (${launched0.length})</span></div></div>`;
+
+  // King ROAS context (admins only; the view is RLS-protected for strategists)
+  const king = $('homeKing'); king.classList.add('hidden');
+  if (USER_ROLE === 'admin') {
+    try {
+      const rows = await rest(`rpt_daily_overview?select=report_date,total_sales,total_refunds,total_ad_spend&report_date=gte.${w1.from}&report_date=lte.${w1.to}`);
+      const rev = rows.reduce((s, r) => s + (Number(r.total_sales) || 0) - (Number(r.total_refunds) || 0), 0), sp = rows.reduce((s, r) => s + (Number(r.total_ad_spend) || 0), 0);
+      if (sp > 0) { king.innerHTML = `King ROAS (blended, 7d) <b>${(rev / sp).toFixed(2)}</b> <span>target 2.20</span>`; king.classList.remove('hidden'); }
+    } catch (e) { console.warn('King ROAS unavailable', e.message); }
+  }
+
+  // Performance trends
+  const byAd = new Map(res.groups.map(g => [g.key, g]));
+  const spend1 = (id) => (byAd.get(id) || {}).m?.spend || 0, spend0 = (id) => (byAd.get(id) || {}).pm?.spend || 0;
+  const allIds = uniq([...res.groups.map(g => g.key), ...dailyRows(w0.from, w0.to).map(r => r.ad_id)]);
+  const prevOnly = new Map(); for (const r of dailyRows(w0.from, w0.to)) prevOnly.set(r.ad_id, (prevOnly.get(r.ad_id) || 0) + (Number(r.spend) || 0));
+  const s0 = (id) => byAd.has(id) ? spend0(id) : (prevOnly.get(id) || 0);
+  const scaling = allIds.filter(id => spend1(id) >= 50 && s0(id) >= 10 && spend1(id) >= 1.3 * s0(id)).sort((a, b) => (spend1(b) - s0(b)) - (spend1(a) - s0(a))).slice(0, 6);
+  const declining = allIds.filter(id => s0(id) >= 50 && spend1(id) <= 0.7 * s0(id) && !(D.creatives.get(id)?.effective_status || '').includes('PAUSED')).sort((a, b) => (s0(b) - spend1(b)) - (s0(a) - spend1(a))).slice(0, 6);
+  const fresh = launched1.map(a => a.ad_id).sort((a, b) => spend1(b) - spend1(a)).slice(0, 6);
+  const paused = allIds.filter(id => s0(id) >= 20 && (D.creatives.get(id)?.effective_status || '').includes('PAUSED')).sort((a, b) => s0(b) - s0(a)).slice(0, 6);
+  const item = (id, right) => { const ad = D.creatives.get(id); return `<div class="it" data-ad="${id}"><div class="th">${thumbImg(ad)}</div><div class="nm">${esc(ad ? ad.ad_name : id)}<small>${esc((D.campaigns.get(ad?.campaign_id) || {}).name || '')}</small></div><div class="vl">${right}</div></div>`; };
+  const trend = (title, emoji, ids, right) => `<div class="trend"><h3>${emoji} ${title}<span class="n">${ids.length}</span></h3>${ids.length ? ids.map(id => item(id, right(id))).join('') : '<div class="empty">Nothing this week</div>'}</div>`;
+  $('homeTrends').innerHTML =
+    trend('Scaling', '📈', scaling, id => `${fmtV('spend', spend1(id))}<small class="up">+${Math.round(pct(spend1(id), s0(id)) * 100)}% spend</small>`) +
+    trend('Declining', '📉', declining, id => `${fmtV('spend', spend1(id))}<small class="down">${Math.round(pct(spend1(id), s0(id)) * 100)}% spend</small>`) +
+    trend('New', '✨', fresh, id => `${fmtV('spend', spend1(id))}<small>${byAd.get(id) ? 'ROAS ' + fmtV('roas', byAd.get(id).m.roas) : 'no spend yet'}</small>`) +
+    trend('Paused', '⏸', paused, id => `${fmtV('spend', s0(id))}<small>prior week</small>`);
+  $('homeTrends').querySelectorAll('.it').forEach(el => el.addEventListener('click', () => openDeepDive(el.dataset.ad, { ...base, range: w1, metrics: DEFAULT_METRICS })));
+
+  // Leaderboard: top 10 by spend this week, with rank history over the last 8 weeks
+  const weeks = []; for (let i = 0; i < 8; i++) { const to = addDays(y, -7 * i); weeks.push({ from: addDays(to, -6), to }); }
+  const weekSpend = weeks.map(w => { const m = new Map(); for (const r of dailyRows(w.from, w.to)) m.set(r.ad_id, (m.get(r.ad_id) || 0) + (Number(r.spend) || 0)); return m; });
+  const rankIn = (m, id) => { const sorted = Array.from(m.entries()).sort((a, b) => b[1] - a[1]).map(e => e[0]); const i = sorted.indexOf(id); return i < 0 ? null : i + 1; };
+  const top = res.groups.slice(0, 10);
+  const rows = top.map((g, i) => {
+    const prevRank = rankIn(weekSpend[1], g.key);
+    let streak = 0; for (let w = 0; w < 8; w++) { const r = rankIn(weekSpend[w], g.key); if (r && r <= 10) streak++; else break; }
+    let peakW = 0, peakV = -1; weeks.forEach((w, idx) => { const v = weekSpend[idx].get(g.key) || 0; if (v > peakV) { peakV = v; peakW = idx; } });
+    const rk = prevRank === null ? '<span class="rk up">new</span>' : prevRank === i + 1 ? '<span class="rk muted">—</span>' : prevRank > i + 1 ? `<span class="rk up">▲${prevRank - (i + 1)}</span>` : `<span class="rk down">▼${(i + 1) - prevRank}</span>`;
+    const ad = g.topAd; const badges = (BADGES.get(g.key) || []).map(b => `<span class="badge" title="${b.t}">${b.e}</span>`).join('');
+    return `<tr data-ad="${g.key}"><td class="l"><span class="rank">${i + 1}</span>${rk}</td><td class="l"><div class="rowname"><div class="th">${thumbImg(ad)}</div><div><div class="nm">${esc(g.name)}</div><div class="sb">${esc((D.campaigns.get(ad?.campaign_id) || {}).name || '')} · ${esc(ad ? formatLabel(ad) : '')}</div></div></div></td><td><span class="ach">${badges || '<span class="muted">—</span>'}</span></td><td>${fmtV('spend', g.m.spend)} ${fmtDelta(g.m.spend, g.pm.spend, 'spend')}</td><td>${fmtV(goalKey, g.m[goalKey])} ${fmtDelta(g.m[goalKey], g.pm[goalKey], goalKey)}</td><td>${fmtV('purchases', g.m.purchases)}</td><td>${scoreHtml(g.scores.hook)} ${scoreHtml(g.scores.watch)} ${scoreHtml(g.scores.click)} ${scoreHtml(g.scores.convert)}</td><td>${streak} wk${streak === 1 ? '' : 's'}</td><td>${peakW === 0 ? 'this week' : peakW === 1 ? 'last week' : peakW + ' weeks ago'}</td></tr>`;
+  }).join('');
+  $('homeLeaderboard').innerHTML = top.length ? `<table><thead><tr><th class="l">#</th><th class="l">Creative</th><th>Badges</th><th>Spend</th><th>${M[goalKey].l}</th><th>Purchases</th><th title="Hook · Watch · Click · Convert">Scores H·W·C·C</th><th>On board</th><th>Peaked</th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="empty-state">No spend in the last 7 days.</div>';
+  $('homeLeaderboard').querySelectorAll('tr[data-ad]').forEach(tr => tr.addEventListener('click', () => openDeepDive(tr.dataset.ad, { ...base, range: w1, metrics: DEFAULT_METRICS })));
+  hydrateThumbs($('viewHome'));
+}
+
+// ========== LAUNCH ANALYSIS ==========
+let LAUNCH_ROWS = [];
+async function renderLaunch() {
+  const st = ST.launch; const today = ukToday(), y = addDays(today, -1);
+  const win = Number(S.goal.window_days) || 14; const thr = Number(S.goal.spend_threshold) || 0;
+  $('lDateLabel').textContent = rangeLabel(st);
+  if ($('lSearchIn').value !== st.search) $('lSearchIn').value = st.search;
+  renderFilterChips($('lFilterChips'), st, renderLaunch);
+  $('launchBody').innerHTML = `<div class="loading-row"><span class="spin"></span>Loading…</div>`;
+  const wFrom = addDays(y, -(win - 1));
+  await ensureDaily(wFrom < st.range.from ? wFrom : st.range.from, today);
+  computeBadges();
+  // Launched = first spend date inside the window
+  const launched = Array.from(D.creatives.values()).filter(a => { const l = D.lifetime.get(a.ad_id); return l && l.first_spend_date && l.first_spend_date >= st.range.from && l.first_spend_date <= st.range.to; });
+  const winSums = new Map(); for (const r of dailyRows(wFrom, y)) { let s = winSums.get(r.ad_id); if (!s) { s = emptySums(); winSums.set(r.ad_id, s); } addRow(s, r); }
+  const pseudoRow = (a) => ({ ad_id: a.ad_id, ad_name: a.ad_name, campaign_id: a.campaign_id, campaign_name: a.campaign_name, adset_id: a.adset_id, adset_name: a.adset_name });
+  const scores14 = (() => { const res = buildGroups({ range: { from: wFrom, to: y }, compare: 'off', groupBy: 'ad', filters: [], search: '', sort: { key: 'spend', dir: 'desc' } }); return new Map(res.groups.map(g => [g.key, g.scores])); })();
+  LAUNCH_ROWS = launched.filter(a => adPasses(st.filters, st.search, a, pseudoRow(a))).map(a => {
+    const l = D.lifetime.get(a.ad_id); const w = winSums.get(a.ad_id); const wm = w ? deriveMetrics(w) : null;
+    const lifeSpend = Number(l.lifetime_spend), lifeRoas = div(Number(l.lifetime_purchase_value), lifeSpend), lifeCpa = div(lifeSpend, Number(l.lifetime_purchases));
+    const scaled = lifeSpend >= thr; const winner = scaled && wm && wm.spend > 0 && goalMet(wm);
+    return { ad: a, launch: l.first_spend_date, lastSpend: l.last_spend_date, daysLive: daysBetween(l.first_spend_date, l.last_spend_date) + 1, lifeSpend, lifeRoas, lifeCpa, lifePurch: Number(l.lifetime_purchases), wSpend: wm ? wm.spend : 0, wRoas: wm ? wm.roas : null, wCpa: wm ? wm.cpa : null, scaled, winner, scores: scores14.get(a.ad_id) || { hook: null, watch: null, click: null, convert: null }, badges: BADGES.get(a.ad_id) || [] };
+  });
+  const scaledN = LAUNCH_ROWS.filter(r => r.scaled).length, winN = LAUNCH_ROWS.filter(r => r.winner).length;
+  $('cntLaunched').textContent = LAUNCH_ROWS.length; $('cntScaled').textContent = scaledN; $('cntWinners').textContent = winN;
+  $('launchSub').textContent = `${LAUNCH_ROWS.length} creatives launched ${fmtRange(st.range.from, st.range.to)} · ${scaledN} scaled past £${thr} · ${winN} winners (${LAUNCH_ROWS.length ? Math.round(100 * winN / LAUNCH_ROWS.length) : 0}% hit rate) · goal checked over the last ${win} days`;
+  // Weekly strip (weeks start Monday)
+  const weekKey = (d) => { const dt = dparse(d); const day = (dt.getDay() + 6) % 7; dt.setDate(dt.getDate() - day); return dstr(dt); };
+  const weeks = new Map(); for (const r of LAUNCH_ROWS) { const k = weekKey(r.launch); const w = weeks.get(k) || { launched: 0, scaled: 0, winners: 0 }; w.launched++; if (r.scaled) w.scaled++; if (r.winner) w.winners++; weeks.set(k, w); }
+  $('launchWeeks').innerHTML = Array.from(weeks.entries()).sort((a, b) => b[0].localeCompare(a[0])).map(([k, w]) => `<div class="week"><div class="w">Week of ${fmtD(k)}</div><div class="r"><span>Launched</span><b>${w.launched}</b></div><div class="r"><span>Scaled</span><b>${w.scaled}</b></div><div class="r"><span>Winners</span><b>${w.winners}</b></div><div class="r"><span>Hit rate</span><b>${w.launched ? Math.round(100 * w.winners / w.launched) : 0}%</b></div></div>`).join('') || '';
+  $('launchTabs').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.tab === st.tab));
+  const rows = LAUNCH_ROWS.filter(r => st.tab === 'launched' || (st.tab === 'scaled' ? r.scaled : r.winner));
+  const sortKey = st.sort.key, dir = st.sort.dir === 'asc' ? 1 : -1;
+  rows.sort((a, b) => { const va = a[sortKey], vb = b[sortKey]; if (va === null || va === undefined) return 1; if (vb === null || vb === undefined) return -1; return (typeof va === 'string' ? va.localeCompare(vb) : va - vb) * dir; });
+  const cols = [['launch', 'Launched'], ['daysLive', 'Days live'], ['lifeSpend', 'Lifetime spend'], ['lifeRoas', 'Lifetime ROAS'], ['lifeCpa', 'Lifetime CPA'], ['lifePurch', 'Purchases'], ['wSpend', `Spend (${win}d)`], ['wRoas', `ROAS (${win}d)`], ['wCpa', `CPA (${win}d)`]];
+  const fmtCol = (k, v) => k === 'launch' ? fmtD(v, true) : k === 'daysLive' || k === 'lifePurch' ? fmtV('purchases', v) : k.endsWith('Roas') ? fmtV('roas', v) : fmtV('spend', v);
+  const heat = (k, v) => { if (k === 'launch') return ''; const vals = rows.map(r => r[k]).filter(x => x !== null && x !== undefined); const key = k.endsWith('Cpa') ? 'cpa' : k.endsWith('Roas') ? 'roas' : 'spend'; return heatStyle(key, v, vals); };
+  $('launchBody').innerHTML = rows.length ? `<div class="tablewrap"><table class="rt"><thead><tr><th class="first">Creative</th><th>Badges</th>${cols.map(([k, l]) => `<th data-k="${k}" class="${sortKey === k ? 'sorted' : ''}">${l}${sortKey === k ? `<span class="arr">${dir < 0 ? '▼' : '▲'}</span>` : ''}</th>`).join('')}<th title="Hook · Watch · Click · Convert">Scores H·W·C·C</th><th>Status</th></tr></thead><tbody>${rows.map(r => `<tr data-ad="${r.ad.ad_id}"><td class="first"><div class="rowname"><div class="th">${thumbImg(r.ad)}</div><div><div class="nm">${esc(r.ad.ad_name)}</div><div class="sb">${esc((D.campaigns.get(r.ad.campaign_id) || {}).name || '')} · ${esc(formatLabel(r.ad))}</div></div></div></td><td><span class="ach">${r.badges.map(b => `<span class="badge" title="${b.t}">${b.e}</span>`).join('') || '<span class="muted">—</span>'}</span></td>${cols.map(([k]) => `<td><span class="cell" style="${heat(k, r[k])}">${fmtCol(k, r[k])}</span></td>`).join('')}<td>${scoreHtml(r.scores.hook)} ${scoreHtml(r.scores.watch)} ${scoreHtml(r.scores.click)} ${scoreHtml(r.scores.convert)}</td><td>${esc(r.ad.effective_status || '')}</td></tr>`).join('')}</tbody></table></div>` : `<div class="empty-state">No creatives in this tab for the chosen launch window.</div>`;
+  $('launchBody').querySelectorAll('th[data-k]').forEach(h => h.addEventListener('click', () => { const k = h.dataset.k; if (st.sort.key === k) st.sort.dir = st.sort.dir === 'desc' ? 'asc' : 'desc'; else { st.sort.key = k; st.sort.dir = 'desc'; } renderLaunch(); }));
+  $('launchBody').querySelectorAll('tr[data-ad]').forEach(tr => tr.addEventListener('click', () => openDeepDive(tr.dataset.ad, { range: { from: wFrom, to: y }, compare: 'off', groupBy: 'ad', filters: [], search: '', sort: { key: 'spend', dir: 'desc' }, metrics: DEFAULT_METRICS })));
+  $('launchFoot').innerHTML = `<span>Scaled = lifetime spend ≥ £${thr}. Winner = scaled and ${S.goal.metric === 'cpa' ? 'CPA ≤ £' + S.goal.cpa_target : 'ROAS ≥ ' + S.goal.roas_target} over the last ${win} days. Lifetime = since ${fmtD(DATA_START, true)} (no earlier history).</span>`;
+  hydrateThumbs($('launchBody'));
+}
+
+// ========== COMPARATIVE REPORT ==========
+let CMP_RES = null;
+async function renderCompare() {
+  const st = ST.compare;
+  $('cmpName').value = st.name; $('cmpEmoji').textContent = st.emoji || '🔍'; $('cmpUnsaved').classList.toggle('hidden', !st.dirty); $('btnCDel').classList.toggle('hidden', !st.id);
+  $('cDateLabel').textContent = rangeLabel(st); $('cCmpLabel').textContent = compareLabel(st); $('btnCCompare').classList.toggle('on', st.compare !== 'off');
+  $('cDimLabel').textContent = groupLabelFor(st.groupBy); $('cMetricLabel').textContent = M[st.chartMetric].l;
+  if ($('cSearchIn').value !== st.search) $('cSearchIn').value = st.search;
+  const rerender = () => { markDirty(st); renderCompare(); };
+  renderFilterChips($('cFilterChips'), st, rerender);
+  renderMetricChips($('cMetricChips'), st, rerender);
+  const prev = compareRange(st); await ensureDaily(prev && prev.from < st.range.from ? prev.from : st.range.from, st.range.to);
+  const res = buildGroups(st); CMP_RES = res;
+  const k = st.chartMetric; const groups = res.groups.slice().sort((a, b) => (b.m[k] ?? -Infinity) - (a.m[k] ?? -Infinity)).slice(0, 30);
+  $('cChartTitle').textContent = `${M[k].l} by ${groupLabelFor(st.groupBy).toLowerCase()}`;
+  $('cChartSub').textContent = `${res.groups.length} groups · ${res.totals.ads.size} ads · ${fmtRange(st.range.from, st.range.to)}`;
+  chartDefaults(); destroyChart('cmp');
+  CHARTS.cmp = new Chart($('cChart'), { type: 'bar', data: { labels: groups.map(g => g.name.length > 40 ? g.name.slice(0, 38) + '…' : g.name), datasets: [{ data: groups.map(g => g.m[k] === null ? null : (M[k].f === 'pct' ? g.m[k] * 100 : g.m[k])), backgroundColor: groups.map((_, i) => SERIES_COLORS[i % 10]), borderRadius: 5 }] }, options: { responsive: true, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => M[k].f === 'pct' ? c.parsed.y.toFixed(2) + '%' : fmtV(k, c.parsed.y) } } }, scales: { y: { grid: { color: Chart.defaults.borderColor }, ticks: { callback: v => M[k].f === 'pct' ? v + '%' : M[k].f === 'gbp' ? '£' + v : v } }, x: { grid: { display: false } } } } });
+  const maxSpend = Math.max(...res.groups.map(g => g.m.spend), 1);
+  const cols = columnValues(res.groups, st.metrics);
+  $('cGroups').innerHTML = res.groups.map(g => { const ads = Array.from(g.adSpend.entries()).sort((a, b) => b[1] - a[1]).slice(0, 4).map(e => D.creatives.get(e[0])); return `<div class="cg" data-g="${esc(g.key)}"><div class="h"><span class="t" title="${esc(g.name)}">${esc(g.name)}</span><span class="n">${g.nAds} ad${g.nAds === 1 ? '' : 's'}</span></div><div class="thumbs">${ads.map(a => `<div class="th">${thumbImg(a)}</div>`).join('')}</div><div class="bar" title="Share of spend"><i style="width:${Math.round(100 * g.m.spend / maxSpend)}%"></i></div>${st.metrics.slice(0, 6).map((mk, i) => `<div class="mrow"><span class="l"><i style="background:${CHIP_COLORS[i % 6]}"></i>${esc(M[mk].l)}</span><span>${M[mk].score ? scoreHtml(g.m[mk]) : `<span class="v" style="${heatStyle(mk, g.m[mk], cols[mk])}">${fmtV(mk, g.m[mk])}</span>`}${g.pm && !M[mk].score ? fmtDelta(g.m[mk], g.pm[mk], mk) : ''}</span></div>`).join('')}</div>`; }).join('') || '<div class="empty-state">No ads match.</div>';
+  $('cGroups').querySelectorAll('.cg').forEach(c => c.addEventListener('click', () => openGroup(st, res, c.dataset.g)));
+  // table
+  const cmp = !!res.prevRange;
+  $('cTableWrap').innerHTML = res.groups.length ? `<table class="rt"><thead><tr><th class="first">${esc(groupLabelFor(st.groupBy))}</th><th>Ads</th>${st.metrics.map((mk, i) => `<th><span class="num" style="background:${CHIP_COLORS[i % 6]}">${i + 1}</span>${esc(M[mk].l)}</th>${cmp && !M[mk].score ? '<th class="muted">prev</th><th class="muted">Δ</th>' : ''}`).join('')}</tr></thead><tbody><tr class="total"><td class="first">All</td><td>${res.totals.ads.size}</td>${st.metrics.map(mk => (M[mk].score ? '<td>—</td>' : `<td>${fmtV(mk, res.tm[mk])}</td>`) + (cmp && !M[mk].score ? `<td class="prev">${fmtV(mk, res.tpm[mk])}</td><td>${fmtDelta(res.tm[mk], res.tpm[mk], mk) || '—'}</td>` : '')).join('')}</tr>${res.groups.map(g => `<tr data-g="${esc(g.key)}"><td class="first"><div class="rowname"><div class="th">${thumbImg(g.topAd)}</div><div class="nm" title="${esc(g.name)}">${esc(g.name)}</div></div></td><td>${g.nAds}</td>${st.metrics.map(mk => (M[mk].score ? `<td>${scoreHtml(g.m[mk])}</td>` : `<td><span class="cell" style="${heatStyle(mk, g.m[mk], cols[mk])}">${fmtV(mk, g.m[mk])}</span></td>`) + (cmp && !M[mk].score ? `<td class="prev">${fmtV(mk, g.pm[mk])}</td><td>${fmtDelta(g.m[mk], g.pm[mk], mk) || '—'}</td>` : '')).join('')}</tr>`).join('')}</tbody></table>` : '';
+  $('cTableWrap').querySelectorAll('tr[data-g]').forEach(tr => tr.addEventListener('click', () => openGroup(st, res, tr.dataset.g)));
+  hydrateThumbs($('viewCompare'));
+}
+
+// ========== SETTINGS ==========
+function renderSettings() {
+  const ro = USER_ROLE !== 'admin';
+  $('settingsRO').classList.toggle('hidden', !ro);
+  $('setGoalMetric').value = S.goal.metric || 'roas'; $('setRoas').value = S.goal.roas_target; $('setCpa').value = S.goal.cpa_target; $('setThreshold').value = S.goal.spend_threshold; $('setWindow').value = S.goal.window_days; $('setMinScore').value = S.goal.min_score_spend;
+  $('setDelim').value = S.naming.delimiter || '|';
+  (S.naming.segments || []).forEach((s, i) => { if ($('seg' + i)) $('seg' + i).value = s; });
+  const codes = S.naming.product_codes || {};
+  const renderCodes = () => { $('codesList').innerHTML = Object.keys(codes).map(c => `<input type="text" value="${esc(c)}" data-code="${esc(c)}" placeholder="Code"><input type="text" value="${esc(codes[c])}" data-label="${esc(c)}" placeholder="Label"><button class="ibtn sm" data-del="${esc(c)}">×</button>`).join(''); $('codesList').querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => { delete codes[b.dataset.del]; renderCodes(); })); };
+  renderCodes();
+  $('btnAddCode').onclick = () => { codes[''] = ''; renderCodes(); };
+  $('accessHint').textContent = `Signed in as ${USER_EMAIL} (${USER_ROLE}).`;
+  document.querySelectorAll('#viewSettings input, #viewSettings select, #viewSettings .ibtn').forEach(el => el.disabled = ro);
+  $('btnSaveSettings').onclick = async () => {
+    if (ro) return;
+    const goal = { metric: $('setGoalMetric').value, roas_target: Number($('setRoas').value), cpa_target: Number($('setCpa').value), spend_threshold: Number($('setThreshold').value), window_days: Number($('setWindow').value), min_score_spend: Number($('setMinScore').value), currency: 'GBP' };
+    const pc = {}; $('codesList').querySelectorAll('input[data-code]').forEach(inp => { const code = inp.value.trim(); const lbl = $('codesList').querySelector(`input[data-label="${CSS.escape(inp.dataset.code)}"]`); if (code) pc[code] = (lbl ? lbl.value.trim() : '') || code; });
+    const naming = { delimiter: $('setDelim').value || '|', segments: [0, 1, 2, 3, 4].map(i => $('seg' + i).value.trim() || `Segment ${i + 1}`), product_codes: pc };
+    try {
+      await rest('creative_settings', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates' }, body: JSON.stringify([{ key: 'goal', value: goal, updated_at: new Date().toISOString(), updated_by: USER_EMAIL }, { key: 'naming', value: naming, updated_at: new Date().toISOString(), updated_by: USER_EMAIL }]) });
+      S.goal = goal; S.naming = naming; NAME_CACHE.clear(); computeBadges(); $('settingsMsg').textContent = 'Saved.'; toast('Settings saved'); renderSettings();
+    } catch (e) { $('settingsMsg').textContent = 'Save failed: ' + e.message; }
+  };
+}
+
+// ========== CREATIVE DEEP DIVE ==========
+async function openDeepDive(adId, st) {
+  const ad = D.creatives.get(adId); if (!ad) { toast('Creative details not synced yet'); return; }
+  const range = st.range; const life = D.lifetime.get(adId) || {};
+  $('ddTitle').textContent = ad.ad_name;
+  $('ddIg').style.display = ad.instagram_permalink ? '' : 'none'; $('ddIg').href = ad.instagram_permalink || '#';
+  $('ddLp').style.display = ad.landing_page ? '' : 'none'; $('ddLp').href = ad.landing_page || '#';
+  const sums = emptySums(); const daily = dailyRows(range.from, range.to).filter(r => r.ad_id === adId); for (const r of daily) addRow(sums, r);
+  const m = deriveMetrics(sums);
+  const res = buildGroups({ range, compare: 'off', groupBy: 'ad', filters: [], search: '', sort: { key: 'spend', dir: 'desc' } }); const g = res.groups.find(x => x.key === adId); const sc = g ? g.scores : { hook: null, watch: null, click: null, convert: null };
+  const vid = ad.format === 'video' || !!ad.video_id || sums.video_plays > 0;
+  const tags = D.tags.get(adId) || [];
+  const campaign = D.campaigns.get(ad.campaign_id), adset = D.adsets.get(ad.adset_id);
+  const kv = [['Status', ad.effective_status || '—'], ['Campaign', campaign ? campaign.name : ad.campaign_name || '—'], ['Ad set', adset ? adset.name : ad.adset_name || '—'], ['Format', formatLabel(ad) + (isDynamic(ad) ? ' · dynamic' : '')], ['Launched', life.first_spend_date ? `${fmtD(life.first_spend_date, true)} (${life.days_active} active days)` : (ad.created_time ? 'created ' + fmtD(ad.created_time, true) : '—')], ['Lifetime', life.lifetime_spend !== undefined ? `${fmtV('spend', Number(life.lifetime_spend))} spend · ${life.lifetime_purchases} purchases · ROAS ${fmtV('roas', div(Number(life.lifetime_purchase_value), Number(life.lifetime_spend)))}` : '—'], ['CTA', ad.cta_type ? ad.cta_type.replace(/_/g, ' ').toLowerCase() : '—']];
+  const seg = parseName(ad.ad_name); const segs = S.naming.segments || [];
+  const funnelSteps = [['Impressions', sums.impressions], ...(vid ? [['3s views', sums.video_views_3s]] : []), ['Link clicks', sums.link_clicks], ['Landing page views', sums.landing_page_views], ['Add to carts', sums.add_to_carts], ['Checkouts', sums.initiate_checkouts], ['Purchases', sums.purchases]];
+  const funnel = funnelSteps.map((s, i) => `<div class="f"><b>${fmtV('purchases', s[1])}</b>${s[0]}<br><small>${i === 0 ? '' : (funnelSteps[i - 1][1] ? (100 * s[1] / funnelSteps[i - 1][1]).toFixed(1) + '% of prev' : '—')}</small></div>`).join('');
+  $('ddBody').innerHTML = `<div class="dd">
+    <div>
+      <div class="media" id="ddMedia">${thumbImg(ad)}${vid ? '<div class="playbtn" id="ddPlay"><span><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>' : ''}</div>
+      <div class="muted" style="font-size:11px;margin-top:6px">${vid ? 'Click to play. Video streams from Meta; if the file is not available the Meta ad preview is shown instead.' : 'Static image ad.'}</div>
+      <h4>Naming segments</h4><div class="kv">${segs.map((s, i) => `<span class="k">${esc(s)}</span><span>${esc(i === 1 ? productLabel(seg[i]) : seg[i]) || '—'}</span>`).join('')}</div>
+      <h4>Tags <small>shared with everyone who uses this app</small></h4><div class="tags" id="ddTags"></div>
+    </div>
+    <div class="info">
+      <h3>${esc(ad.ad_name)}</h3>
+      <div class="kv">${kv.map(([k, v]) => `<span class="k">${k}</span><span>${esc(v)}</span>`).join('')}</div>
+      <div class="copy">${ad.title ? `<b>${esc(ad.title)}</b>` : ''}${esc(ad.body || '(no primary text)')}${ad.description ? `\n<span class="muted">${esc(ad.description)}</span>` : ''}</div>
+      <h4>Performance <small>${fmtRange(range.from, range.to)}</small></h4>
+      <div class="kpis">${['spend', 'roas', 'cpa', 'purchases', 'ctr_outbound', 'thumbstop', 'hold_rate', 'cpm'].map(k => `<div class="kpi"><div class="l">${esc(M[k].l)}</div><div class="v">${fmtV(k, m[k])}</div></div>`).join('')}<div class="kpi"><div class="l">Scores H·W·C·C</div><div class="v">${scoreHtml(sc.hook)} ${scoreHtml(sc.watch)} ${scoreHtml(sc.click)} ${scoreHtml(sc.convert)}</div></div></div>
+      <h4>Funnel</h4><div class="funnel">${funnel}</div>
+      <div class="two" style="margin-top:14px">
+        <div><h4>Spend and ROAS by day</h4><div class="mini-chart"><canvas id="ddDaily"></canvas></div></div>
+        ${vid ? `<div><h4>Video retention <small>share of plays still watching</small></h4><div class="mini-chart"><canvas id="ddRet"></canvas></div></div>` : '<div></div>'}
+      </div>
+      <div class="two" style="margin-top:14px">
+        <div><h4>Placements <small id="ddPlSub">loading…</small></h4><div id="ddPlacement"></div></div>
+        <div><h4>Age and gender <small id="ddAgSub">loading…</small></h4><div id="ddAgeGender"></div></div>
+      </div>
+    </div></div>`;
+  $('ddModal').classList.add('open');
+  hydrateThumbs($('ddBody'));
+  renderTags(adId);
+  if (vid) $('ddPlay').addEventListener('click', () => playMedia(adId));
+  // Daily chart
+  chartDefaults(); destroyChart('ddDaily'); destroyChart('ddRet');
+  const dates = []; for (let d = range.from; d <= range.to; d = addDays(d, 1)) dates.push(d);
+  const byDay = new Map(daily.map(r => [r.report_date, r]));
+  CHARTS.ddDaily = new Chart($('ddDaily'), { data: { labels: dates.map(d => fmtD(d)), datasets: [{ type: 'bar', label: 'Spend', data: dates.map(d => Number(byDay.get(d)?.spend) || 0), backgroundColor: 'rgba(90,72,245,.55)', yAxisID: 'y', borderRadius: 3 }, { type: 'line', label: 'ROAS', data: dates.map(d => { const r = byDay.get(d); return r && Number(r.spend) > 0 ? Number(r.purchase_value) / Number(r.spend) : null; }), borderColor: '#10b981', backgroundColor: '#10b981', yAxisID: 'y1', tension: .3, pointRadius: 2, spanGaps: true }] }, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: true, position: 'bottom' } }, scales: { y: { ticks: { callback: v => '£' + v }, grid: { color: Chart.defaults.borderColor } }, y1: { position: 'right', grid: { display: false }, ticks: { callback: v => v.toFixed(1) } }, x: { grid: { display: false } } } } });
+  if (vid) {
+    const p = sums.video_plays || 0; const pts = [['Play', p], ['3s', sums.video_views_3s], ['25%', sums.video_p25], ['50%', sums.video_p50], ['75%', sums.video_p75], ['95%', sums.video_p95], ['100%', sums.video_p100]];
+    CHARTS.ddRet = new Chart($('ddRet'), { type: 'line', data: { labels: pts.map(x => x[0]), datasets: [{ data: pts.map(x => p ? 100 * x[1] / p : 0), borderColor: '#5a48f5', backgroundColor: 'rgba(90,72,245,.15)', fill: true, tension: .25, pointRadius: 3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.y.toFixed(1) + '% of plays' } } }, scales: { y: { min: 0, max: 100, ticks: { callback: v => v + '%' }, grid: { color: Chart.defaults.borderColor } }, x: { grid: { display: false } } } } });
+  }
+  loadBreakdowns(adId);
+}
+async function loadBreakdowns(adId) {
+  try {
+    const [pl, ag] = await Promise.all([
+      rest(`raw_meta_breakdown_placement?select=period_start,period_end,publisher_platform,platform_position,impression_device,spend,impressions,link_clicks,purchases,purchase_value&ad_id=eq.${adId}&level=eq.ad&order=period_end.desc&limit=400`),
+      rest(`raw_meta_breakdown_age_gender?select=period_start,period_end,age,gender,spend,impressions,link_clicks,purchases,purchase_value&ad_id=eq.${adId}&level=eq.ad&order=period_end.desc&limit=200`),
+    ]);
+    const latest = (rows) => { if (!rows.length) return []; const pe = rows[0].period_end; return rows.filter(r => r.period_end === pe); };
+    const table = (rows, keyFn, label) => {
+      const agg = new Map(); for (const r of rows) { const k = keyFn(r); const a = agg.get(k) || { spend: 0, impressions: 0, link_clicks: 0, purchases: 0, purchase_value: 0 }; for (const f in a) a[f] += Number(r[f]) || 0; agg.set(k, a); }
+      const list = Array.from(agg.entries()).sort((a, b) => b[1].spend - a[1].spend).slice(0, 12); const tot = list.reduce((s, e) => s + e[1].spend, 0);
+      return list.length ? `<table class="minitable"><thead><tr><th>${label}</th><th>Spend</th><th>Share</th><th>CTR</th><th>ROAS</th><th>CPA</th></tr></thead><tbody>${list.map(([k, a]) => `<tr><td>${esc(k)}</td><td>${fmtV('spend', a.spend)}</td><td>${tot ? (100 * a.spend / tot).toFixed(0) : 0}%</td><td>${fmtV('ctr_link', div(a.link_clicks, a.impressions))}</td><td>${fmtV('roas', div(a.purchase_value, a.spend))}</td><td>${fmtV('cpa', div(a.spend, a.purchases))}</td></tr>`).join('')}</tbody></table>` : '<div class="muted" style="font-size:12px">No breakdown snapshot for this ad yet. Snapshots refresh nightly for the trailing 90 days.</div>';
+    };
+    const lp = latest(pl), la = latest(ag);
+    $('ddPlacement').innerHTML = table(lp, r => `${(r.publisher_platform || '').replace('_', ' ')} · ${(r.platform_position || '').replace(/_/g, ' ')}`, 'Placement');
+    $('ddPlSub').textContent = lp.length ? `${fmtD(lp[0].period_start)} – ${fmtD(lp[0].period_end, true)}` : '';
+    $('ddAgeGender').innerHTML = table(la, r => `${r.gender || '?'} ${r.age || ''}`, 'Segment');
+    $('ddAgSub').textContent = la.length ? `${fmtD(la[0].period_start)} – ${fmtD(la[0].period_end, true)}` : '';
+  } catch (e) { $('ddPlacement').innerHTML = `<div class="muted">Breakdowns unavailable: ${esc(e.message)}</div>`; $('ddAgeGender').innerHTML = ''; $('ddPlSub').textContent = ''; $('ddAgSub').textContent = ''; }
+}
+async function playMedia(adId) {
+  const box = $('ddMedia'); const play = $('ddPlay'); if (play) play.style.display = 'none';
+  const ld = document.createElement('div'); ld.className = 'loading'; ld.innerHTML = '<span class="spin"></span>Loading video…'; box.appendChild(ld);
+  try {
+    const r = await fetch(`${SUPABASE_URL}/functions/v1/creative-media?ad_id=${adId}`, { headers: authHeaders() });
+    const j = await r.json(); if (!r.ok) throw new Error(j.error || r.status);
+    if (j.type === 'video') box.innerHTML = `<video src="${esc(j.url)}" controls autoplay playsinline ${j.poster ? `poster="${esc(j.poster)}"` : ''}></video>`;
+    else if (j.type === 'iframe') { box.innerHTML = j.html; const f = box.querySelector('iframe'); if (f) { f.removeAttribute('width'); f.removeAttribute('height'); f.style.width = '100%'; f.style.height = '100%'; } toast('Showing Meta\'s ad preview (no direct video file for this ad). If it stays blank, use the Instagram post link above.', 5000); }
+    else if (j.type === 'image' && j.url) box.innerHTML = `<img src="${esc(j.url)}" alt="">`;
+    else { ld.remove(); if (play) play.style.display = ''; toast('No playable video for this ad'); }
+  } catch (e) { ld.remove(); if (play) play.style.display = ''; toast('Could not load media: ' + e.message); }
+}
+function renderTags(adId) {
+  const tags = D.tags.get(adId) || []; const box = $('ddTags');
+  box.innerHTML = tags.map(t => `<span class="tag">${esc(t.tag)}<span class="x" data-id="${t.id}" title="Remove">×</span></span>`).join('') + `<input type="text" id="tagIn" placeholder="Add tag + Enter" autocomplete="off" list="tagList"><datalist id="tagList">${uniq(Array.from(D.tags.values()).flat().map(t => t.tag)).map(t => `<option value="${esc(t)}">`).join('')}</datalist>`;
+  box.querySelectorAll('.x').forEach(x => x.addEventListener('click', async () => { try { await rest(`creative_tags?id=eq.${x.dataset.id}`, { method: 'DELETE' }); D.tags.set(adId, tags.filter(t => String(t.id) !== x.dataset.id)); renderTags(adId); } catch (e) { toast('Could not remove tag: ' + e.message); } }));
+  $('tagIn').addEventListener('keydown', async (e) => {
+    if (e.key !== 'Enter') return; const tag = e.target.value.trim(); if (!tag) return;
+    try { const r = await rest('creative_tags', { method: 'POST', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ ad_id: adId, tag, added_by: USER_EMAIL }) }); if (!D.tags.has(adId)) D.tags.set(adId, []); D.tags.get(adId).push(r[0]); renderTags(adId); $('tagIn').focus(); }
+    catch (err) { toast(err.message.includes('23505') ? 'Already tagged' : 'Could not add tag: ' + err.message); }
+  });
+}
+
+// ========== SAVED REPORTS ==========
+function renderNavReports() {
+  const box = $('navReports'); const byFolder = new Map();
+  for (const r of D.reports) { const f = r.folder || 'Reports'; if (!byFolder.has(f)) byFolder.set(f, []); byFolder.get(f).push(r); }
+  const activeId = ROUTE === 'report' ? ST.top.id : ROUTE === 'compare' ? ST.compare.id : null;
+  box.innerHTML = byFolder.size ? Array.from(byFolder.entries()).sort((a, b) => a[0].localeCompare(b[0])).map(([f, list]) => `<div class="mnav-folder">📁 ${esc(f)}</div>` + list.map(r => `<div class="mnav-report ${r.id === activeId ? 'active' : ''}" data-id="${r.id}" data-kind="${r.kind}"><span class="e">${esc(r.emoji || (r.kind === 'comparative' ? '🔍' : '⭐'))}</span><span class="n" title="${esc(r.name)}">${esc(r.name)}</span><span class="k">${r.kind === 'comparative' ? 'cmp' : ''}</span></div>`).join('')).join('') : '<div class="mnav-empty">No saved reports yet. Build one and press Save.</div>';
+  box.querySelectorAll('.mnav-report').forEach(el => el.addEventListener('click', () => go(`${el.dataset.kind === 'comparative' ? 'compare' : 'report'}/${el.dataset.id}`)));
+  $('folderList').innerHTML = Array.from(byFolder.keys()).map(f => `<option value="${esc(f)}">`).join('');
+}
+function stateConfig(st) { return { preset: st.preset, range: st.range, compare: st.compare, groupBy: st.groupBy, filters: st.filters, search: st.search, metrics: st.metrics, view: st.view, sort: st.sort, chartMetric: st.chartMetric }; }
+function openSave(st) {
+  $('svName').value = st.name; $('svEmoji').value = st.emoji || ''; $('svFolder').value = st.folder || 'Reports';
+  $('saveModal').classList.add('open'); $('svName').focus();
+  $('svConfirm').onclick = async () => {
+    const name = $('svName').value.trim() || st.name; const emoji = $('svEmoji').value.trim() || st.emoji; const folder = $('svFolder').value.trim() || 'Reports';
+    const payload = { name, emoji, folder, kind: st.kind, config: stateConfig(st), updated_at: new Date().toISOString() };
+    try {
+      if (st.id) await rest(`creative_reports?id=eq.${st.id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+      else { const r = await rest('creative_reports', { method: 'POST', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ ...payload, created_by: USER_EMAIL }) }); st.id = r[0].id; }
+      st.name = name; st.emoji = emoji; st.folder = folder; st.dirty = false;
+      D.reports = await fetchAll('creative_reports?select=*&order=folder.asc,name.asc');
+      $('saveModal').classList.remove('open'); toast('Report saved');
+      go(`${st.kind === 'comparative' ? 'compare' : 'report'}/${st.id}`); route();
+    } catch (e) { toast('Save failed: ' + e.message, 4000); }
+  };
+}
+async function deleteReport(st) {
+  if (!st.id || !confirm(`Delete “${st.name}”? This cannot be undone.`)) return;
+  try { await rest(`creative_reports?id=eq.${st.id}`, { method: 'DELETE' }); D.reports = D.reports.filter(r => r.id !== st.id); if (st.kind === 'comparative') ST.compare = defaultCompare(); else ST.top = defaultTop(); toast('Report deleted'); go('home'); }
+  catch (e) { toast('Delete failed: ' + e.message, 4000); }
+}
+function duplicateReport(st) { const copy = { ...st, id: null, name: st.name + ' (copy)', dirty: true, filters: JSON.parse(JSON.stringify(st.filters)), metrics: st.metrics.slice(), sort: { ...st.sort }, range: { ...st.range } }; if (st.kind === 'comparative') ST.compare = copy; else ST.top = copy; go(st.kind === 'comparative' ? 'compare' : 'report'); route(); }
+function exportCsv(filename, header, rows) {
+  const csv = [header, ...rows].map(r => r.map(v => { const s = v === null || v === undefined ? '' : String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }).join(',')).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = filename; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+// ========== THEME ==========
+function applyTheme(t) { document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : ''); $('btnTheme').textContent = t === 'dark' ? 'Light mode' : 'Dark mode'; }
+function toggleTheme() { const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light'; const next = cur === 'dark' ? 'light' : 'dark'; localStorage.setItem(THEME_KEY, next); applyTheme(next); route(); }
+
+// ========== BOOT ==========
+function wireUi() {
+  document.querySelectorAll('.mnav-item').forEach(b => b.addEventListener('click', () => go(b.dataset.route)));
+  $('btnCreate').addEventListener('click', (e) => openPop(e.currentTarget, `<div class="title">New report</div><div class="item" data-k="top">⭐ Top performing<span class="d">cards · table · chart</span></div><div class="item" data-k="comparative">🔍 Comparative analysis<span class="d">group by element</span></div><div class="item" data-k="launch">🚀 Launch analysis</div>`, (pop) => pop.querySelectorAll('.item').forEach(el => el.addEventListener('click', () => { closePop(); if (el.dataset.k === 'top') { ST.top = defaultTop(); go('report'); if (ROUTE === 'report') route(); } else if (el.dataset.k === 'comparative') { ST.compare = defaultCompare(); go('compare'); if (ROUTE === 'compare') route(); } else go('launch'); }))));
+  $('btnRefreshReports').addEventListener('click', async () => { D.reports = await fetchAll('creative_reports?select=*&order=folder.asc,name.asc'); renderNavReports(); });
+  $('btnTheme').addEventListener('click', toggleTheme);
+  $('btnSignOut').addEventListener('click', () => window.ksSignOut());
+  $('btnRefresh').addEventListener('click', async () => { toast('Refreshing…'); await loadCatalog(); await refreshRecent(); computeBadges(); updateFresh(); route(); });
+  // Top performing
+  const rr = () => { markDirty(ST.top); renderReport(); };
+  $('btnDate').addEventListener('click', (e) => datePop(e.currentTarget, ST.top, rr));
+  $('btnCompare').addEventListener('click', (e) => comparePop(e.currentTarget, ST.top, rr));
+  $('btnGroup').addEventListener('click', (e) => groupPop(e.currentTarget, ST.top, rr));
+  $('btnAddFilter').addEventListener('click', (e) => addFilterPop(e.currentTarget, ST.top, rr));
+  $('btnSort').addEventListener('click', (e) => sortPop(e.currentTarget, ST.top, rr));
+  $('searchIn').addEventListener('input', debounce((e) => { ST.top.search = e.target.value.trim(); rr(); }, 250));
+  $('repName').addEventListener('change', (e) => { ST.top.name = e.target.value.trim() || 'Top performing'; markDirty(ST.top); });
+  $('repEmoji').addEventListener('click', () => { const v = prompt('Emoji for this report', ST.top.emoji || '⭐'); if (v) { ST.top.emoji = v.trim(); markDirty(ST.top); renderReport(); } });
+  $('btnSave').addEventListener('click', () => openSave(ST.top));
+  $('btnDup').addEventListener('click', () => duplicateReport(ST.top));
+  $('btnDel').addEventListener('click', () => deleteReport(ST.top));
+  $('btnCsv').addEventListener('click', () => { const st = ST.top; const res = buildGroups(st); exportCsv(`creative-${st.name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-${st.range.from}-${st.range.to}.csv`, ['Name', 'Ads', 'Launched', ...st.metrics.map(k => M[k].l), ...(res.prevRange ? st.metrics.map(k => M[k].l + ' (prev)') : [])], res.groups.map(g => [g.name, g.nAds, g.launch || '', ...st.metrics.map(k => g.m[k] === null || g.m[k] === undefined ? '' : (M[k].f === 'pct' ? (g.m[k] * 100).toFixed(2) : Number(g.m[k]).toFixed(2))), ...(res.prevRange ? st.metrics.map(k => g.pm[k] === null || g.pm[k] === undefined ? '' : (M[k].f === 'pct' ? (g.pm[k] * 100).toFixed(2) : Number(g.pm[k]).toFixed(2))) : [])])); });
+  // Launch
+  $('btnLDate').addEventListener('click', (e) => datePop(e.currentTarget, ST.launch, renderLaunch));
+  $('btnLAddFilter').addEventListener('click', (e) => addFilterPop(e.currentTarget, ST.launch, renderLaunch, false));
+  $('lSearchIn').addEventListener('input', debounce((e) => { ST.launch.search = e.target.value.trim(); renderLaunch(); }, 250));
+  $('launchTabs').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { ST.launch.tab = b.dataset.tab; renderLaunch(); }));
+  $('btnLaunchCsv').addEventListener('click', () => exportCsv(`launch-analysis-${ST.launch.range.from}-${ST.launch.range.to}.csv`, ['Ad', 'Campaign', 'Format', 'Launched', 'Days live', 'Lifetime spend', 'Lifetime ROAS', 'Lifetime CPA', 'Purchases', 'Window spend', 'Window ROAS', 'Scaled', 'Winner', 'Hook', 'Watch', 'Click', 'Convert', 'Status'], LAUNCH_ROWS.map(r => [r.ad.ad_name, (D.campaigns.get(r.ad.campaign_id) || {}).name || '', formatLabel(r.ad), r.launch, r.daysLive, r.lifeSpend.toFixed(2), r.lifeRoas === null ? '' : r.lifeRoas.toFixed(2), r.lifeCpa === null ? '' : r.lifeCpa.toFixed(2), r.lifePurch, r.wSpend.toFixed(2), r.wRoas === null ? '' : r.wRoas.toFixed(2), r.scaled ? 'yes' : 'no', r.winner ? 'yes' : 'no', r.scores.hook ?? '', r.scores.watch ?? '', r.scores.click ?? '', r.scores.convert ?? '', r.ad.effective_status || ''])));
+  // Compare
+  const cr = () => { markDirty(ST.compare); renderCompare(); };
+  const cmpDims = () => groupOptions().filter(o => !['ad', 'creative'].includes(o.k));
+  $('btnCDate').addEventListener('click', (e) => datePop(e.currentTarget, ST.compare, cr));
+  $('btnCCompare').addEventListener('click', (e) => comparePop(e.currentTarget, ST.compare, cr));
+  $('btnCDim').addEventListener('click', (e) => groupPop(e.currentTarget, ST.compare, cr, cmpDims()));
+  $('btnCMetric').addEventListener('click', (e) => metricPickerPop(e.currentTarget, ST.compare, cr, true));
+  $('btnCAddFilter').addEventListener('click', (e) => addFilterPop(e.currentTarget, ST.compare, cr));
+  $('cSearchIn').addEventListener('input', debounce((e) => { ST.compare.search = e.target.value.trim(); cr(); }, 250));
+  $('cmpName').addEventListener('change', (e) => { ST.compare.name = e.target.value.trim() || 'Comparative analysis'; markDirty(ST.compare); });
+  $('btnCSave').addEventListener('click', () => openSave(ST.compare));
+  $('btnCDup').addEventListener('click', () => duplicateReport(ST.compare));
+  $('btnCDel').addEventListener('click', () => deleteReport(ST.compare));
+  window.addEventListener('hashchange', route);
+}
+function updateFresh() { const to = D.dailyRange ? D.dailyRange.to : null; const latest = D.daily.length ? D.daily[D.daily.length - 1].report_date : null; $('navFresh').textContent = `Performance to ${latest ? fmtD(latest) : '—'} · creatives synced ${D.loadedAt ? D.loadedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : ''} · ${D.creatives.size} ads catalogued`; }
+window.addEventListener('ks-auth-ready', async () => {
+  $('navEmail').textContent = USER_EMAIL; $('navRole').textContent = USER_ROLE;
+  applyTheme(localStorage.getItem(THEME_KEY) || 'light');
+  wireUi();
+  try {
+    await loadCatalog();
+    if (!location.hash) location.hash = '#home';
+    await route();
+    updateFresh();
+  } catch (e) { console.error(e); banner('Could not load data: ' + e.message, 'err'); }
+});
+</script>
+</body>
+</html>

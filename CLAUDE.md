@@ -25,7 +25,11 @@ JS in one `<script>`).
 
 - `dashboard.html` + `index.html` — Shopify dashboard (`index.html` is a copy of `dashboard.html`)
 - `amazon.html`, `meta.html`, `email.html`, `pnl.html` — channel dashboards (`pnl.html` loads its figures from
-  Supabase `pnl_monthly` at runtime; see "P&L data" below)
+  Supabase `pnl_monthly` at runtime; see "P&L data" below). `meta.html` (rebuilt 20 Oct 2026 on the design system)
+  is the Meta overview: every figure is shown against the prior 90 days (the 90 days before the selected window);
+  it reads `raw_meta_ads_daily`, `rpt_daily_overview`, `v_meta_ads_campaign_daily`, `raw_meta_ads_ad_daily`
+  (window only, for ad counts and spend concentration), `meta_campaigns` (daily budgets) and `v_meta_ad_lifetime`.
+  Ad-level tables live in `creative.html`, not here.
 - `creative.html` — **Creative Analytics** (Motion-style creative reporting for the Meta account). Login gate is the
   `creative_access` table (roles `admin` / `strategist`), NOT `allowed_emails`: strategists see this page only, with no
   KS sidebar, and RLS limits them to the Meta tables. Data: `meta_ad_creatives`, `raw_meta_ads_ad_daily`,

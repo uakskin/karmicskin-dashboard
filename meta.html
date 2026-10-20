@@ -83,209 +83,217 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Karmic Skin - Meta Ads Dashboard</title>
+<title>Karmic Skin - Meta Ads</title>
 <link rel="icon" type="image/svg+xml" href="favicon-latest.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Domine:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 <style>
+  /* ========== TOKENS ==========
+     Palette and type come from design-system.html (Operations > Design System). Light theme = the
+     system: six colours only, all text Carbon Black, hierarchy from size and weight, content
+     separated by space and background tone, borders only on things a user interacts with.
+     Amber has one job on this page: marking what needs attention. Dark Green is the one branded
+     panel (the insight panel) and the funnel stages. Charts use two inks (Carbon + Dark Green)
+     and stroke patterns, never a rainbow.
+     Dark theme keeps the neutral dark palette shared by the other dashboards. */
   :root {
-    --bg-page:#f8f9fa; --bg-card:#fff; --bg-card-alt:#f3f4f6; --bg-input:#fff;
-    --border:#e5e7eb; --border-hover:#d1d5db;
-    --text-primary:#111827; --text-secondary:#6b7280; --text-muted:#9ca3af; --text-heading:#374151;
-    --table-header-bg:#f9fafb; --table-border:#f3f4f6; --table-hover:#f9fafb;
-    --dropdown-shadow:0 12px 40px rgba(0,0,0,0.1);
-    --accent:#0d9488; --accent-hover:#0f766e;
-    --positive:#16a34a; --negative:#dc2626;
-    --highlight-bg:rgba(168,85,247,0.08); --highlight-text:#7c3aed;
-    --sort-active:#7c3aed;
-    --chart-grid:#f3f4f6; --chart-tick:#9ca3af;
-    --tooltip-bg:#1f2937; --tooltip-title:#f3f4f6; --tooltip-body:#d1d5db; --tooltip-border:#374151;
-    --amber:#f59e0b; --amber-bg:rgba(245,158,11,0.1);
-    --green-bg:rgba(22,163,74,0.1); --red-bg:rgba(220,38,38,0.1);
+    --porcelain: #F6F5F0;
+    --citron:    #CAD183;
+    --carbon:    #232526;
+    --green:     #2F5350;
+    --red:       #B22222;
+    --amber:     #EFA71D;
+
+    --font-heading: 'Domine', Georgia, serif;
+    --font-body:    'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+    --ground:     var(--porcelain);
+    --tint:       var(--citron);
+    --ink:        var(--carbon);
+    --ink-soft:   rgba(35,37,38,0.22);     /* Carbon at low opacity: spend bars, gridlines */
+    --panel:      var(--green);
+    --panel-ink:  var(--porcelain);
+    --mark:       var(--amber);
+    --mark-ink:   var(--carbon);
+    --btn-fill:   var(--carbon);
+    --btn-ink:    var(--porcelain);
+    --series-a:   var(--carbon);
+    --series-b:   var(--green);
+    --chart-grid: rgba(35,37,38,0.12);
+    --tooltip-bg: var(--green);
+    --tooltip-ink: var(--porcelain);
   }
   [data-theme="dark"] {
-    --bg-page:#0f1117; --bg-card:#18181b; --bg-card-alt:#1e1e22; --bg-input:#0f1117;
-    --border:#27272a; --border-hover:#3f3f46;
-    --text-primary:#f4f4f5; --text-secondary:#a1a1aa; --text-muted:#71717a; --text-heading:#e4e4e7;
-    --table-header-bg:#1e1e22; --table-border:#1f1f23; --table-hover:#1e1e22;
-    --dropdown-shadow:0 12px 40px rgba(0,0,0,0.5);
-    --accent:#34d399; --accent-hover:#6ee7b7;
-    --positive:#22c55e; --negative:#ef4444;
-    --highlight-bg:rgba(228,193,249,0.15); --highlight-text:#E4C1F9;
-    --sort-active:#E4C1F9;
-    --chart-grid:#27272a; --chart-tick:#52525b;
-    --tooltip-bg:#27272a; --tooltip-title:#e4e4e7; --tooltip-body:#a1a1aa; --tooltip-border:#3f3f46;
-    --amber:#fbbf24; --amber-bg:rgba(251,191,36,0.12);
-    --green-bg:rgba(34,197,94,0.12); --red-bg:rgba(239,68,68,0.12);
+    --ground: #0f1117; --tint: #1e1e22; --ink: #f4f4f5; --ink-soft: rgba(244,244,245,0.28);
+    --btn-fill: #f4f4f5; --btn-ink: #0f1117;
+    --series-a: #f4f4f5; --series-b: #34d399;
+    --chart-grid: #27272a;
+    --tooltip-bg: #27272a; --tooltip-ink: #f4f4f5;
   }
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg-page);color:var(--text-primary);min-height:100vh;transition:background .2s,color .2s}
 
-  /* NAV */
-  .page-nav{display:flex;border-bottom:1px solid var(--border);background:var(--bg-card);position:sticky;top:0;z-index:102}
-  .page-nav a{padding:10px 20px;font-size:13px;font-weight:600;color:var(--text-muted);text-decoration:none;border-bottom:2px solid transparent;transition:all .15s}
-  .page-nav a:hover{color:var(--text-primary)}
-  .page-nav a.active{color:var(--accent);border-bottom-color:var(--accent)}
+  /* ========== BASE ========== */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--font-body); background: var(--ground); color: var(--ink); min-height: 100vh; line-height: 1.5; -webkit-font-smoothing: antialiased; transition: background 0.2s, color 0.2s; }
+  h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 600; line-height: 1.2; color: var(--ink); }
+  a { color: inherit; text-decoration: none; }
+  strong, b { font-weight: 700; }
 
-  /* HEADER */
-  .header{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;position:sticky;top:38px;z-index:101;background:var(--bg-page)}
-  .header-left h1{font-size:18px;font-weight:600;color:var(--text-primary);display:inline}
-  .header-left .brand{font-size:11px;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase}
-  .last-updated{font-size:11px;color:var(--text-muted)}
+  /* ========== LAYOUT ========== */
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 clamp(16px, 3vw, 32px); }
+  .section { padding-top: 48px; }
+  .section.last { padding-bottom: 64px; }
+  .section.tint { background: var(--tint); padding: 24px 0; }
+  .section-head { margin-bottom: 24px; }
+  .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; }
+  .section-title { font-size: 24px; margin-top: 8px; }
+  .section-intro { font-size: 14px; margin-top: 8px; max-width: 820px; }
+  .block-label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 12px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+  .read { font-size: 13px; margin-top: 16px; max-width: 560px; }
+  .sub { font-size: 13px; margin-top: 4px; }
 
-  /* THEME TOGGLE */
-  .theme-toggle{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:6px 8px;cursor:pointer;line-height:1;transition:all 0.15s;display:inline-flex;align-items:center;justify-content:center}
-  .theme-toggle:hover{border-color:var(--border-hover)}
-  .theme-toggle svg{width:16px;height:16px;fill:var(--text-primary);display:block}
+  /* ========== HEADER ========== */
+  .header { position: sticky; top: 0; z-index: 101; background: var(--ground); }
+  .header .wrap { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding-top: 16px; padding-bottom: 12px; }
+  .header h1 { font-size: 24px; margin-top: 4px; display: inline-block; margin-right: 12px; }
+  .last-updated { font-size: 12px; font-weight: 500; white-space: nowrap; }
+  .header-right { display: flex; align-items: center; gap: 8px; }
 
-  /* DATE PICKER */
-  .date-picker-wrap{position:relative}
-  .date-picker-btn{padding:7px 14px;border-radius:8px;border:1px solid var(--border-hover);background:var(--bg-card);color:var(--text-primary);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap}
-  .date-picker-btn:hover{border-color:var(--text-muted)}
-  .date-picker-btn svg{width:14px;height:14px;fill:var(--text-muted)}
-  .date-dropdown{position:absolute;top:calc(100% + 6px);right:0;background:var(--bg-card);border:1px solid var(--border-hover);border-radius:12px;box-shadow:var(--dropdown-shadow);z-index:100;display:none;min-width:320px}
-  .date-dropdown.open{display:flex}
-  .date-presets{border-right:1px solid var(--border);padding:8px 0;min-width:150px}
-  .date-preset{padding:8px 16px;font-size:13px;color:var(--text-secondary);cursor:pointer;display:block;width:100%;text-align:left;background:none;border:none}
-  .date-preset:hover{background:var(--bg-card-alt);color:var(--text-primary)}
-  .date-preset.active{background:var(--bg-card-alt);color:var(--accent)}
-  .date-custom{padding:16px;display:flex;flex-direction:column;gap:12px}
-  .date-custom label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
-  .date-custom input[type="date"]{padding:7px 10px;border-radius:6px;border:1px solid var(--border-hover);background:var(--bg-input);color:var(--text-primary);font-size:13px;width:100%}
-  .date-custom .apply-btn{padding:8px 16px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px}
-  .date-custom .apply-btn:hover{background:var(--accent-hover)}
-  .overlay{position:fixed;inset:0;z-index:99;display:none}
-  .overlay.open{display:block}
-  .date-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  /* ========== BUTTONS ========== */
+  .btn { font-family: var(--font-body); font-weight: 600; font-size: 13px; line-height: 1; padding: 8px 16px; border-radius: 12px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: filter 0.15s, background 0.15s, color 0.15s; }
+  .btn svg { width: 14px; height: 14px; display: block; }
+  .btn-secondary { background: var(--btn-fill); color: var(--btn-ink); border: 1.5px solid var(--btn-fill); }
+  .btn-secondary:hover { filter: brightness(0.9); }
+  .btn-ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--ink); }
+  .btn-ghost:hover { background: var(--btn-fill); color: var(--btn-ink); }
+  .theme-toggle { padding: 8px; }
+  .theme-toggle svg { width: 16px; height: 16px; fill: currentColor; }
 
-  /* KPI */
-  .kpi-strip{display:grid;grid-template-columns:repeat(9,1fr);gap:8px;padding:16px 24px}
-  .kpi-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
-  .kpi-card .label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-  .kpi-card .value{font-size:20px;font-weight:700;color:var(--text-primary)}
+  /* ========== DATE PICKER ========== */
+  .date-wrap { position: relative; }
+  .date-menu { position: absolute; top: calc(100% + 8px); right: 0; background: var(--ground); border: 1px solid var(--ink); border-radius: 12px; display: none; z-index: 100; min-width: 320px; overflow: hidden; }
+  .date-menu.open { display: flex; }
+  .date-presets { padding: 8px 0; min-width: 150px; border-right: 1px solid var(--ink); }
+  .date-preset { display: block; width: 100%; text-align: left; background: none; border: none; font-family: var(--font-body); font-size: 13px; color: var(--ink); padding: 8px 16px; cursor: pointer; }
+  .date-preset:hover { background: var(--tint); }
+  .date-preset.active { background: var(--tint); font-weight: 700; }
+  .date-custom { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .date-custom label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; display: block; margin-bottom: 4px; }
+  .date-custom input { padding: 8px 10px; border: 1px solid var(--ink); border-radius: 12px; background: var(--ground); color: var(--ink); font-family: var(--font-body); font-size: 13px; width: 100%; }
+  .overlay { position: fixed; inset: 0; z-index: 99; display: none; }
+  .overlay.open { display: block; }
 
-  /* CARDS */
-  .section{padding:0 24px 16px}
-  .section-row{display:flex;gap:16px;padding:0 24px 16px}
-  .card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
-  .card-full{width:100%}
-  .card-half{flex:1;min-width:0}
-  .card-header{padding:14px 20px 10px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-  .card-header h3{font-size:13px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin:0}
-  .card-header .controls{display:flex;gap:6px;flex-wrap:wrap}
-  .toggle-btn{padding:5px 12px;font-size:11px;border-radius:6px;background:var(--bg-card-alt);border:1px solid var(--border);color:var(--text-secondary);cursor:pointer}
-  .toggle-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-  .chart-wrap{position:relative;height:340px;padding:0 20px 16px}
-  .chart-wrap-sm{position:relative;height:280px;padding:0 20px 16px}
+  /* ========== STATUS ========== */
+  .status { display: none; font-size: 13px; font-weight: 600; margin-top: 16px; }
+  .status.show { display: block; }
+  .status.error span { background: var(--mark); color: var(--mark-ink); padding: 2px 8px; border-radius: 3px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 
-  /* FUNNEL — legacy classes (still used by summary) */
-  .funnel-wrap{padding:20px 20px 16px}
-  .funnel-dropoff{font-size:11px;color:var(--negative);padding:2px 0 8px 156px;font-weight:500}
+  /* ========== KPI TILES (Porcelain tiles on a Citron band) ========== */
+  .kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .kpi-card { background: var(--ground); border-radius: 12px; padding: 16px 20px; min-width: 0; }
+  .kpi-card .label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+  .kpi-card .value { font-family: var(--font-heading); font-size: 26px; font-weight: 700; line-height: 1.2; }
+  .kpi-card .sub { font-size: 12px; font-weight: 500; margin-top: 8px; }
+  .kpi-card.loading .value { opacity: 0.4; }
+  /* Attention marks: amber sits beneath Carbon text, never as the text colour. */
+  .delta { font-weight: 700; white-space: nowrap; }
+  .delta.worse { background-image: linear-gradient(to top, var(--mark) 0.26em, transparent 0.26em); }
+  .kpi-card.below .value { display: inline; background-image: linear-gradient(to top, var(--mark) 0.22em, transparent 0.22em); }
 
-  /* FUNNEL V3 — side-by-side tapered visual */
-  .funnel-pair{display:grid;grid-template-columns:1fr 1fr;gap:32px;padding:8px 12px 24px}
-  @media (max-width:880px){.funnel-pair{grid-template-columns:1fr;gap:32px}}
-  .funnel-v3{display:flex;flex-direction:column;align-items:stretch;gap:0}
-  .fv3-title{text-align:center;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-secondary);margin-bottom:2px}
-  .fv3-sub{text-align:center;font-size:10px;color:var(--text-muted);margin-bottom:14px;letter-spacing:.3px}
-  .fv3-stage{display:flex;flex-direction:column;align-items:center;gap:4px}
-  .fv3-shape{width:100%;max-width:380px;margin:0 auto;height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;position:relative}
-  .fv3-shape::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.18),transparent 60%);clip-path:inherit;border-radius:inherit;pointer-events:none}
-  .fv3-ellipse{border-radius:50%;height:78px;max-width:340px}
-  .fv3-name{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;opacity:.95;line-height:1.2;white-space:nowrap}
-  .fv3-num{font-size:16px;font-weight:800;letter-spacing:.3px;margin-top:2px}
-  .fv3-rate{font-size:11px;color:var(--text-secondary);margin-top:4px;font-weight:600;letter-spacing:.2px}
-  .fv3-rate strong{color:var(--text-primary);font-weight:800}
-  .fv3-rate.fv3-cvr{font-size:12px;margin-top:6px}
-  .fv3-rate.fv3-cvr strong{font-size:14px}
-  .fv3-rate.fv3-cvr em{display:block;font-style:normal;font-size:9px;opacity:.7;margin-top:1px;letter-spacing:.5px;text-transform:uppercase}
-  .fv3-rate.fv3-cvr.positive strong{color:var(--positive)}
-  .fv3-rate.fv3-cvr.amber strong{color:var(--amber)}
-  .fv3-rate.fv3-cvr.negative strong{color:var(--negative)}
-  .fv3-drop{font-size:11px;color:var(--negative);font-weight:600;text-align:center;padding:8px 0;letter-spacing:.3px;line-height:1.3}
-  .fv3-drop strong{font-size:12px;color:var(--negative);font-weight:800}
-  .fv3-arrow{display:block;font-size:9px;opacity:.7;margin-top:2px}
-  .fv3-purchase{display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:4px}
-  .fv3-coins{font-size:24px;letter-spacing:-6px;line-height:1}
-  .fv3-purchase-pill{padding:10px 28px;border-radius:999px;color:#fff;display:flex;flex-direction:column;align-items:center;min-width:140px}
-  .fv3-purchase-pill .fv3-num{font-size:18px}
-  .funnel-summary{margin:12px 20px 0 156px;padding:12px 14px;background:var(--bg-card-alt);border-radius:8px;font-size:12px;color:var(--text-secondary)}
-  .funnel-summary-row{display:flex;align-items:center;gap:10px;padding:4px 0}
-  .funnel-summary-row span{flex:1}
-  .funnel-summary-row em{color:var(--text-muted);font-style:normal}
-  .funnel-summary-row strong{font-size:14px;color:var(--text-primary);min-width:72px;text-align:right}
-  .funnel-summary-row strong.positive{color:var(--positive)}
-  .funnel-summary-row strong.amber{color:var(--amber)}
-  .funnel-summary-row strong.negative{color:var(--negative)}
-  .funnel-summary-target{font-size:10px;color:var(--text-muted);min-width:auto}
-  .funnel-baseline{font-size:11px;color:var(--text-muted);white-space:nowrap;display:inline-flex;align-items:center;gap:4px;margin-left:8px}
-  .funnel-baseline em{font-style:normal;font-size:10px;opacity:.8}
-  .funnel-baseline .funnel-baseline-arrow{font-weight:700}
-  .funnel-baseline.up{color:var(--positive)}
-  .funnel-baseline.down{color:var(--negative)}
-  .funnel-baseline.neutral{color:var(--text-muted)}
+  /* ========== TABLES ========== */
+  /* No boxes and no row rules: rows are separated by space. The one rule sits under the header row, whose cells are interactive (click to sort). */
+  .table-scroll { overflow-x: auto; margin: 0 -6px; }
+  table.ks-table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  table.ks-table th { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 8px 5px; text-align: right; border-bottom: 1px solid var(--ink); user-select: none; vertical-align: bottom; }
+  table.ks-table th:first-child { text-align: left; }
+  table.ks-table th.sortable { cursor: pointer; }
+  table.ks-table th.sortable:hover { text-decoration: underline; text-underline-offset: 3px; }
+  table.ks-table th .sort-arrow { font-size: 9px; margin-left: 4px; visibility: hidden; }
+  table.ks-table th.sorted .sort-arrow { visibility: visible; }
+  table.ks-table td { padding: 12px 5px; text-align: right; vertical-align: top; }
+  table.ks-table td:first-child { text-align: left; font-weight: 600; max-width: 260px; white-space: normal; }
+  table.ks-table td .big { font-size: 13px; font-weight: 700; }
+  table.ks-table tbody tr:hover td { background: var(--tint); }
+  table.ks-table tbody tr:hover td:first-child { border-radius: 6px 0 0 6px; }
+  table.ks-table tbody tr:hover td:last-child { border-radius: 0 6px 6px 0; }
+  table.ks-table td.table-empty { text-align: center; padding: 24px; font-weight: 400; }
+  .cell-note { display: block; font-size: 11px; font-weight: 400; margin-top: 2px; }
+  .spark { display: block; margin-left: auto; color: var(--ink); }
 
-  /* TABLES */
-  .perf-table-wrap{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:0 24px 16px}
-  .perf-table-scroll{overflow-x:auto;max-height:520px;overflow-y:auto}
-  .perf-table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
-  .perf-table thead{position:sticky;top:0;z-index:1}
-  .perf-table th{background:var(--table-header-bg);color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;font-size:10px;padding:8px 12px;text-align:right;border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
-  .perf-table th:first-child,.perf-table th.left{text-align:left;position:sticky;left:0;background:var(--table-header-bg);z-index:2}
-  .perf-table th:hover{color:var(--text-secondary)}
-  .perf-table th .sort-arrow{font-size:9px;margin-left:3px;opacity:.3}
-  .perf-table th.sorted .sort-arrow{opacity:1;color:var(--sort-active)}
-  .perf-table td{padding:7px 12px;text-align:right;border-bottom:1px solid var(--table-border);color:var(--text-secondary);font-variant-numeric:tabular-nums}
-  .perf-table td:first-child,.perf-table td.left{text-align:left;font-weight:500;color:var(--text-primary);position:sticky;left:0;background:var(--bg-card);z-index:1;max-width:380px;overflow:hidden;text-overflow:ellipsis}
-  .perf-table tbody tr:hover td{background:var(--table-hover)}
-  .perf-table tbody tr:hover td:first-child{background:var(--table-hover)}
-  .perf-table .highlight-best{background:var(--highlight-bg);color:var(--highlight-text);font-weight:700}
-  .perf-table .pill{display:inline-block;padding:1px 8px;border-radius:10px;font-size:10px;font-weight:600}
-  .pill.video{background:rgba(99,102,241,.12);color:#6366f1}
-  .pill.static{background:rgba(245,158,11,.12);color:#b45309}
-  [data-theme="dark"] .pill.static{color:#fbbf24}
-  .pill.other{background:rgba(148,163,184,.12);color:#64748b}
+  table.stat-table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+  table.stat-table th { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 6px 6px; text-align: right; border-bottom: 1px solid var(--ink); }
+  table.stat-table th:first-child { text-align: left; }
+  table.stat-table td { padding: 9px 6px; text-align: right; }
+  table.stat-table td:first-child { text-align: left; font-weight: 600; }
+  table.stat-table td.cur { font-weight: 700; }
 
-  /* SIGNALS */
-  .signals-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;padding:0 24px 24px}
-  .signal-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
-  .signal-card .signal-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-  .signal-card .signal-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-  .signal-card .signal-dot.green{background:var(--positive)}
-  .signal-card .signal-dot.amber{background:var(--amber)}
-  .signal-card .signal-dot.red{background:var(--negative)}
-  .signal-card .signal-title{font-size:13px;font-weight:700;color:var(--text-primary)}
-  .signal-card .signal-value{font-size:22px;font-weight:700;margin-bottom:4px}
-  .signal-card .signal-value.green{color:var(--positive)}
-  .signal-card .signal-value.amber{color:var(--amber)}
-  .signal-card .signal-value.red{color:var(--negative)}
-  .signal-card .signal-desc{font-size:12px;color:var(--text-secondary);line-height:1.5}
+  /* ========== STATUS MARKS ========== */
+  /* Needs action = amber badge. Everything else is plain Carbon text; weight carries the level. */
+  .badge { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 10px; border-radius: 100px; background: var(--mark); color: var(--mark-ink); white-space: nowrap; }
+  .tag { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 10px; border-radius: 100px; box-shadow: inset 0 0 0 1px currentColor; white-space: nowrap; }
+  td .badge, td .tag { margin-top: 4px; }
 
-  /* STATUS/LOADING */
-  .status-banner{margin:12px 24px 0;padding:10px 14px;border-radius:8px;font-size:12px;display:none}
-  .status-banner.error{background:var(--red-bg);color:var(--negative);border:1px solid rgba(220,38,38,.25);display:block}
-  .status-banner.warn{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(245,158,11,.25);display:block}
-  .status-banner.info{background:rgba(59,130,246,.08);color:#2563eb;border:1px solid rgba(59,130,246,.2);display:block}
-  .loading{padding:40px;text-align:center;color:var(--text-muted);font-size:13px}
+  /* ========== INSIGHT PANEL (the one Dark Green panel) ========== */
+  .panel { background: var(--panel); color: var(--panel-ink); border-radius: 16px; padding: 32px; display: grid; grid-template-columns: 1.15fr 1fr; gap: 48px; }
+  .panel h3, .panel .eyebrow, .panel p, .panel li { color: var(--panel-ink); }
+  .panel h3 { font-size: 22px; margin-top: 8px; }
+  .panel p { font-size: 14px; margin-top: 12px; max-width: 560px; }
+  .waterfall { display: block; width: 100%; height: auto; margin-top: 24px; color: var(--panel-ink); }
+  .watchlist { list-style: none; margin-top: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .watchlist li { font-size: 13px; line-height: 1.5; display: flex; gap: 12px; align-items: flex-start; }
+  .watchlist li .badge, .watchlist li .tag { flex: none; margin-top: 2px; }
+  .watchlist li.ok { font-weight: 400; }
+  .watchlist li.watch { font-weight: 600; }
 
-  .footer-note{text-align:center;padding:12px 24px 24px;font-size:11px;color:var(--text-muted)}
-  .info-tip{display:inline-block;font-size:10px;opacity:.5;cursor:help;margin-left:2px}
-  .tooltip-popup{position:fixed;background:#111;color:#fff;font-size:11px;padding:5px 10px;border-radius:6px;pointer-events:none;font-weight:400;text-transform:none;letter-spacing:0;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.4);display:none;border:1px solid #333;max-width:90vw;white-space:normal}
+  /* ========== FUNNEL ========== */
+  .funnel { display: flex; flex-direction: column; align-items: center; }
+  .f-stage { background: var(--panel); color: var(--panel-ink); border-radius: 8px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: baseline; gap: 16px; min-width: 230px; }
+  .f-stage .f-name { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; white-space: nowrap; }
+  .f-stage .f-num { font-family: var(--font-heading); font-size: 18px; font-weight: 700; }
+  .f-step { font-size: 12px; font-weight: 500; padding: 8px 0; text-align: center; }
+  .f-step b { font-weight: 700; font-size: 13px; }
+  .f-total { margin-top: 8px; font-size: 13px; }
 
-  @media (max-width: 1200px) { .kpi-strip{grid-template-columns:repeat(4,1fr)} }
-  @media (max-width: 768px) {
-    .kpi-strip{grid-template-columns:repeat(2,1fr)}
-    .section-row{flex-direction:column}
-    .signals-grid{grid-template-columns:1fr}
-    .date-dropdown{right:auto;left:0}
-    .date-controls{width:100%}
-  }
+  /* ========== MODULES ========== */
+  .modules { row-gap: 48px; }
+  .module h3 { font-size: 18px; }
+  .chart-wrap { position: relative; height: 280px; margin-top: 16px; }
+  .chart-wrap.tall { height: 360px; }
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; font-size: 12px; font-weight: 600; margin-top: 12px; }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
+  .legend i.sw-a { background: var(--series-a); }
+  .legend i.sw-b { background: var(--series-b); }
+  .legend i.sw-soft { background: var(--ink-soft); }
+  .legend i.sw-hollow { background: var(--ground); box-shadow: inset 0 0 0 1.5px var(--ink); border-radius: 50%; }
+  .legend i.sw-dot { background: var(--series-b); border-radius: 50%; }
+  .legend i.ln { width: 22px; height: 0; border-top: 2px solid var(--series-a); border-radius: 0; }
+  .legend i.ln.dash { border-top-style: dashed; }
+  .legend i.ln.b { border-top-color: var(--series-b); }
+  .pace-list { list-style: none; margin-top: 16px; display: flex; flex-direction: column; }
+  .pace-list li { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 9px 0; font-size: 13px; }
+  .pace-list li b { font-size: 14px; white-space: nowrap; text-align: right; }
+  .pace-list li b small { display: block; font-size: 11px; font-weight: 500; }
+  .conc-bar { display: flex; height: 18px; border-radius: 6px; overflow: hidden; gap: 2px; margin-top: 8px; }
+  .conc-bar span { display: block; height: 100%; }
+  .conc-bar .top { background: var(--panel); }
+  .conc-bar .rest { background: var(--tint); }
+  .conc-key { display: flex; gap: 20px; font-size: 12px; font-weight: 600; margin-top: 8px; }
+
+  /* ========== METHOD NOTES ========== */
+  .notes { margin-top: 64px; }
+  .notes p { font-size: 13px; max-width: 820px; margin-bottom: 12px; }
+  .notes p:last-child { margin-bottom: 0; }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 1024px) { .kpi-strip { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 900px) { .two-col, .panel { grid-template-columns: 1fr; } .panel { gap: 32px; padding: 24px; } }
+  @media (max-width: 560px) { .kpi-strip { grid-template-columns: 1fr; } .section { padding-top: 32px; } .date-menu { right: auto; left: 0; flex-direction: column; } .date-presets { border-right: none; border-bottom: 1px solid var(--ink); } }
 </style>
 </head>
 <body>
-<div class="tooltip-popup" id="tooltipPopup"></div>
-<div class="overlay" id="overlay"></div>
-
 <aside id="ksb" class="ksb">
 <div class="ksb-brand">Karmic Skin</div>
 <nav class="ksb-section">
@@ -341,208 +349,271 @@ body { padding-left: 208px; }
   if (a) a.classList.add('ksb-active');
 })();
 </script>
-<nav class="page-nav">
-  <a href="index.html">Shopify</a>
-  <a href="meta.html" class="active">Meta</a>
-  <a href="email.html">Email</a>
-  <a href="inventory.html">Inventory</a>
-  <a href="amazon.html">Amazon</a>
-  <a href="pnl.html">P&L</a>
-  <a href="instagram-scheduler.html">Instagram</a>
-</nav>
+<div class="overlay" id="overlay"></div>
 
+<!-- ========== HEADER ========== -->
 <div class="header">
-  <div class="header-left">
-    <div class="brand">KARMIC SKIN</div>
-    <h1>Meta Ads Dashboard</h1>
-  </div>
-  <div class="date-controls">
-    <div style="text-align:right;margin-right:8px">
-      <span class="last-updated" id="lastUpdated"></span>
+  <div class="wrap">
+    <div class="header-left">
+      <div class="eyebrow">Karmic Skin</div>
+      <h1>Meta Ads</h1>
+      <span class="last-updated" id="lastUpdated">Loading…</span>
     </div>
-    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Switch theme" aria-label="Switch theme"></button>
-    <div class="date-picker-wrap">
-      <button class="date-picker-btn" id="datePickerBtn" onclick="toggleDatePicker()">
-        <svg viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 1h10a1 1 0 011 1v1H4V5a1 1 0 011-1zm-1 4h12v7a1 1 0 01-1 1H5a1 1 0 01-1-1V8z"/></svg>
-        <span id="dateLabel">Last 30 days</span>
-        <svg viewBox="0 0 20 20" style="width:10px;height:10px"><path d="M10 13l-5-5h10z"/></svg>
-      </button>
-      <div class="date-dropdown" id="dateDropdown">
-        <div class="date-presets">
-          <button class="date-preset" data-preset="yesterday">Yesterday</button>
-          <button class="date-preset" data-preset="last7">Last 7 days</button>
-          <button class="date-preset" data-preset="last14">Last 14 days</button>
-          <button class="date-preset" data-preset="last30">Last 30 days</button>
-          <button class="date-preset" data-preset="last60">Last 60 days</button>
-          <button class="date-preset" data-preset="last90">Last 90 days</button>
-          <button class="date-preset active" data-preset="mtd">Month to date</button>
-          <button class="date-preset" data-preset="lastMonth">Last month</button>
-          <button class="date-preset" data-preset="ytd">Year to date</button>
-          <button class="date-preset" data-preset="last12m">Last 12 months</button>
-          <button class="date-preset" data-preset="lastYear">Last year</button>
+    <div class="header-right">
+      <div class="date-wrap">
+        <button class="btn btn-ghost" id="dateBtn" onclick="toggleDatePicker()" aria-haspopup="true">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 1h10a1 1 0 011 1v1H4V5a1 1 0 011-1zm-1 4h12v7a1 1 0 01-1 1H5a1 1 0 01-1-1V8z"/></svg>
+          <span id="dateLabel">Month to date</span>
+        </button>
+        <div class="date-menu" id="dateMenu">
+          <div class="date-presets">
+            <button class="date-preset" data-preset="yesterday">Yesterday</button>
+            <button class="date-preset" data-preset="last7">Last 7 days</button>
+            <button class="date-preset" data-preset="last14">Last 14 days</button>
+            <button class="date-preset" data-preset="last30">Last 30 days</button>
+            <button class="date-preset active" data-preset="mtd">Month to date</button>
+            <button class="date-preset" data-preset="lastMonth">Last month</button>
+            <button class="date-preset" data-preset="last90">Last 90 days</button>
+          </div>
+          <div class="date-custom">
+            <div><label for="dateFrom">Starting</label><input type="date" id="dateFrom"></div>
+            <div><label for="dateTo">Ending</label><input type="date" id="dateTo"></div>
+            <button class="btn btn-secondary" onclick="applyCustomDates()">Apply</button>
+          </div>
         </div>
-        <div class="date-custom">
-          <div><label>Starting</label><input type="date" id="dateFrom"></div>
-          <div><label>Ending</label><input type="date" id="dateTo"></div>
-          <button class="apply-btn" onclick="applyCustomDates()">Apply</button>
-        </div>
+      </div>
+      <button class="btn btn-ghost theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Switch theme" aria-label="Switch theme"></button>
+    </div>
+  </div>
+</div>
+<div class="wrap"><div class="status" id="status"></div></div>
+
+<!-- ========== KPI SUMMARY (this window against the prior 90 days) ========== -->
+<section class="section tint">
+  <div class="wrap">
+    <div class="kpi-strip" id="kpiStrip"></div>
+  </div>
+</section>
+
+<!-- ========== CAMPAIGNS ========== -->
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Campaigns</div>
+      <h2 class="section-title">Campaign performance</h2>
+      <p class="section-intro" id="campaignIntro"></p>
+    </div>
+    <div class="table-scroll">
+      <table class="ks-table" id="campaignTable">
+        <thead><tr id="campaignHead"></tr></thead>
+        <tbody id="campaignBody"><tr><td class="table-empty" colspan="13">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ========== INSIGHT PANEL: what moved ROAS + watchlist ========== -->
+<section class="section">
+  <div class="wrap">
+    <div class="panel">
+      <div>
+        <div class="eyebrow">What moved ROAS</div>
+        <h3 id="driversTitle">Loading…</h3>
+        <p id="driversText"></p>
+        <div id="waterfall"></div>
+      </div>
+      <div>
+        <div class="eyebrow">Watchlist</div>
+        <h3 id="watchTitle">Loading…</h3>
+        <ul class="watchlist" id="watchlist"></ul>
       </div>
     </div>
   </div>
-</div>
+</section>
 
-<div id="statusBanner" class="status-banner"></div>
-
-<div class="kpi-strip" id="kpiStrip"><div class="loading" style="grid-column:1/-1">Loading…</div></div>
-
-<div class="section">
-  <div class="card card-full">
-    <div class="card-header">
-      <h3>Spend vs Revenue (Daily)</h3>
-      <div class="controls">
-        <button class="toggle-btn active" data-trend="daily">Daily</button>
-        <button class="toggle-btn" data-trend="weekly">Weekly</button>
-        <button class="toggle-btn" data-trend="monthly">Monthly</button>
+<!-- ========== PURCHASE FUNNEL ========== -->
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Purchase funnel</div>
+      <h2 class="section-title">From impression to purchase</h2>
+      <p class="section-intro" id="funnelIntro"></p>
+    </div>
+    <div class="two-col">
+      <div class="funnel" id="funnel"></div>
+      <div>
+        <div class="block-label">Cost per stage</div>
+        <table class="stat-table" id="costTable"></table>
+        <p class="read" id="funnelRead"></p>
       </div>
     </div>
-    <div class="chart-wrap"><canvas id="spendRevenueChart"></canvas></div>
   </div>
-</div>
+</section>
 
-<div class="section">
-  <div class="card card-full">
-    <div class="card-header"><h3>Purchase Funnel</h3></div>
-    <div class="funnel-wrap" id="funnelWrap"></div>
-  </div>
-</div>
-
-<div class="section-row">
-  <div class="card card-half">
-    <div class="card-header"><h3>Efficiency Metrics Trend</h3></div>
-    <div class="chart-wrap-sm"><canvas id="efficiencyChart"></canvas></div>
-  </div>
-  <div class="card card-half">
-    <div class="card-header"><h3>Funnel Conversion Rates</h3></div>
-    <div class="chart-wrap-sm"><canvas id="funnelRatesChart"></canvas></div>
-  </div>
-</div>
-
-<div class="perf-table-wrap">
-  <div class="card-header"><h3>Campaign Performance</h3><span id="campaignNote" class="last-updated"></span></div>
-  <div class="perf-table-scroll">
-    <table class="perf-table" id="campaignTable">
-      <thead><tr id="campaignHead"></tr></thead>
-      <tbody id="campaignBody"></tbody>
-    </table>
-  </div>
-</div>
-
-<div class="perf-table-wrap">
-  <div class="card-header">
-    <h3>Ad-Level Performance</h3>
-    <div class="controls">
-      <button class="toggle-btn active" data-adfilter="all">All</button>
-      <button class="toggle-btn" data-adfilter="video">Video</button>
-      <button class="toggle-btn" data-adfilter="static">Static</button>
-      <button class="toggle-btn" data-adfilter="active">Active in window</button>
+<!-- ========== DEEPER SIGNALS ========== -->
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Deeper signals</div>
+      <h2 class="section-title">What Ads Manager does not show</h2>
+    </div>
+    <div class="two-col modules">
+      <div class="module">
+        <h3>Spend vs efficiency</h3>
+        <p class="sub">One point per day, prior 90 days and this window. Does ROAS fall as daily spend rises?</p>
+        <div class="chart-wrap"><canvas id="effChart"></canvas></div>
+        <div class="legend"><span><i class="sw-hollow"></i>Prior 90 days</span><span><i class="sw-dot"></i>This window</span><span><i class="ln dash"></i>Fitted curve</span></div>
+        <p class="read" id="effRead"></p>
+      </div>
+      <div class="module">
+        <h3>Meta against Shopify</h3>
+        <p class="sub">What Meta claims next to what the shop recorded, all paid spend included.</p>
+        <table class="stat-table" id="shopTable"></table>
+        <p class="read" id="shopRead"></p>
+      </div>
+      <div class="module">
+        <h3>Day of week</h3>
+        <p class="sub" id="dowSub">ROAS by weekday over the prior 90 days and this window.</p>
+        <div class="chart-wrap"><canvas id="dowChart"></canvas></div>
+        <p class="read" id="dowRead"></p>
+      </div>
+      <div class="module">
+        <h3>Pacing and concentration</h3>
+        <p class="sub">Budget delivery, where the month is heading, and how much rests on a few ads.</p>
+        <div id="pacing"></div>
+      </div>
     </div>
   </div>
-  <div class="perf-table-scroll">
-    <table class="perf-table" id="adTable">
-      <thead><tr id="adHead"></tr></thead>
-      <tbody id="adBody"></tbody>
-    </table>
+</section>
+
+<!-- ========== TREND ========== -->
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Trend</div>
+      <h2 class="section-title">Spend, revenue and ROAS by day</h2>
+    </div>
+    <div class="legend" id="trendLegend">
+      <span><i class="sw-b"></i>Meta revenue</span><span><i class="sw-soft"></i>Spend</span><span><i class="ln"></i>ROAS, 7-day rolling</span><span><i class="ln dash"></i>Prior 90d ROAS</span>
+    </div>
+    <div class="chart-wrap tall"><canvas id="trendChart"></canvas></div>
   </div>
-</div>
+</section>
 
-<div class="section">
-  <div class="card card-full"><div class="card-header"><h3>Scaling Signals</h3></div></div>
-</div>
-<div class="signals-grid" id="signalsGrid"></div>
+<!-- ========== RATES AND COSTS ========== -->
+<section class="section last">
+  <div class="wrap">
+    <div class="two-col">
+      <div class="module">
+        <h3>Funnel conversion rates</h3>
+        <p class="sub">Each step's rate over the window. Lines are labelled at their right-hand end.</p>
+        <div class="chart-wrap"><canvas id="ratesChart"></canvas></div>
+      </div>
+      <div class="module">
+        <h3>CPM and frequency</h3>
+        <p class="sub">Auction cost and how often the same people see the ads. Both rising together is saturation.</p>
+        <div class="chart-wrap"><canvas id="cpmChart"></canvas></div>
+      </div>
+    </div>
 
-<div class="footer-note">Data: Meta Marketing API via Supabase. Ad-level granularity since 2026-01-24.</div>
+    <div class="notes">
+      <div class="block-label">How to read this page</div>
+      <p><b>Windows.</b> "Prior 90d" is the 90 days ending the day before the selected window starts, so the comparison never includes the window itself. Per-day figures use completed days only; today is excluded from rates and projections. A move of 15% or more against the prior 90 days is treated as material and carries an amber mark.</p>
+      <p><b>Sources.</b> Meta figures are Meta-reported (7-day click, 1-day view) from the Marketing API, synced to the warehouse. Shopify figures come from the daily overview table. Blended ROAS is Shopify total sales divided by Meta plus Google spend, the same formula as the Shopify dashboard; 2.20 is the monthly target. New-customer CAC is all paid spend divided by Shopify first-order count; new-customer ROAS is Shopify first-order revenue divided by all paid spend.</p>
+      <p><b>What moved ROAS.</b> ROAS = (1000 ÷ CPM) × CTR × click-to-purchase rate × order value. Each driver's share of the change is a log split, so the four bars add up to the whole move exactly and the order does not matter.</p>
+      <p><b>Spend vs efficiency.</b> The curve is a least-squares fit of daily ROAS on log daily spend across the prior 90 days and this window (days under £50 excluded). Marginal ROAS is what the fitted curve says the next £1 returns at the current daily spend. It reads a pattern across days, not a controlled test, and it uses Meta-reported revenue.</p>
+      <p><b>Campaigns.</b> Each campaign is judged against its own prior-90-day ROAS, never against the blended target. Prospecting and Offers are new-customer campaigns and run lower platform ROAS than Existing by design. The trend is a 7-day rolling ROAS line over the window. Budget, 7d is spend per day over the last 7 completed days against the campaign's current daily budget (the budget is the one set now, so recent days are the fair comparison). Ad and creative detail lives in Creative Analytics.</p>
+      <p><b>Frequency.</b> Daily frequency is impressions divided by people reached that day, so it is comparable across windows of any length. Top-3 share is the three biggest spenders' share of the window's ad spend.</p>
+    </div>
+  </div>
+</section>
 
 <script>
-// ═════════════ SUPABASE CONFIG ═════════════
+// ========== CONFIG ==========
 const SUPABASE_URL = 'https://unmkzatppwftnasafhlb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVubWt6YXRwcHdmdG5hc2FmaGxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDQ5OTIsImV4cCI6MjA4NjU4MDk5Mn0.SYQm1km08xwlJSIf9jq8DXH3Ijxbxqk_LpTRh0PZhD4';
-// Auth piggyback: data tables now require an authed JWT from the allowlist.
-// The main index.html handles login and stores the session under
-// 'ks-dashboard-auth'. We just read that and use the access token here.
-// If not signed in (or session expired), bounce to index.html.
+// Auth piggyback: data tables require an authed JWT from the allowlist. index.html handles login and
+// stores the session under 'ks-dashboard-auth'; the KS admin gate in <head> keeps it refreshed.
 let USER_JWT = SUPABASE_KEY;
-// The KS admin gate (in <head>) refreshes the session before it expires; pick up the new token.
 window.addEventListener('ks-session', (e) => { USER_JWT = e.detail.access_token; });
 (function adoptDashboardSession() {
   try {
     const stored = JSON.parse(localStorage.getItem('ks-dashboard-auth') || 'null');
-    if (stored && stored.access_token && stored.expires_at && stored.expires_at > Math.floor(Date.now()/1000)) {
+    if (stored && stored.access_token && stored.expires_at && stored.expires_at > Math.floor(Date.now() / 1000)) {
       USER_JWT = stored.access_token;
     } else {
-      // No valid session — send the user to the main dashboard to sign in.
       window.location.href = 'index.html';
     }
   } catch { window.location.href = 'index.html'; }
 })();
 
-// ═════════════ STATE ═════════════
-let accountDaily = [];   // raw_meta_ads_daily rows in date range
-let adDaily = [];        // raw_meta_ads_ad_daily rows in date range
-let trailing90Daily = []; // raw_meta_ads_daily rows for trailing 90 days (baseline)
-let adDailyAvailable = {min:null, max:null};
-let currentDateFrom = '';
-let currentDateTo = '';
-let activePreset = 'mtd';
-let trendMode = 'daily';
-let adFilter = 'all';
-let sortState = {campaign:{col:'spend',dir:-1}, ad:{col:'spend',dir:-1}};
+const TARGET_BLENDED_ROAS = 2.20;   // monthly blended target: Shopify sales ÷ (Meta + Google spend)
+const META_ROAS_TARGET = 1.61;      // Meta-platform target that supports the blended target (creative_settings.goal)
+const LPV_RATE_HEALTHY = 85;        // landing page views ÷ link clicks: the account's healthy level
+const META_SHARE_BAND = [60, 90];   // Meta purchases as % of Shopify orders: outside this band, tracking or over-claiming
+const BASELINE_DAYS = 90;
+const MATERIAL = 0.15;              // a 15% move against the baseline is worth attention
 
-// ═════════════ HELPERS ═════════════
-const fmt = (v,type) => {
-  if (v === null || v === undefined || Number.isNaN(v)) return '—';
-  if (type === 'gbp') return '£' + v.toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});
-  if (type === 'gbp0') return '£' + v.toLocaleString('en-GB',{maximumFractionDigits:0});
-  if (type === 'num') return v.toLocaleString('en-GB',{maximumFractionDigits:0});
-  if (type === 'dec') return v.toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});
-  if (type === 'pct') return v.toFixed(2) + '%';
-  if (type === 'pct1') return v.toFixed(1) + '%';
-  if (type === 'x') return v.toFixed(2) + 'x';
-  return v;
-};
-const sum = (arr,k) => arr.reduce((s,r)=>s + (Number(r[k])||0), 0);
-function fmtDate(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
-function fmtDisplay(s){ const d=new Date(s+'T00:00:00'); return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); }
-function showStatus(msg, level='info'){
-  const el = document.getElementById('statusBanner');
-  if (!msg) { el.style.display='none'; el.className='status-banner'; return; }
-  el.textContent = msg; el.className = 'status-banner ' + level;
+// ========== STATE ==========
+const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTHS_LONG = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DOW = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const TODAY = fmtDate(new Date());
+let W = { from: '', to: '', label: '', preset: 'mtd' };   // selected window
+let B = { from: '', to: '' };                              // prior 90 days
+let acc = [], rpt = [], camp = [], ads = [], campaignsMeta = [], lifetime = [];
+let S = null;                 // slices + metrics for the current window
+let campaignRowsCache = [];
+let sortState = { col: 'spend', dir: -1 };
+const charts = {};
+
+// ========== HELPERS ==========
+function fmtDate(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function addDays(iso, k) { const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + k); return fmtDate(d); }
+function displayDate(iso) { const d = new Date(iso + 'T00:00:00'); return `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]} ${d.getFullYear()}`; }
+function shortDate(iso) { const d = new Date(iso + 'T00:00:00'); return `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}`; }
+const num = v => { const x = Number(v); return Number.isFinite(x) ? x : 0; };
+const sum = (rows, key) => rows.reduce((s, r) => s + num(r[key]), 0);
+const mean = arr => arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : 0;
+const ratio = (a, b) => (b > 0 ? a / b : null);
+const pct = (a, b) => (b > 0 ? (a / b) * 100 : null);
+const inWindow = (r, from, to) => r.report_date >= from && r.report_date <= to;
+const completedRows = rows => rows.filter(r => r.report_date < TODAY);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function fmtGBP(v, dp = 0) { if (v == null || !Number.isFinite(v)) return '—'; return '£' + v.toLocaleString('en-GB', { minimumFractionDigits: dp, maximumFractionDigits: dp }); }
+function fmtNum(v) { if (v == null || !Number.isFinite(v)) return '—'; return Math.round(v).toLocaleString('en-GB'); }
+function fmtPct(v, dp = 2) { if (v == null || !Number.isFinite(v)) return '—'; return v.toFixed(dp) + '%'; }
+function fmtRoas(v) { if (v == null || !Number.isFinite(v)) return '—'; return v.toFixed(2); }
+function fmtDec(v, dp = 1) { if (v == null || !Number.isFinite(v)) return '—'; return v.toFixed(dp); }
+function delta(cur, base) { if (cur == null || base == null || !(base > 0) || !Number.isFinite(cur)) return null; return (cur - base) / base; }
+function deltaHTML(d, lowerIsBetter = false) {
+  if (d == null) return '';
+  const worse = lowerIsBetter ? d > MATERIAL : d < -MATERIAL;
+  return `<span class="delta${worse ? ' worse' : ''}">${d >= 0 ? '▲' : '▼'} ${Math.abs(d * 100).toFixed(0)}%</span>`;
 }
-function inferFormat(name){
-  if (!name) return 'other';
-  const n = name.toLowerCase();
-  if (n.startsWith('video')) return 'video';
-  if (n.startsWith('static')) return 'static';
-  if (n.includes('video')) return 'video';
-  if (n.includes('static')) return 'static';
-  return 'other';
+function deltaText(d) { if (d == null) return ''; const p = Math.abs(d * 100); if (p < 0.5) return 'flat'; return (d >= 0 ? 'up ' : 'down ') + p.toFixed(0) + '%'; }
+
+function setStatus(msg, level) {
+  const el = document.getElementById('status');
+  if (!msg) { el.className = 'status'; el.innerHTML = ''; return; }
+  el.className = 'status show' + (level ? ' ' + level : '');
+  el.innerHTML = `<span>${esc(msg)}</span>`;
 }
 
-// ═════════════ THEME ═════════════
-// Monochrome theme icons — picks up colour from var(--text-primary) via CSS fill.
+// ========== THEME ==========
 const THEME_ICON_SUN = '<svg viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 000-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/></svg>';
 const THEME_ICON_MOON = '<svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 109 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 01-4.4 2.26 5.403 5.403 0 01-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>';
-function setThemeIcon(isDark) {
-  document.getElementById('themeToggle').innerHTML = isDark ? THEME_ICON_SUN : THEME_ICON_MOON;
-}
+function setThemeIcon(isDark) { document.getElementById('themeToggle').innerHTML = isDark ? THEME_ICON_SUN : THEME_ICON_MOON; }
 function toggleTheme() {
   const html = document.documentElement;
   const isDark = html.getAttribute('data-theme') === 'dark';
   html.setAttribute('data-theme', isDark ? '' : 'dark');
   setThemeIcon(!isDark);
   localStorage.setItem('ks-theme', isDark ? 'light' : 'dark');
-  rebuildAll();
+  if (S) renderCharts();   // canvas colours are read at render time
 }
-(function() {
+(function initTheme() {
   const saved = localStorage.getItem('ks-theme');
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   const isDark = saved ? saved === 'dark' : prefersDark;
@@ -552,655 +623,875 @@ function toggleTheme() {
     if (!localStorage.getItem('ks-theme')) {
       document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : '');
       setThemeIcon(e.matches);
-      rebuildAll();
+      if (S) renderCharts();
     }
   });
 })();
 
-// ═════════════ DATE PICKER ═════════════
-function getPresetDates(preset) {
+// ========== DATE WINDOW ==========
+function presetDates(preset) {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
-  switch(preset) {
-    case 'yesterday': return { from:fmtDate(yesterday), to:fmtDate(yesterday), label:'Yesterday' };
-    case 'last7': { const f=new Date(yesterday); f.setDate(yesterday.getDate()-6); return {from:fmtDate(f), to:fmtDate(yesterday), label:'Last 7 days'}; }
-    case 'last14': { const f=new Date(yesterday); f.setDate(yesterday.getDate()-13); return {from:fmtDate(f), to:fmtDate(yesterday), label:'Last 14 days'}; }
-    case 'last30': { const f=new Date(yesterday); f.setDate(yesterday.getDate()-29); return {from:fmtDate(f), to:fmtDate(yesterday), label:'Last 30 days'}; }
-    case 'last60': { const f=new Date(yesterday); f.setDate(yesterday.getDate()-59); return {from:fmtDate(f), to:fmtDate(yesterday), label:'Last 60 days'}; }
-    case 'last90': { const f=new Date(yesterday); f.setDate(yesterday.getDate()-89); return {from:fmtDate(f), to:fmtDate(yesterday), label:'Last 90 days'}; }
-    case 'mtd': { const f=new Date(today.getFullYear(), today.getMonth(), 1); return {from:fmtDate(f), to:fmtDate(today), label:'Month to date'}; }
-    case 'lastMonth': { const f=new Date(today.getFullYear(), today.getMonth()-1, 1); const t=new Date(today.getFullYear(), today.getMonth(), 0); return {from:fmtDate(f), to:fmtDate(t), label:'Last month'}; }
-    case 'ytd': { const f=new Date(today.getFullYear(), 0, 1); return {from:fmtDate(f), to:fmtDate(today), label:'Year to date'}; }
-    case 'last12m': { const f=new Date(yesterday); f.setFullYear(yesterday.getFullYear()-1); f.setDate(f.getDate()+1); return {from:fmtDate(f), to:fmtDate(yesterday), label:'Last 12 months'}; }
-    case 'lastYear': { const f=new Date(today.getFullYear()-1, 0, 1); const t=new Date(today.getFullYear()-1, 11, 31); return {from:fmtDate(f), to:fmtDate(t), label:`${today.getFullYear()-1}`}; }
+  const back = (k) => { const f = new Date(yesterday); f.setDate(yesterday.getDate() - (k - 1)); return fmtDate(f); };
+  switch (preset) {
+    case 'yesterday': return { from: fmtDate(yesterday), to: fmtDate(yesterday), label: 'Yesterday' };
+    case 'last7':  return { from: back(7),  to: fmtDate(yesterday), label: 'Last 7 days' };
+    case 'last14': return { from: back(14), to: fmtDate(yesterday), label: 'Last 14 days' };
+    case 'last30': return { from: back(30), to: fmtDate(yesterday), label: 'Last 30 days' };
+    case 'last90': return { from: back(90), to: fmtDate(yesterday), label: 'Last 90 days' };
+    case 'mtd':    return { from: fmtDate(new Date(today.getFullYear(), today.getMonth(), 1)), to: fmtDate(today), label: 'Month to date' };
+    case 'lastMonth': {
+      const f = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      const t = new Date(today.getFullYear(), today.getMonth(), 0);
+      return { from: fmtDate(f), to: fmtDate(t), label: `${MONTHS_LONG[f.getMonth()]} ${f.getFullYear()}` };
+    }
     default: return null;
   }
 }
-function toggleDatePicker(){ document.getElementById('dateDropdown').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); }
-function closeDatePicker(){ document.getElementById('dateDropdown').classList.remove('open'); document.getElementById('overlay').classList.remove('open'); }
+function setWindow(from, to, label, preset) {
+  W = { from, to, label, preset };
+  B.to = addDays(from, -1);
+  B.from = addDays(B.to, -(BASELINE_DAYS - 1));
+  document.getElementById('dateFrom').value = from;
+  document.getElementById('dateTo').value = to;
+  document.getElementById('dateLabel').textContent = label;
+  document.querySelectorAll('.date-preset').forEach(b => b.classList.toggle('active', b.dataset.preset === preset));
+}
+function toggleDatePicker() { document.getElementById('dateMenu').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); }
+function closeDatePicker() { document.getElementById('dateMenu').classList.remove('open'); document.getElementById('overlay').classList.remove('open'); }
 document.getElementById('overlay').addEventListener('click', closeDatePicker);
-
-async function applyPreset(preset) {
-  const d = getPresetDates(preset);
+document.querySelectorAll('.date-preset').forEach(btn => btn.addEventListener('click', () => {
+  const d = presetDates(btn.dataset.preset);
   if (!d) return;
-  activePreset = preset;
-  currentDateFrom = d.from; currentDateTo = d.to;
-  document.querySelectorAll('.date-preset').forEach(b=>b.classList.remove('active'));
-  document.querySelector(`[data-preset="${preset}"]`)?.classList.add('active');
-  document.getElementById('dateFrom').value = d.from;
-  document.getElementById('dateTo').value = d.to;
-  document.getElementById('dateLabel').textContent = d.label;
+  setWindow(d.from, d.to, d.label, btn.dataset.preset);
   closeDatePicker();
-  await loadAndRender();
-}
-async function applyCustomDates(){
-  const f = document.getElementById('dateFrom').value;
-  const t = document.getElementById('dateTo').value;
-  if (!f || !t) return;
-  activePreset = null;
-  currentDateFrom = f; currentDateTo = t;
-  document.querySelectorAll('.date-preset').forEach(b=>b.classList.remove('active'));
-  document.getElementById('dateLabel').textContent = fmtDisplay(f) + ' – ' + fmtDisplay(t);
+  loadAndRender();
+}));
+function applyCustomDates() {
+  const f = document.getElementById('dateFrom').value, t = document.getElementById('dateTo').value;
+  if (!f || !t || f > t) return;
+  setWindow(f, t, `${displayDate(f)} to ${displayDate(t)}`, null);
   closeDatePicker();
-  await loadAndRender();
+  loadAndRender();
 }
-document.querySelectorAll('.date-preset').forEach(btn => btn.addEventListener('click', () => applyPreset(btn.dataset.preset)));
 
-// ═════════════ DATA LOADING ═════════════
-async function sb(path){
-  const r = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + USER_JWT, 'Accept-Profile':'public' }
-  });
-  if (!r.ok) throw new Error('Supabase ' + r.status + ': ' + await r.text());
-  return r.json();
-}
-async function fetchRange(table, from, to, cols='*'){
-  let all = []; let offset = 0; const page = 1000;
+// ========== DATA LOADING ==========
+async function sbRows(path) {
+  const page = 1000;
+  let all = [], offset = 0;
   while (true) {
-    const q = `${table}?select=${cols}&report_date=gte.${from}&report_date=lte.${to}&order=report_date.asc&limit=${page}&offset=${offset}`;
-    const rows = await sb(q);
+    const sep = path.includes('?') ? '&' : '?';
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}${sep}limit=${page}&offset=${offset}`, {
+      headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + USER_JWT, 'Accept-Profile': 'public' }
+    });
+    if (!r.ok) throw new Error(`Supabase ${r.status} on ${path.split('?')[0]}: ${await r.text()}`);
+    const rows = await r.json();
     all = all.concat(rows);
-    if (rows.length < page) break;
+    if (rows.length < page || offset > 50000) break;
     offset += page;
-    if (offset > 50000) break;
   }
   return all;
 }
-
-async function loadAndRender(){
+async function loadAndRender() {
   try {
-    showStatus('Loading…', 'info');
-    // Compute 90-day trailing window (ending yesterday) for baseline comparison
-    const t = new Date(); t.setDate(t.getDate() - 1);
-    const t90 = new Date(t); t90.setDate(t90.getDate() - 89);
-    const t90From = fmtDate(t90), t90To = fmtDate(t);
-    const [acc, ads, acc90] = await Promise.all([
-      fetchRange('raw_meta_ads_daily', currentDateFrom, currentDateTo),
-      fetchRange('raw_meta_ads_ad_daily', currentDateFrom, currentDateTo),
-      fetchRange('raw_meta_ads_daily', t90From, t90To),
+    setStatus('Loading…');
+    document.querySelectorAll('.kpi-card').forEach(c => c.classList.add('loading'));
+    const now = new Date();
+    const firstOfPrevMonth = fmtDate(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+    const loadFrom = B.from < firstOfPrevMonth ? B.from : firstOfPrevMonth;
+    const loadTo = W.to > TODAY ? W.to : TODAY;
+    const range = (from, to) => `report_date=gte.${from}&report_date=lte.${to}&order=report_date.asc`;
+    const [a, r, c, d, m, l] = await Promise.all([
+      sbRows(`raw_meta_ads_daily?select=report_date,spend,impressions,reach,link_clicks,landing_page_views,add_to_carts,initiate_checkouts,purchases,purchase_value&${range(loadFrom, loadTo)}`),
+      sbRows(`rpt_daily_overview?select=report_date,total_orders,total_sales,new_customer_orders,new_customer_revenue,meta_spend,meta_purchases,meta_purchase_value,google_spend&${range(loadFrom, loadTo)}`),
+      sbRows(`v_meta_ads_campaign_daily?select=report_date,campaign_id,campaign_name,spend,impressions,reach,link_clicks,landing_page_views,add_to_carts,initiate_checkouts,purchases,purchase_value&${range(B.from, W.to)}`),
+      sbRows(`raw_meta_ads_ad_daily?select=report_date,campaign_id,adset_id,ad_id,ad_name,spend,impressions,link_clicks,purchases,purchase_value&spend=gt.0&${range(W.from, W.to)}`),
+      sbRows('meta_campaigns?select=campaign_id,name,status,effective_status,daily_budget'),
+      sbRows('v_meta_ad_lifetime?select=ad_id,first_spend_date,days_active'),
     ]);
-    accountDaily = acc;
-    adDaily = ads;
-    trailing90Daily = acc90;
-    if (ads.length > 0) {
-      adDailyAvailable.min = ads.reduce((m,r)=>m && m < r.report_date ? m : r.report_date, null);
-      adDailyAvailable.max = ads.reduce((m,r)=>m && m > r.report_date ? m : r.report_date, null);
-    }
-    const adDates = new Set(ads.map(r=>r.report_date));
-    const accDates = accountDaily.map(r=>r.report_date);
-    const missingAdDays = accDates.filter(d => !adDates.has(d));
-    if (missingAdDays.length > 0 && acc.length > 0) {
-      showStatus(`Ad-level granularity missing for ${missingAdDays.length} day(s) in this window (${missingAdDays[0]} to ${missingAdDays[missingAdDays.length-1]}). Campaign/ad tables show only days with granular data; account-level trends use full window.`, 'warn');
-    } else if (acc.length === 0) {
-      showStatus('No Meta Ads data found in this date range.', 'warn');
-    } else {
-      showStatus('', 'info');
-    }
-    const latest = accountDaily.length ? accountDaily[accountDaily.length-1].report_date : null;
-    document.getElementById('lastUpdated').textContent = latest ? ('Last data: ' + fmtDisplay(latest)) : '';
-    rebuildAll();
-  } catch(e){
-    console.error(e);
-    showStatus('Failed to load: ' + e.message, 'error');
+    acc = a; rpt = r; camp = c; ads = d; campaignsMeta = m; lifetime = l;
+    const latest = acc.length ? acc[acc.length - 1].report_date : null;
+    document.getElementById('lastUpdated').textContent = latest ? `Data to ${displayDate(latest)} · ${displayDate(W.from)} to ${displayDate(W.to)}` : 'No data';
+    if (!acc.some(x => inWindow(x, W.from, W.to))) { setStatus('No Meta data in this window.', 'error'); }
+    else setStatus('');
+    render();
+  } catch (e) {
+    console.error('[meta] load failed', e);
+    setStatus('Failed to load: ' + e.message, 'error');
   }
 }
 
-// ═════════════ CHART DEFAULTS ═════════════
-function getChartColors(){
-  const s = getComputedStyle(document.documentElement);
+// ========== METRICS ==========
+function metricsOf(rows) {
+  const t = {
+    days: rows.length,
+    spend: sum(rows, 'spend'), rev: sum(rows, 'purchase_value'), pur: sum(rows, 'purchases'),
+    imp: sum(rows, 'impressions'), reach: sum(rows, 'reach'), lc: sum(rows, 'link_clicks'),
+    lpv: sum(rows, 'landing_page_views'), atc: sum(rows, 'add_to_carts'), ic: sum(rows, 'initiate_checkouts'),
+  };
+  const done = completedRows(rows);
+  const perDayRows = done.length ? done : rows;
+  const dd = perDayRows.length || 1;
+  return Object.assign(t, {
+    completedDays: dd,
+    spendPerDay: sum(perDayRows, 'spend') / dd,
+    revPerDay: sum(perDayRows, 'purchase_value') / dd,
+    purPerDay: sum(perDayRows, 'purchases') / dd,
+    roas: ratio(t.rev, t.spend), cpa: ratio(t.spend, t.pur), aov: ratio(t.rev, t.pur),
+    cpm: t.imp > 0 ? (t.spend / t.imp) * 1000 : null,
+    ctr: pct(t.lc, t.imp), lpvRate: pct(t.lpv, t.lc), atcRate: pct(t.atc, t.lpv), icRate: pct(t.ic, t.atc), purRate: pct(t.pur, t.ic),
+    cvrLpv: pct(t.pur, t.lpv), cvrClick: pct(t.pur, t.lc),
+    freq: ratio(t.imp, t.reach),
+    cpc: ratio(t.spend, t.lc), cpLpv: ratio(t.spend, t.lpv), cpAtc: ratio(t.spend, t.atc), cpIc: ratio(t.spend, t.ic),
+  });
+}
+function shopOf(rows) {
+  const t = {
+    days: rows.length,
+    orders: sum(rows, 'total_orders'), sales: sum(rows, 'total_sales'),
+    newOrders: sum(rows, 'new_customer_orders'), newRev: sum(rows, 'new_customer_revenue'),
+    metaPur: sum(rows, 'meta_purchases'), metaRev: sum(rows, 'meta_purchase_value'),
+    metaSpend: sum(rows, 'meta_spend'), googleSpend: sum(rows, 'google_spend'),
+  };
+  const done = completedRows(rows);
+  const perDayRows = done.length ? done : rows;
+  const dd = perDayRows.length || 1;
+  const paid = t.metaSpend + t.googleSpend;
+  return Object.assign(t, {
+    completedDays: dd, paid,
+    ordersPerDay: sum(perDayRows, 'total_orders') / dd,
+    newOrdersPerDay: sum(perDayRows, 'new_customer_orders') / dd,
+    metaPurPerDay: sum(perDayRows, 'meta_purchases') / dd,
+    blendedRoas: ratio(t.sales, paid),
+    metaShareOrders: pct(t.metaPur, t.orders), metaShareSales: pct(t.metaRev, t.sales),
+    newShare: pct(t.newOrders, t.orders),
+    ncCac: ratio(paid, t.newOrders), ncRoas: ratio(t.newRev, paid),
+  });
+}
+function slices() {
+  const accW = acc.filter(r => inWindow(r, W.from, W.to)), accB = acc.filter(r => inWindow(r, B.from, B.to));
+  const rptW = rpt.filter(r => inWindow(r, W.from, W.to)), rptB = rpt.filter(r => inWindow(r, B.from, B.to));
+  return { accW, accB, rptW, rptB, mW: metricsOf(accW), mB: metricsOf(accB), sW: shopOf(rptW), sB: shopOf(rptB) };
+}
+
+// ========== KPI TILES ==========
+function tile(label, value, sub, cls = '') {
+  return `<div class="kpi-card ${cls}"><div class="label">${label}</div><div class="value">${value}</div><div class="sub">${sub}</div></div>`;
+}
+function buildKPIs() {
+  const { mW, mB, sW, sB } = S;
+  const perDay = (cur, base, f) => `${f(cur)}/day · prior 90d ${f(base)}/day ${deltaHTML(delta(cur, base))}`;
+  const vs = (cur, base, f, lower) => `prior 90d ${f(base)} ${deltaHTML(delta(cur, base), lower)}`;
+  const belowTarget = sW.blendedRoas != null && sW.blendedRoas < TARGET_BLENDED_ROAS;
+  const tiles = [
+    tile('Spend', fmtGBP(mW.spend), perDay(mW.spendPerDay, mB.spendPerDay, v => fmtGBP(v))),
+    tile('Meta revenue', fmtGBP(mW.rev), perDay(mW.revPerDay, mB.revPerDay, v => fmtGBP(v))),
+    tile('Meta ROAS', fmtRoas(mW.roas), vs(mW.roas, mB.roas, fmtRoas)),
+    tile('Blended ROAS', fmtRoas(sW.blendedRoas), `target ${TARGET_BLENDED_ROAS.toFixed(2)} · prior 90d ${fmtRoas(sB.blendedRoas)} ${deltaHTML(delta(sW.blendedRoas, sB.blendedRoas))}`, belowTarget ? 'below' : ''),
+    tile('Purchases', fmtNum(mW.pur), perDay(mW.purPerDay, mB.purPerDay, v => fmtDec(v, 1))),
+    tile('CPA', fmtGBP(mW.cpa, 1), vs(mW.cpa, mB.cpa, v => fmtGBP(v, 1), true)),
+    tile('CPM', fmtGBP(mW.cpm, 2), vs(mW.cpm, mB.cpm, v => fmtGBP(v, 2), true)),
+    tile('CTR', fmtPct(mW.ctr), vs(mW.ctr, mB.ctr, v => fmtPct(v))),
+  ];
+  document.getElementById('kpiStrip').innerHTML = tiles.join('');
+}
+
+// ========== CAMPAIGNS ==========
+// The 7 completed days ending at the window end (or yesterday, whichever is earlier): the daily budget is
+// the one set now, so delivery against it is read off recent days rather than the window average.
+function recentDays(to) {
+  const end = to < TODAY ? to : addDays(TODAY, -1);
+  return { from: addDays(end, -6), to: end };
+}
+function campaignRows() {
+  const byId = new Map();
+  const recent = recentDays(W.to);
+  const add = (r, bucket) => {
+    const row = byId.get(r.campaign_id) || { id: r.campaign_id, name: r.campaign_name, w: [], b: [] };
+    row[bucket].push(r);
+    if (r.campaign_name) row.name = r.campaign_name;
+    byId.set(r.campaign_id, row);
+  };
+  camp.forEach(r => {
+    if (inWindow(r, W.from, W.to)) add(r, 'w'); else if (inWindow(r, B.from, B.to)) add(r, 'b');
+    if (inWindow(r, recent.from, recent.to)) { const row = byId.get(r.campaign_id); if (row) { row.recentSpend = (row.recentSpend || 0) + num(r.spend); row.recentDays = (row.recentDays || 0) + 1; } }
+  });
+  const meta = new Map(campaignsMeta.map(c => [c.campaign_id, c]));
+  const adSets = new Map();
+  ads.forEach(r => { if (num(r.spend) > 0) { const s = adSets.get(r.campaign_id) || new Set(); s.add(r.ad_id); adSets.set(r.campaign_id, s); } });
+  const rows = [];
+  for (const c of byId.values()) {
+    const mW = metricsOf(c.w), mB = metricsOf(c.b);
+    if (mW.spend <= 0) continue;
+    const m = meta.get(c.id);
+    const budget = m && m.daily_budget != null ? num(m.daily_budget) : null;
+    const recentPerDay = c.recentDays ? c.recentSpend / c.recentDays : null;
+    rows.push({
+      id: c.id, name: c.name, mW, mB, budget, recentPerDay,
+      budgetUse: budget && recentPerDay != null ? recentPerDay / budget : null,
+      ads: (adSets.get(c.id) || new Set()).size,
+      roasDelta: delta(mW.roas, mB.roas),
+      cpaDelta: delta(mW.cpa, mB.cpa),
+      paused: m ? m.effective_status !== 'ACTIVE' : false,
+      daily: c.w,
+    });
+  }
+  const totalSpend = rows.reduce((s, r) => s + r.mW.spend, 0);
+  rows.forEach(r => { r.share = totalSpend > 0 ? r.mW.spend / totalSpend : null; });
+  return rows;
+}
+function sparkline(dailyRows) {
+  const byDate = new Map(dailyRows.map(r => [r.report_date, r]));
+  const dates = [];
+  for (let d = W.from; d <= W.to; d = addDays(d, 1)) dates.push(d);
+  const roll = dates.length >= 10 ? 7 : 1;
+  const pts = dates.map((_, i) => {
+    let sp = 0, rv = 0;
+    for (let j = Math.max(0, i - roll + 1); j <= i; j++) { const r = byDate.get(dates[j]); if (r) { sp += num(r.spend); rv += num(r.purchase_value); } }
+    return sp > 0 ? rv / sp : null;
+  });
+  const vals = pts.filter(v => v != null);
+  if (vals.length < 2) return '<span class="cell-note">—</span>';
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const w = 80, h = 28, pad = 3;
+  const sx = i => pad + (i / (pts.length - 1)) * (w - 2 * pad);
+  const sy = v => max === min ? h / 2 : pad + (1 - (v - min) / (max - min)) * (h - 2 * pad);
+  const coords = pts.map((v, i) => v == null ? null : [sx(i), sy(v)]).filter(Boolean);
+  const path = coords.map(c => `${c[0].toFixed(1)},${c[1].toFixed(1)}`).join(' ');
+  const last = coords[coords.length - 1];
+  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-label="ROAS trend"><polyline points="${path}" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="2.4" fill="currentColor"/></svg>`;
+}
+const CAMPAIGN_COLS = [
+  { key: 'name', label: 'Campaign', left: true, get: r => r.name },
+  { key: 'spend', label: 'Spend, share', get: r => r.mW.spend },
+  { key: 'budgetUse', label: 'Budget, 7d', get: r => r.budgetUse },
+  { key: 'rev', label: 'Revenue', get: r => r.mW.rev },
+  { key: 'roas', label: 'ROAS', get: r => r.mW.roas },
+  { key: 'pur', label: 'Purchases', get: r => r.mW.pur },
+  { key: 'cpa', label: 'CPA', get: r => r.mW.cpa },
+  { key: 'cpm', label: 'CPM', get: r => r.mW.cpm },
+  { key: 'ctr', label: 'CTR', get: r => r.mW.ctr },
+  { key: 'cvr', label: 'CVR', get: r => r.mW.cvrLpv },
+  { key: 'ads', label: 'Ads', get: r => r.ads },
+  { key: 'trend', label: 'Trend', get: () => null, nosort: true },
+];
+function campaignCell(col, r) {
+  switch (col.key) {
+    case 'name': {
+      let marks = '';
+      if (r.paused) marks += ' <span class="tag">Paused</span>';
+      if (r.roasDelta != null && r.roasDelta <= -MATERIAL) marks += ' <span class="badge">Below baseline</span>';
+      else if (r.roasDelta != null && r.roasDelta >= MATERIAL) marks += ' <span class="tag">Above baseline</span>';
+      return `${esc(r.name)}${marks}`;
+    }
+    case 'spend': return `<span class="big">${fmtGBP(r.mW.spend)}</span><span class="cell-note">${fmtGBP(r.mW.spendPerDay)}/day${r.share != null ? ` · ${fmtPct(r.share * 100, 0)}` : ''}</span>`;
+    case 'budgetUse': return r.budgetUse == null ? '—' : `${fmtPct(r.budgetUse * 100, 0)}<span class="cell-note">${fmtGBP(r.recentPerDay)} of ${fmtGBP(r.budget)}</span>`;
+    case 'rev': return fmtGBP(r.mW.rev);
+    case 'roas': return `<span class="big">${fmtRoas(r.mW.roas)}</span><span class="cell-note">prior 90d ${fmtRoas(r.mB.roas)} ${deltaHTML(r.roasDelta)}</span>`;
+    case 'pur': return fmtNum(r.mW.pur);
+    case 'cpa': return `${fmtGBP(r.mW.cpa, 1)}<span class="cell-note">prior 90d ${fmtGBP(r.mB.cpa, 1)} ${deltaHTML(r.cpaDelta, true)}</span>`;
+    case 'cpm': return fmtGBP(r.mW.cpm, 2);
+    case 'ctr': return fmtPct(r.mW.ctr);
+    case 'cvr': return `${fmtPct(r.mW.cvrLpv)}<span class="cell-note">prior 90d ${fmtPct(r.mB.cvrLpv)}</span>`;
+    case 'ads': return fmtNum(r.ads);
+    case 'trend': return sparkline(r.daily);
+  }
+  return '';
+}
+function buildCampaigns() {
+  const rows = campaignRowsCache = campaignRows();
+  const head = document.getElementById('campaignHead');
+  head.innerHTML = CAMPAIGN_COLS.map(c => `<th data-col="${c.key}" class="${c.nosort ? '' : 'sortable'} ${sortState.col === c.key ? 'sorted' : ''}">${c.label}<span class="sort-arrow">${sortState.dir === 1 ? '▲' : '▼'}</span></th>`).join('');
+  head.querySelectorAll('th.sortable').forEach(th => th.addEventListener('click', () => {
+    const col = th.dataset.col;
+    if (sortState.col === col) sortState.dir *= -1; else { sortState.col = col; sortState.dir = col === 'name' ? 1 : -1; }
+    buildCampaigns();
+  }));
+  const col = CAMPAIGN_COLS.find(c => c.key === sortState.col) || CAMPAIGN_COLS[1];
+  rows.sort((a, b) => {
+    const av = col.get(a), bv = col.get(b);
+    if (typeof av === 'string' || typeof bv === 'string') return sortState.dir * String(av || '').localeCompare(String(bv || ''));
+    return sortState.dir * ((av ?? -Infinity) - (bv ?? -Infinity));
+  });
+  const body = document.getElementById('campaignBody');
+  body.innerHTML = rows.length
+    ? rows.map(r => '<tr>' + CAMPAIGN_COLS.map(c => `<td>${campaignCell(c, r)}</td>`).join('') + '</tr>').join('')
+    : `<tr><td class="table-empty" colspan="${CAMPAIGN_COLS.length}">No campaign spend in this window.</td></tr>`;
+  const below = rows.filter(r => r.roasDelta != null && r.roasDelta <= -MATERIAL).length;
+  document.getElementById('campaignIntro').textContent =
+    `${rows.length} campaign${rows.length === 1 ? '' : 's'} with spend, ${displayDate(W.from)} to ${displayDate(W.to)}. ` +
+    `Each is judged against its own prior-90-day ROAS, not the blended target. ` +
+    (below ? `${below} ${below === 1 ? 'is' : 'are'} running 15% or more below that baseline.` : 'None is running materially below its baseline.');
+}
+
+// ========== ROAS DRIVERS ==========
+function driverSteps(mW, mB) {
+  const f = [
+    { key: 'CPM', label: 'CPM', w: mW.cpm, b: mB.cpm, inverse: true, fmt: v => fmtGBP(v, 2) },
+    { key: 'CTR', label: 'CTR', w: mW.ctr, b: mB.ctr, inverse: false, fmt: v => fmtPct(v) },
+    { key: 'CVR', label: 'click-to-purchase rate', w: mW.cvrClick, b: mB.cvrClick, inverse: false, fmt: v => fmtPct(v) },
+    { key: 'AOV', label: 'order value', w: mW.aov, b: mB.aov, inverse: false, fmt: v => fmtGBP(v, 1) },
+  ];
+  if (!(mW.roas > 0 && mB.roas > 0) || f.some(x => !(x.w > 0 && x.b > 0))) return null;
+  const total = mW.roas - mB.roas;
+  const lnTotal = Math.log(mW.roas / mB.roas);
+  const logs = f.map(x => x.inverse ? Math.log(x.b / x.w) : Math.log(x.w / x.b));
+  // Log split: each driver's share of ln(ROAS change); the shares add to 1 exactly, so the bars sum to the whole move.
+  const effects = Math.abs(lnTotal) > 1e-6
+    ? logs.map(l => total * (l / lnTotal))
+    : logs.map(l => mB.roas * (Math.exp(l) - 1));
+  return { base: mB.roas, cur: mW.roas, total, steps: f.map((x, i) => ({ ...x, change: delta(x.w, x.b), effect: effects[i] })) };
+}
+function waterfallSVG(d) {
+  const items = [
+    { label: 'Prior 90d', value: d.base, type: 'total' },
+    ...d.steps.map(s => ({ label: s.key, sub: deltaText(s.change), value: s.effect, type: 'step' })),
+    { label: 'This window', value: d.cur, type: 'total' },
+  ];
+  const VW = 640, VH = 230, padL = 12, padR = 12, top = 30, bottom = 54;
+  const slot = (VW - padL - padR) / items.length;
+  const bw = Math.min(66, slot * 0.62);
+  let level = d.base, maxV = Math.max(d.base, d.cur);
+  d.steps.forEach(s => { level += s.effect; maxV = Math.max(maxV, level); });
+  maxV = maxV * 1.15 || 1;
+  const y = v => top + (1 - Math.max(0, v) / maxV) * (VH - top - bottom);
+  let svg = `<svg class="waterfall" viewBox="0 0 ${VW} ${VH}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="ROAS drivers">`;
+  level = d.base;
+  let prevX = null, prevY = null;
+  items.forEach((it, i) => {
+    const x = padL + slot * i + (slot - bw) / 2;
+    let y0, y1, labelVal, opacity = 1;
+    if (it.type === 'total') { y0 = y(it.value); y1 = y(0); labelVal = fmtRoas(it.value); level = it.value; }
+    else {
+      const from = level, to = level + it.value;
+      y0 = y(Math.max(from, to)); y1 = y(Math.min(from, to));
+      labelVal = (it.value >= 0 ? '+' : '−') + Math.abs(it.value).toFixed(2);
+      opacity = it.value >= 0 ? 0.92 : 0.55;
+      level = to;
+    }
+    const h = Math.max(1.5, y1 - y0);
+    if (prevX != null) svg += `<line x1="${prevX.toFixed(1)}" y1="${prevY.toFixed(1)}" x2="${x.toFixed(1)}" y2="${prevY.toFixed(1)}" stroke="currentColor" stroke-opacity="0.5" stroke-width="1" stroke-dasharray="3 3"/>`;
+    svg += `<rect x="${x.toFixed(1)}" y="${y0.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="3" fill="currentColor" fill-opacity="${opacity}"/>`;
+    svg += `<text x="${(x + bw / 2).toFixed(1)}" y="${(y0 - 8).toFixed(1)}" text-anchor="middle" font-family="Montserrat, sans-serif" font-size="12" font-weight="700" fill="currentColor">${labelVal}</text>`;
+    svg += `<text x="${(x + bw / 2).toFixed(1)}" y="${VH - bottom + 20}" text-anchor="middle" font-family="Montserrat, sans-serif" font-size="11" font-weight="700" fill="currentColor">${it.label}</text>`;
+    if (it.sub) svg += `<text x="${(x + bw / 2).toFixed(1)}" y="${VH - bottom + 36}" text-anchor="middle" font-family="Montserrat, sans-serif" font-size="11" fill="currentColor" fill-opacity="0.85">${it.sub}</text>`;
+    prevX = x + bw; prevY = y(level);
+  });
+  svg += '</svg>';
+  return svg;
+}
+function buildDrivers() {
+  const { mW, mB } = S;
+  const d = driverSteps(mW, mB);
+  const title = document.getElementById('driversTitle'), text = document.getElementById('driversText'), wf = document.getElementById('waterfall');
+  if (!d) { title.textContent = 'Not enough data to split ROAS'; text.textContent = 'Both windows need spend, clicks and purchases.'; wf.innerHTML = ''; return; }
+  const dr = delta(d.cur, d.base);
+  title.textContent = `ROAS ${fmtRoas(d.cur)}, ${deltaText(dr)} on the prior 90 days`;
+  const sorted = [...d.steps].sort((a, b) => a.effect - b.effect);
+  const drag = sorted[0], lift = sorted[sorted.length - 1];
+  const describe = s => `${s.label} ${s.fmt(s.w)} against ${s.fmt(s.b)} (${deltaText(s.change)})`;
+  let sentence;
+  if (drag.effect < 0 && lift.effect > 0) {
+    sentence = `The biggest drag was ${describe(drag)}, worth ${drag.effect.toFixed(2)} of ROAS. ${lift.label.charAt(0).toUpperCase() + lift.label.slice(1)} helped most: ${lift.fmt(lift.w)} against ${lift.fmt(lift.b)} (${deltaText(lift.change)}), worth +${lift.effect.toFixed(2)}.`;
+  } else if (drag.effect >= 0) {
+    sentence = `Every driver moved in your favour. The largest gain came from ${describe(lift)}, worth +${lift.effect.toFixed(2)} of ROAS.`;
+  } else {
+    sentence = `Every driver moved against you. The largest loss came from ${describe(drag)}, worth ${drag.effect.toFixed(2)} of ROAS.`;
+  }
+  const cpm = d.steps[0], ctr = d.steps[1], cvr = d.steps[2];
+  const clauses = [];
+  if (cpm.change > MATERIAL) {
+    if (ctr.change > 0.05) clauses.push('Impressions cost more but each one earns more clicks, so the auction, not the creative, is what got dearer.');
+    else if (ctr.change < -0.05) clauses.push('Impressions cost more and fewer people click: the creative is tiring and the auction is pricier at the same time.');
+    else clauses.push('Impressions cost more with CTR holding: auction pressure or audience saturation, not the creative.');
+  } else if (ctr.change < -MATERIAL && cvr.change >= -0.05) {
+    clauses.push('Fewer people click but those who do convert as before: the creative is tiring.');
+  }
+  if (cvr.change < -0.10) clauses.push(cvr.change < -MATERIAL ? 'Clicks convert worse than before: the loss is after the click, in the offer, page or checkout.' : 'Clicks convert a little worse than before, which is worth watching.');
+  text.textContent = sentence + (clauses.length ? ' ' + clauses.join(' ') : '');
+  wf.innerHTML = waterfallSVG(d);
+}
+
+// ========== WATCHLIST ==========
+function buildWatchlist() {
+  const { mW, mB, sW, sB } = S;
+  const items = [];
+  const push = (watch, text) => items.push({ watch: !!watch, text });
+
+  if (sW.blendedRoas != null) {
+    const low = sW.blendedRoas < TARGET_BLENDED_ROAS;
+    push(low, `Blended ROAS ${fmtRoas(sW.blendedRoas)} against the ${TARGET_BLENDED_ROAS.toFixed(2)} monthly target (Shopify sales ÷ Meta + Google spend); prior 90 days ${fmtRoas(sB.blendedRoas)}.`);
+  }
+  const dR = delta(mW.roas, mB.roas);
+  if (dR != null) push(dR < -MATERIAL, `Meta ROAS ${fmtRoas(mW.roas)}, ${deltaText(dR)} on the prior 90 days (${fmtRoas(mB.roas)}).`);
+  const dC = delta(mW.cpm, mB.cpm);
+  if (dC != null) push(dC > MATERIAL, `CPM ${fmtGBP(mW.cpm, 2)}, ${deltaText(dC)} on the prior 90 days (${fmtGBP(mB.cpm, 2)}).${dC > MATERIAL ? ' Auction cost is up: check frequency and creative freshness before blaming the ads.' : ''}`);
+  const dF = delta(mW.freq, mB.freq);
+  if (dF != null) push(dF > 0.10, `Daily frequency ${fmtDec(mW.freq, 2)} (impressions per person reached per day), ${deltaText(dF)} on ${fmtDec(mB.freq, 2)}.${dF > 0.10 ? ' The same people are seeing the ads more often: the audience is saturating.' : ''}`);
+  if (mW.lpvRate != null) {
+    const low = mW.lpvRate < LPV_RATE_HEALTHY - 10;
+    push(low, `Landing page view rate ${fmtPct(mW.lpvRate, 1)} of link clicks (healthy level ${LPV_RATE_HEALTHY}%).${low ? ' Clicks are not turning into page loads: check site speed and tracking.' : ''}`);
+  }
+  const dV = delta(mW.cvrLpv, mB.cvrLpv);
+  if (dV != null) push(dV < -MATERIAL, `Landing page to purchase ${fmtPct(mW.cvrLpv)}, ${deltaText(dV)} on ${fmtPct(mB.cvrLpv)}.${dV < -MATERIAL ? ' The leak is after the click: offer, page or checkout, not the ads.' : ''}`);
+  if (sW.metaShareOrders != null) {
+    const high = sW.metaShareOrders > META_SHARE_BAND[1], low = sW.metaShareOrders < META_SHARE_BAND[0];
+    push(high || low, `Meta claims ${fmtPct(sW.metaShareOrders, 0)} of Shopify orders (prior 90 days ${fmtPct(sB.metaShareOrders, 0)}; healthy band ${META_SHARE_BAND[0]} to ${META_SHARE_BAND[1]}%).${high ? ' Above the band, Meta is taking credit for orders it did not drive.' : low ? ' Below the band usually means the pixel or CAPI is missing purchases.' : ''}`);
+  }
+  const dN = delta(sW.ncCac, sB.ncCac);
+  if (dN != null) push(dN > MATERIAL, `New-customer CAC ${fmtGBP(sW.ncCac, 1)} (all paid spend ÷ Shopify first orders), ${deltaText(dN)} on ${fmtGBP(sB.ncCac, 1)}.`);
+  campaignRowsCache.forEach(c => {
+    if (c.roasDelta != null && c.roasDelta <= -MATERIAL) push(true, `${c.name}: ROAS ${fmtRoas(c.mW.roas)} against its own prior-90-day ${fmtRoas(c.mB.roas)} (${deltaText(c.roasDelta)}) on ${fmtGBP(c.mW.spendPerDay)}/day.`);
+  });
+  const conc = concentration();
+  if (conc) push(conc.top3Share > 0.6, `Top 3 ads carry ${fmtPct(conc.top3Share * 100, 0)} of spend across ${conc.activeAds} active ads.${conc.top3Share > 0.6 ? ' Thin bench: if they tire there is little behind them.' : ''}`);
+  const eff = efficiencyFit();
+  if (eff && eff.hi && eff.lo) {
+    const falling = eff.hi.roas < eff.lo.roas * 0.8;
+    push(falling, `Days over ${fmtGBP(eff.hi.minSpend)} returned ROAS ${fmtRoas(eff.hi.roas)}; days under ${fmtGBP(eff.lo.maxSpend)} returned ${fmtRoas(eff.lo.roas)}.${falling ? ' Efficiency falls as daily spend rises: scale in small steps and watch the marginal ROAS below.' : ''}`);
+  }
+  const pace = pacing();
+  if (pace.budget && pace.use != null) push(pace.use < 0.85, `Delivering ${fmtGBP(pace.recentPerDay)}/day over the last 7 days against ${fmtGBP(pace.budget)}/day of budget (${fmtPct(pace.use * 100, 0)}).${pace.use < 0.85 ? ' Meta is not finding enough to spend on: ad sets may be learning-limited or capped.' : ''}`);
+
+  items.sort((a, b) => Number(b.watch) - Number(a.watch));
+  const watching = items.filter(i => i.watch).length;
+  document.getElementById('watchTitle').textContent = watching ? `${watching} thing${watching === 1 ? '' : 's'} to look at` : 'Nothing needs attention';
+  document.getElementById('watchlist').innerHTML = items.map(i =>
+    `<li class="${i.watch ? 'watch' : 'ok'}">${i.watch ? '<span class="badge">Watch</span>' : '<span class="tag">OK</span>'}<span>${esc(i.text)}</span></li>`).join('');
+}
+
+// ========== FUNNEL ==========
+function buildFunnel() {
+  const { mW, mB } = S;
+  const stages = [
+    { label: 'Impressions', value: mW.imp },
+    { label: 'Link clicks', value: mW.lc, rate: 'CTR', cur: mW.ctr, base: mB.ctr, cause: 'the creative or the audience' },
+    { label: 'Landing page views', value: mW.lpv, rate: 'Landing rate', cur: mW.lpvRate, base: mB.lpvRate, cause: 'site speed or tracking' },
+    { label: 'Add to cart', value: mW.atc, rate: 'Add to cart rate', cur: mW.atcRate, base: mB.atcRate, cause: 'the offer, price or page' },
+    { label: 'Checkout', value: mW.ic, rate: 'Checkout rate', cur: mW.icRate, base: mB.icRate, cause: 'the cart: shipping, trust, friction' },
+    { label: 'Purchase', value: mW.pur, rate: 'Purchase rate', cur: mW.purRate, base: mB.purRate, cause: 'the checkout: payment and delivery options' },
+  ];
+  const lns = stages.map(s => Math.log(Math.max(1, s.value)));
+  const lnMax = Math.max(...lns), lnMin = Math.min(...lns);
+  const width = v => lnMax === lnMin ? 100 : 36 + 64 * (Math.log(Math.max(1, v)) - lnMin) / (lnMax - lnMin);
+  let html = '';
+  stages.forEach((s, i) => {
+    if (i > 0) html += `<div class="f-step">${s.rate} <b>${fmtPct(s.cur)}</b> · prior 90d ${fmtPct(s.base)} ${deltaHTML(delta(s.cur, s.base))}</div>`;
+    html += `<div class="f-stage" style="width:${width(s.value).toFixed(1)}%"><span class="f-name">${s.label}</span><span class="f-num">${fmtNum(s.value)}</span></div>`;
+  });
+  html += `<div class="f-step f-total">Landing page to purchase <b>${fmtPct(mW.cvrLpv)}</b> · prior 90d ${fmtPct(mB.cvrLpv)} ${deltaHTML(delta(mW.cvrLpv, mB.cvrLpv))}</div>`;
+  document.getElementById('funnel').innerHTML = html;
+  document.getElementById('funnelIntro').textContent = `Counts for ${displayDate(W.from)} to ${displayDate(W.to)}; each step's rate is shown against the prior 90 days.`;
+
+  const costs = [
+    ['Link click', mW.cpc, mB.cpc, 2], ['Landing page view', mW.cpLpv, mB.cpLpv, 2], ['Add to cart', mW.cpAtc, mB.cpAtc, 2],
+    ['Checkout', mW.cpIc, mB.cpIc, 2], ['Purchase (CPA)', mW.cpa, mB.cpa, 1],
+  ];
+  document.getElementById('costTable').innerHTML =
+    '<thead><tr><th>Cost per</th><th>This window</th><th>Prior 90d</th><th>Change</th></tr></thead><tbody>' +
+    costs.map(([l, c, b, dp]) => `<tr><td>${l}</td><td class="cur">${fmtGBP(c, dp)}</td><td>${fmtGBP(b, dp)}</td><td>${deltaHTML(delta(c, b), true)}</td></tr>`).join('') +
+    '</tbody></table>';
+  const steps = stages.slice(1).map(s => ({ ...s, d: delta(s.cur, s.base) })).filter(s => s.d != null);
+  const worst = steps.length ? steps.reduce((w, s) => s.d < w.d ? s : w, steps[0]) : null;
+  const read = document.getElementById('funnelRead');
+  if (!worst || worst.d > -0.05) read.textContent = 'No step is materially worse than the prior 90 days.';
+  else read.textContent = `Biggest leak against the prior 90 days: ${worst.rate.toLowerCase()} ${fmtPct(worst.cur)} against ${fmtPct(worst.base)} (${deltaText(worst.d)}). That step is ${worst.cause}.`;
+}
+
+// ========== SPEND VS EFFICIENCY ==========
+function efficiencyFit() {
+  const rows = completedRows(acc.filter(r => inWindow(r, B.from, W.to))).filter(r => num(r.spend) >= 50);
+  if (rows.length < 14) return null;
+  const pts = rows.map(r => ({ x: num(r.spend), y: num(r.purchase_value) / num(r.spend), inWin: inWindow(r, W.from, W.to), date: r.report_date }));
+  const xs = pts.map(p => Math.log(p.x)), ys = pts.map(p => p.y);
+  const mx = mean(xs), my = mean(ys);
+  let sxy = 0, sxx = 0, syy = 0;
+  for (let i = 0; i < pts.length; i++) { sxy += (xs[i] - mx) * (ys[i] - my); sxx += (xs[i] - mx) ** 2; syy += (ys[i] - my) ** 2; }
+  const b = sxx > 0 ? sxy / sxx : 0, a = my - b * mx, r2 = (sxx > 0 && syy > 0) ? (sxy * sxy) / (sxx * syy) : 0;
+  const sorted = [...pts].sort((p, q) => p.x - q.x);
+  const k = Math.floor(sorted.length / 3);
+  const agg = arr => arr.length ? { n: arr.length, roas: arr.reduce((s, p) => s + p.x * p.y, 0) / arr.reduce((s, p) => s + p.x, 0), minSpend: arr[0].x, maxSpend: arr[arr.length - 1].x, avgSpend: mean(arr.map(p => p.x)) } : null;
+  const lo = agg(sorted.slice(0, k)), hi = agg(sorted.slice(sorted.length - k));
+  const cur = S.mW.spendPerDay;
+  const roasAt = cur > 0 ? a + b * Math.log(cur) : null;
+  const marginal = roasAt != null ? roasAt + b : null;
+  return { pts, a, b, r2, lo, hi, cur, roasAt, marginal, minX: sorted[0].x, maxX: sorted[sorted.length - 1].x };
+}
+function buildEfficiency() {
+  const eff = efficiencyFit();
+  const read = document.getElementById('effRead');
+  destroyChart('eff');
+  if (!eff) { read.textContent = 'Not enough days with spend to fit a curve.'; return; }
+  const c = chartBase();
+  const curve = [];
+  for (let i = 0; i <= 40; i++) { const x = eff.minX + (eff.maxX - eff.minX) * (i / 40); curve.push({ x, y: Math.max(0, eff.a + eff.b * Math.log(x)) }); }
+  charts.eff = new Chart(document.getElementById('effChart').getContext('2d'), {
+    type: 'scatter',
+    data: { datasets: [
+      { label: 'Prior 90 days', data: eff.pts.filter(p => !p.inWin), backgroundColor: c.ground, borderColor: c.ink, borderWidth: 1.5, pointRadius: 3.5, pointHoverRadius: 5 },
+      { label: 'This window', data: eff.pts.filter(p => p.inWin), backgroundColor: c.green, borderColor: c.green, borderWidth: 1.5, pointRadius: 4, pointHoverRadius: 6 },
+      { label: 'Fitted curve', type: 'line', data: curve, borderColor: c.ink, borderDash: [6, 4], borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 0, tension: 0.3, fill: false },
+    ] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'nearest', intersect: true },
+      plugins: {
+        legend: { display: false },
+        tooltip: tooltipCfg(c, { callbacks: {
+          title: items => { const p = items[0].raw; return p.date ? displayDate(p.date) : 'Fitted curve'; },
+          label: item => ` ${fmtGBP(item.parsed.x)} spend, ROAS ${fmtRoas(item.parsed.y)}`,
+        } }),
+      },
+      scales: {
+        x: Object.assign(axisX(c), { type: 'linear', beginAtZero: true, ticks: { color: c.ink, font: { size: 11, weight: 500 }, callback: v => fmtGBP(v) }, title: { display: true, text: 'Daily spend', color: c.ink, font: { size: 11, weight: 600 } } }),
+        y: Object.assign(axisY(c), { title: { display: true, text: 'Daily ROAS', color: c.ink, font: { size: 11, weight: 600 } } }),
+      },
+    },
+  });
+  let text = `Days over ${fmtGBP(eff.hi.minSpend)} (the top third) returned ROAS ${fmtRoas(eff.hi.roas)}; days under ${fmtGBP(eff.lo.maxSpend)} returned ${fmtRoas(eff.lo.roas)}. `;
+  if (eff.r2 >= 0.1 && eff.b < 0 && eff.marginal != null) {
+    text += `At the current ${fmtGBP(eff.cur)}/day the curve puts ROAS at ${fmtRoas(eff.roasAt)} and the marginal ROAS, what the next £1 returns, at about ${fmtRoas(Math.max(0, eff.marginal))} against the ${META_ROAS_TARGET.toFixed(2)} Meta target.`;
+    text += eff.marginal < META_ROAS_TARGET ? ' The next pound is below target: add budget in small steps and re-read.' : ' There is room to add budget.';
+    text += ' This is a pattern read across days, not a controlled test.';
+  } else if (eff.r2 < 0.1) {
+    text += `Daily spend explains little of the day-to-day variation in ROAS (r² ${eff.r2.toFixed(2)}), so there is no clear ceiling inside this spend range yet.`;
+  } else {
+    text += 'ROAS does not fall as spend rises in this range.';
+  }
+  read.textContent = text;
+}
+
+// ========== META AGAINST SHOPIFY ==========
+function buildShopify() {
+  const { mW, sW, sB } = S;
+  const rows = [
+    ['Shopify orders per day', sW.ordersPerDay, sB.ordersPerDay, v => fmtDec(v, 1), false],
+    ['Meta purchases per day', sW.metaPurPerDay, sB.metaPurPerDay, v => fmtDec(v, 1), false],
+    ['Meta share of Shopify orders', sW.metaShareOrders, sB.metaShareOrders, v => fmtPct(v, 0), false],
+    ['Meta share of Shopify sales', sW.metaShareSales, sB.metaShareSales, v => fmtPct(v, 0), false],
+    ['New-customer orders per day', sW.newOrdersPerDay, sB.newOrdersPerDay, v => fmtDec(v, 1), false],
+    ['New-customer share of orders', sW.newShare, sB.newShare, v => fmtPct(v, 0), false],
+    ['New-customer CAC', sW.ncCac, sB.ncCac, v => fmtGBP(v, 1), true],
+    ['New-customer ROAS', sW.ncRoas, sB.ncRoas, fmtRoas, false],
+    ['Blended ROAS', sW.blendedRoas, sB.blendedRoas, fmtRoas, false],
+  ];
+  document.getElementById('shopTable').innerHTML =
+    '<thead><tr><th></th><th>This window</th><th>Prior 90d</th><th>Change</th></tr></thead><tbody>' +
+    rows.map(([l, c, b, f, lower]) => `<tr><td>${l}</td><td class="cur">${f(c)}</td><td>${f(b)}</td><td>${deltaHTML(delta(c, b), lower)}</td></tr>`).join('') +
+    '</tbody>';
+  const shareMove = delta(sW.metaShareOrders, sB.metaShareOrders);
+  document.getElementById('shopRead').textContent =
+    `Meta reports ROAS ${fmtRoas(mW.roas)}. On all paid spend the shop made ${fmtRoas(sW.blendedRoas)} in sales and ${fmtRoas(sW.ncRoas)} in first-order revenue. ` +
+    `Meta is claiming ${fmtPct(sW.metaShareOrders, 0)} of orders${shareMove != null && Math.abs(shareMove) >= 0.05 ? `, ${deltaText(shareMove)} on its usual share` : ', in line with its usual share'}.`;
+}
+
+// ========== DAY OF WEEK ==========
+function buildDayOfWeek() {
+  const rows = completedRows(acc.filter(r => inWindow(r, B.from, W.to)));
+  const agg = DOW.map(() => ({ spend: 0, rev: 0, pur: 0, n: 0 }));
+  rows.forEach(r => { const d = new Date(r.report_date + 'T00:00:00'); const i = (d.getDay() + 6) % 7; agg[i].spend += num(r.spend); agg[i].rev += num(r.purchase_value); agg[i].pur += num(r.purchases); agg[i].n++; });
+  const roas = agg.map(a => a.spend > 0 ? a.rev / a.spend : null);
+  const c = chartBase();
+  destroyChart('dow');
+  charts.dow = new Chart(document.getElementById('dowChart').getContext('2d'), {
+    type: 'bar',
+    data: { labels: DOW, datasets: [{ label: 'ROAS', data: roas, backgroundColor: c.green, borderRadius: 4, maxBarThickness: 48 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      layout: { padding: { top: 18 } },
+      plugins: {
+        legend: { display: false },
+        barValueLabels: { enabled: true, color: c.ink, fontFamily: c.font, format: v => fmtRoas(v) },
+        tooltip: tooltipCfg(c, { callbacks: {
+          title: items => DOW[items[0].dataIndex],
+          label: item => { const a = agg[item.dataIndex]; return [` ROAS ${fmtRoas(roas[item.dataIndex])}`, ` ${fmtGBP(a.n ? a.spend / a.n : 0)}/day spend, CPA ${fmtGBP(ratio(a.spend, a.pur), 1)}`, ` ${a.n} days`]; },
+        } }),
+      },
+      scales: { x: axisX(c), y: axisY(c) },
+    },
+  });
+  const ranked = DOW.map((d, i) => ({ d, roas: roas[i], spend: agg[i].n ? agg[i].spend / agg[i].n : 0 })).filter(x => x.roas != null).sort((a, b) => b.roas - a.roas);
+  const heaviest = [...ranked].sort((a, b) => b.spend - a.spend)[0];
+  document.getElementById('dowSub').textContent = `ROAS by weekday over the prior 90 days and this window (${rows.length} completed days).`;
+  document.getElementById('dowRead').textContent = ranked.length >= 3
+    ? `Strongest: ${ranked[0].d} ${fmtRoas(ranked[0].roas)} and ${ranked[1].d} ${fmtRoas(ranked[1].roas)}. Weakest: ${ranked[ranked.length - 1].d} ${fmtRoas(ranked[ranked.length - 1].roas)}. Spend runs highest on ${heaviest.d} at ${fmtGBP(heaviest.spend)}/day.`
+    : 'Not enough days to rank weekdays.';
+}
+
+// ========== PACING AND CONCENTRATION ==========
+function pacing() {
+  const active = campaignsMeta.filter(c => c.effective_status === 'ACTIVE' && c.daily_budget != null);
+  const budget = active.reduce((s, c) => s + num(c.daily_budget), 0);
+  const now = new Date(), y = now.getFullYear(), m = now.getMonth();
+  const monthStart = fmtDate(new Date(y, m, 1));
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const mtdRows = acc.filter(r => r.report_date >= monthStart && r.report_date <= TODAY);
+  const mtdDone = completedRows(mtdRows);
+  const recent = recentDays(W.to);
+  const recentRows = acc.filter(r => inWindow(r, recent.from, recent.to));
+  const recentPerDay = recentRows.length ? sum(recentRows, 'spend') / recentRows.length : null;
+  const last7 = completedRows(acc).slice(-7);
+  const rate = last7.length ? sum(last7, 'spend') / last7.length : 0;
+  const daysLeft = daysInMonth - now.getDate() + 1;
+  const prevStart = fmtDate(new Date(y, m - 1, 1)), prevEnd = fmtDate(new Date(y, m, 0));
+  const prevRows = acc.filter(r => inWindow(r, prevStart, prevEnd));
+  const prevSpend = sum(prevRows, 'spend');
   return {
-    grid: s.getPropertyValue('--chart-grid').trim(),
-    tick: s.getPropertyValue('--chart-tick').trim(),
-    tooltipBg: s.getPropertyValue('--tooltip-bg').trim(),
-    tooltipTitle: s.getPropertyValue('--tooltip-title').trim(),
-    tooltipBody: s.getPropertyValue('--tooltip-body').trim(),
-    tooltipBorder: s.getPropertyValue('--tooltip-border').trim(),
+    budget, spendPerDay: S.mW.spendPerDay, recentPerDay, recentFrom: recent.from, recentTo: recent.to,
+    use: budget && recentPerDay != null ? recentPerDay / budget : null, activeCount: active.length,
+    mtd: sum(mtdRows, 'spend'), mtdRoas: ratio(sum(mtdRows, 'purchase_value'), sum(mtdRows, 'spend')), mtdDays: mtdDone.length,
+    rate, projected: sum(mtdDone, 'spend') + rate * daysLeft, daysLeft,
+    prevSpend, prevRoas: ratio(sum(prevRows, 'purchase_value'), prevSpend), prevComplete: prevRows.length >= 28,
+    monthName: MONTHS_LONG[m], prevName: MONTHS_LONG[(m + 11) % 12],
   };
 }
-function tooltipCfg(){ const c=getChartColors(); return {backgroundColor:c.tooltipBg, titleColor:c.tooltipTitle, bodyColor:c.tooltipBody, borderColor:c.tooltipBorder, borderWidth:1, cornerRadius:8, padding:10}; }
-function scaleDef(){ const c=getChartColors(); return {grid:{color:c.grid, drawBorder:false}, ticks:{color:c.tick, font:{size:11}}, border:{display:false}}; }
-
-// ═════════════ KPIs ═════════════
-function buildKPIs(){
-  const d = accountDaily;
-  const spend = sum(d,'spend');
-  const rev = sum(d,'purchase_value');
-  const pur = sum(d,'purchases');
-  const imp = sum(d,'impressions');
-  const clicks = sum(d,'clicks');
-  const linkClicks = sum(d,'link_clicks');
-  const lpv = sum(d,'landing_page_views');
-  const atc = sum(d,'add_to_carts');
-  const ic = sum(d,'initiate_checkouts');
-  const roas = spend>0 ? rev/spend : 0;
-  const cpa = pur>0 ? spend/pur : 0;
-  const cpm = imp>0 ? (spend/imp)*1000 : 0;
-  const cpc = linkClicks>0 ? spend/linkClicks : 0;
-  const ctr = imp>0 ? (linkClicks/imp)*100 : 0;
-  const lpvRate = linkClicks>0 ? (lpv/linkClicks)*100 : 0;
-  const kpis = [
-    { label:'Revenue', value:fmt(rev,'gbp0'), tip:'Purchase value attributed to Meta' },
-    { label:'Spend', value:fmt(spend,'gbp0'), tip:'Total Meta ad spend' },
-    { label:'Meta-attributed ROAS', value:fmt(roas,'x'), tip:'Meta-reported revenue ÷ Meta spend' },
-    { label:'CPA', value:fmt(cpa,'gbp'), tip:'Spend ÷ Purchases' },
-    { label:'Purchases', value:fmt(pur,'num'), tip:'Attributed purchases' },
-    { label:'CPM', value:fmt(cpm,'gbp'), tip:'Cost per 1,000 impressions' },
-    { label:'CPC', value:fmt(cpc,'gbp'), tip:'Spend ÷ Link clicks. Average cost per click on the ad.' },
-    { label:'CTR', value:fmt(ctr,'pct'), tip:'Link clicks ÷ impressions' },
-    { label:'LPV rate', value:fmt(lpvRate,'pct1'), tip:'Landing page views ÷ link clicks' },
-  ];
-  document.getElementById('kpiStrip').innerHTML = kpis.map(k => `
-    <div class="kpi-card">
-      <div class="label">${k.label} <span class="info-tip" data-tip="${k.tip}">ⓘ</span></div>
-      <div class="value">${k.value}</div>
-    </div>`).join('');
+function concentration() {
+  const byAd = new Map();
+  ads.forEach(r => {
+    const a = byAd.get(r.ad_id) || { id: r.ad_id, name: r.ad_name, campaign: r.campaign_id, spend: 0, rev: 0, pur: 0 };
+    a.spend += num(r.spend); a.rev += num(r.purchase_value); a.pur += num(r.purchases);
+    if (r.ad_name) a.name = r.ad_name;
+    byAd.set(r.ad_id, a);
+  });
+  const list = [...byAd.values()].filter(a => a.spend > 0).sort((a, b) => b.spend - a.spend);
+  if (!list.length) return null;
+  const total = list.reduce((s, a) => s + a.spend, 0);
+  const lifeMap = new Map(lifetime.map(l => [l.ad_id, l]));
+  const age = a => { const l = lifeMap.get(a.id); if (!l || !l.first_spend_date) return null; return Math.max(0, Math.round((new Date(TODAY + 'T00:00:00') - new Date(l.first_spend_date + 'T00:00:00')) / 86400000)); };
+  const top3 = list.slice(0, 3).map(a => ({ ...a, share: a.spend / total, age: age(a), roas: ratio(a.rev, a.spend) }));
+  const ages = top3.map(a => a.age).filter(v => v != null);
+  return { total, activeAds: list.length, top3, top3Share: top3.reduce((s, a) => s + a.share, 0), over5: list.filter(a => a.spend / total >= 0.05).length, oldestTop3Age: ages.length ? Math.max(...ages) : null };
+}
+function buildPacing() {
+  const p = pacing(), conc = concentration();
+  const el = document.getElementById('pacing');
+  const fmtMonth = (spend, roas) => `${fmtGBP(spend)}<small>ROAS ${fmtRoas(roas)}</small>`;
+  let html = '<ul class="pace-list">';
+  html += `<li><span>Daily budget set, ${p.activeCount} active campaign${p.activeCount === 1 ? '' : 's'}</span><b>${p.budget ? fmtGBP(p.budget) + '/day' : '—'}</b></li>`;
+  html += `<li><span>Delivered, ${shortDate(p.recentFrom)} to ${shortDate(p.recentTo)}</span><b>${p.recentPerDay != null ? fmtGBP(p.recentPerDay) + '/day' : '—'}${p.use != null ? `<small>${fmtPct(p.use * 100, 0)} of budget</small>` : ''}</b></li>`;
+  html += `<li><span>Average over this window</span><b>${fmtGBP(p.spendPerDay)}/day</b></li>`;
+  html += `<li><span>${p.monthName} so far</span><b>${fmtMonth(p.mtd, p.mtdRoas)}</b></li>`;
+  html += `<li><span>${p.monthName} projected, trailing 7-day rate</span><b>${fmtGBP(p.projected)}<small>${fmtGBP(p.rate)}/day for ${p.daysLeft} more day${p.daysLeft === 1 ? '' : 's'}</small></b></li>`;
+  html += `<li><span>${p.prevName}${p.prevComplete ? '' : ' (partial data)'}</span><b>${fmtMonth(p.prevSpend, p.prevRoas)}</b></li>`;
+  html += '</ul>';
+  if (conc) {
+    html += '<div class="block-label" style="margin-top:24px">Spend concentration</div>';
+    html += '<div class="conc-bar">' + conc.top3.map(a => `<span class="top" style="width:${(a.share * 100).toFixed(1)}%" title="${esc(a.name)}"></span>`).join('') + `<span class="rest" style="flex:1"></span></div>`;
+    html += `<div class="conc-key"><span>Top 3 ads ${fmtPct(conc.top3Share * 100, 0)}</span><span>${conc.activeAds - 3 > 0 ? `Other ${conc.activeAds - 3} ads ${fmtPct((1 - conc.top3Share) * 100, 0)}` : ''}</span></div>`;
+    const top = conc.top3[0];
+    html += `<p class="read">${conc.over5} ad${conc.over5 === 1 ? ' has' : 's have'} at least 5% of this window's spend. The biggest spender, ${esc(top.name)}, has ${fmtGBP(top.spend)} at ROAS ${fmtRoas(top.roas)}${top.age != null ? ` and has been running ${top.age} days` : ''}.${conc.oldestTop3Age != null && conc.oldestTop3Age >= 60 ? ` The oldest of the top three has run ${conc.oldestTop3Age} days.` : ''}</p>`;
+  }
+  el.innerHTML = html;
 }
 
-// ═════════════ TREND AGGREGATION ═════════════
-function aggregateTrend(rows, mode){
+// ========== TREND CHARTS ==========
+// Labels each visible line at its right-hand end, so identity never depends on colour.
+const lineEndLabels = {
+  id: 'lineEndLabels',
+  afterDatasetsDraw(chart, _args, opts) {
+    if (!opts.enabled) return;
+    const { ctx, chartArea } = chart;
+    const labels = [];
+    chart.data.datasets.forEach((dataset, datasetIndex) => {
+      if (!chart.isDatasetVisible(datasetIndex) || dataset.endLabel === false) return;
+      const points = chart.getDatasetMeta(datasetIndex).data;
+      const lastPoint = points[points.length - 1];
+      if (lastPoint) labels.push({ text: dataset.label, y: lastPoint.y });
+    });
+    if (!labels.length) return;
+    const minGap = 14;
+    labels.sort((a, b) => a.y - b.y);
+    for (let i = 1; i < labels.length; i++) if (labels[i].y - labels[i - 1].y < minGap) labels[i].y = labels[i - 1].y + minGap;
+    if (labels[labels.length - 1].y > chartArea.bottom) {
+      labels[labels.length - 1].y = chartArea.bottom;
+      for (let i = labels.length - 2; i >= 0; i--) if (labels[i + 1].y - labels[i].y < minGap) labels[i].y = labels[i + 1].y - minGap;
+    }
+    ctx.save();
+    ctx.font = `600 11px ${opts.fontFamily}`;
+    ctx.fillStyle = opts.color;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    for (const label of labels) ctx.fillText(label.text, chartArea.right + 10, label.y);
+    ctx.restore();
+  },
+};
+// Writes each bar's value above it (day-of-week chart).
+const barValueLabels = {
+  id: 'barValueLabels',
+  afterDatasetsDraw(chart, _args, opts) {
+    if (!opts.enabled) return;
+    const { ctx } = chart;
+    const meta = chart.getDatasetMeta(0);
+    ctx.save();
+    ctx.font = `700 11px ${opts.fontFamily}`;
+    ctx.fillStyle = opts.color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    meta.data.forEach((bar, i) => { const v = chart.data.datasets[0].data[i]; if (v != null) ctx.fillText(opts.format ? opts.format(v) : v, bar.x, bar.y - 4); });
+    ctx.restore();
+  },
+};
+Chart.register(lineEndLabels, barValueLabels);
+
+function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function chartBase() {
+  const ink = cssVar('--ink'), font = cssVar('--font-body');
+  Chart.defaults.font.family = font;
+  Chart.defaults.color = ink;
+  return { ink, font, ground: cssVar('--ground'), grid: cssVar('--chart-grid'), green: cssVar('--series-b'), soft: cssVar('--ink-soft'), tipBg: cssVar('--tooltip-bg'), tipInk: cssVar('--tooltip-ink') };
+}
+function tooltipCfg(c, extra) {
+  return Object.assign({ backgroundColor: c.tipBg, titleColor: c.tipInk, bodyColor: c.tipInk, padding: 12, cornerRadius: 6, usePointStyle: true, boxPadding: 4, titleFont: { family: c.font, weight: 700 }, bodyFont: { family: c.font, weight: 500 } }, extra || {});
+}
+function axisX(c) { return { ticks: { color: c.ink, maxRotation: 0, autoSkip: true, maxTicksLimit: 12, font: { size: 11, weight: 500 } }, grid: { display: false }, border: { display: false } }; }
+function axisY(c, extra) { return Object.assign({ ticks: { color: c.ink, font: { size: 11, weight: 500 } }, grid: { color: c.grid }, border: { display: false }, beginAtZero: true }, extra || {}); }
+function destroyChart(key) { if (charts[key]) { charts[key].destroy(); delete charts[key]; } }
+
+function bucketRows(rows, mode) {
   const map = new Map();
   for (const r of rows) {
-    let key;
-    const d = new Date(r.report_date + 'T00:00:00Z');
-    if (mode === 'weekly') {
-      const day = d.getUTCDay();
-      const mon = new Date(d); mon.setUTCDate(d.getUTCDate() - ((day + 6) % 7));
-      key = fmtDate(mon);
-    } else if (mode === 'monthly') {
-      key = r.report_date.substring(0,7) + '-01';
-    } else key = r.report_date;
-    const row = map.get(key) || { bucket:key, spend:0, impressions:0, clicks:0, link_clicks:0, landing_page_views:0, add_to_carts:0, initiate_checkouts:0, purchases:0, purchase_value:0 };
-    row.spend += Number(r.spend)||0;
-    row.impressions += Number(r.impressions)||0;
-    row.clicks += Number(r.clicks)||0;
-    row.link_clicks += Number(r.link_clicks)||0;
-    row.landing_page_views += Number(r.landing_page_views)||0;
-    row.add_to_carts += Number(r.add_to_carts)||0;
-    row.initiate_checkouts += Number(r.initiate_checkouts)||0;
-    row.purchases += Number(r.purchases)||0;
-    row.purchase_value += Number(r.purchase_value)||0;
+    let key = r.report_date;
+    if (mode === 'weekly') { const d = new Date(r.report_date + 'T00:00:00'); const mon = new Date(d); mon.setDate(d.getDate() - ((d.getDay() + 6) % 7)); key = fmtDate(mon); }
+    const row = map.get(key) || { bucket: key, spend: 0, impressions: 0, reach: 0, link_clicks: 0, landing_page_views: 0, add_to_carts: 0, initiate_checkouts: 0, purchases: 0, purchase_value: 0 };
+    for (const k of ['spend', 'impressions', 'reach', 'link_clicks', 'landing_page_views', 'add_to_carts', 'initiate_checkouts', 'purchases', 'purchase_value']) row[k] += num(r[k]);
     map.set(key, row);
   }
-  return Array.from(map.values()).sort((a,b)=>a.bucket.localeCompare(b.bucket));
+  return [...map.values()].sort((a, b) => a.bucket.localeCompare(b.bucket));
 }
+function trendMode() { return S.accW.length > 62 ? 'weekly' : 'daily'; }
+function bucketLabel(b, mode) { return mode === 'weekly' ? 'w/c ' + shortDate(b) : shortDate(b); }
 
-// ═════════════ SPEND/REVENUE CHART ═════════════
-let spendRevenueChartInst, efficiencyChartInst, funnelRatesChartInst;
-
-function buildSpendRevenueChart(){
-  const ctx = document.getElementById('spendRevenueChart').getContext('2d');
-  if (spendRevenueChartInst) spendRevenueChartInst.destroy();
-  const trend = aggregateTrend(accountDaily, trendMode);
-  const labels = trend.map(r => {
-    if (trendMode === 'monthly') return new Date(r.bucket+'T00:00:00').toLocaleDateString('en-GB',{month:'short',year:'2-digit'});
-    if (trendMode === 'weekly') return 'W/e ' + new Date(r.bucket+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-    return new Date(r.bucket+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+function buildTrend() {
+  const mode = trendMode();
+  const buckets = bucketRows(S.accW, mode);
+  const byDate = new Map(acc.map(r => [r.report_date, r]));
+  const rolling = buckets.map(b => {
+    if (mode === 'weekly') return b.spend > 0 ? b.purchase_value / b.spend : null;
+    let sp = 0, rv = 0;
+    for (let k = 0; k < 7; k++) { const r = byDate.get(addDays(b.bucket, -k)); if (r) { sp += num(r.spend); rv += num(r.purchase_value); } }
+    return sp > 0 ? rv / sp : null;
   });
-  const sd = scaleDef();
-  spendRevenueChartInst = new Chart(ctx, {
+  const c = chartBase();
+  const labels = buckets.map(b => bucketLabel(b.bucket, mode));
+  destroyChart('trend');
+  charts.trend = new Chart(document.getElementById('trendChart').getContext('2d'), {
     data: { labels, datasets: [
-      { type:'bar', label:'Revenue', data: trend.map(r=>r.purchase_value), backgroundColor:'rgba(16,185,129,0.45)', borderColor:'rgba(16,185,129,0.8)', borderWidth:1, borderRadius:4, yAxisID:'y', order:2 },
-      { type:'bar', label:'Spend', data: trend.map(r=>r.spend), backgroundColor:'rgba(239,68,68,0.55)', borderColor:'rgba(239,68,68,0.9)', borderWidth:1, borderRadius:4, yAxisID:'y', order:3 },
-      { type:'line', label:'Meta-attributed ROAS', data: trend.map(r=> r.spend>0 ? r.purchase_value/r.spend : 0), borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,0.1)', pointRadius:trendMode==='daily'?2:4, borderWidth:2.5, tension:0.3, yAxisID:'y1', order:1 }
-    ]},
+      { type: 'bar', label: 'Meta revenue', data: buckets.map(b => b.purchase_value), backgroundColor: c.green, borderRadius: 3, yAxisID: 'y', order: 3 },
+      { type: 'bar', label: 'Spend', data: buckets.map(b => b.spend), backgroundColor: c.soft, borderRadius: 3, yAxisID: 'y', order: 4 },
+      { type: 'line', label: mode === 'weekly' ? 'ROAS' : 'ROAS, 7-day rolling', data: rolling, borderColor: c.ink, borderWidth: 2, pointRadius: mode === 'weekly' ? 3 : 0, pointBackgroundColor: c.ink, tension: 0.3, yAxisID: 'y1', order: 1 },
+      { type: 'line', label: 'Prior 90d ROAS', data: buckets.map(() => S.mB.roas), borderColor: c.ink, borderWidth: 1.5, borderDash: [6, 4], pointRadius: 0, yAxisID: 'y1', order: 2 },
+    ] },
     options: {
-      responsive:true, maintainAspectRatio:false, interaction:{mode:'index', intersect:false},
-      plugins:{
-        tooltip:{ ...tooltipCfg(), callbacks:{ label: c=> c.dataset.label.includes('ROAS') ? c.dataset.label+': '+c.parsed.y.toFixed(2)+'x' : c.dataset.label+': £'+c.parsed.y.toLocaleString('en-GB',{maximumFractionDigits:0}) } },
-        legend:{ labels:{ color:getChartColors().tick, font:{size:12}, usePointStyle:true, pointStyle:'rectRounded', padding:16 } }
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: tooltipCfg(c, { callbacks: { label: item => item.dataset.yAxisID === 'y1' ? ` ${item.dataset.label}: ${fmtRoas(item.parsed.y)}` : ` ${item.dataset.label}: ${fmtGBP(item.parsed.y)}` } }),
       },
-      scales:{ x:{...sd}, y:{...sd, position:'left', title:{display:true,text:'GBP (£)',color:getChartColors().tick,font:{size:11}}}, y1:{...sd, position:'right', grid:{display:false}, title:{display:true,text:'Meta-attributed ROAS',color:getChartColors().tick,font:{size:11}}, min:0} }
-    }
+      scales: {
+        x: axisX(c),
+        y: axisY(c, { position: 'left', ticks: { color: c.ink, font: { size: 11, weight: 500 }, callback: v => fmtGBP(v) } }),
+        y1: axisY(c, { position: 'right', grid: { display: false }, ticks: { color: c.ink, font: { size: 11, weight: 500 }, callback: v => fmtRoas(v) } }),
+      },
+    },
   });
+  document.getElementById('trendLegend').querySelector('span:nth-child(3)').innerHTML = `<i class="ln"></i>${mode === 'weekly' ? 'ROAS by week' : 'ROAS, 7-day rolling'}`;
 }
-
-function buildEfficiencyChart(){
-  const ctx = document.getElementById('efficiencyChart').getContext('2d');
-  if (efficiencyChartInst) efficiencyChartInst.destroy();
-  const trend = aggregateTrend(accountDaily, trendMode);
-  const labels = trend.map(r => new Date(r.bucket+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}));
-  const sd = scaleDef();
-  const cpm = trend.map(r => r.impressions>0 ? (r.spend/r.impressions)*1000 : 0);
-  const cpc = trend.map(r => r.link_clicks>0 ? r.spend/r.link_clicks : 0);
-  const cpa = trend.map(r => r.purchases>0 ? r.spend/r.purchases : 0);
-  efficiencyChartInst = new Chart(ctx, {
-    type:'line',
-    data:{ labels, datasets:[
-      { label:'CPM (£)', data:cpm, borderColor:'#6366f1', backgroundColor:'rgba(99,102,241,0.1)', pointRadius:trendMode==='daily'?2:3, borderWidth:2, tension:0.3, yAxisID:'y' },
-      { label:'CPC (£)', data:cpc, borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.1)', pointRadius:trendMode==='daily'?2:3, borderWidth:2, tension:0.3, yAxisID:'y1' },
-      { label:'CPA (£)', data:cpa, borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,0.1)', pointRadius:trendMode==='daily'?2:3, borderWidth:2, tension:0.3, yAxisID:'y' },
-    ]},
-    options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index', intersect:false},
-      plugins:{ tooltip:{...tooltipCfg(), callbacks:{ label: c => c.dataset.label+': £'+c.parsed.y.toFixed(2)}}, legend:{labels:{color:getChartColors().tick, font:{size:11}, usePointStyle:true, pointStyle:'circle', padding:14}} },
-      scales:{ x:{...sd}, y:{...sd, position:'left', title:{display:true,text:'CPM / CPA (£)',color:getChartColors().tick,font:{size:10}}}, y1:{...sd, position:'right', grid:{display:false}, title:{display:true,text:'CPC (£)',color:getChartColors().tick,font:{size:10}}, min:0} }
-    }
-  });
-}
-
-function buildFunnelRatesChart(){
-  const ctx = document.getElementById('funnelRatesChart').getContext('2d');
-  if (funnelRatesChartInst) funnelRatesChartInst.destroy();
-  const trend = aggregateTrend(accountDaily, trendMode);
-  const labels = trend.map(r => new Date(r.bucket+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}));
-  const sd = scaleDef();
-  const lpvR = trend.map(r => r.link_clicks>0 ? (r.landing_page_views/r.link_clicks)*100 : 0);
-  const atcR = trend.map(r => r.landing_page_views>0 ? (r.add_to_carts/r.landing_page_views)*100 : 0);
-  const icR = trend.map(r => r.add_to_carts>0 ? (r.initiate_checkouts/r.add_to_carts)*100 : 0);
-  const purR = trend.map(r => r.initiate_checkouts>0 ? (r.purchases/r.initiate_checkouts)*100 : 0);
-  funnelRatesChartInst = new Chart(ctx, {
-    type:'line',
-    data:{ labels, datasets:[
-      { label:'Click→LPV %', data:lpvR, borderColor:'#8b5cf6', pointRadius:trendMode==='daily'?2:3, borderWidth:2, tension:0.3 },
-      { label:'LPV→ATC %', data:atcR, borderColor:'#f97316', pointRadius:trendMode==='daily'?2:3, borderWidth:2, tension:0.3 },
-      { label:'ATC→IC %', data:icR, borderColor:'#f59e0b', pointRadius:trendMode==='daily'?2:3, borderWidth:2, tension:0.3 },
-      { label:'IC→Purchase %', data:purR, borderColor:'#10b981', pointRadius:trendMode==='daily'?2:3, borderWidth:2, tension:0.3 },
-    ]},
-    options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index', intersect:false},
-      plugins:{ tooltip:{...tooltipCfg(), callbacks:{ label: c => c.dataset.label+': '+c.parsed.y.toFixed(1)+'%'}}, legend:{labels:{color:getChartColors().tick, font:{size:11}, usePointStyle:true, pointStyle:'circle', padding:14}} },
-      scales:{ x:{...sd}, y:{...sd, title:{display:true,text:'Conversion %',color:getChartColors().tick,font:{size:10}}, min:0} }
-    }
-  });
-}
-
-// ═════════════ FUNNEL ═════════════
-function buildFunnel(){
-  const totalsOf = rows => ({
-    impressions: sum(rows,'impressions'),
-    link_clicks: sum(rows,'link_clicks'),
-    landing_page_views: sum(rows,'landing_page_views'),
-    add_to_carts: sum(rows,'add_to_carts'),
-    initiate_checkouts: sum(rows,'initiate_checkouts'),
-    purchases: sum(rows,'purchases'),
-  });
-  const totals = totalsOf(accountDaily);
-  const base90 = totalsOf(trailing90Daily);
-
-  const stepDefs = [
-    { label:'Impressions',        key:'impressions',         rateName:'' },
-    { label:'Link Clicks',        key:'link_clicks',         rateName:'CTR' },
-    { label:'Landing Page Views', key:'landing_page_views',  rateName:'LPV rate' },
-    { label:'Add to Cart',        key:'add_to_carts',        rateName:'ATC rate' },
-    { label:'Initiate Checkout',  key:'initiate_checkouts',  rateName:'IC rate' },
-    { label:'Purchase',           key:'purchases',           rateName:'Purchase rate' },
+function lineSeries(c, label, data, variant, axis) {
+  const styles = [
+    { color: c.ink, dash: [] }, { color: c.green, dash: [] }, { color: c.ink, dash: [6, 4] }, { color: c.green, dash: [6, 4] },
   ];
-  // Blue for current, grey for 90d baseline. Each stage uses a slight gradient deepening
-  // toward the bottom of the funnel for visual depth.
-  const palettes = {
-    current:  ['#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8', '#1e40af', '#1e3a8a'],
-    baseline: ['#94a3b8', '#7d8a9c', '#64748b', '#56657a', '#475569', '#334155'],
-  };
-  const dropLabels = ['didn\'t click', 'didn\'t land on page', 'didn\'t add to cart', 'abandoned cart', 'abandoned checkout'];
-  // Trapezoid edges (% from container left): [topL, topR, botL, botR]
-  // Tapers tuned to keep stage labels readable
-  const tapers = [
-    null,
-    [0,   100, 6,  94],
-    [6,   94,  14, 86],
-    [14,  86,  22, 78],
-    [22,  78,  30, 70],
-    [30,  70,  40, 60],
-  ];
-  const rateAt = (t, i) => {
-    const cur = t[stepDefs[i].key];
-    const prev = i > 0 ? t[stepDefs[i-1].key] : cur;
-    return prev > 0 ? (cur / prev) * 100 : 0;
-  };
-
-  const renderFunnel = (data, palette, title, sub) => {
-    // Rate per stage: CTR vs Imp; LPV vs Link Clicks; ATC/IC/Purchase all vs Landing Page Views
-    // (matches Shopify's session-based methodology — see chat for explainer).
-    const lc = data.link_clicks || 1;
-    const lpv = data.landing_page_views || 1;
-    const ratesByKey = {
-      link_clicks: data.impressions > 0 ? (data.link_clicks / data.impressions) * 100 : 0,
-      landing_page_views: (data.landing_page_views / lc) * 100,
-      add_to_carts: (data.add_to_carts / lpv) * 100,
-      initiate_checkouts: (data.initiate_checkouts / lpv) * 100,
-      purchases: (data.purchases / lpv) * 100, // LPV → Purchase CVR (site-wide post-click)
-    };
-    const lpvToPur = ratesByKey.purchases;
-    const lpvCvrCls = lpvToPur >= 4.5 ? 'positive' : lpvToPur >= 3.5 ? 'amber' : 'negative';
-    let html = `<div class="funnel-v3">
-      <div class="fv3-title">${title}</div>
-      ${sub ? `<div class="fv3-sub">${sub}</div>` : ''}`;
-    stepDefs.forEach((s, i) => {
-      const colour = palette[i];
-      let shape;
-      if (i === 0) {
-        shape = `<div class="fv3-shape fv3-ellipse" style="background:${colour}">
-                   <span class="fv3-name">${s.label}</span>
-                   <span class="fv3-num">${fmt(data[s.key],'num')}</span>
-                 </div>`;
-      } else if (i === stepDefs.length - 1) {
-        shape = `<div class="fv3-purchase">
-                   <div class="fv3-purchase-pill" style="background:${colour}">
-                     <span class="fv3-name">${s.label}</span>
-                     <span class="fv3-num">${fmt(data[s.key],'num')}</span>
-                   </div>
-                 </div>`;
-      } else {
-        const t = tapers[i];
-        const clip = `polygon(${t[0]}% 0%, ${t[1]}% 0%, ${t[3]}% 100%, ${t[2]}% 100%)`;
-        shape = `<div class="fv3-shape fv3-trapezoid" style="background:${colour};clip-path:${clip}">
-                   <span class="fv3-name">${s.label}</span>
-                   <span class="fv3-num">${fmt(data[s.key],'num')}</span>
-                 </div>`;
-      }
-      let rateLine = '';
-      if (i > 0) {
-        const r = ratesByKey[s.key];
-        if (s.key === 'purchases') {
-          rateLine = `<div class="fv3-rate fv3-cvr ${lpvCvrCls}">LPV &rarr; Purchase CVR <strong>${r.toFixed(2)}%</strong></div>`;
-        } else {
-          rateLine = `<div class="fv3-rate">${s.rateName} <strong>${r.toFixed(2)}%</strong></div>`;
-        }
-      }
-      html += `<div class="fv3-stage">${shape}${rateLine}</div>`;
-      if (i < stepDefs.length - 1 && data[s.key] > 0) {
-        const next = stepDefs[i+1];
-        const nextRate = (data[next.key] / data[s.key]) * 100;
-        const dropPct = 100 - nextRate;
-        html += `<div class="fv3-drop"><strong>${dropPct.toFixed(1)}%</strong> ${dropLabels[i]} <span class="fv3-arrow">▼</span></div>`;
-      }
-    });
-    html += '</div>';
-    return html;
-  };
-
-  // Window labels
-  const days = Math.round((new Date(currentDateTo) - new Date(currentDateFrom)) / 86400000) + 1;
-  const titleCurrent = 'Current Window';
-  const subCurrent = `${days}d &middot; ${currentDateFrom} &rarr; ${currentDateTo}`;
-  const titleBaseline = 'Trailing 90 days';
-  const subBaseline = 'rolling baseline';
-
-  let html = '<div class="funnel-pair">';
-  html += renderFunnel(totals, palettes.current, titleCurrent, subCurrent);
-  html += renderFunnel(base90, palettes.baseline, titleBaseline, subBaseline);
-  html += '</div>';
-
-  document.getElementById('funnelWrap').innerHTML = html;
+  const s = styles[variant % styles.length];
+  return { label, data, borderColor: s.color, borderDash: s.dash, borderWidth: 2, pointRadius: 0, pointHoverRadius: 4, pointBackgroundColor: s.color, tension: 0.3, yAxisID: axis || 'y' };
 }
-
-// ═════════════ CAMPAIGN TABLE ═════════════
-const campaignCols = [
-  { key:'campaign_name', label:'Campaign', fmt:v=>v||'—', left:true },
-  { key:'spend', label:'Spend', fmt:v=>fmt(v,'gbp0') },
-  { key:'purchase_value', label:'Revenue', fmt:v=>fmt(v,'gbp0') },
-  { key:'roas', label:'ROAS', fmt:v=>fmt(v,'x') },
-  { key:'purchases', label:'Purchases', fmt:v=>fmt(v,'num') },
-  { key:'cpa', label:'CPA', fmt:v=>fmt(v,'gbp') },
-  { key:'ads', label:'Ads', fmt:v=>fmt(v,'num') },
-  { key:'adsets', label:'Ad sets', fmt:v=>fmt(v,'num') },
-  { key:'impressions', label:'Impressions', fmt:v=>fmt(v,'num') },
-  { key:'cpm', label:'CPM', fmt:v=>fmt(v,'gbp') },
-  { key:'ctr', label:'CTR', fmt:v=>fmt(v,'pct') },
-  { key:'link_clicks', label:'Link Clicks', fmt:v=>fmt(v,'num') },
-  { key:'landing_page_views', label:'LPVs', fmt:v=>fmt(v,'num') },
-  { key:'add_to_carts', label:'ATCs', fmt:v=>fmt(v,'num') },
-  { key:'initiate_checkouts', label:'ICs', fmt:v=>fmt(v,'num') },
-];
-
-function aggregateCampaigns(){
-  const map = new Map();
-  for (const r of adDaily) {
-    const k = r.campaign_id;
-    const row = map.get(k) || { campaign_id:k, campaign_name:r.campaign_name, spend:0, impressions:0, clicks:0, link_clicks:0, landing_page_views:0, add_to_carts:0, initiate_checkouts:0, purchases:0, purchase_value:0, ads:new Set(), adsets:new Set() };
-    row.spend += Number(r.spend)||0;
-    row.impressions += Number(r.impressions)||0;
-    row.clicks += Number(r.clicks)||0;
-    row.link_clicks += Number(r.link_clicks)||0;
-    row.landing_page_views += Number(r.landing_page_views)||0;
-    row.add_to_carts += Number(r.add_to_carts)||0;
-    row.initiate_checkouts += Number(r.initiate_checkouts)||0;
-    row.purchases += Number(r.purchases)||0;
-    row.purchase_value += Number(r.purchase_value)||0;
-    row.ads.add(r.ad_id);
-    row.adsets.add(r.adset_id);
-    map.set(k, row);
-  }
-  return Array.from(map.values()).map(r => ({
-    ...r,
-    ads: r.ads.size,
-    adsets: r.adsets.size,
-    roas: r.spend>0 ? r.purchase_value/r.spend : 0,
-    cpa: r.purchases>0 ? r.spend/r.purchases : 0,
-    cpm: r.impressions>0 ? (r.spend/r.impressions)*1000 : 0,
-    ctr: r.impressions>0 ? (r.link_clicks/r.impressions)*100 : 0,
-  }));
+function buildRates() {
+  const mode = trendMode();
+  const buckets = bucketRows(S.accW, mode);
+  const c = chartBase();
+  const labels = buckets.map(b => bucketLabel(b.bucket, mode));
+  const wrap = document.getElementById('ratesChart').parentElement;
+  const room = wrap.clientWidth >= 420;
+  destroyChart('rates');
+  charts.rates = new Chart(document.getElementById('ratesChart').getContext('2d'), {
+    type: 'line',
+    data: { labels, datasets: [
+      lineSeries(c, 'Click to page', buckets.map(b => pct(b.landing_page_views, b.link_clicks)), 0),
+      lineSeries(c, 'Page to cart', buckets.map(b => pct(b.add_to_carts, b.landing_page_views)), 1),
+      lineSeries(c, 'Cart to checkout', buckets.map(b => pct(b.initiate_checkouts, b.add_to_carts)), 2),
+      lineSeries(c, 'Checkout to purchase', buckets.map(b => pct(b.purchases, b.initiate_checkouts)), 3),
+    ] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      layout: { padding: { right: room ? 150 : 8 } },
+      plugins: {
+        legend: { display: false },
+        lineEndLabels: { enabled: room, color: c.ink, fontFamily: c.font },
+        tooltip: tooltipCfg(c, { callbacks: { label: item => ` ${item.dataset.label}: ${fmtPct(item.parsed.y, 1)}` } }),
+      },
+      scales: { x: axisX(c), y: axisY(c, { ticks: { color: c.ink, font: { size: 11, weight: 500 }, callback: v => v + '%' } }) },
+    },
+  });
 }
-
-function buildCampaignTable(){
-  const rows = aggregateCampaigns();
-  document.getElementById('campaignNote').textContent = adDaily.length === 0 ? 'No ad-level data in this range.' : `${rows.length} campaign(s), ${adDaily.length.toLocaleString()} ad-day rows`;
-  const s = sortState.campaign;
-  rows.sort((a,b) => { const av=a[s.col], bv=b[s.col]; if (typeof av==='string') return s.dir*(av||'').localeCompare(bv||''); return s.dir*((av||0)-(bv||0)); });
-  const bestRoas = Math.max(...rows.map(r=>r.roas||0));
-  document.getElementById('campaignHead').innerHTML = campaignCols.map(c => {
-    const sorted = s.col === c.key;
-    const arrow = sorted ? (s.dir===1?'▲':'▼') : '▲';
-    return `<th data-col="${c.key}" class="${sorted?'sorted':''} ${c.left?'left':''}">${c.label}<span class="sort-arrow">${arrow}</span></th>`;
-  }).join('');
-  document.getElementById('campaignBody').innerHTML = rows.map(r => '<tr>' + campaignCols.map(c => {
-    const cls = (c.key==='roas' && r.roas===bestRoas && bestRoas>0) ? 'highlight-best' : '';
-    return `<td class="${cls} ${c.left?'left':''}">${c.fmt(r[c.key])}</td>`;
-  }).join('') + '</tr>').join('');
-  document.getElementById('campaignHead').querySelectorAll('th').forEach(th => {
-    th.addEventListener('click', () => {
-      const col = th.dataset.col;
-      if (sortState.campaign.col === col) sortState.campaign.dir *= -1;
-      else { sortState.campaign.col = col; sortState.campaign.dir = col==='campaign_name' ? 1 : -1; }
-      buildCampaignTable();
-    });
+function buildCpm() {
+  const mode = trendMode();
+  const buckets = bucketRows(S.accW, mode);
+  const c = chartBase();
+  const labels = buckets.map(b => bucketLabel(b.bucket, mode));
+  const wrap = document.getElementById('cpmChart').parentElement;
+  const room = wrap.clientWidth >= 420;
+  destroyChart('cpm');
+  charts.cpm = new Chart(document.getElementById('cpmChart').getContext('2d'), {
+    type: 'line',
+    data: { labels, datasets: [
+      lineSeries(c, 'CPM', buckets.map(b => b.impressions > 0 ? b.spend / b.impressions * 1000 : null), 0, 'y'),
+      lineSeries(c, 'Daily frequency', buckets.map(b => ratio(b.impressions, b.reach)), 3, 'y1'),
+    ] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      layout: { padding: { right: room ? 150 : 8 } },
+      plugins: {
+        legend: { display: false },
+        lineEndLabels: { enabled: room, color: c.ink, fontFamily: c.font },
+        tooltip: tooltipCfg(c, { callbacks: { label: item => item.dataset.yAxisID === 'y1' ? ` ${item.dataset.label}: ${fmtDec(item.parsed.y, 2)}` : ` ${item.dataset.label}: ${fmtGBP(item.parsed.y, 2)}` } }),
+      },
+      scales: {
+        x: axisX(c),
+        y: axisY(c, { position: 'left', ticks: { color: c.ink, font: { size: 11, weight: 500 }, callback: v => fmtGBP(v) } }),
+        y1: axisY(c, { position: 'right', grid: { display: false }, beginAtZero: false, ticks: { color: c.ink, font: { size: 11, weight: 500 }, callback: v => fmtDec(v, 2) } }),
+      },
+    },
   });
 }
 
-// ═════════════ AD TABLE ═════════════
-const adCols = [
-  { key:'ad_name', label:'Ad', fmt:v=>v||'—', left:true },
-  { key:'campaign_name', label:'Campaign', fmt:v=>v||'—', left:true },
-  { key:'format', label:'Format', fmt:v=>`<span class="pill ${v}">${v}</span>` },
-  { key:'days_active', label:'Days', fmt:v=>fmt(v,'num') },
-  { key:'spend', label:'Spend', fmt:v=>fmt(v,'gbp0') },
-  { key:'purchase_value', label:'Revenue', fmt:v=>fmt(v,'gbp0') },
-  { key:'roas', label:'ROAS', fmt:v=>fmt(v,'x') },
-  { key:'purchases', label:'Purchases', fmt:v=>fmt(v,'num') },
-  { key:'cpa', label:'CPA', fmt:v=>fmt(v,'gbp') },
-  { key:'impressions', label:'Impressions', fmt:v=>fmt(v,'num') },
-  { key:'cpm', label:'CPM', fmt:v=>fmt(v,'gbp') },
-  { key:'ctr', label:'CTR', fmt:v=>fmt(v,'pct') },
-  { key:'link_clicks', label:'Link Clicks', fmt:v=>fmt(v,'num') },
-  { key:'landing_page_views', label:'LPVs', fmt:v=>fmt(v,'num') },
-  { key:'add_to_carts', label:'ATCs', fmt:v=>fmt(v,'num') },
-  { key:'initiate_checkouts', label:'ICs', fmt:v=>fmt(v,'num') },
-];
-
-function aggregateAds(){
-  const map = new Map();
-  for (const r of adDaily) {
-    const k = r.ad_id;
-    const row = map.get(k) || { ad_id:k, ad_name:r.ad_name, campaign_name:r.campaign_name, adset_name:r.adset_name, days:new Set(), spend:0, impressions:0, clicks:0, link_clicks:0, landing_page_views:0, add_to_carts:0, initiate_checkouts:0, purchases:0, purchase_value:0 };
-    row.days.add(r.report_date);
-    row.spend += Number(r.spend)||0;
-    row.impressions += Number(r.impressions)||0;
-    row.clicks += Number(r.clicks)||0;
-    row.link_clicks += Number(r.link_clicks)||0;
-    row.landing_page_views += Number(r.landing_page_views)||0;
-    row.add_to_carts += Number(r.add_to_carts)||0;
-    row.initiate_checkouts += Number(r.initiate_checkouts)||0;
-    row.purchases += Number(r.purchases)||0;
-    row.purchase_value += Number(r.purchase_value)||0;
-    map.set(k, row);
-  }
-  return Array.from(map.values()).map(r => ({
-    ...r,
-    days_active: r.days.size,
-    format: inferFormat(r.ad_name),
-    roas: r.spend>0 ? r.purchase_value/r.spend : 0,
-    cpa: r.purchases>0 ? r.spend/r.purchases : 0,
-    cpm: r.impressions>0 ? (r.spend/r.impressions)*1000 : 0,
-    ctr: r.impressions>0 ? (r.link_clicks/r.impressions)*100 : 0,
-  }));
-}
-
-function buildAdTable(){
-  let rows = aggregateAds();
-  const windowDays = Math.round((new Date(currentDateTo) - new Date(currentDateFrom)) / 86400000) + 1;
-  if (adFilter === 'video') rows = rows.filter(r => r.format === 'video');
-  else if (adFilter === 'static') rows = rows.filter(r => r.format === 'static');
-  else if (adFilter === 'active') rows = rows.filter(r => r.spend > 0 && r.days_active >= Math.min(3, windowDays));
-  const s = sortState.ad;
-  rows.sort((a,b) => { const av=a[s.col], bv=b[s.col]; if (typeof av==='string') return s.dir*(av||'').localeCompare(bv||''); return s.dir*((av||0)-(bv||0)); });
-  const bestRoas = rows.length ? Math.max(...rows.map(r=>r.roas||0)) : 0;
-  document.getElementById('adHead').innerHTML = adCols.map(c => {
-    const sorted = s.col === c.key;
-    const arrow = sorted ? (s.dir===1?'▲':'▼') : '▲';
-    return `<th data-col="${c.key}" class="${sorted?'sorted':''} ${c.left?'left':''}">${c.label}<span class="sort-arrow">${arrow}</span></th>`;
-  }).join('');
-  document.getElementById('adBody').innerHTML = rows.slice(0, 200).map(r => '<tr>' + adCols.map(c => {
-    const cls = (c.key==='roas' && r.roas===bestRoas && bestRoas>0) ? 'highlight-best' : '';
-    return `<td class="${cls} ${c.left?'left':''}" title="${c.left?(r[c.key]||''):''}">${c.fmt(r[c.key])}</td>`;
-  }).join('') + '</tr>').join('');
-  document.getElementById('adHead').querySelectorAll('th').forEach(th => {
-    th.addEventListener('click', () => {
-      const col = th.dataset.col;
-      if (sortState.ad.col === col) sortState.ad.dir *= -1;
-      else { sortState.ad.col = col; sortState.ad.dir = (col==='ad_name'||col==='campaign_name'||col==='format') ? 1 : -1; }
-      buildAdTable();
-    });
-  });
-}
-
-// ═════════════ SCALING SIGNALS ═════════════
-function buildSignals(){
-  const grid = document.getElementById('signalsGrid');
-  const signals = [];
-  // ROAS 7d vs prior 7d
-  const trend = aggregateTrend(accountDaily, 'daily');
-  if (trend.length >= 14) {
-    const last7 = trend.slice(-7), prior7 = trend.slice(-14, -7);
-    const r7 = sum(last7,'spend') > 0 ? sum(last7,'purchase_value')/sum(last7,'spend') : 0;
-    const rp = sum(prior7,'spend') > 0 ? sum(prior7,'purchase_value')/sum(prior7,'spend') : 0;
-    const change = rp>0 ? ((r7-rp)/rp)*100 : 0;
-    signals.push({ title:'ROAS Trend (7d)', dot: change>=0?'green':'red', value:(change>=0?'+':'')+change.toFixed(1)+'%', valueClass: change>=0?'green':'red',
-      desc:`Last 7-day ROAS: ${r7.toFixed(2)}x vs prior 7-day: ${rp.toFixed(2)}x.`});
-  }
-  // CPM 7d vs prior 7d
-  if (trend.length >= 14) {
-    const last7 = trend.slice(-7), prior7 = trend.slice(-14, -7);
-    const c7 = sum(last7,'impressions')>0 ? (sum(last7,'spend')/sum(last7,'impressions'))*1000 : 0;
-    const cp = sum(prior7,'impressions')>0 ? (sum(prior7,'spend')/sum(prior7,'impressions'))*1000 : 0;
-    const change = cp>0 ? ((c7-cp)/cp)*100 : 0;
-    const risingBad = change > 10;
-    signals.push({ title:'CPM Trend (7d)', dot: risingBad?'red':'green', value:(change>=0?'+':'')+change.toFixed(1)+'%', valueClass: risingBad?'red':'green',
-      desc:`Last 7-day CPM £${c7.toFixed(2)} vs prior 7-day £${cp.toFixed(2)}.`});
-  }
-  // Best ad
-  const ads = aggregateAds().filter(a => a.spend > 100);
-  if (ads.length) {
-    const best = ads.reduce((a,b) => b.roas > a.roas ? b : a, ads[0]);
-    signals.push({ title:'Best Ad (spend > £100)', dot:'green', value:fmt(best.roas,'x'), valueClass:'green',
-      desc:`${best.ad_name || '—'} — £${(best.spend||0).toFixed(0)} spend, ${best.purchases} purchases, ${fmt(best.roas,'x')} ROAS over ${best.days_active} days.`});
-    const worst = ads.reduce((a,b) => b.roas < a.roas ? b : a, ads[0]);
-    signals.push({ title:'Worst Ad (spend > £100)', dot:'red', value:fmt(worst.roas,'x'), valueClass:'red',
-      desc:`${worst.ad_name || '—'} — £${(worst.spend||0).toFixed(0)} spend, ${worst.purchases} purchases, ${fmt(worst.roas,'x')} ROAS.`});
-  }
-  // Funnel bottleneck
-  const d = accountDaily;
-  const t = { imp:sum(d,'impressions'), lc:sum(d,'link_clicks'), lpv:sum(d,'landing_page_views'), atc:sum(d,'add_to_carts'), ic:sum(d,'initiate_checkouts'), pur:sum(d,'purchases') };
-  const steps = [
-    { from:'Impressions→Link Click', rate: t.imp>0 ? t.lc/t.imp : 0 },
-    { from:'Link Click→LPV', rate: t.lc>0 ? t.lpv/t.lc : 0 },
-    { from:'LPV→ATC', rate: t.lpv>0 ? t.atc/t.lpv : 0 },
-    { from:'ATC→IC', rate: t.atc>0 ? t.ic/t.atc : 0 },
-    { from:'IC→Purchase', rate: t.ic>0 ? t.pur/t.ic : 0 },
-  ];
-  const bottleneck = steps.reduce((w,s) => s.rate < w.rate ? s : w, steps[0]);
-  signals.push({ title:'Funnel Bottleneck', dot:'red', value: bottleneck.from, valueClass:'red',
-    desc:`This stage has the lowest conversion rate at ${(bottleneck.rate*100).toFixed(2)}%.`});
-  // Format mix
-  const adRows = aggregateAds();
-  const byFmt = { video:{spend:0,rev:0,pur:0}, static:{spend:0,rev:0,pur:0}, other:{spend:0,rev:0,pur:0} };
-  adRows.forEach(a => { const f = a.format; byFmt[f].spend += a.spend; byFmt[f].rev += a.purchase_value; byFmt[f].pur += a.purchases; });
-  const rVideo = byFmt.video.spend>0 ? byFmt.video.rev/byFmt.video.spend : 0;
-  const rStatic = byFmt.static.spend>0 ? byFmt.static.rev/byFmt.static.spend : 0;
-  signals.push({ title:'Format ROAS (Video vs Static)', dot: rVideo>rStatic?'green':'amber', value: (rVideo>rStatic?'Video wins':'Static wins'), valueClass: rVideo>rStatic?'green':'amber',
-    desc:`Video ${fmt(rVideo,'x')} (£${byFmt.video.spend.toFixed(0)} spend) vs Static ${fmt(rStatic,'x')} (£${byFmt.static.spend.toFixed(0)} spend).`});
-
-  grid.innerHTML = signals.map(s => `
-    <div class="signal-card">
-      <div class="signal-header"><div class="signal-dot ${s.dot}"></div><div class="signal-title">${s.title}</div></div>
-      <div class="signal-value ${s.valueClass}">${s.value}</div>
-      <div class="signal-desc">${s.desc}</div>
-    </div>`).join('');
-}
-
-// ═════════════ ORCHESTRATION ═════════════
-function rebuildAll(){
+// ========== ORCHESTRATION ==========
+function render() {
+  S = slices();
   buildKPIs();
-  buildSpendRevenueChart();
-  buildEfficiencyChart();
-  buildFunnelRatesChart();
+  buildCampaigns();
+  buildDrivers();
+  buildWatchlist();
   buildFunnel();
-  buildCampaignTable();
-  buildAdTable();
-  buildSignals();
+  buildShopify();
+  buildPacing();
+  renderCharts();
 }
-
-document.querySelectorAll('[data-trend]').forEach(b => b.addEventListener('click', () => {
-  document.querySelectorAll('[data-trend]').forEach(x => x.classList.remove('active'));
-  b.classList.add('active');
-  trendMode = b.dataset.trend;
-  buildSpendRevenueChart(); buildEfficiencyChart(); buildFunnelRatesChart();
-}));
-document.querySelectorAll('[data-adfilter]').forEach(b => b.addEventListener('click', () => {
-  document.querySelectorAll('[data-adfilter]').forEach(x => x.classList.remove('active'));
-  b.classList.add('active');
-  adFilter = b.dataset.adfilter;
-  buildAdTable();
-}));
-
-// Tooltip
-const tooltipEl = document.getElementById('tooltipPopup');
-document.addEventListener('mouseover', e => {
-  const tip = e.target.closest('.info-tip');
-  if (tip && tip.dataset.tip) {
-    const rect = tip.getBoundingClientRect();
-    tooltipEl.textContent = tip.dataset.tip;
-    tooltipEl.style.display = 'block';
-    let left = rect.left + rect.width/2 - tooltipEl.offsetWidth/2;
-    let top = rect.top - tooltipEl.offsetHeight - 6;
-    left = Math.max(8, Math.min(left, window.innerWidth - tooltipEl.offsetWidth - 8));
-    if (top < 4) top = rect.bottom + 6;
-    tooltipEl.style.left = left + 'px';
-    tooltipEl.style.top = top + 'px';
-  }
-});
-document.addEventListener('mouseout', e => { if (e.target.closest('.info-tip')) tooltipEl.style.display = 'none'; });
+function renderCharts() {
+  buildEfficiency();
+  buildDayOfWeek();
+  buildTrend();
+  buildRates();
+  buildCpm();
+}
 
 // Init
-applyPreset('mtd');
+(function init() {
+  const d = presetDates('mtd');
+  setWindow(d.from, d.to, d.label, 'mtd');
+  loadAndRender();
+})();
 </script>
 </body>
 </html>

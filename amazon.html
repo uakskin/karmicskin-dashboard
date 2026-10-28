@@ -508,7 +508,7 @@ body { padding-left: 208px; }
             <th data-col="key">Period <span class="sort-arrow">&#9660;</span></th>
             <th data-col="growthPct" title="(Current Revenue - Previous Revenue) / Previous Revenue x 100">Rev Growth % <span class="sort-arrow">&#9660;</span></th>
             <th data-col="revenue" title="Total ordered product sales">Revenue <span class="sort-arrow">&#9660;</span></th>
-            <th data-col="adSpend" title="Monthly ad spend spread evenly across days">Ad Spend <span class="sort-arrow">&#9660;</span></th>
+            <th data-col="adSpend" title="Daily spend from the Amazon Ads API (months before Dec 2025: monthly total spread evenly across days)">Ad Spend <span class="sort-arrow">&#9660;</span></th>
             <th data-col="roas" title="Revenue / Ad Spend">ROAS <span class="sort-arrow">&#9660;</span></th>
             <th data-col="orders" title="Total number of orders">Orders <span class="sort-arrow">&#9660;</span></th>
             <th data-col="aov" title="Revenue / Orders">AOV <span class="sort-arrow">&#9660;</span></th>
@@ -670,6 +670,7 @@ function toggleTheme() {
 
 let rawSalesData = [];
 let rawAdsMonthly = [];
+let rawAdsDaily = [];
 let dailyDataWithAds = [];
 let chart = null;
 let currentPeriod = 'weekly';
@@ -793,14 +794,25 @@ document.getElementById('dateTo').value = initDates.to;
 document.getElementById('dateFrom').dataset.current = initDates.from;
 document.getElementById('dateTo').dataset.current = initDates.to;
 
-// Spread monthly ad spend evenly across days
-function buildDailyWithAds(salesData, adsMonthly) {
+// Ad spend per day. Months covered by the daily Amazon Ads API table
+// (raw_amazon_ads_daily, Dec 2025 onwards) use real per-day spend; earlier
+// months fall back to the legacy monthly total spread evenly across the days.
+function buildDailyWithAds(salesData, adsMonthly, adsDaily) {
   // Build a map of month -> daily spend
   const monthlySpendMap = {};
   for (const row of adsMonthly) {
     // month could be "2025-01" or "2025-01-01"
     const monthKey = (row.month || '').substring(0, 7);
     monthlySpendMap[monthKey] = parseFloat(row.spend || 0);
+  }
+
+  // Sum campaign-level daily rows into one spend figure per date
+  const dailySpendMap = {};
+  const monthsWithDaily = new Set();
+  for (const row of adsDaily || []) {
+    if (!row.report_date) continue;
+    dailySpendMap[row.report_date] = (dailySpendMap[row.report_date] || 0) + parseFloat(row.spend || 0);
+    monthsWithDaily.add(row.report_date.substring(0, 7));
   }
 
   // Count days per month in sales data
@@ -813,9 +825,14 @@ function buildDailyWithAds(salesData, adsMonthly) {
 
   return salesData.map(row => {
     const mk = row.report_date.substring(0, 7);
-    const monthSpend = monthlySpendMap[mk] || 0;
-    const numDays = daysPerMonth[mk] || 1;
-    const dailySpend = monthSpend / numDays;
+    let dailySpend;
+    if (monthsWithDaily.has(mk)) {
+      dailySpend = dailySpendMap[row.report_date] || 0;
+    } else {
+      const monthSpend = monthlySpendMap[mk] || 0;
+      const numDays = daysPerMonth[mk] || 1;
+      dailySpend = monthSpend / numDays;
+    }
     return {
       report_date: row.report_date,
       revenue: parseFloat(row.ordered_product_sales || 0),
@@ -849,14 +866,16 @@ async function fetchAllPages(baseUrl) {
 }
 
 async function fetchAllData() {
-  const [salesData, adsData] = await Promise.all([
+  const [salesData, adsData, adsDailyData] = await Promise.all([
     fetchAllPages(`${SUPABASE_URL}/rest/v1/raw_amazon_sales_daily?order=report_date.asc&select=report_date,ordered_product_sales,units_ordered,total_order_items,page_views,sessions,buy_box_pct,unit_session_pct`),
-    fetchAllPages(`${SUPABASE_URL}/rest/v1/raw_amazon_ads_monthly?order=month.asc&select=month,spend`)
+    fetchAllPages(`${SUPABASE_URL}/rest/v1/raw_amazon_ads_monthly?order=month.asc&select=month,spend`),
+    fetchAllPages(`${SUPABASE_URL}/rest/v1/raw_amazon_ads_daily?order=report_date.asc&select=report_date,spend`)
   ]);
 
   rawSalesData = salesData;
   rawAdsMonthly = adsData;
-  dailyDataWithAds = buildDailyWithAds(rawSalesData, rawAdsMonthly);
+  rawAdsDaily = adsDailyData;
+  dailyDataWithAds = buildDailyWithAds(rawSalesData, rawAdsMonthly, rawAdsDaily);
 
   // Set last updated
   if (dailyDataWithAds.length > 0) {

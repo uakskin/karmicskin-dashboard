@@ -533,11 +533,11 @@ body { padding-left: 208px; }
     <div class="analytics-chart-wrap"><canvas id="cvrChart"></canvas></div>
   </div>
   <div class="analytics-card">
-    <div class="analytics-card-header"><h3>ASIN Performance</h3><span style="font-size:11px;color:var(--text-muted)">Coming soon -- SP API pending</span></div>
+    <div class="analytics-card-header"><h3>ASIN Performance</h3><span id="asinNote" style="font-size:11px;color:var(--text-muted)"></span></div>
     <div class="analytics-table-scroll">
       <table class="analytics-table">
         <thead><tr><th>Product</th><th>Revenue</th><th>Units</th><th>Sessions</th><th>CVR %</th><th>% of Total</th></tr></thead>
-        <tbody id="asinBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:40px">ASIN-level data will be available once the SP API identity verification is complete.</td></tr></tbody>
+        <tbody id="asinBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:40px">Loading ASIN data...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -671,6 +671,8 @@ function toggleTheme() {
 let rawSalesData = [];
 let rawAdsMonthly = [];
 let rawAdsDaily = [];
+let rawAsinDaily = [];   // raw_amazon_sales_by_asin_daily rows (one per day per ASIN)
+let asinNameMap = {};    // asin -> short product name from amazon_asin_catalog
 let dailyDataWithAds = [];
 let chart = null;
 let currentPeriod = 'weekly';
@@ -866,15 +868,20 @@ async function fetchAllPages(baseUrl) {
 }
 
 async function fetchAllData() {
-  const [salesData, adsData, adsDailyData] = await Promise.all([
+  const [salesData, adsData, adsDailyData, asinData, asinCatalog] = await Promise.all([
     fetchAllPages(`${SUPABASE_URL}/rest/v1/raw_amazon_sales_daily?order=report_date.asc&select=report_date,ordered_product_sales,units_ordered,total_order_items,page_views,sessions,buy_box_pct,unit_session_pct`),
     fetchAllPages(`${SUPABASE_URL}/rest/v1/raw_amazon_ads_monthly?order=month.asc&select=month,spend`),
-    fetchAllPages(`${SUPABASE_URL}/rest/v1/raw_amazon_ads_daily?order=report_date.asc&select=report_date,spend`)
+    fetchAllPages(`${SUPABASE_URL}/rest/v1/raw_amazon_ads_daily?order=report_date.asc&select=report_date,spend`),
+    fetchAllPages(`${SUPABASE_URL}/rest/v1/raw_amazon_sales_by_asin_daily?order=report_date.asc&select=report_date,child_asin,sku,ordered_product_sales,units_ordered,sessions,page_views`),
+    fetchAllPages(`${SUPABASE_URL}/rest/v1/amazon_asin_catalog?select=asin,product_name`)
   ]);
 
   rawSalesData = salesData;
   rawAdsMonthly = adsData;
   rawAdsDaily = adsDailyData;
+  rawAsinDaily = asinData;
+  asinNameMap = {};
+  for (const row of asinCatalog) asinNameMap[row.asin] = row.product_name;
   dailyDataWithAds = buildDailyWithAds(rawSalesData, rawAdsMonthly, rawAdsDaily);
 
   // Set last updated
@@ -1032,6 +1039,65 @@ function updateDashboardWithData(filtered) {
   renderDayOfWeek();
   renderWeekdayWeekend();
   renderFunnel();
+  renderAsinTable();
+}
+
+// ========== ASIN PERFORMANCE ==========
+// Per-product revenue, units, sessions and conversion for the selected date range,
+// from raw_amazon_sales_by_asin_daily (SP-API Sales and Traffic report, one report per
+// day). Names come from amazon_asin_catalog; unknown ASINs fall back to SKU, then ASIN.
+function renderAsinTable() {
+  const body = document.getElementById('asinBody');
+  const note = document.getElementById('asinNote');
+  if (!body) return;
+  const from = document.getElementById('dateFrom').dataset.current || document.getElementById('dateFrom').value;
+  const to = document.getElementById('dateTo').dataset.current || document.getElementById('dateTo').value;
+
+  if (!rawAsinDaily.length) {
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:40px">No ASIN data loaded yet.</td></tr>';
+    if (note) note.textContent = '';
+    return;
+  }
+  const firstAsinDate = rawAsinDaily[0].report_date;
+  const lastAsinDate = rawAsinDaily[rawAsinDaily.length - 1].report_date;
+
+  const byAsin = {};
+  for (const row of rawAsinDaily) {
+    if (row.report_date < from || row.report_date > to) continue;
+    const a = byAsin[row.child_asin] || (byAsin[row.child_asin] = { asin: row.child_asin, sku: row.sku, revenue: 0, units: 0, sessions: 0, pageViews: 0 });
+    a.revenue += parseFloat(row.ordered_product_sales || 0);
+    a.units += parseInt(row.units_ordered || 0);
+    a.sessions += parseInt(row.sessions || 0);
+    a.pageViews += parseInt(row.page_views || 0);
+  }
+  const rows = Object.values(byAsin).sort((x, y) => y.revenue - x.revenue);
+  const totalRevenue = rows.reduce((sum, r) => sum + r.revenue, 0);
+
+  if (note) {
+    const fmt = d => new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    note.textContent = from < firstAsinDate
+      ? `ASIN data from ${fmt(firstAsinDate)} to ${fmt(lastAsinDate)}`
+      : `Data to ${fmt(lastAsinDate)}`;
+  }
+  if (!rows.length) {
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:40px">No ASIN data for this date range.</td></tr>';
+    return;
+  }
+  const bestCvr = Math.max(...rows.map(r => r.sessions > 0 ? r.units / r.sessions : 0));
+  body.innerHTML = rows.map((r, i) => {
+    const name = asinNameMap[r.asin] || r.sku || r.asin;
+    const cvr = r.sessions > 0 ? r.units / r.sessions * 100 : null;
+    const share = totalRevenue > 0 ? r.revenue / totalRevenue * 100 : 0;
+    const cvrClass = cvr !== null && r.sessions > 0 && r.units / r.sessions === bestCvr && bestCvr > 0 ? ' class="highlight-best"' : '';
+    return `<tr>
+      <td title="${r.asin}">${name}</td>
+      <td${i === 0 ? ' class="highlight-best"' : ''}>\u00A3${Math.round(r.revenue).toLocaleString()}</td>
+      <td>${r.units.toLocaleString()}</td>
+      <td>${r.sessions.toLocaleString()}</td>
+      <td${cvrClass}>${cvr === null ? '--' : cvr.toFixed(1) + '%'}</td>
+      <td>${share.toFixed(1)}%</td>
+    </tr>`;
+  }).join('');
 }
 
 function updateDashboard() {

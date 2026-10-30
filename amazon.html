@@ -421,13 +421,13 @@ body { padding-left: 208px; }
 
 <div class="kpi-strip">
   <div class="kpi-card"><div class="label">Revenue <span class="info-tip" data-tip="Total ordered product sales from Amazon">ⓘ</span></div><div class="value" id="kpi-revenue">--</div></div>
-  <div class="kpi-card"><div class="label">Ad Spend <span class="info-tip" data-tip="Amazon Sponsored Products ad spend">ⓘ</span></div><div class="value" id="kpi-adspend">--</div></div>
-  <div class="kpi-card"><div class="label">ROAS <span class="info-tip" data-tip="Revenue ÷ Ad Spend">ⓘ</span></div><div class="value" id="kpi-roas">--</div></div>
+  <div class="kpi-card"><div class="label">Ad Spend <span class="info-tip" data-tip="All Amazon ad spend: Sponsored Products, Sponsored Brands and Sponsored Display">ⓘ</span></div><div class="value" id="kpi-adspend">--</div></div>
+  <div class="kpi-card"><div class="label">ROAS <span class="info-tip" data-tip="Revenue ÷ Ad Spend, counting only days whose ad spend has loaded">ⓘ</span></div><div class="value" id="kpi-roas">--</div></div>
   <div class="kpi-card"><div class="label">Orders <span class="info-tip" data-tip="Total Amazon orders placed in period">ⓘ</span></div><div class="value" id="kpi-orders">--</div></div>
   <div class="kpi-card"><div class="label">Units <span class="info-tip" data-tip="Total units ordered">ⓘ</span></div><div class="value" id="kpi-units">--</div></div>
   <div class="kpi-card"><div class="label">Sessions <span class="info-tip" data-tip="Amazon listing sessions — unique visitor sessions">ⓘ</span></div><div class="value" id="kpi-sessions">--</div></div>
   <div class="kpi-card"><div class="label">AOV <span class="info-tip" data-tip="Revenue ÷ Orders">ⓘ</span></div><div class="value" id="kpi-aov">--</div></div>
-  <div class="kpi-card"><div class="label">Conversion Rate <span class="info-tip" data-tip="Units Ordered ÷ Sessions × 100 (Unit Session %)">ⓘ</span></div><div class="value" id="kpi-convrate">--</div></div>
+  <div class="kpi-card"><div class="label">Conversion Rate <span class="info-tip" data-tip="Units Ordered ÷ Sessions × 100 (Unit Session %), counting only days whose sessions have loaded (Amazon publishes traffic 1–2 days late)">ⓘ</span></div><div class="value" id="kpi-convrate">--</div></div>
   <div class="kpi-card"><div class="label">Page Views <span class="info-tip" data-tip="Total Amazon listing page views">ⓘ</span></div><div class="value" id="kpi-pageviews">--</div></div>
 </div>
 
@@ -508,7 +508,7 @@ body { padding-left: 208px; }
             <th data-col="key">Period <span class="sort-arrow">&#9660;</span></th>
             <th data-col="growthPct" title="(Current Revenue - Previous Revenue) / Previous Revenue x 100">Rev Growth % <span class="sort-arrow">&#9660;</span></th>
             <th data-col="revenue" title="Total ordered product sales">Revenue <span class="sort-arrow">&#9660;</span></th>
-            <th data-col="adSpend" title="Daily spend from the Amazon Ads API (months before Dec 2025: monthly total spread evenly across days)">Ad Spend <span class="sort-arrow">&#9660;</span></th>
+            <th data-col="adSpend" title="Daily spend from the Amazon Ads API: Sponsored Products, Brands and Display (months before Dec 2025: monthly total spread evenly across days)">Ad Spend <span class="sort-arrow">&#9660;</span></th>
             <th data-col="roas" title="Revenue / Ad Spend">ROAS <span class="sort-arrow">&#9660;</span></th>
             <th data-col="orders" title="Total number of orders">Orders <span class="sort-arrow">&#9660;</span></th>
             <th data-col="aov" title="Revenue / Orders">AOV <span class="sort-arrow">&#9660;</span></th>
@@ -673,10 +673,32 @@ let rawAdsMonthly = [];
 let rawAdsDaily = [];
 let rawAsinDaily = [];   // raw_amazon_sales_by_asin_daily rows (one per day per ASIN)
 let asinNameMap = {};    // asin -> short product name from amazon_asin_catalog
+let adsThrough = null;     // latest report_date in raw_amazon_ads_daily
+let trafficThrough = null; // latest report_date whose sessions have landed
 let dailyDataWithAds = [];
 let chart = null;
 let currentPeriod = 'weekly';
 let activePreset = 'mtd';
+
+// ========== UK TIME ==========
+// Every date and time on this page is UK time (GMT in winter, BST in summer),
+// whatever time zone the viewer's computer is set to.
+const UK_TZ = 'Europe/London';
+// Current UK wall-clock time as a Date whose local getters (getDate, getHours...) read UK time.
+function ukNow() {
+  const p = {};
+  for (const part of new Intl.DateTimeFormat('en-GB', { timeZone: UK_TZ, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).formatToParts(new Date())) p[part.type] = part.value;
+  return new Date(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+}
+// A stored timestamp in UK time with its zone, e.g. "30 Oct 2026, 14:07 GMT".
+// The zone is worked out here (browsers disagree: some print "GMT+0" or "GMT+1").
+function fmtUkDateTime(ts, opts = { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) {
+  const d = new Date(ts);
+  const p = {};
+  for (const part of new Intl.DateTimeFormat('en-GB', { timeZone: UK_TZ, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).formatToParts(d)) p[part.type] = part.value;
+  const bst = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute) !== Math.floor(d.getTime() / 60000) * 60000;
+  return d.toLocaleString('en-GB', { ...opts, timeZone: UK_TZ, hourCycle: 'h23' }) + (bst ? ' BST' : ' GMT');
+}
 
 // DATE HELPERS
 function fmtDate(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
@@ -686,7 +708,7 @@ function fmtDisplay(dateStr) {
 }
 
 function getPresetDates(preset) {
-  const now = new Date();
+  const now = ukNow();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
 
@@ -825,6 +847,12 @@ function buildDailyWithAds(salesData, adsMonthly, adsDaily) {
     daysPerMonth[mk]++;
   }
 
+  // Sales arrive every 30 minutes, ad spend and traffic later (ads hourly or nightly,
+  // sessions 1-2 days behind). ROAS and conversion only count the days whose ad spend /
+  // traffic has landed, so a day with sales but no spend or sessions yet can't inflate them.
+  adsThrough = Object.keys(dailySpendMap).sort().pop() || null;
+  trafficThrough = salesData.filter(r => parseInt(r.sessions || 0) > 0).map(r => r.report_date).sort().pop() || null;
+
   return salesData.map(row => {
     const mk = row.report_date.substring(0, 7);
     let dailySpend;
@@ -835,16 +863,22 @@ function buildDailyWithAds(salesData, adsMonthly, adsDaily) {
       const numDays = daysPerMonth[mk] || 1;
       dailySpend = monthSpend / numDays;
     }
+    const revenue = parseFloat(row.ordered_product_sales || 0);
+    const units = parseInt(row.units_ordered || 0);
+    const adsIn = !adsThrough || !monthsWithDaily.has(mk) || row.report_date <= adsThrough;
+    const trafficIn = !!trafficThrough && row.report_date <= trafficThrough;
     return {
       report_date: row.report_date,
-      revenue: parseFloat(row.ordered_product_sales || 0),
-      units: parseInt(row.units_ordered || 0),
+      revenue,
+      units,
       orders: parseInt(row.total_order_items || 0),
       pageViews: parseInt(row.page_views || 0),
       sessions: parseInt(row.sessions || 0),
       buyBoxPct: parseFloat(row.buy_box_pct || 0),
       convRate: parseFloat(row.unit_session_pct || 0),
       adSpend: dailySpend,
+      roasRevenue: adsIn ? revenue : 0,   // revenue on days with ad spend loaded (ROAS numerator)
+      cvrUnits: trafficIn ? units : 0,    // units on days with sessions loaded (conversion numerator)
     };
   });
 }
@@ -867,11 +901,37 @@ async function fetchAllPages(baseUrl) {
   return all;
 }
 
+// Header freshness line: when the data last updated (UK time) and how far each feed reaches.
+// Sales come from Amazon's Orders API every 30 minutes (today stays provisional until the
+// nightly sales report); ad spend and traffic (sessions, page views) land later.
+function renderFreshness() {
+  const el = document.getElementById('lastUpdated');
+  const lastStamp = (rows, col) => rows.reduce((max, r) => Math.max(max, r[col] ? Date.parse(r[col]) : 0), 0);
+  const salesUpdated = lastStamp(rawSalesData, 'updated_at');
+  if (!salesUpdated) { el.textContent = ''; return; }
+  const salesThrough = rawSalesData[rawSalesData.length - 1].report_date;
+  const shortDay = iso => new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  const today = fmtDate(ukNow());
+
+  const parts = [`Updated ${fmtUkDateTime(salesUpdated, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`];
+  if (adsThrough && adsThrough < salesThrough) parts.push(`ad spend to ${shortDay(adsThrough)}`);
+  el.textContent = parts.join(' · ');
+
+  const adsUpdated = lastStamp(rawAdsDaily, 'loaded_at');
+  el.title = [
+    `Sales: to ${fmtDisplay(salesThrough)}${salesThrough === today ? ' (today so far, provisional until Amazon’s nightly report)' : ''}, updated ${fmtUkDateTime(salesUpdated)}.`,
+    adsThrough ? `Ad spend (Sponsored Products, Brands and Display): to ${fmtDisplay(adsThrough)}, updated ${fmtUkDateTime(adsUpdated)}.` : 'Ad spend: no daily data.',
+    trafficThrough ? `Sessions and page views: to ${fmtDisplay(trafficThrough)} (Amazon publishes traffic 1–2 days late).` : '',
+    'ROAS only counts sales on days whose ad spend has loaded; conversion only counts units on days whose sessions have loaded.',
+    'All times are UK time.',
+  ].filter(Boolean).join('\n');
+}
+
 async function fetchAllData() {
   const [salesData, adsData, adsDailyData, asinData, asinCatalog] = await Promise.all([
-    fetchAllPages(`${SUPABASE_URL}/rest/v1/raw_amazon_sales_daily?order=report_date.asc&select=report_date,ordered_product_sales,units_ordered,total_order_items,page_views,sessions,buy_box_pct,unit_session_pct`),
+    fetchAllPages(`${SUPABASE_URL}/rest/v1/raw_amazon_sales_daily?order=report_date.asc&select=report_date,ordered_product_sales,units_ordered,total_order_items,page_views,sessions,buy_box_pct,unit_session_pct,updated_at`),
     fetchAllPages(`${SUPABASE_URL}/rest/v1/raw_amazon_ads_monthly?order=month.asc&select=month,spend`),
-    fetchAllPages(`${SUPABASE_URL}/rest/v1/raw_amazon_ads_daily?order=report_date.asc&select=report_date,spend`),
+    fetchAllPages(`${SUPABASE_URL}/rest/v1/raw_amazon_ads_daily?order=report_date.asc&select=report_date,spend,loaded_at`),
     fetchAllPages(`${SUPABASE_URL}/rest/v1/raw_amazon_sales_by_asin_daily?order=report_date.asc&select=report_date,child_asin,sku,ordered_product_sales,units_ordered,sessions,page_views`),
     fetchAllPages(`${SUPABASE_URL}/rest/v1/amazon_asin_catalog?select=asin,product_name`)
   ]);
@@ -884,15 +944,7 @@ async function fetchAllData() {
   for (const row of asinCatalog) asinNameMap[row.asin] = row.product_name;
   dailyDataWithAds = buildDailyWithAds(rawSalesData, rawAdsMonthly, rawAdsDaily);
 
-  // Set last updated
-  if (dailyDataWithAds.length > 0) {
-    const lastDate = dailyDataWithAds[dailyDataWithAds.length - 1].report_date;
-    const d = new Date(lastDate + 'T00:00:00');
-    d.setDate(d.getDate() + 1); // Data through end of lastDate = start of next day
-    const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-    document.getElementById('lastUpdated').textContent = `Data refreshed until: ${dateStr} (00:00)`;
-  }
-
+  renderFreshness();
   applyFilters();
   renderTable();
 }
@@ -911,43 +963,45 @@ function aggregateData(data, period) {
     let key;
     if (period === 'daily') key = row.report_date;
     else if (period === 'weekly') {
-      const day = d.getDay();
-      const sun = new Date(d); sun.setDate(d.getDate() - day);
-      key = fmtDate(sun);
+      // Weeks run Monday to Sunday
+      const mon = new Date(d); mon.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+      key = fmtDate(mon);
     } else if (period === 'monthly') key = row.report_date.substring(0, 7) + '-01';
-    if (!buckets[key]) buckets[key] = { date: key, revenue: 0, adSpend: 0, orders: 0, units: 0, sessions: 0, pageViews: 0, days: 0, convRateSum: 0 };
+    if (!buckets[key]) buckets[key] = { date: key, revenue: 0, adSpend: 0, roasRevenue: 0, orders: 0, units: 0, cvrUnits: 0, sessions: 0, pageViews: 0, days: 0, convRateSum: 0 };
     const b = buckets[key];
     b.revenue += row.revenue;
     b.adSpend += row.adSpend;
+    b.roasRevenue += row.roasRevenue;
     b.orders += row.orders;
     b.units += row.units;
+    b.cvrUnits += row.cvrUnits;
     b.sessions += row.sessions;
     b.pageViews += row.pageViews;
     b.days++;
   }
   return Object.values(buckets).map(b => ({
-    date: b.date, revenue: b.revenue, adSpend: b.adSpend,
-    roas: b.adSpend > 0 ? b.revenue / b.adSpend : 0,
-    orders: b.orders, units: b.units, sessions: b.sessions, pageViews: b.pageViews,
-    convRate: b.sessions > 0 ? (b.units / b.sessions) * 100 : 0,
+    date: b.date, revenue: b.revenue, adSpend: b.adSpend, roasRevenue: b.roasRevenue,
+    roas: b.adSpend > 0 ? b.roasRevenue / b.adSpend : 0,
+    orders: b.orders, units: b.units, cvrUnits: b.cvrUnits, sessions: b.sessions, pageViews: b.pageViews,
+    convRate: b.sessions > 0 ? (b.cvrUnits / b.sessions) * 100 : 0,
   })).sort((a, b) => a.date.localeCompare(b.date));
 }
 
 function updateKPIs(data) {
   const t = data.reduce((a, d) => {
-    a.revenue += d.revenue; a.adSpend += d.adSpend; a.orders += d.orders;
-    a.units += d.units; a.sessions += d.sessions; a.pageViews += d.pageViews;
+    a.revenue += d.revenue; a.adSpend += d.adSpend; a.roasRevenue += d.roasRevenue; a.orders += d.orders;
+    a.units += d.units; a.cvrUnits += d.cvrUnits; a.sessions += d.sessions; a.pageViews += d.pageViews;
     return a;
-  }, { revenue: 0, adSpend: 0, orders: 0, units: 0, sessions: 0, pageViews: 0 });
+  }, { revenue: 0, adSpend: 0, roasRevenue: 0, orders: 0, units: 0, cvrUnits: 0, sessions: 0, pageViews: 0 });
 
   document.getElementById('kpi-revenue').textContent = '\u00A3' + Math.round(t.revenue).toLocaleString();
   document.getElementById('kpi-adspend').textContent = '\u00A3' + Math.round(t.adSpend).toLocaleString();
-  document.getElementById('kpi-roas').textContent = t.adSpend > 0 ? (t.revenue / t.adSpend).toFixed(2) + 'x' : '--';
+  document.getElementById('kpi-roas').textContent = t.adSpend > 0 ? (t.roasRevenue / t.adSpend).toFixed(2) + 'x' : '--';
   document.getElementById('kpi-orders').textContent = t.orders.toLocaleString();
   document.getElementById('kpi-aov').textContent = t.orders > 0 ? '\u00A3' + (t.revenue / t.orders).toFixed(2) : '--';
   document.getElementById('kpi-units').textContent = t.units.toLocaleString();
   document.getElementById('kpi-sessions').textContent = t.sessions.toLocaleString();
-  document.getElementById('kpi-convrate').textContent = t.sessions > 0 ? ((t.units / t.sessions) * 100).toFixed(2) + '%' : '--';
+  document.getElementById('kpi-convrate').textContent = t.sessions > 0 ? ((t.cvrUnits / t.sessions) * 100).toFixed(2) + '%' : '--';
   document.getElementById('kpi-pageviews').textContent = t.pageViews.toLocaleString();
 }
 
@@ -1064,9 +1118,10 @@ function renderAsinTable() {
   const byAsin = {};
   for (const row of rawAsinDaily) {
     if (row.report_date < from || row.report_date > to) continue;
-    const a = byAsin[row.child_asin] || (byAsin[row.child_asin] = { asin: row.child_asin, sku: row.sku, revenue: 0, units: 0, sessions: 0, pageViews: 0 });
+    const a = byAsin[row.child_asin] || (byAsin[row.child_asin] = { asin: row.child_asin, sku: row.sku, revenue: 0, units: 0, cvrUnits: 0, sessions: 0, pageViews: 0 });
     a.revenue += parseFloat(row.ordered_product_sales || 0);
     a.units += parseInt(row.units_ordered || 0);
+    if (trafficThrough && row.report_date <= trafficThrough) a.cvrUnits += parseInt(row.units_ordered || 0);
     a.sessions += parseInt(row.sessions || 0);
     a.pageViews += parseInt(row.page_views || 0);
   }
@@ -1083,12 +1138,12 @@ function renderAsinTable() {
     body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:40px">No ASIN data for this date range.</td></tr>';
     return;
   }
-  const bestCvr = Math.max(...rows.map(r => r.sessions > 0 ? r.units / r.sessions : 0));
+  const bestCvr = Math.max(...rows.map(r => r.sessions > 0 ? r.cvrUnits / r.sessions : 0));
   body.innerHTML = rows.map((r, i) => {
     const name = asinNameMap[r.asin] || r.sku || r.asin;
-    const cvr = r.sessions > 0 ? r.units / r.sessions * 100 : null;
+    const cvr = r.sessions > 0 ? r.cvrUnits / r.sessions * 100 : null;
     const share = totalRevenue > 0 ? r.revenue / totalRevenue * 100 : 0;
-    const cvrClass = cvr !== null && r.sessions > 0 && r.units / r.sessions === bestCvr && bestCvr > 0 ? ' class="highlight-best"' : '';
+    const cvrClass = cvr !== null && r.sessions > 0 && r.cvrUnits / r.sessions === bestCvr && bestCvr > 0 ? ' class="highlight-best"' : '';
     return `<tr>
       <td title="${r.asin}">${name}</td>
       <td${i === 0 ? ' class="highlight-best"' : ''}>\u00A3${Math.round(r.revenue).toLocaleString()}</td>
@@ -1132,18 +1187,20 @@ function aggregateTableData(period) {
     let key;
     if (period === 'daily') key = row.report_date;
     else if (period === 'weekly') {
-      const day = d.getDay();
-      const sun = new Date(d); sun.setDate(d.getDate() - day);
-      key = fmtDate(sun);
+      // Weeks run Monday to Sunday
+      const mon = new Date(d); mon.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+      key = fmtDate(mon);
     } else {
       key = row.report_date.substring(0, 7);
     }
-    if (!buckets[key]) buckets[key] = { revenue: 0, adSpend: 0, orders: 0, units: 0, sessions: 0, pageViews: 0 };
+    if (!buckets[key]) buckets[key] = { revenue: 0, adSpend: 0, roasRevenue: 0, orders: 0, units: 0, cvrUnits: 0, sessions: 0, pageViews: 0 };
     const b = buckets[key];
     b.revenue += row.revenue;
     b.adSpend += row.adSpend;
+    b.roasRevenue += row.roasRevenue;
     b.orders += row.orders;
     b.units += row.units;
+    b.cvrUnits += row.cvrUnits;
     b.sessions += row.sessions;
     b.pageViews += row.pageViews;
   }
@@ -1171,8 +1228,8 @@ function buildTableRows() {
 
   tableRows = chronoKeys.map(k => {
     const d = buckets[k];
-    const roas = d.adSpend > 0 ? d.revenue / d.adSpend : 0;
-    const convRate = d.sessions > 0 ? (d.units / d.sessions) * 100 : 0;
+    const roas = d.adSpend > 0 ? d.roasRevenue / d.adSpend : 0;
+    const convRate = d.sessions > 0 ? (d.cvrUnits / d.sessions) * 100 : 0;
     let label;
     if (tablePeriod === 'monthly') {
       label = monthNames[parseInt(k.substring(5, 7)) - 1] + ' ' + String(parseInt(k.substring(0, 4))).slice(2);
@@ -1305,19 +1362,20 @@ function renderCvrChart() {
 // --- Day-of-Week Performance ---
 function renderDayOfWeek() {
   const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const buckets = Array.from({length: 7}, () => ({ revenue: 0, orders: 0, sessions: 0, units: 0, pageViews: 0, days: 0 }));
+  const buckets = Array.from({length: 7}, () => ({ revenue: 0, orders: 0, sessions: 0, units: 0, cvrUnits: 0, pageViews: 0, days: 0 }));
   for (const row of currentFilteredData) {
     const dow = new Date(row.report_date + 'T00:00:00').getDay();
     buckets[dow].revenue += row.revenue;
     buckets[dow].orders += row.orders;
     buckets[dow].sessions += row.sessions;
     buckets[dow].units += row.units;
+    buckets[dow].cvrUnits += row.cvrUnits;
     buckets[dow].pageViews += row.pageViews;
     buckets[dow].days++;
   }
   const rows = buckets.map((b, i) => ({
     day: dayNames[i], avgRev: b.days ? b.revenue / b.days : 0, avgOrd: b.days ? b.orders / b.days : 0,
-    avgSess: b.days ? b.sessions / b.days : 0, avgCvr: b.sessions > 0 ? (b.units / b.sessions) * 100 : 0,
+    avgSess: b.days ? b.sessions / b.days : 0, avgCvr: b.sessions > 0 ? (b.cvrUnits / b.sessions) * 100 : 0,
     avgPv: b.days ? b.pageViews / b.days : 0,
   }));
   let bestRev = Math.max(...rows.map(r => r.avgRev));
@@ -1338,20 +1396,20 @@ function renderDayOfWeek() {
 
 // --- Weekday vs Weekend ---
 function renderWeekdayWeekend() {
-  const wd = { revenue: 0, orders: 0, sessions: 0, units: 0, pageViews: 0, days: 0 };
-  const we = { revenue: 0, orders: 0, sessions: 0, units: 0, pageViews: 0, days: 0 };
+  const wd = { revenue: 0, orders: 0, sessions: 0, units: 0, cvrUnits: 0, pageViews: 0, days: 0 };
+  const we = { revenue: 0, orders: 0, sessions: 0, units: 0, cvrUnits: 0, pageViews: 0, days: 0 };
   for (const row of currentFilteredData) {
     const dow = new Date(row.report_date + 'T00:00:00').getDay();
     const target = (dow === 0 || dow === 6) ? we : wd;
     target.revenue += row.revenue; target.orders += row.orders; target.sessions += row.sessions;
-    target.units += row.units; target.pageViews += row.pageViews; target.days++;
+    target.units += row.units; target.cvrUnits += row.cvrUnits; target.pageViews += row.pageViews; target.days++;
   }
   function avg(bucket) {
     return {
       rev: bucket.days ? bucket.revenue / bucket.days : 0,
       ord: bucket.days ? bucket.orders / bucket.days : 0,
       sess: bucket.days ? bucket.sessions / bucket.days : 0,
-      cvr: bucket.sessions > 0 ? (bucket.units / bucket.sessions) * 100 : 0,
+      cvr: bucket.sessions > 0 ? (bucket.cvrUnits / bucket.sessions) * 100 : 0,
       pv: bucket.days ? bucket.pageViews / bucket.days : 0,
     };
   }
@@ -1468,7 +1526,8 @@ document.querySelectorAll('#yoyPills .period-pill').forEach(btn => {
 // --- Efficiency Metrics ---
 let effDays = 30;
 function renderEfficiency() {
-  const sorted = [...dailyDataWithAds].sort((a, b) => b.report_date.localeCompare(a.report_date));
+  // Only days whose sessions have landed: per-session ratios on a day with sales but no traffic yet would overstate.
+  const sorted = dailyDataWithAds.filter(d => trafficThrough && d.report_date <= trafficThrough).sort((a, b) => b.report_date.localeCompare(a.report_date));
   const current = sorted.slice(0, effDays);
   const previous = sorted.slice(effDays, effDays * 2);
 
@@ -1525,7 +1584,7 @@ fetchAllData();
 
 // AVG MONTHLY REVENUE - trailing days, runs once on load (Amazon data)
 (async function fetchAvgMonthlyRevenue() {
-  const now = new Date();
+  const now = ukNow();
   const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
 
   async function getAvgRev(days) {

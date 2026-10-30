@@ -554,11 +554,31 @@ const META_SHARE_BAND = [60, 90];   // Meta purchases as % of Shopify orders: ou
 const BASELINE_DAYS = 90;
 const MATERIAL = 0.15;              // a 15% move against the baseline is worth attention
 
+// ========== UK TIME ==========
+// Every date and time on this page is UK time (GMT in winter, BST in summer),
+// whatever time zone the viewer's computer is set to.
+const UK_TZ = 'Europe/London';
+// Current UK wall-clock time as a Date whose local getters (getDate, getHours...) read UK time.
+function ukNow() {
+  const p = {};
+  for (const part of new Intl.DateTimeFormat('en-GB', { timeZone: UK_TZ, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).formatToParts(new Date())) p[part.type] = part.value;
+  return new Date(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+}
+// A stored timestamp in UK time with its zone, e.g. "30 Oct 2026, 14:07 GMT".
+// The zone is worked out here (browsers disagree: some print "GMT+0" or "GMT+1").
+function fmtUkDateTime(ts, opts = { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) {
+  const d = new Date(ts);
+  const p = {};
+  for (const part of new Intl.DateTimeFormat('en-GB', { timeZone: UK_TZ, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).formatToParts(d)) p[part.type] = part.value;
+  const bst = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute) !== Math.floor(d.getTime() / 60000) * 60000;
+  return d.toLocaleString('en-GB', { ...opts, timeZone: UK_TZ, hourCycle: 'h23' }) + (bst ? ' BST' : ' GMT');
+}
+
 // ========== STATE ==========
 const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const MONTHS_LONG = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DOW = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-const TODAY = fmtDate(new Date());
+const TODAY = fmtDate(ukNow());
 let W = { from: '', to: '', label: '', preset: 'mtd' };   // selected window
 let B = { from: '', to: '' };                              // prior 90 days
 let acc = [], rpt = [], camp = [], ads = [], campaignsMeta = [], lifetime = [];
@@ -630,7 +650,7 @@ function toggleTheme() {
 
 // ========== DATE WINDOW ==========
 function presetDates(preset) {
-  const now = new Date();
+  const now = ukNow();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
   const back = (k) => { const f = new Date(yesterday); f.setDate(yesterday.getDate() - (k - 1)); return fmtDate(f); };
@@ -697,7 +717,7 @@ async function loadAndRender() {
   try {
     setStatus('Loading…');
     document.querySelectorAll('.kpi-card').forEach(c => c.classList.add('loading'));
-    const now = new Date();
+    const now = ukNow();
     const firstOfPrevMonth = fmtDate(new Date(now.getFullYear(), now.getMonth() - 1, 1));
     const loadFrom = B.from < firstOfPrevMonth ? B.from : firstOfPrevMonth;
     const loadTo = W.to > TODAY ? W.to : TODAY;
@@ -1223,7 +1243,7 @@ function buildDayOfWeek() {
 function pacing() {
   const active = campaignsMeta.filter(c => c.effective_status === 'ACTIVE' && c.daily_budget != null);
   const budget = active.reduce((s, c) => s + num(c.daily_budget), 0);
-  const now = new Date(), y = now.getFullYear(), m = now.getMonth();
+  const now = ukNow(), y = now.getFullYear(), m = now.getMonth();
   const monthStart = fmtDate(new Date(y, m, 1));
   const daysInMonth = new Date(y, m + 1, 0).getDate();
   const mtdRows = acc.filter(r => r.report_date >= monthStart && r.report_date <= TODAY);

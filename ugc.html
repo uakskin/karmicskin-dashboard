@@ -516,6 +516,28 @@ let sortKey = 'updated_at';
 let sortDir = 'desc';
 let currentView = 'cards';
 
+// ========== UK TIME ==========
+// Every date and time on this page is UK time (GMT in winter, BST in summer),
+// whatever time zone the viewer's computer is set to.
+const UK_TZ = 'Europe/London';
+// Current UK wall-clock time as a Date whose local getters (getDate, getHours...) read UK time.
+function ukNow() {
+  const p = {};
+  for (const part of new Intl.DateTimeFormat('en-GB', { timeZone: UK_TZ, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).formatToParts(new Date())) p[part.type] = part.value;
+  return new Date(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+}
+// A stored timestamp in UK time with its zone, e.g. "30 Oct 2026, 14:07 GMT".
+// The zone is worked out here (browsers disagree: some print "GMT+0" or "GMT+1").
+function fmtUkDateTime(ts, opts = { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) {
+  const d = new Date(ts);
+  const p = {};
+  for (const part of new Intl.DateTimeFormat('en-GB', { timeZone: UK_TZ, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).formatToParts(d)) p[part.type] = part.value;
+  const bst = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute) !== Math.floor(d.getTime() / 60000) * 60000;
+  return d.toLocaleString('en-GB', { ...opts, timeZone: UK_TZ, hourCycle: 'h23' }) + (bst ? ' BST' : ' GMT');
+}
+// The UK calendar date of a stored timestamp, as 'YYYY-MM-DD'.
+function ukDateOf(ts) { return new Intl.DateTimeFormat('en-CA', { timeZone: UK_TZ }).format(new Date(ts)); }
+
 // ========== THEME ==========
 function toggleTheme() {
   const html = document.documentElement;
@@ -553,7 +575,7 @@ async function fetchCreators() {
     document.getElementById('resultsSummary').textContent = `Failed to load creators: ${err.message}`;
     return;
   }
-  document.getElementById('lastUpdated').textContent = `Last loaded: ${new Date().toLocaleString('en-GB')}`;
+  document.getElementById('lastUpdated').textContent = `Last loaded: ${fmtUkDateTime(new Date())}`;
   populateFilterOptions();
   renderKpis();
   applyFilters();
@@ -796,7 +818,7 @@ function renderStatePill(c, context) {
   const state = c.status || 'not_contacted';
   const date = stateDate(c, state);
   const dateText = date ? ` <span class="date">· ${formatShortDate(date)}</span>` : '';
-  const dateIso = date ? new Date(date).toISOString().slice(0, 10) : '';
+  const dateIso = date ? ukDateOf(date) : '';
   const editableState = state !== 'not_contacted';
   // Card context: pill sits bottom-left, menu should open upward and align left so it doesn't clip.
   const menuMods = context === 'card' ? ' state-menu--up state-menu--left' : '';
@@ -835,8 +857,7 @@ function stateDate(c, state) {
 
 function formatShortDate(iso) {
   if (!iso) return '';
-  const d = new Date(iso);
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: UK_TZ });
 }
 
 function toggleStateMenu(menuKey, creatorId) {
@@ -857,11 +878,13 @@ async function changeState(id, newState) {
 
 async function changeStateDate(id, state, yyyyMmDd) {
   if (!yyyyMmDd) return;
-  // Keep the current time-of-day if there was one, otherwise default to 12:00 so timezone rounding doesn't shift the date.
+  // Keep the current time-of-day if there was one, unless that would put it on a different UK day;
+  // otherwise default to 12:00 UTC, which is the same calendar day in UK time all year.
   const row = allCreators.find(x => x.id === id);
   const existing = row ? stateDate(row, state) : null;
-  const iso = existing
-    ? new Date(yyyyMmDd + 'T' + new Date(existing).toISOString().slice(11)).toISOString()
+  const keepTime = existing ? new Date(yyyyMmDd + 'T' + new Date(existing).toISOString().slice(11)) : null;
+  const iso = keepTime && ukDateOf(keepTime) === yyyyMmDd
+    ? keepTime.toISOString()
     : new Date(yyyyMmDd + 'T12:00:00Z').toISOString();
   await callStateRpc('set_creator_state_date', { p_id: id, p_state: state, p_date: iso }, id);
 }
@@ -927,7 +950,7 @@ function renderTable() {
       <td>${c.instagram_followers ? formatK(c.instagram_followers) : '—'}</td>
       <td>${c.rate_min_gbp != null ? '£' + Math.round(Number(c.rate_min_gbp)) + (c.rate_max_gbp && c.rate_max_gbp !== c.rate_min_gbp ? '–£' + Math.round(Number(c.rate_max_gbp)) : '') : '—'}</td>
       <td><span class="state-pill state-${c.status || 'not_contacted'}">${escapeHtml(STATE_LABELS[c.status || 'not_contacted'])}</span></td>
-      <td>${c.updated_at ? new Date(c.updated_at).toLocaleDateString('en-GB') : '—'}</td>
+      <td>${c.updated_at ? new Date(c.updated_at).toLocaleDateString('en-GB', { timeZone: UK_TZ }) : '—'}</td>
     </tr>
   `).join('');
 }
@@ -1008,7 +1031,7 @@ function openModal(id) {
     </div>
     <div class="modal-footer">
       ${links || '<span class="val muted">No links</span>'}
-      <span style="margin-left:auto">Updated ${c.updated_at ? new Date(c.updated_at).toLocaleString('en-GB') : '—'}</span>
+      <span style="margin-left:auto">Updated ${c.updated_at ? fmtUkDateTime(c.updated_at) : '—'}</span>
     </div>
   `;
   document.getElementById('modalOverlay').classList.add('open');

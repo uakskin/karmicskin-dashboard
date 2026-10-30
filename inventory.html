@@ -640,6 +640,26 @@ async function triggerInventorySync() {
   await fetch(`${SUPABASE_URL}/functions/v1/sync-shopify-inventory`, { headers: { Authorization: `Bearer ${SUPABASE_KEY}` } });
 }
 
+// ── UK TIME ──
+// Every date and time on this page is UK time (GMT in winter, BST in summer),
+// whatever time zone the viewer's computer is set to.
+const UK_TZ = 'Europe/London';
+// Current UK wall-clock time as a Date whose local getters (getDate, getHours...) read UK time.
+function ukNow() {
+  const p = {};
+  for (const part of new Intl.DateTimeFormat('en-GB', { timeZone: UK_TZ, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).formatToParts(new Date())) p[part.type] = part.value;
+  return new Date(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+}
+// A stored timestamp in UK time with its zone, e.g. "30 Oct 2026, 14:07 GMT".
+// The zone is worked out here (browsers disagree: some print "GMT+0" or "GMT+1").
+function fmtUkDateTime(ts, opts = { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) {
+  const d = new Date(ts);
+  const p = {};
+  for (const part of new Intl.DateTimeFormat('en-GB', { timeZone: UK_TZ, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).formatToParts(d)) p[part.type] = part.value;
+  const bst = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute) !== Math.floor(d.getTime() / 60000) * 60000;
+  return d.toLocaleString('en-GB', { ...opts, timeZone: UK_TZ, hourCycle: 'h23' }) + (bst ? ' BST' : ' GMT');
+}
+
 // ── MATH ──
 function fmt(n, d=0) { return n == null || isNaN(n) ? '—' : Number(n).toLocaleString('en-GB', { minimumFractionDigits: d, maximumFractionDigits: d }); }
 // Local calendar date (toISOString would shift local-midnight dates back a day east of UTC, incl. UK summer time)
@@ -649,7 +669,7 @@ function daysBetween(a, b) { return Math.round((b - a) / 86400000); }
 // Aggregate weekly sales rows into per-SKU totals for the last 90 / 180 days,
 // applying bundle decomposition: bundle sold → +1 each component.
 function computeRates(weekly) {
-  const today = new Date(); today.setHours(0,0,0,0);
+  const today = ukNow(); today.setHours(0,0,0,0);
   const cutoff90 = new Date(today); cutoff90.setDate(today.getDate() - 90);
   const cutoff180 = new Date(today); cutoff180.setDate(today.getDate() - 180);
 
@@ -697,7 +717,7 @@ function incomingForSku(sku, today) {
 
 // Build per-SKU forecast rows
 function buildForecast(inventory, rates) {
-  const today = new Date(); today.setHours(0,0,0,0);
+  const today = ukNow(); today.setHours(0,0,0,0);
   const invMap = {};
   for (const r of inventory) invMap[r.product_title] = r;
 
@@ -780,7 +800,7 @@ function buildForecast(inventory, rates) {
 // ── RENDER: OPEN PO BANNER ──
 function renderPoBanner() {
   const wrap = document.getElementById('poBannerWrap');
-  const openPos = INCOMING_POS.filter(po => new Date(po.eta + 'T00:00:00') >= new Date());
+  const openPos = INCOMING_POS.filter(po => new Date(po.eta + 'T00:00:00') >= ukNow());
   if (openPos.length === 0) { wrap.style.display = 'none'; return; }
   const html = openPos.map(po => {
     const total = Object.values(po.lines).reduce((a, b) => a + b, 0);
@@ -806,7 +826,7 @@ function renderKPIs(rows, inventoryMeta) {
   const earliest = sortedByPo[0];
   const nextPoEl = document.getElementById('kpi-next-po');
   if (earliest) {
-    const today = new Date(); today.setHours(0,0,0,0);
+    const today = ukNow(); today.setHours(0,0,0,0);
     const daysAway = daysBetween(today, earliest.po_due);
     let urgencyCls = 'ok';
     if (daysAway <= 0) urgencyCls = 'urgent';
@@ -1055,7 +1075,7 @@ function renderTrend(monthly) {
   }
 
   const allMonths = [...new Set(monthly.map(r => r.month_start))].sort();
-  const today = new Date();
+  const today = ukNow();
   const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-01`;
   const lastIdx = allMonths.length - 1;
   const lastIsPartial = allMonths[lastIdx] === currentMonth;
@@ -1170,7 +1190,7 @@ async function load() {
       [...TRACKED_SKUS].sort((a, b) => (rates.sku90[b] || 0) - (rates.sku90[a] || 0)).slice(0, 4).forEach(sku => activeSkus.add(sku));
     }
     renderTrend(monthly);
-    document.getElementById('lastUpdated').textContent = `Refreshed ${new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+    document.getElementById('lastUpdated').textContent = `Refreshed ${fmtUkDateTime(new Date(), { hour: '2-digit', minute: '2-digit' })}`;
   } catch (e) {
     console.error(e);
     document.getElementById('lastUpdated').textContent = 'Load error — see console';

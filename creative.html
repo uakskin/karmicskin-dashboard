@@ -680,13 +680,16 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 function toast(msg, ms = 2200) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), ms); }
 function banner(msg, kind = '') { const b = $('banner'); if (!msg) { b.classList.add('hidden'); return; } b.textContent = msg; b.className = 'banner' + (kind ? ' ' + kind : ''); }
+// All dates and times on this page are UK time (GMT / BST), whatever the viewer's own clock says.
 function ukToday() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London' }).format(new Date()); }
+function ukZone(d) { return +new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', hour: '2-digit', hourCycle: 'h23' }).format(d) === d.getUTCHours() ? 'GMT' : 'BST'; }
+function ukDay(s) { return s.length > 10 ? new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London' }).format(new Date(s)) : s; }   // timestamp -> its UK 'YYYY-MM-DD'
 function dstr(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
 function dparse(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); }
 function addDays(s, n) { const d = dparse(s); d.setDate(d.getDate() + n); return dstr(d); }
 function addMonths(s, n) { const d = dparse(s); const day = d.getDate(); d.setDate(1); d.setMonth(d.getMonth() + n); const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate(); d.setDate(Math.min(day, last)); return dstr(d); }
 function daysBetween(a, b) { return Math.round((dparse(b) - dparse(a)) / 86400000); }
-function fmtD(s, withYear = false) { if (!s) return '—'; const d = dparse(s.slice(0, 10)); return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', ...(withYear ? { year: 'numeric' } : {}) }); }
+function fmtD(s, withYear = false) { if (!s) return '—'; const d = dparse(ukDay(s)); return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', ...(withYear ? { year: 'numeric' } : {}) }); }
 function fmtRange(a, b) { return a === b ? fmtD(a, true) : `${fmtD(a)} – ${fmtD(b, true)}`; }
 function pct(a, b) { return b ? (a - b) / Math.abs(b) : null; }
 function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
@@ -1006,7 +1009,7 @@ function formatLabel(ad) {
   return seg.startsWith('video') ? 'Video' : seg.startsWith('static') ? 'Image' : 'Other';
 }
 function isDynamic(ad) { const c = ad && ad.asset_counts; return !!(c && !c.customized && ((c.images || 0) + (c.videos || 0) > 1)); }
-function adLaunch(adId) { const l = D.lifetime.get(adId); if (l && l.first_spend_date) return l.first_spend_date; const c = D.creatives.get(adId); return c && c.created_time ? c.created_time.slice(0, 10) : null; }
+function adLaunch(adId) { const l = D.lifetime.get(adId); if (l && l.first_spend_date) return l.first_spend_date; const c = D.creatives.get(adId); return c && c.created_time ? ukDay(c.created_time) : null; }
 function adStatusClass(ad) { const s = ad && ad.effective_status; if (!s) return ''; return s === 'ACTIVE' ? 'on' : (s.includes('PAUSED') ? 'off' : ''); }
 // Videos display at 9:16, images and carousels at 4:5.
 function isVideoAd(ad) { return !!(ad && (ad.format === 'video' || ad.video_id)); }
@@ -1884,7 +1887,7 @@ function wireUi() {
   $('btnCDel').addEventListener('click', () => deleteReport(ST.compare));
   window.addEventListener('hashchange', route);
 }
-function updateFresh() { const to = D.dailyRange ? D.dailyRange.to : null; const latest = D.daily.length ? D.daily[D.daily.length - 1].report_date : null; $('navFresh').textContent = `Performance to ${latest ? fmtD(latest) : '—'} · creatives synced ${D.loadedAt ? D.loadedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : ''} · ${D.creatives.size} ads catalogued`; }
+function updateFresh() { const to = D.dailyRange ? D.dailyRange.to : null; const latest = D.daily.length ? D.daily[D.daily.length - 1].report_date : null; $('navFresh').textContent = `Performance to ${latest ? fmtD(latest) : '—'} · creatives synced ${D.loadedAt ? D.loadedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London', hourCycle: 'h23' }) + ' ' + ukZone(D.loadedAt) : ''} · ${D.creatives.size} ads catalogued`; }
 window.addEventListener('ks-auth-ready', async () => {
   $('navEmail').textContent = USER_EMAIL; $('navRole').textContent = USER_ROLE + (window.PREVIEW_STRATEGIST ? ' preview' : '');
   if (window.PREVIEW_STRATEGIST) banner('Previewing the strategist view: this is exactly what a strategist sees. Remove ?as=strategist from the address to return to your admin view.');

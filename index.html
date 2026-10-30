@@ -987,6 +987,26 @@ let chart = null;
 let currentPeriod = 'weekly';
 let activePreset = 'mtd';
 
+// ========== UK TIME ==========
+// Every date and time on this page is UK time (GMT in winter, BST in summer),
+// whatever time zone the viewer's computer is set to.
+const UK_TZ = 'Europe/London';
+// Current UK wall-clock time as a Date whose local getters (getDate, getHours...) read UK time.
+function ukNow() {
+  const p = {};
+  for (const part of new Intl.DateTimeFormat('en-GB', { timeZone: UK_TZ, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).formatToParts(new Date())) p[part.type] = part.value;
+  return new Date(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+}
+// A stored timestamp in UK time with its zone, e.g. "30 Oct 2026, 14:07 GMT".
+// The zone is worked out here (browsers disagree: some print "GMT+0" or "GMT+1").
+function fmtUkDateTime(ts, opts = { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) {
+  const d = new Date(ts);
+  const p = {};
+  for (const part of new Intl.DateTimeFormat('en-GB', { timeZone: UK_TZ, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).formatToParts(d)) p[part.type] = part.value;
+  const bst = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute) !== Math.floor(d.getTime() / 60000) * 60000;
+  return d.toLocaleString('en-GB', { ...opts, timeZone: UK_TZ, hourCycle: 'h23' }) + (bst ? ' BST' : ' GMT');
+}
+
 // DATE HELPERS
 function fmtDate(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
 function fmtDisplay(dateStr) {
@@ -995,7 +1015,7 @@ function fmtDisplay(dateStr) {
 }
 
 function getPresetDates(preset) {
-  const now = new Date();
+  const now = ukNow();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
 
@@ -1208,7 +1228,7 @@ function aggregateData(data, period) {
 
 // AVG MONTHLY REVENUE - trailing days, runs once on load
 async function fetchAvgMonthlyRevenue() {
-  const now = new Date();
+  const now = ukNow();
   const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
 
   async function getAvgRev(days) {
@@ -1231,16 +1251,17 @@ async function fetchAvgMonthlyRevenue() {
 }
 // MULTI-PERIOD STRIP — independent of date picker, fixed windows
 async function fetchMultiPeriod() {
-  const now = new Date();
-  const yest = new Date(now); yest.setDate(now.getDate() - 1);
+  const now = ukNow();
+  const yest = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+  const back = (n) => fmtDate(new Date(yest.getFullYear(), yest.getMonth(), yest.getDate() - n));
 
   const ranges = [
-    { id: 'yest',  days: 1,  from: fmtDate(yest),                                     to: fmtDate(yest) },
-    { id: 'l7',    days: 7,  from: fmtDate(new Date(yest.getTime() - 6  * 86400000)), to: fmtDate(yest) },
-    { id: 'p7',    days: 7,  from: fmtDate(new Date(yest.getTime() - 13 * 86400000)), to: fmtDate(new Date(yest.getTime() - 7 * 86400000)) },
-    { id: 'l14',   days: 14, from: fmtDate(new Date(yest.getTime() - 13 * 86400000)), to: fmtDate(yest) },
-    { id: 'l30',   days: 30, from: fmtDate(new Date(yest.getTime() - 29 * 86400000)), to: fmtDate(yest) },
-    { id: 'l90',   days: 90, from: fmtDate(new Date(yest.getTime() - 89 * 86400000)), to: fmtDate(yest) },
+    { id: 'yest',  days: 1,  from: fmtDate(yest), to: fmtDate(yest) },
+    { id: 'l7',    days: 7,  from: back(6),       to: fmtDate(yest) },
+    { id: 'p7',    days: 7,  from: back(13),      to: back(7) },
+    { id: 'l14',   days: 14, from: back(13),      to: fmtDate(yest) },
+    { id: 'l30',   days: 30, from: back(29),      to: fmtDate(yest) },
+    { id: 'l90',   days: 90, from: back(89),      to: fmtDate(yest) },
   ];
 
   // Prev 7 label stays as just "Prev 7" so the tile fits on narrower screens.
@@ -1525,7 +1546,7 @@ let tablePeriod = 'monthly';
 const VISIBLE_ROWS = 12;
 
 async function fetchTableData() {
-  const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.2024-01-01&report_date=lt.${fmtDate(new Date())}&order=report_date.asc&select=report_date,total_sales,net_product_revenue,total_ad_spend,meta_spend,google_spend,meta_revenue,google_revenue,total_orders,new_customer_orders,returning_customer_orders,orders_from_new,orders_from_returning,new_customer_revenue,returning_customer_revenue,ga4_sessions`;
+  const url = `${SUPABASE_URL}/rest/v1/rpt_daily_overview?report_date=gte.2024-01-01&report_date=lt.${fmtDate(ukNow())}&order=report_date.asc&select=report_date,total_sales,net_product_revenue,total_ad_spend,meta_spend,google_spend,meta_revenue,google_revenue,total_orders,new_customer_orders,returning_customer_orders,orders_from_new,orders_from_returning,new_customer_revenue,returning_customer_revenue,ga4_sessions`;
   allDailyData = await fetchAllPages(url);
 
   // Fetch LTV
@@ -1797,10 +1818,7 @@ async function fetchDataFreshness() {
       if (h < 24) return h + 'h';
       return Math.floor(h / 24) + 'd';
     };
-    const fmtAbs = d => d.toLocaleString('en-GB', {
-      timeZone: 'Europe/London',
-      day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false
-    }) + ' UK';
+    const fmtAbs = d => fmtUkDateTime(d, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
     const now = Date.now();
     const parts = results.map(r => {
       if (!r.ts) return `${r.label} —`;
@@ -1831,7 +1849,7 @@ setInterval(() => {
 let custFreqPeriod = 'all';
 
 function getCustFreqDates() {
-  const now = new Date();
+  const now = ukNow();
   const today = fmtDate(new Date(now.getFullYear(), now.getMonth(), now.getDate()));
   switch (custFreqPeriod) {
     case '12m': { const d = new Date(now); d.setMonth(d.getMonth() - 12); return { from_date: fmtDate(d), to_date: today }; }
@@ -2044,8 +2062,8 @@ async function fetchCohortRetention() {
     const allSums = new Array(9).fill(0), allCounts = new Array(9).fill(0);
     const l24Sums = new Array(9).fill(0), l24Counts = new Array(9).fill(0);
     let allSize = 0, allSizeN = 0, l24Size = 0, l24SizeN = 0;
-    const now = new Date();
-    const cutoff24 = new Date(now.getFullYear() - 2, now.getMonth(), 1).toISOString().substring(0, 7);
+    const now = ukNow();
+    const cutoff24 = fmtDate(new Date(now.getFullYear() - 2, now.getMonth(), 1)).substring(0, 7);
     for (const r of data) {
       const size = parseInt(r.cohort_size);
       const elapsed = parseInt(r.months_elapsed) || 0;

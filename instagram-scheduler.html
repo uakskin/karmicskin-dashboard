@@ -513,7 +513,7 @@ tbody tr:hover { background: var(--surface-2); }
           <textarea id="firstComment" placeholder="Posted as the first comment right after publishing" style="min-height:48px"></textarea>
         </label>
 
-        <label class="field" id="fldSchedule"><span class="lbl" id="scheduleLabel">Publish at</span>
+        <label class="field" id="fldSchedule"><span class="lbl" id="scheduleLabel">Publish at (UK time)</span>
           <input type="datetime-local" id="scheduledFor">
           <div class="help" id="scheduleHelp">Leave blank to keep it as a draft.</div>
         </label>
@@ -620,18 +620,38 @@ function toast(msg, isErr) {
   const t = $('toast'); t.textContent = msg; t.className = isErr ? 'err show' : 'show';
   clearTimeout(t._t); t._t = setTimeout(() => t.className = '', 3200);
 }
+// Every date and time on this page is UK time (GMT in winter, BST in summer),
+// whatever time zone the viewer's computer is set to. Scheduling boxes take UK time too.
+const UK_TZ = 'Europe/London';
+function ukParts(ms) {
+  const p = {};
+  for (const part of new Intl.DateTimeFormat('en-GB', { timeZone: UK_TZ, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).formatToParts(new Date(ms))) p[part.type] = part.value;
+  return p;
+}
+function ukZone(ms) { const p = ukParts(ms); return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute) !== Math.floor(new Date(ms).getTime() / 60000) * 60000 ? 'BST' : 'GMT'; }
 function fmtDate(iso) {
   if (!iso) return '—';
-  return new Date(iso).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  return new Date(iso).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: UK_TZ, hourCycle: 'h23' }) + ' ' + ukZone(iso);
 }
 function fmtShort(iso) {
   if (!iso) return '';
-  return new Date(iso).toLocaleString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+  return new Date(iso).toLocaleString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: UK_TZ, hourCycle: 'h23' });
 }
+// Stored timestamp -> 'YYYY-MM-DDTHH:MM' in UK time, for a datetime-local box.
 function toLocalInput(iso) {
   if (!iso) return '';
-  const d = new Date(iso); const p = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+  const p = ukParts(iso);
+  return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`;
+}
+// UK wall-clock time from a datetime-local box ('YYYY-MM-DDTHH:MM') -> UTC ISO string.
+function ukInputToIso(value) {
+  const [y, mo, d, h, mi] = value.split(/[-T:]/).map(Number);
+  const wall = Date.UTC(y, mo - 1, d, h, mi);
+  // UK offset (0 for GMT, 1h for BST) at an instant: its UK wall time minus the instant itself.
+  const offsetAt = (ms) => { const p = ukParts(ms); return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute) - Math.floor(ms / 60000) * 60000; };
+  let ms = wall - offsetAt(wall);
+  ms = wall - offsetAt(ms); // second pass settles times near the March / October clock change
+  return new Date(ms).toISOString();
 }
 function num(n) { return n == null ? '—' : Number(n).toLocaleString('en-GB'); }
 function closeModal(id) { $(id).classList.remove('open'); }
@@ -955,7 +975,7 @@ function syncComposerFields() {
     : isReel ? 'Video' : isStory ? 'Photo or video' : 'Photo';
   $('fileInput').accept = isReel ? 'video/*' : (isStory ? 'image/*,video/*' : 'image/*');
   $('fileInput').multiple = postType === 'carousel';
-  $('scheduleLabel').textContent = mode === 'api' ? 'Publish at' : 'Planned date';
+  $('scheduleLabel').textContent = mode === 'api' ? 'Publish at (UK time)' : 'Planned date (UK time)';
   $('scheduleHelp').textContent = mode === 'api'
     ? 'When the tool will auto-publish it. Leave blank to keep as a draft.'
     : 'A reminder for when you plan to post it. Leave blank to keep as a draft.';
@@ -1176,7 +1196,7 @@ async function saveComposer(action) {
   const mode = composer.mode, t = composer.postType;
   let status = 'draft';
   if (action === 'schedule') status = mode === 'api' ? 'scheduled' : 'planned';
-  const schedVal = $('scheduledFor').value ? new Date($('scheduledFor').value).toISOString() : null;
+  const schedVal = $('scheduledFor').value ? ukInputToIso($('scheduledFor').value) : null;
   const row = {
     publish_mode: mode, post_type: t, status, scheduled_for: schedVal,
     caption: t === 'story' ? '' : $('caption').value,
@@ -1475,7 +1495,7 @@ function openPost(id) {
 async function quickReschedule(id) {
   const v = $('pmReschedule').value;
   if (!v) { toast('Pick a date/time', true); return; }
-  try { await dbUpdate('ig_posts', id, { scheduled_for: new Date(v).toISOString() }); toast('Rescheduled'); closeModal('postModal'); await loadPosts(); }
+  try { await dbUpdate('ig_posts', id, { scheduled_for: ukInputToIso(v) }); toast('Rescheduled'); closeModal('postModal'); await loadPosts(); }
   catch (e) { toast(e.message, true); }
 }
 async function publishNow(id) {

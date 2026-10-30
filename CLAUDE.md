@@ -55,6 +55,36 @@ active page is detected automatically from the filename (`data-page`).
 Adding a page or changing the nav: apply the **same** sidebar block to **every**
 page — it must stay identical across all of them.
 
+## UK time (every page)
+
+Every date and time a page shows or uses is **UK time** (Europe/London: GMT in winter, BST in
+summer), whatever time zone the viewer's computer is in (Uday often views from India). Since
+30 Oct 2026 each page that needs it carries a small `UK TIME` helper block:
+
+- `ukNow()` — the current UK wall-clock time as a Date whose local getters read UK time. Use it
+  instead of `new Date()` whenever you derive "today", "yesterday", month-to-date, the current
+  hour, etc. Never use `new Date()` for that, and never `toISOString()` to get a calendar date
+  (it is the UTC date).
+- `fmtUkDateTime(ts, opts)` — show a stored timestamp in UK time with its zone ("14:07 GMT" /
+  "BST"). For a timestamp's UK calendar date use `ukDateOf(ts)` (email, ugc) or `ukDay(s)`
+  (creative). `YYYY-MM-DD` strings from the warehouse are already UK days: parse them as
+  `new Date(s + 'T00:00:00')`.
+- `instagram-scheduler.html`: datetime boxes are typed in UK time; convert with
+  `ukInputToIso()` / `toLocalInput()`, never `new Date(boxValue)`.
+
+The warehouse follows the same rule: daily tables and the order RPCs bucket by
+`(created_at AT TIME ZONE 'Europe/London')::date`, never `::date` on a UTC timestamp or `CURRENT_DATE`.
+
+## Amazon page data rules (`amazon.html`)
+
+- Ad spend is all three Amazon ad types (`raw_amazon_ads_daily.ad_product` = SP / SB / SD),
+  synced by `sync-amazon-ads` nightly (last 3 days) and hourly (today so far).
+- Sales land every 30 min, ad spend hourly, traffic (sessions, page views) 1–2 days late. ROAS
+  only counts revenue on days whose ad spend has loaded (`roasRevenue`), and conversion only
+  counts units on days whose sessions have loaded (`cvrUnits`), so a fresh day can't inflate them.
+- The header shows when the data last updated (UK time) and, if ad spend lags sales, how far it
+  reaches; hover it for each feed's coverage.
+
 ## Security
 
 Dashboards use the Supabase **anon key** only (public, RLS-protected). This repo is

@@ -600,6 +600,30 @@ function classifyType(name){
 }
 
 // ════════════════════════════════════════════════════════════════
+// UK TIME
+// ════════════════════════════════════════════════════════════════
+// Every date and time on this page is UK time (GMT in winter, BST in summer),
+// whatever time zone the viewer's computer is set to.
+const UK_TZ = 'Europe/London';
+// Current UK wall-clock time as a Date whose local getters (getDate, getHours...) read UK time.
+function ukNow() {
+  const p = {};
+  for (const part of new Intl.DateTimeFormat('en-GB', { timeZone: UK_TZ, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).formatToParts(new Date())) p[part.type] = part.value;
+  return new Date(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+}
+// A stored timestamp in UK time with its zone, e.g. "30 Oct 2026, 14:07 GMT".
+// The zone is worked out here (browsers disagree: some print "GMT+0" or "GMT+1").
+function fmtUkDateTime(ts, opts = { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) {
+  const d = new Date(ts);
+  const p = {};
+  for (const part of new Intl.DateTimeFormat('en-GB', { timeZone: UK_TZ, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).formatToParts(d)) p[part.type] = part.value;
+  const bst = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute) !== Math.floor(d.getTime() / 60000) * 60000;
+  return d.toLocaleString('en-GB', { ...opts, timeZone: UK_TZ, hourCycle: 'h23' }) + (bst ? ' BST' : ' GMT');
+}
+// The UK calendar date of a stored timestamp, as 'YYYY-MM-DD'.
+function ukDateOf(ts) { return new Intl.DateTimeFormat('en-CA', { timeZone: UK_TZ }).format(new Date(ts)); }
+
+// ════════════════════════════════════════════════════════════════
 // STATE
 // ════════════════════════════════════════════════════════════════
 let CAMPAIGNS = [], FLOWS = [], MONTHLY = [], STORE_BY_MONTH = {};
@@ -610,7 +634,7 @@ function destroyChart(id){ if(CHARTS[id]){ CHARTS[id].destroy(); delete CHARTS[i
 // ════════════════════════════════════════════════════════════════
 // DATE RANGE (month based)
 // ════════════════════════════════════════════════════════════════
-function curMonth(){ const d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function curMonth(){ const d = ukNow(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
 function shiftMonth(m, delta){
   let [y,mo] = m.split('-').map(Number); mo += delta;
   while(mo<1){ mo+=12; y--; } while(mo>12){ mo-=12; y++; }
@@ -692,12 +716,13 @@ async function boot(){
     populateFilters();
     renderAll();
 
-    const latest = CAMPAIGNS.length ? new Date(CAMPAIGNS[0].send_time) : new Date();
-    document.getElementById('lastUpdated').textContent = 'Data through ' + latest.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    const latest = CAMPAIGNS.length ? CAMPAIGNS[0].send_time : new Date();
+    document.getElementById('lastUpdated').textContent = 'Data through ' + new Date(latest).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:UK_TZ});
+    const now = new Date(), syncAt = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 3, 20);
     document.getElementById('dataSource').innerHTML =
       'Source: Klaviyo via Supabase (raw_klaviyo_campaigns / _flows / _monthly_ext), Shopify for store revenue. ' +
       CAMPAIGNS.length + ' campaigns, ' + FLOWS.length + ' flows, ' + MONTHLY.length + ' months. ' +
-      'Synced daily ~03:20 UTC by the sync-klaviyo-detail Edge Function.';
+      'Synced daily ~' + fmtUkDateTime(syncAt, {hour:'2-digit',minute:'2-digit'}) + ' by the sync-klaviyo-detail Edge Function.';
   } catch(err){
     console.error(err);
     document.getElementById('loadingMsg').innerHTML = 'Error loading data: ' + err.message;
@@ -943,7 +968,7 @@ function renderSplit(){
 // ---- Campaign explorer ----
 const CAMP_COLS = [
   {k:'campaign_name', t:'Campaign', align:'left', s:'text'},
-  {k:'send_time', t:'Sent', s:'date', f:v=> v? new Date(v).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '—'},
+  {k:'send_time', t:'Sent', s:'date', f:v=> v? new Date(v).toLocaleDateString('en-GB',{day:'2-digit',month:'short',timeZone:UK_TZ}) : '—'},
   {k:'audience', t:'Audience', s:'text', f:v=>'<span class="pill audience">'+v+'</span>'},
   {k:'ctype', t:'Type', s:'text', f:v=>'<span class="pill type">'+v+'</span>'},
   {k:'recipients', t:'Recipients', s:'num', f:num},
@@ -1054,7 +1079,7 @@ function renderAudTable(){
 function renderDOW(){
   destroyChart('dow');
   const buckets = Array.from({length:7},()=>[]);
-  campsInRange().forEach(c=>{ if(c.send_time){ buckets[new Date(c.send_time).getUTCDay()].push(c); } });
+  campsInRange().forEach(c=>{ if(c.send_time){ buckets[new Date(ukDateOf(c.send_time)+'T00:00:00').getDay()].push(c); } });
   const stats = buckets.map(b=>weightedRates(b));
   const t = chartTheme();
   CHARTS.dow = new Chart(document.getElementById('dowChart'), {
@@ -1077,7 +1102,7 @@ function renderDOW(){
 function renderPayday(){
   destroyChart('payday');
   const camps = campsInRange();
-  const isPayday = c=>{ const d=new Date(c.send_time).getUTCDate(); return d>=22 || d<=7; };
+  const isPayday = c=>{ const d=+ukDateOf(c.send_time).slice(8,10); return d>=22 || d<=7; };
   const pay = weightedRates(camps.filter(isPayday));
   const mid = weightedRates(camps.filter(c=>!isPayday(c)));
   const t = chartTheme();

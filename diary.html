@@ -850,9 +850,16 @@ function formatHourLabel(h) {
 // RENDER
 // ============================================================
 
+// Today's column and the now-line follow UK time (GMT / BST), whatever the viewer's own clock says.
+function ukNow() {
+  const p = {};
+  for (const part of new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).formatToParts(new Date())) p[part.type] = part.value;
+  return new Date(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+}
+
 function renderHeader() {
   const header = document.getElementById('calHeader');
-  const todayDow = new Date().getDay(); // 0 Sun … 6 Sat
+  const todayDow = ukNow().getDay(); // 0 Sun … 6 Sat
   const todayMon1 = todayDow === 0 ? 7 : todayDow;
   let html = '<div class="cal-header-cell"></div>';
   for (let d = 1; d <= 5; d++) {
@@ -928,10 +935,10 @@ function renderSlot(slot) {
 
 function drawNowLine() {
   // Add a thin amber line at the current time on today's column.
-  const todayDow = new Date().getDay();
+  const now = ukNow();
+  const todayDow = now.getDay();
   const todayMon1 = todayDow === 0 ? 7 : todayDow;
   if (todayMon1 < 1 || todayMon1 > 5) return; // weekend — skip
-  const now = new Date();
   const minNow = now.getHours() * 60 + now.getMinutes();
   if (minNow < DAY_START_HOUR * 60 || minNow > DAY_END_HOUR * 60) return;
   const col = document.querySelector(`.cal-day-col[data-day="${todayMon1}"]`);

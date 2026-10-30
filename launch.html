@@ -399,9 +399,15 @@ function spanLabel(s, e) {
   return startLabel(s, true) + ' to ' + endLabel(e, true);
 }
 function halfOptionLabel(i) { return startLabel(i, true); }   // dropdown text: the half's first day
-function todayIdx() { const d = new Date(); return (d.getFullYear() * 12 + d.getMonth()) * 2 + (d.getDate() >= 15 ? 1 : 0); }
+// "Today" is the UK date (GMT / BST), whatever the viewer's own clock says.
+function ukNow() {
+  const p = {};
+  for (const part of new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).formatToParts(new Date())) p[part.type] = part.value;
+  return new Date(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+}
+function todayIdx() { const d = ukNow(); return (d.getFullYear() * 12 + d.getMonth()) * 2 + (d.getDate() >= 15 ? 1 : 0); }
 function todayFloatIdx() {
-  const d = new Date();
+  const d = ukNow();
   return (d.getFullYear() * 12 + d.getMonth()) * 2 + ((d.getDate() - 1) / daysInMonth(d.getFullYear(), d.getMonth() + 1)) * 2;
 }
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }

@@ -199,6 +199,10 @@
   .tile.hero .spark { color: var(--panel-ink); height: 36px; }
   .tile .spark[hidden] { display: none; }
   .tile.loading .value, .tile.loading .sub, .tile.loading .spark { opacity: 0.35; }
+  /* A new order just came in: the revenue figure nudges once. */
+  @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.04); } 100% { transform: scale(1); } }
+  .tile.bump .value { animation: bump 0.6s ease; transform-origin: left center; }
+  @media (prefers-reduced-motion: reduce) { .tile.bump .value { animation: none; } }
   /* Below-target mark: amber sits beneath the Carbon figure, never as its colour. */
   .tile.below .value span { background-image: linear-gradient(to top, var(--mark) 0.22em, transparent 0.22em); }
 
@@ -300,7 +304,8 @@
     <p><strong>Repeat orders</strong>: orders from customers who had ordered before ÷ all orders.</p>
     <p><strong>AOV</strong>: Shopify revenue ÷ orders.</p>
     <p><strong>Amazon sales</strong>: Amazon ordered product sales (same as the Amazon dashboard). Today's figure is provisional until Amazon's nightly report.</p>
-    <p>Every day is a UK day. Weeks run Monday to Sunday; the financial year starts on 1 June. Shopify figures refresh every 10 minutes, Amazon sales every 30. On the small trend lines, a dashed last step means that day or week is still in progress.</p>
+    <p>Today's Shopify revenue, orders and repeat orders are live: they come straight from the orders, which reach us within seconds, and the page checks every 15 seconds while it is open. Earlier days and ad spend refresh every 10 minutes (Meta sends spend every 30), Amazon sales every 30. So today's ROAS is live revenue over the latest ad spend.</p>
+    <p>Every day is a UK day. Weeks run Monday to Sunday; the financial year starts on 1 June. On the small trend lines, a dashed last step means that day or week is still in progress.</p>
   </details>
 </main>
 
@@ -338,6 +343,7 @@ const RETURN_KEY = 'ks-return-to';
 const ROAS_TARGET = 2.20;           // King ROAS target (blended, monthly)
 const CACHE_MS = 60 * 1000;         // reuse a range's figures for a minute when switching pills
 const AUTO_REFRESH_MS = 5 * 60 * 1000;
+const LIVE_POLL_MS = 15 * 1000;     // how often today's Shopify orders are re-checked while the app is open
 const IS_STANDALONE = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
 
 // ========== THEME ==========
@@ -453,7 +459,8 @@ const num = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0;
 const isDay = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
 
 // Two light reads per range: the daily Shopify overview (same table and columns index.html sums)
-// and Amazon's daily sales (same table amazon.html sums). No RPCs.
+// and Amazon's daily sales (same table amazon.html sums). Today's Shopify figures come from
+// loadLiveToday() instead, because the overview is only rebuilt every 10 minutes.
 async function loadRange(from, to) {
   const [shopRaw, amzRaw] = await Promise.all([
     fetchAllRows(`rpt_daily_overview?report_date=gte.${from}&report_date=lte.${to}&order=report_date.asc&select=report_date,total_sales,total_ad_spend,total_orders,orders_from_returning,loaded_at`),
@@ -468,6 +475,40 @@ async function loadRange(from, to) {
   }));
   return { shop, amazon, fetchedAt: Date.now() };
 }
+
+// Today's Shopify revenue, orders and repeat orders straight from the raw orders, via the SQL function
+// get_shopify_live_day (same rules as the 10-minute rebuild, checked equal day by day). The Shopify
+// webhook writes each order within seconds, so these are live. Ad spend is not part of it.
+let live = null;   // { day, sales, orders, repeatOrders, lastOrderAt }
+async function loadLiveToday() {
+  const day = fmtDate(todayUk());
+  const token = await liveToken();
+  const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_shopify_live_day`, {
+    method: 'POST',
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ p_day: day })
+  });
+  if (resp.status === 401) throw new AuthExpiredError('token rejected');
+  if (!resp.ok) throw new Error(`HTTP ${resp.status} from get_shopify_live_day`);
+  const rows = await resp.json();
+  const r = Array.isArray(rows) ? rows[0] : null;
+  if (!r || r.report_date !== day) throw new Error('Unexpected response from get_shopify_live_day');
+  const previous = live;
+  live = {
+    day, sales: num(r.total_sales), orders: Math.round(num(r.total_orders)),
+    repeatOrders: Math.round(num(r.orders_from_returning)), lastOrderAt: r.last_order_at || null
+  };
+  return !!(previous && previous.day === day && live.orders > previous.orders);   // a new order came in
+}
+
+// Puts the live figures in place of the overview's row for today; that day's ad spend stays as last rebuilt.
+function withLive(range, shop) {
+  if (!live || live.day < range.from || live.day > range.to) return shop;
+  const base = shop.find((r) => r.day === live.day) || { day: live.day, spend: 0, loadedAt: null };
+  const today = { ...base, sales: live.sales, orders: live.orders, repeatOrders: live.repeatOrders };
+  return shop.filter((r) => r.day !== live.day).concat(today).sort((a, b) => a.day.localeCompare(b.day));
+}
+const includesToday = (range) => { const today = fmtDate(todayUk()); return range.from <= today && range.to >= today; };
 
 // ========== FIGURES ==========
 function totals(shop, amazon) {
@@ -541,13 +582,16 @@ function setTile(id, value, sub, series, liveEnd) {
 }
 
 function render(range, data) {
-  const t = totals(data.shop, data.amazon);
+  const shop = withLive(range, data.shop);
+  const t = totals(shop, data.amazon);
   const days = Math.round((parseDay(range.to) - parseDay(range.from)) / 86400000) + 1;
-  const series = days > 1 ? buckets(range.from, range.to, data.shop, data.amazon) : [];
+  const series = days > 1 ? buckets(range.from, range.to, shop, data.amazon) : [];
   const liveEnd = range.to === fmtDate(todayUk());
   const perDay = (v) => days > 1 ? `${v} a day` : '';
 
-  setTile('tile-revenue', gbp(t.sales), days > 1 ? perDay(gbp(t.sales / days)) : (liveEnd ? 'So far today' : ''), series.map((b) => b.sales), liveEnd);
+  const liveToday = liveEnd && live && live.day === range.to;
+  const todaySub = liveToday && live.lastOrderAt ? `Last order ${fmtUkTime(live.lastOrderAt)}` : (liveEnd ? 'So far today' : '');
+  setTile('tile-revenue', gbp(t.sales), days > 1 ? perDay(gbp(t.sales / days)) : todaySub, series.map((b) => b.sales), liveEnd);
   setTile('tile-roas', t.roas === null ? '--' : t.roas.toFixed(2), `Ad spend ${gbp(t.spend)}`, series.map((b) => b.spend > 0 ? b.sales / b.spend : null), liveEnd);
   document.getElementById('tile-roas').classList.toggle('below', t.roas !== null && t.roas < ROAS_TARGET);
   setTile('tile-repeat', t.repeatPct === null ? '--' : t.repeatPct.toFixed(1) + '%', t.orders ? `${count(t.repeatOrders)} of ${count(t.orders)} orders` : '', series.map((b) => b.orders > 0 ? (b.repeatOrders / b.orders) * 100 : null), liveEnd);
@@ -555,13 +599,27 @@ function render(range, data) {
   setTile('tile-aov', t.aov === null ? '--' : gbp(t.aov), 'Inc. VAT and shipping', series.map((b) => b.orders > 0 ? b.sales / b.orders : null), liveEnd);
   setTile('tile-amazon', gbp(t.amazon), `Shopify and Amazon together ${gbp(t.sales + t.amazon)}`, series.map((b) => b.amazon), liveEnd);
 
-  // Freshness only matters while the range is still filling up.
+  // Freshness only matters while the range is still filling up. Orders are live when the live read
+  // worked; ad spend is as of the last rebuild of the overview; Amazon as of its last sync.
   const latest = (rows, col) => rows.reduce((m, r) => Math.max(m, r[col] ? Date.parse(r[col]) || 0 : 0), 0);
   const shopAt = latest(data.shop, 'loadedAt'), amzAt = latest(data.amazon, 'updatedAt');
+  const clock = (ts) => fmtUkTime(ts).split(' ')[0];
   const parts = [];
-  if (liveEnd && shopAt) parts.push(`Shopify ${fmtUkTime(shopAt)}`);
-  if (liveEnd && amzAt) parts.push(`Amazon ${fmtUkTime(amzAt)}`);
-  document.getElementById('freshness').textContent = parts.length ? 'Updated: ' + parts.join(', ') : '';
+  if (liveEnd) {
+    if (liveToday) parts.push('Orders live');
+    else if (shopAt) parts.push(`Orders ${clock(shopAt)}`);
+    if (shopAt) parts.push(`ad spend ${clock(shopAt)}`);
+    if (amzAt) parts.push(`Amazon ${clock(amzAt)}`);
+  }
+  document.getElementById('freshness').textContent = parts.length ? `${parts.join(' · ')} ${fmtUkTime(Date.now()).split(' ')[1]}` : '';
+}
+
+// A new order just came in: the revenue figure nudges once.
+function pulseRevenue() {
+  const tile = document.getElementById('tile-revenue');
+  tile.classList.remove('bump');
+  void tile.offsetWidth;   // restart the animation
+  tile.classList.add('bump');
 }
 
 function setLoading(on) {
@@ -612,7 +670,15 @@ async function refresh(force) {
   if (cached && !force && Date.now() - cached.fetchedAt < CACHE_MS) { setLoading(false); showStatus(''); return; }
   setLoading(true);
   try {
-    const data = await loadRange(range.from, range.to);
+    // A failed live read falls back to the overview's figures for today rather than failing the page.
+    const liveRead = includesToday(range)
+      ? loadLiveToday().catch((err) => {
+          if (err instanceof AuthExpiredError) throw err;
+          console.error('[mobile] live orders failed; showing the 10-minute figures for today', err);
+          live = null;
+        })
+      : Promise.resolve();
+    const [data] = await Promise.all([loadRange(range.from, range.to), liveRead]);
     cache.set(key, data);
     if (seq !== requestSeq) return;
     render(range, data);
@@ -697,6 +763,23 @@ document.addEventListener('visibilitychange', () => {
   lastShown = Date.now();
 });
 setInterval(() => { if (document.visibilityState === 'visible') { lastShown = Date.now(); rollAndRefresh(true); } }, AUTO_REFRESH_MS);
+
+// While a range that includes today is on screen, re-check today's Shopify orders every 15 seconds
+// (one small query) so a new order shows up almost as soon as Shopify sends it.
+setInterval(async () => {
+  const range = current;
+  const data = cache.get(`${range.from}|${range.to}`);
+  if (document.visibilityState !== 'visible' || !data || !includesToday(range)) return;
+  try {
+    const newOrder = await loadLiveToday();
+    if (range !== current) return;
+    render(range, data);
+    if (newOrder) pulseRevenue();
+  } catch (err) {
+    console.error('[mobile] live orders check failed', err);
+    if (err instanceof AuthExpiredError) reloadForSession();
+  }
+}, LIVE_POLL_MS);
 
 // ========== BOOT ==========
 // Wait for the admin gate before reading anything; it has already sent non-admins elsewhere.

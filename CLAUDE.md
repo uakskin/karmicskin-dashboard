@@ -53,9 +53,15 @@ JS in one `<script>`).
   its own app (`mobile.webmanifest`, `mobile-icon-180/192/512.png`, scope = this folder, start = mobile.html).
   Six tiles: Shopify revenue, blended ROAS (vs 2.20, amber mark when below), repeat orders %, orders, AOV,
   Amazon sales; Today by default, WTD / MTD pills, and a Range sheet (last month, YTD, current FY from 1 June,
-  last 12 months, last year, custom dates). It reads only `rpt_daily_overview` and `raw_amazon_sales_daily`
-  (two light REST reads per range, no RPCs) with the same sums as `index.html` / `amazon.html`, so the figures
-  match them; QA'd 1 Nov 2026 against both pages' own code on a fixture for eight ranges. It carries the KS ADMIN
+  last 12 months, last year, custom dates). It reads `rpt_daily_overview` and `raw_amazon_sales_daily`
+  (two light REST reads per range) with the same sums as `index.html` / `amazon.html`, so the figures
+  match them; QA'd 1 Nov 2026 against both pages' own code on a fixture for eight ranges.
+  **Live orders:** for today it swaps in Shopify revenue, orders and repeat orders from the SQL function
+  `get_shopify_live_day(p_day)` (SECURITY INVOKER, authenticated only), which computes them straight from
+  `raw_shopify_orders` / `raw_shopify_refunds` with rebuild-reporting's exact rules (verified equal to the
+  rebuilt rows for 8 days, ~20 ms). The Shopify webhook lands orders in seconds, and the page re-checks every
+  15 s while open, so a new order shows within ~20-30 s; ad spend for today stays as last rebuilt (10 min).
+  If you change how rebuild-reporting counts revenue or new/returning orders, change that function too. It carries the KS ADMIN
   GATE but deliberately **no sidebar** (phone app; exception to the shared-sidebar rule, like creative.html).
   Sign-in from the home-screen app: see "Phone sign-in" under Security.
 

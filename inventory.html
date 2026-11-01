@@ -415,7 +415,7 @@ body { padding-left: 208px; }
   </div>
 </section>
 
-<!-- ========== PACKAGING MATERIALS (populated from PACKAGING_STOCK) ========== -->
+<!-- ========== PACKAGING MATERIALS (populated from Supabase inventory_packaging_stock) ========== -->
 <section class="section">
   <div class="wrap">
     <div class="section-head">
@@ -466,7 +466,7 @@ body { padding-left: 208px; }
     <p><strong>Days of cover</strong> = current Shopify on-hand ÷ daily rate (current stock only). <strong>Stockout date</strong> = when stock hits zero <em>including incoming PO units</em>, which land in the forecast on their ETA (see <code>INCOMING_POS</code> in the page source). If current stock would run dry before a shipment lands, a <span class="badge">gap</span> badge appears in the Incoming column. <strong>PO due</strong> = stockout date − 120 days lead time, i.e. the latest date to place the <em>next</em> PO. <strong>Status</strong> drives off PO due: <span class="pill overdue">Overdue</span> if PO due is in the past · <span class="pill urgent">Urgent</span> if within 30 days · <span class="pill soon">Soon</span> if within 60 days · <span class="pill ok">OK</span> otherwise. Amber marks the rows that need action now. <span class="pill hold">On hold</span> marks a SKU that cannot be reordered yet (see <code>PO_ON_HOLD</code> in the page source; hover the pill for the reason). On-hold SKUs show no PO due date and are left out of the Next PO and SKUs-needing-PO cards.</p>
     <p><strong>Bundles tracked</strong> (1 bundle sold = 1 unit each component): The Heroes Kit, Dew It Right, Age Confidence, Bright Future, Mama's Glow, Soft Intentions, The Hair Affair Bundle. Component map is in the page source — see <code>BUNDLE_MAP</code> if you need to correct it. Bundle SKUs are hidden from this list per directive (you only see the underlying components).</p>
     <p><strong>Why some rates differ between 90d and 180d</strong>: a stockout in the window will lower the rate for that period (Sleepytime Gelly hit zero in late March), and recently-launched products (Featherweight, Maui Waui, Tropic Thunder, Espresso Bar, The One &amp; Only — all launched Sep 2025) won't have a meaningful 180d picture. The dashboard auto-uses the more conservative (faster) of the two when there's a strong divergence.</p>
-    <p><strong>Packaging materials</strong> = the latest count of primary packs (jars / bottles) and secondary packs (cartons) held per SKU, stored in <code>PACKAGING_STOCK</code> in the page source (paste the next count there and update the date). <strong>Units fillable</strong> = the lower of the two (cartons only for bars, which have no primary pack). <strong>Cover</strong> = units fillable ÷ the same daily rate used in the forecast above, in months. Status: <span class="pill urgent">Low</span> if packaging covers less than one lead time (120 days) of sales · <span class="pill soon">Watch</span> if under two lead times · <span class="pill ok">OK</span> otherwise. The count is used as reported; if a count was taken before an open PO was filled, subtract that PO's quantities first.</p>
+    <p><strong>Packaging materials</strong> = the latest count of primary packs (jars / bottles) and secondary packs (cartons) held per SKU, stored in the admin-only Supabase table <code>inventory_packaging_stock</code> (updated when a new count sheet arrives). <strong>Units fillable</strong> = the lower of the two (cartons only for bars, which have no primary pack). <strong>Cover</strong> = units fillable ÷ the same daily rate used in the forecast above, in months. Status: <span class="pill urgent">Low</span> if packaging covers less than one lead time (120 days) of sales · <span class="pill soon">Watch</span> if under two lead times · <span class="pill ok">OK</span> otherwise. The count is used as reported; if a count was taken before an open PO was filled, subtract that PO's quantities first.</p>
     <p><strong>Monthly sales trend</strong> = units per calendar month (UK time), bundle-decomposed the same way as the rates, for the last 12 full months plus the current month to date. Lines use two inks and four stroke patterns, and each line is labelled at its right-hand end. Sales rates in the table still use the trailing 90 / 180 day windows.</p>
     <p><strong>Refresh cadence</strong>: inventory syncs from Shopify hourly via <code>sync-shopify-inventory</code>. Sales data updates with the next webhook + rebuild cycle (every 10 min). Click <strong>Refresh</strong> for an immediate Shopify pull (≈3 sec).</p>
   </div>
@@ -531,29 +531,10 @@ const INCOMING_POS = [
 const PO_ON_HOLD = {
   'Clean as a Whistle': 'Formula issue being fixed with the formulation team. No PO until it is resolved; no timeline yet (Uday, 18 Oct 2026).',
 };
-// Packaging stock held per SKU: primary = jars / bottles, cartons = secondary printed cartons.
-// Bars (Maui Waui, Espresso Bar, Tropic Thunder, The One & Only) have no primary pack.
-// Source: the "Karmic Primary & Secondary Packing Material 2026" count sheet.
-// EDITABLE — paste the next count here and update `received`.
-const PACKAGING_STOCK = {
-  received: '2026-09-16',
-  lines: [
-    { sku: 'Pot of Gold',           pack: '100 g', primary: 10021, cartons: 12071 },
-    { sku: 'Ruby Dooby Doo',        pack: '100 g', primary: 485,   cartons: 622 },
-    { sku: 'Clean as a Whistle',    pack: '100 g', primary: 5000,  cartons: 5467 },
-    { sku: 'Everyday. No Excuses!', pack: '45 g',  primary: 1259,  cartons: 1243 },
-    { sku: 'Richie Rich Rich',      pack: '45 g',  primary: 4937,  cartons: 5188 },
-    { sku: 'Sleepytime Gelly',      pack: '45 g',  primary: 6266,  cartons: 7743 },
-    { sku: 'Top of the Morning',    pack: '45 g',  primary: 4823,  cartons: 6352 },
-    { sku: 'Moonlight Serum',       pack: '30 ml', primary: 21848, cartons: 23707 },
-    { sku: 'Featherweight',         pack: '30 ml', primary: 2874,  cartons: 3343 },
-    { sku: 'Sunlight Serum',        pack: '30 ml', primary: 31065, cartons: 33449 },
-    { sku: 'Maui Waui',             pack: '75 g',  primary: null,  cartons: 1198 },
-    { sku: 'Espresso Bar',          pack: '75 g',  primary: null,  cartons: 1352 },
-    { sku: 'Tropic Thunder',        pack: '75 g',  primary: null,  cartons: 1339 },
-    { sku: 'The One & Only',        pack: '60 g',  primary: null,  cartons: 1632 },
-  ],
-};
+// Packaging stock held per SKU (primary = jars / bottles, cartons = secondary printed cartons) lives in
+// the admin-only Supabase table inventory_packaging_stock, not in this file (moved 1 Nov 2026 so the
+// counts are not public). Loaded by fetchPackaging(); update the table when a new count sheet arrives.
+let PACKAGING_STOCK = { received: null, lines: [] };
 // SKUs (component products) we track. Order = display preference (highest-volume first).
 const TRACKED_SKUS = [
   'Sunlight Serum', 'Moonlight Serum', 'Pot of Gold', 'Sleepytime Gelly',
@@ -635,6 +616,18 @@ async function fetchSalesMonthly() {
   const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${USER_JWT}` }, body: JSON.stringify({ months_back: 12 }) });
   if (!r.ok) throw new Error(`sales monthly ${r.status}`);
   return r.json();
+}
+// Packaging count (admin-only table). Returns { received, lines } in the shape buildPackagingRows uses.
+async function fetchPackaging() {
+  const url = `${SUPABASE_URL}/rest/v1/inventory_packaging_stock?select=sku,pack,primary_qty,cartons,received&order=sort_order.asc`;
+  const r = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${USER_JWT}` } });
+  if (!r.ok) throw new Error(`packaging ${r.status}`);
+  const data = await r.json();
+  if (!Array.isArray(data)) throw new Error('packaging: unexpected response');
+  return {
+    received: data.reduce((acc, row) => (row.received > acc ? row.received : acc), '') || null,
+    lines: data.map(row => ({ sku: row.sku, pack: row.pack, primary: row.primary_qty, cartons: row.cartons })),
+  };
 }
 async function triggerInventorySync() {
   await fetch(`${SUPABASE_URL}/functions/v1/sync-shopify-inventory`, { headers: { Authorization: `Bearer ${SUPABASE_KEY}` } });
@@ -972,9 +965,13 @@ function renderPackaging() {
     if (arrow) arrow.textContent = (col === pkgSortCol && pkgSortDir === 'asc') ? '▲' : '▼';
   });
 
-  const rd = new Date(PACKAGING_STOCK.received + 'T00:00:00');
-  const received = `${rd.getDate()} ${MONTHS_SHORT[rd.getMonth()]} ${rd.getFullYear()}`;
-  document.getElementById('pkgMeta').textContent = `Primary jars and bottles, and secondary cartons, held per SKU. Count received ${received}. Bars have no primary pack, so they show cartons only.`;
+  if (PACKAGING_STOCK.received) {
+    const rd = new Date(PACKAGING_STOCK.received + 'T00:00:00');
+    const received = `${rd.getDate()} ${MONTHS_SHORT[rd.getMonth()]} ${rd.getFullYear()}`;
+    document.getElementById('pkgMeta').textContent = `Primary jars and bottles, and secondary cartons, held per SKU. Count received ${received}. Bars have no primary pack, so they show cartons only.`;
+  } else {
+    document.getElementById('pkgMeta').textContent = 'The packaging count could not be loaded. Refresh to try again.';
+  }
 
   const tbody = document.getElementById('pkgBody');
   tbody.innerHTML = rows.map(r => {
@@ -1174,7 +1171,11 @@ function renderTrend(monthly) {
 async function load() {
   try {
     document.getElementById('lastUpdated').textContent = 'Loading…';
+    // Packaging is a side card: if its table can't be read, log it and keep the rest of the page working.
+    const packagingLoad = fetchPackaging().catch(err => { console.error('[inventory] packaging load failed', err); return null; });
     const [inventory, weekly, monthly] = await Promise.all([fetchInventory(), fetchSalesWeekly(), fetchSalesMonthly()]);
+    const packaging = await packagingLoad;
+    if (packaging) PACKAGING_STOCK = packaging;
     const rates = computeRates(weekly);
     const rows = buildForecast(inventory, rates);
     cachedRows = rows;

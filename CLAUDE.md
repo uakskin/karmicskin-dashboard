@@ -43,7 +43,11 @@ JS in one `<script>`).
   file to BOTH, verify BOTH live, and record the second location here and in memory
   `feedback_creative_analytics_deploy_everywhere`. Never leave them out of sync.**
 - `launch.html` — New Product Launch Gantt (half-month grid, editable, state in Supabase `launch_plan_state` row 1)
-- `inventory.html`, `ugc.html`, `instagram-scheduler.html` — operations tools (Inventory sits under Analytics in the sidebar; `worklist.html` was removed 2026-10-10)
+- `inventory.html`, `ugc.html`, `instagram-scheduler.html` — operations tools (Inventory sits under Analytics in the sidebar; `worklist.html` was removed 2026-10-10).
+  The packaging count (jars / bottles / cartons per SKU) is NOT in `inventory.html`: it lives in the
+  admin-only table `inventory_packaging_stock` (one row per SKU, `received` = count date, `sort_order` =
+  display order), moved out of the page source on 1 Nov 2026 so it is not public. Update the table
+  when a new count sheet arrives; the page needs no edit.
 - `design-system.html` — brand design system (working draft)
 
 ## Shared sidebar nav
@@ -106,7 +110,7 @@ sidebar). `creative.html` keeps its own `creative_access` gate and is not part o
 The gate is the front door, not the only lock: every table behind these pages is RLS-limited
 to `public.is_allowed_user()` (allowed_emails) for the `authenticated` role, with no anon
 policies. That includes `launch_plan_state`, `diary_state`, `ugc_creators`,
-`mod_shopify_inventory`, `pnl_monthly`, `mod_orders`, `raw_shopify_refunds` and the daily spend
+`mod_shopify_inventory`, `inventory_packaging_stock`, `pnl_monthly`, `mod_orders`, `raw_shopify_refunds` and the daily spend
 tables. `launch.html`, `diary.html` and `ugc.html` therefore send the admin's token, not the
 anon key. Edge Functions use the service role and are unaffected.
 

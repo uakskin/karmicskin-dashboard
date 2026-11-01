@@ -49,6 +49,15 @@ JS in one `<script>`).
   display order), moved out of the page source on 1 Nov 2026 so it is not public. Update the table
   when a new count sheet arrives; the page needs no edit.
 - `design-system.html` — brand design system (working draft)
+- `mobile.html` — **Topline**, Uday's phone view (added 1 Nov 2026), installed on his iPhone home screen as
+  its own app (`mobile.webmanifest`, `mobile-icon-180/192/512.png`, scope = this folder, start = mobile.html).
+  Six tiles: Shopify revenue, blended ROAS (vs 2.20, amber mark when below), repeat orders %, orders, AOV,
+  Amazon sales; Today by default, WTD / MTD pills, and a Range sheet (last month, YTD, current FY from 1 June,
+  last 12 months, last year, custom dates). It reads only `rpt_daily_overview` and `raw_amazon_sales_daily`
+  (two light REST reads per range, no RPCs) with the same sums as `index.html` / `amazon.html`, so the figures
+  match them; QA'd 1 Nov 2026 against both pages' own code on a fixture for eight ranges. It carries the KS ADMIN
+  GATE but deliberately **no sidebar** (phone app; exception to the shared-sidebar rule, like creative.html).
+  Sign-in from the home-screen app: see "Phone sign-in" under Security.
 
 ## Shared sidebar nav
 
@@ -113,6 +122,20 @@ policies. That includes `launch_plan_state`, `diary_state`, `ugc_creators`,
 `mod_shopify_inventory`, `inventory_packaging_stock`, `pnl_monthly`, `mod_orders`, `raw_shopify_refunds` and the daily spend
 tables. `launch.html`, `diary.html` and `ugc.html` therefore send the admin's token, not the
 anon key. Edge Functions use the service role and are unaffected.
+
+### Phone sign-in (`mobile.html` home-screen app)
+
+An iPhone home-screen web app has its own storage, separate from Safari, and a magic link opens in Safari,
+so a link can never sign the app in. Since 1 Nov 2026 `index.html`'s login therefore also takes the **code**
+from the same email (`POST /auth/v1/verify`, `type: 'email'`); this needs `{{ .Token }}` in the Supabase
+**Magic Link** email template (Authentication > Emails). The email the code went to is kept in localStorage
+`ks-pending-signin` for an hour so a reloaded app reopens on the code box.
+
+Getting back to the phone view: before the gate runs, `mobile.html` leaves a note in localStorage
+`ks-return-to` (`{page, at}`) when its session is not live, and always when running standalone. `index.html`
+hides itself while a fresh note (under 30 minutes) is pending, and after a successful admin sign-in or token
+refresh it reads and clears the note and goes back to that page (only pages in its `RETURN_PAGES` list)
+before loading the dashboard. Without a note, `index.html` behaves exactly as before.
 
 ### P&L data (`pnl.html`)
 

@@ -3,6 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+// ========== RETURN TO MOBILE ==========
+// mobile.html sends people here to sign in or to refresh an expired token and leaves a note
+// (localStorage 'ks-return-to') asking to be sent back. While that is pending, keep this page
+// hidden so the full dashboard does not flash up; authBoot reveals it if a sign-in form is needed.
+(function hideWhileReturning() {
+  try {
+    var note = JSON.parse(localStorage.getItem('ks-return-to') || 'null');
+    if (note && note.at && Date.now() - note.at < 30 * 60 * 1000) {
+      document.documentElement.style.visibility = 'hidden';
+      setTimeout(function () { document.documentElement.style.visibility = ''; }, 8000);
+    }
+  } catch (err) { console.error('[auth] return note unreadable', err); }
+})();
+</script>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -322,15 +337,18 @@
   <div class="auth-card">
     <div class="auth-brand">Karmic Skin</div>
     <h1>Analytics access</h1>
-    <p class="auth-sub" id="authSub">Enter your email and we'll send you a sign-in link. Only authorised emails can sign in.</p>
+    <p class="auth-sub" id="authSub">Enter your email and we'll send you a sign-in email. Only authorised emails can sign in.</p>
 
     <div id="authStepEmail">
       <label for="authEmail">Email</label>
       <input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com" />
-      <button class="auth-btn" id="authSendCode" type="button">Send sign-in link</button>
+      <button class="auth-btn" id="authSendCode" type="button">Send sign-in email</button>
     </div>
 
     <div id="authStepSent" class="auth-hidden">
+      <label for="authCode">Code from the email</label>
+      <input id="authCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="123456" />
+      <button class="auth-btn" id="authVerifyCode" type="button">Sign in with code</button>
       <button class="auth-back" id="authBackToEmail" type="button">Use a different email</button>
     </div>
 
@@ -2335,9 +2353,18 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
   const stepEmail = document.getElementById('authStepEmail');
   const stepSent = document.getElementById('authStepSent');
   const emailInput = document.getElementById('authEmail');
+  const codeInput = document.getElementById('authCode');
   const sendBtn = document.getElementById('authSendCode');
+  const verifyBtn = document.getElementById('authVerifyCode');
   const backBtn = document.getElementById('authBackToEmail');
   const msgEl = document.getElementById('authMsg');
+
+  // The sign-in email carries a link and a code. The iPhone home-screen app (mobile.html) has its own
+  // storage, separate from Safari, and the link opens in Safari, so there the code is the way in.
+  const PENDING_KEY = 'ks-pending-signin';   // email a code was sent to, so a reload keeps the code box
+  const RETURN_KEY = 'ks-return-to';         // set by mobile.html: go back there after signing in
+  const RETURN_PAGES = ['mobile.html'];
+  const RETURN_MAX_AGE_MS = 30 * 60 * 1000;
 
   let pendingEmail = '';
   let refreshTimer = null;
@@ -2352,10 +2379,33 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
     stepEmail.classList.toggle('auth-hidden', step !== 'email');
     stepSent.classList.toggle('auth-hidden', step !== 'sent');
     if (step === 'email') { setMsg(''); emailInput.focus(); }
-    if (step === 'sent')  { setMsg(`Email sent to ${pendingEmail}. Click the sign-in link in your inbox — you'll be brought right back here. (Check Spam if you don't see it.)`, 'info'); }
+    if (step === 'sent')  { codeInput.value = ''; setMsg(`Email sent to ${pendingEmail}. Click the sign-in link in it, or type its code above. In the iPhone home-screen app, use the code. (Check Spam if you don't see it.)`, 'info'); codeInput.focus(); }
   }
-  function hideOverlay() { overlay.style.display = 'none'; }
-  function showOverlay() { overlay.style.display = 'flex'; }
+  function revealPage() { document.documentElement.style.visibility = ''; }
+  function hideOverlay() { overlay.style.display = 'none'; revealPage(); }
+  function showOverlay() { overlay.style.display = 'flex'; revealPage(); }
+
+  // ---- Pending sign-in + return-page helpers ----
+  function savePending(email) {
+    try { localStorage.setItem(PENDING_KEY, JSON.stringify({ email, at: Date.now() })); }
+    catch (e) { console.error('[auth] could not save pending sign-in', e); }
+  }
+  function readPending() {
+    try {
+      const p = JSON.parse(localStorage.getItem(PENDING_KEY) || 'null');
+      return p && p.email && Date.now() - p.at < 60 * 60 * 1000 ? p.email : '';
+    } catch (e) { console.error('[auth] pending sign-in unreadable', e); return ''; }
+  }
+  function clearPending() { try { localStorage.removeItem(PENDING_KEY); } catch (e) { console.error('[auth] could not clear pending sign-in', e); } }
+  // Reads and clears mobile.html's return note; only a recent note naming a known page counts.
+  function takeReturnPage() {
+    try {
+      const note = JSON.parse(localStorage.getItem(RETURN_KEY) || 'null');
+      localStorage.removeItem(RETURN_KEY);
+      if (note && RETURN_PAGES.includes(note.page) && Date.now() - note.at < RETURN_MAX_AGE_MS) return note.page;
+    } catch (e) { console.error('[auth] return note unreadable', e); }
+    return null;
+  }
 
   // ---- Storage helpers ----
   function readStored() {
@@ -2416,6 +2466,29 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
     }
   }
 
+  // Exchanges the code from the sign-in email for a session (Supabase verifyOtp, type 'email').
+  async function verifyCodeREST(email, token) {
+    const r = await fetch(`${SUPABASE_URL}/auth/v1/verify`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'email', email, token })
+    });
+    if (!r.ok) {
+      let errMsg = 'That code did not work.';
+      try {
+        const e = await r.json();
+        errMsg = (e.error_code === 'otp_expired' || r.status === 403)
+          ? 'That code is wrong or has expired. Use the code from the latest email, or send a new one.'
+          : (e.msg || e.error_description || e.error || errMsg);
+      } catch {}
+      throw new Error(errMsg);
+    }
+    const s = await r.json();
+    if (!s || !s.access_token || !s.refresh_token) throw new Error('No session came back. Try again.');
+    if (!s.expires_at) s.expires_at = Math.floor(Date.now() / 1000) + (s.expires_in || 3600);
+    return s;
+  }
+
   // ---- Session lifecycle ----
   function scheduleRefresh(s) {
     if (refreshTimer) clearTimeout(refreshTimer);
@@ -2445,12 +2518,15 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
     if (!ok && await isCreativeUserREST(s.access_token)) {
       // A strategist: keep their session (creative.html shares it) and send them to their app.
       saveStored(s);
+      clearPending();
+      takeReturnPage();
       USER_JWT = SUPABASE_KEY;
       window.location.replace('creative.html');
       return true;
     }
     if (!ok) {
       clearStored();
+      clearPending();
       USER_JWT = SUPABASE_KEY;
       showOverlay();
       showStep('email');
@@ -2458,6 +2534,10 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
       return false;
     }
     saveStored(s);
+    clearPending();
+    // Came here from mobile.html to sign in or refresh: go straight back, before the dashboard loads.
+    const returnPage = takeReturnPage();
+    if (returnPage) { window.location.replace(returnPage); return true; }
     hideOverlay();
     scheduleRefresh(s);
     flushBootQueue();
@@ -2473,6 +2553,7 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
     try {
       await sendMagicLinkREST(email);
       pendingEmail = email;
+      savePending(email);
       showStep('sent');
     } catch (e) {
       setMsg(e.message || 'Failed to send link.', 'error');
@@ -2481,7 +2562,23 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
     }
   });
   emailInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendBtn.click(); });
-  backBtn.addEventListener('click', () => { pendingEmail = ''; showStep('email'); });
+  verifyBtn.addEventListener('click', async () => {
+    const token = codeInput.value.replace(/\D/g, '');
+    if (token.length < 6) { setMsg('Type the code from the email (6 or more digits).', 'error'); return; }
+    if (!pendingEmail) { showStep('email'); setMsg('Enter your email first.', 'error'); return; }
+    verifyBtn.disabled = true;
+    setMsg('Checking the code…', 'info');
+    try {
+      const s = await verifyCodeREST(pendingEmail, token);
+      await adoptSession(s);
+    } catch (e) {
+      setMsg(e.message || 'That code did not work.', 'error');
+    } finally {
+      verifyBtn.disabled = false;
+    }
+  });
+  codeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') verifyBtn.click(); });
+  backBtn.addEventListener('click', () => { pendingEmail = ''; clearPending(); showStep('email'); });
 
   // ---- Boot ----
   (async () => {
@@ -2522,9 +2619,11 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
       }
     }
 
-    // Case 3: no session — show login.
+    // Case 3: no session — show login. If a code was sent in the last hour (the iPhone app may have
+    // been reloaded while the code was being fetched from the inbox), go straight to the code box.
     showOverlay();
-    showStep('email');
+    pendingEmail = readPending();
+    showStep(pendingEmail ? 'sent' : 'email');
   })();
 })();
 </script>

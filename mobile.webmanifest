@@ -1,0 +1,16 @@
+{
+  "name": "Karmic Skin Topline",
+  "short_name": "Karmic",
+  "description": "Today's topline numbers for Karmic Skin.",
+  "start_url": "mobile.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F6F5F0",
+  "theme_color": "#F6F5F0",
+  "icons": [
+    { "src": "mobile-icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "mobile-icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "mobile-icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

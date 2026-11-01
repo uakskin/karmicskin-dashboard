@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<script>
+// ========== RETURN AFTER SIGN-IN ==========
+// The admin gate below sends this page to index.html when there is no session or the 1-hour
+// token has expired. This note asks index.html to come back here once it has signed in or
+// refreshed, instead of opening the full dashboard. In a normal browser tab it is only left
+// when the session is not live; in the home-screen app index.html is only ever reached
+// through the gate, so it is always left there.
+(function rememberReturn() {
+  try {
+    var s = JSON.parse(localStorage.getItem('ks-dashboard-auth') || 'null');
+    var live = !!(s && s.access_token && s.expires_at && s.expires_at > Math.floor(Date.now() / 1000));
+    var standalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+    if (standalone || !live) localStorage.setItem('ks-return-to', JSON.stringify({ page: 'mobile.html', at: Date.now() }));
+  } catch (err) { console.error('[mobile] could not save the return page', err); }
+})();
+</script>
+<script>
+// ========== KS ADMIN GATE ==========
+// Identical block on every KS dashboard page except creative.html (which keeps its own creative_access gate).
+// Keep it byte-for-byte the same across pages. It runs before anything paints:
+//   1. hides the document,
+//   2. reads the magic-link session index.html stores under localStorage 'ks-dashboard-auth',
+//   3. verifies the signed-in email against allowed_emails (the same REST check index.html runs),
+//   4. reveals the page only on success, then keeps the session refreshed while the page is open.
+// No session, expired session, or not on the list -> index.html (the login). A creative_access
+// strategist (signed in through creative.html) -> creative.html. A magic link that lands here is
+// forwarded to index.html, which adopts it. Data is protected by RLS regardless; this gate stops
+// the page shell loading for anyone who is not an admin.
+(function ksAdminGate() {
+  var SUPABASE_URL = 'https://unmkzatppwftnasafhlb.supabase.co';
+  var ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVubWt6YXRwcHdmdG5hc2FmaGxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDQ5OTIsImV4cCI6MjA4NjU4MDk5Mn0.SYQm1km08xwlJSIf9jq8DXH3Ijxbxqk_LpTRh0PZhD4';
+  var STORAGE_KEY = 'ks-dashboard-auth';
+  var root = document.documentElement;
+  root.style.visibility = 'hidden';
+
+  function leave(page) { window.location.replace(page); }
+  function reveal() { root.style.visibility = ''; window.KS_ADMIN_OK = true; }
+  function readSession() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch (err) { return null; }
+  }
+  function isLive(session) {
+    return !!(session && session.access_token && session.expires_at && session.expires_at > Math.floor(Date.now() / 1000));
+  }
+  function rows(path, token) {
+    return fetch(SUPABASE_URL + '/rest/v1/' + path, { headers: { apikey: ANON_KEY, Authorization: 'Bearer ' + token } })
+      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (data) { return Array.isArray(data) ? data : []; });
+  }
+  // Refresh 60s before expiry so long-lived pages (diary, launch plan) keep saving. If another tab
+  // already refreshed, adopt its newer session instead of spending the same refresh token twice.
+  function scheduleRefresh(session) {
+    var ms = Math.max(15000, session.expires_at * 1000 - Date.now() - 60000);
+    setTimeout(function () {
+      var stored = readSession();
+      if (stored && stored.expires_at > session.expires_at && isLive(stored)) { announce(stored); return; }
+      fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
+        method: 'POST',
+        headers: { apikey: ANON_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: session.refresh_token })
+      })
+        .then(function (r) { if (!r.ok) throw new Error('refresh failed: ' + r.status); return r.json(); })
+        .then(function (fresh) {
+          if (!fresh.expires_at) fresh.expires_at = Math.floor(Date.now() / 1000) + (fresh.expires_in || 3600);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
+          announce(fresh);
+        })
+        .catch(function (err) { console.error('[gate] session refresh failed', err); leave('index.html'); });
+    }, ms);
+  }
+  function announce(session) {
+    window.KS_SESSION = session;
+    window.dispatchEvent(new CustomEvent('ks-session', { detail: session }));
+    scheduleRefresh(session);
+  }
+
+  // A magic link that lands on this page: let index.html adopt the tokens.
+  if (/access_token=/.test(window.location.hash)) { leave('index.html' + window.location.hash); return; }
+
+  var session = readSession();
+  if (!isLive(session)) { leave('index.html'); return; }
+
+  window.KS_GATE = rows('allowed_emails?select=email&limit=1', session.access_token)
+    .then(function (allowed) {
+      if (allowed.length) { reveal(); announce(session); return true; }
+      // Signed in but not an admin: a creative_access strategist goes to their app, anyone else to the login.
+      return rows('creative_access?select=role&limit=1', session.access_token).then(function (creative) {
+        leave(creative.length ? 'creative.html' : 'index.html');
+        return false;
+      });
+    })
+    .catch(function (err) { console.error('[gate] allowlist check failed', err); leave('index.html'); return false; });
+})();
+</script>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Karmic Skin | Topline</title>
+<link rel="icon" type="image/svg+xml" href="favicon-latest.svg">
+<link rel="apple-touch-icon" href="mobile-icon-180.png">
+<link rel="manifest" href="mobile.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Karmic">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#F6F5F0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1117" media="(prefers-color-scheme: dark)">
+<meta name="format-detection" content="telephone=no">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Domine:wght@600;700&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ========== TOKENS ==========
+     Palette and type come from design-system.html, applied the way meta.html does: six colours,
+     all text Carbon Black (Porcelain on Dark Green), hierarchy from size and weight, borders only
+     on things you tap. Porcelain tiles sit on a Citron band; Shopify revenue is the one Dark Green
+     panel; Brick Red is the one main action (Show range); Amber only marks ROAS below target.
+     Dark theme keeps the neutral dark palette shared by the other dashboards. */
+  :root {
+    --porcelain: #F6F5F0;
+    --citron:    #CAD183;
+    --carbon:    #232526;
+    --green:     #2F5350;
+    --red:       #B22222;
+    --amber:     #EFA71D;
+
+    --font-heading: 'Domine', Georgia, serif;
+    --font-body:    'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+    --ground:    var(--porcelain);
+    --tint:      var(--citron);
+    --ink:       var(--carbon);
+    --panel:     var(--green);
+    --panel-ink: var(--porcelain);
+    --mark:      var(--amber);
+    --btn-fill:  var(--carbon);
+    --btn-ink:   var(--porcelain);
+    --action:    var(--red);
+    --action-ink: var(--porcelain);
+    --spark:     var(--green);
+    --scrim:     rgba(35,37,38,0.4);
+
+    --safe-top:    env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left:   env(safe-area-inset-left, 0px);
+    --safe-right:  env(safe-area-inset-right, 0px);
+  }
+  [data-theme="dark"] {
+    --ground: #0f1117; --tint: #1e1e22; --ink: #f4f4f5;
+    --btn-fill: #f4f4f5; --btn-ink: #0f1117;
+    --spark: #34d399;
+    --scrim: rgba(0,0,0,0.6);
+  }
+
+  /* ========== BASE ========== */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { background: var(--ground); -webkit-text-size-adjust: 100%; }
+  body { font-family: var(--font-body); background: var(--ground); color: var(--ink); line-height: 1.45; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; font-variant-numeric: tabular-nums; }
+  h1, h2 { font-family: var(--font-heading); font-weight: 700; line-height: 1.15; }
+  button { font-family: var(--font-body); color: inherit; background: none; border: none; cursor: pointer; }
+
+  /* ========== HEADER ========== */
+  .top { padding: calc(var(--safe-top) + 16px) calc(var(--safe-right) + 16px) 16px calc(var(--safe-left) + 16px); max-width: 640px; width: 100%; margin: 0 auto; }
+  .top-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; }
+  .icon-btn { width: 40px; height: 40px; border-radius: 12px; border: 1.5px solid var(--ink); display: inline-flex; align-items: center; justify-content: center; }
+  .icon-btn svg { width: 18px; height: 18px; display: block; }
+  .icon-btn.spinning svg { animation: spin 0.9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .range-title { font-size: 30px; margin-top: 12px; }
+  .range-sub { font-size: 13px; font-weight: 500; margin-top: 4px; min-height: 19px; }
+  .fresh { font-size: 12px; font-weight: 500; margin-top: 2px; min-height: 17px; }
+
+  /* ========== DATE PILLS ========== */
+  .pills { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 16px; }
+  .pill { height: 40px; border-radius: 12px; border: 1.5px solid var(--ink); font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 8px; }
+  .pill[aria-pressed="true"] { background: var(--btn-fill); color: var(--btn-ink); border-color: var(--btn-fill); }
+
+  /* ========== STATUS ========== */
+  .status { font-size: 13px; font-weight: 600; margin-top: 12px; display: none; }
+  .status.show { display: block; }
+  .status span { background: var(--mark); color: var(--carbon); padding: 2px 6px; border-radius: 3px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+
+  /* ========== TILES (Porcelain on a Citron band, revenue on Dark Green) ========== */
+  .band { background: var(--tint); flex: 1; padding: 16px calc(var(--safe-right) + 16px) calc(var(--safe-bottom) + 24px) calc(var(--safe-left) + 16px); }
+  .band-inner { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .tile { background: var(--ground); border-radius: 12px; padding: 14px 16px 12px; min-width: 0; display: flex; flex-direction: column; }
+  .tile.wide { grid-column: 1 / -1; }
+  .tile.hero { background: var(--panel); color: var(--panel-ink); padding: 18px 18px 14px; }
+  .tile .label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+  .tile .value { font-family: var(--font-heading); font-size: 30px; font-weight: 700; line-height: 1.15; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tile.hero .value { font-size: 44px; margin-top: 8px; }
+  .tile .sub { font-size: 12px; font-weight: 500; margin-top: 6px; min-height: 17px; }
+  .tile .spark { display: block; width: 100%; height: 28px; margin-top: 10px; color: var(--spark); overflow: visible; }
+  .tile.hero .spark { color: var(--panel-ink); height: 36px; }
+  .tile .spark[hidden] { display: none; }
+  .tile.loading .value, .tile.loading .sub, .tile.loading .spark { opacity: 0.35; }
+  /* Below-target mark: amber sits beneath the Carbon figure, never as its colour. */
+  .tile.below .value span { background-image: linear-gradient(to top, var(--mark) 0.22em, transparent 0.22em); }
+
+  /* ========== METHOD NOTE ========== */
+  .method { max-width: 640px; margin: 20px auto 0; font-size: 12px; }
+  .method summary { font-weight: 600; cursor: pointer; list-style: none; padding: 6px 0; }
+  .method summary::-webkit-details-marker { display: none; }
+  .method summary::after { content: ' +'; }
+  .method[open] summary::after { content: ' −'; }
+  .method p { margin-top: 6px; }
+
+  /* ========== RANGE SHEET ========== */
+  .scrim { position: fixed; inset: 0; background: var(--scrim); opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 50; }
+  .scrim.open { opacity: 1; pointer-events: auto; }
+  .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 51; background: var(--ground); border-radius: 16px 16px 0 0; padding: 10px calc(var(--safe-right) + 16px) calc(var(--safe-bottom) + 16px) calc(var(--safe-left) + 16px); transform: translateY(105%); transition: transform 0.25s ease; max-height: 88vh; overflow-y: auto; }
+  .sheet.open { transform: translateY(0); }
+  .sheet-inner { max-width: 640px; margin: 0 auto; }
+  .sheet-handle { width: 40px; height: 4px; border-radius: 2px; background: var(--ink); opacity: 0.25; margin: 0 auto 14px; }
+  .sheet-head { display: flex; align-items: center; justify-content: space-between; }
+  .sheet h2 { font-size: 22px; }
+  .sheet-close { font-size: 14px; font-weight: 600; padding: 8px 4px; }
+  .presets { margin-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+  .preset { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; width: 100%; text-align: left; padding: 12px 12px; border-radius: 12px; font-size: 15px; font-weight: 600; }
+  .preset span { font-size: 12px; font-weight: 500; white-space: nowrap; }
+  .preset[aria-pressed="true"] { background: var(--tint); }
+  .custom-head { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 20px; }
+  .custom-range { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+  .custom-range label { font-size: 12px; font-weight: 600; display: block; }
+  .custom-range input { display: block; width: 100%; margin-top: 4px; height: 44px; padding: 0 10px; border: 1px solid var(--ink); border-radius: 12px; background: var(--ground); color: var(--ink); font-family: var(--font-body); font-size: 15px; -webkit-appearance: none; appearance: none; }
+  .btn-action { width: 100%; height: 48px; margin-top: 16px; border-radius: 12px; background: var(--action); color: var(--action-ink); font-size: 15px; font-weight: 700; }
+  .sheet-msg { font-size: 12px; font-weight: 600; margin-top: 8px; min-height: 17px; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-row">
+    <div class="eyebrow">Karmic Skin</div>
+    <button class="icon-btn" id="refreshBtn" type="button" aria-label="Refresh figures">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>
+    </button>
+  </div>
+  <h1 class="range-title" id="rangeTitle">Today</h1>
+  <p class="range-sub" id="rangeDates"></p>
+  <p class="fresh" id="freshness"></p>
+  <nav class="pills" aria-label="Date range">
+    <button class="pill" type="button" data-preset="today" aria-pressed="true">Today</button>
+    <button class="pill" type="button" data-preset="wtd" aria-pressed="false">WTD</button>
+    <button class="pill" type="button" data-preset="mtd" aria-pressed="false">MTD</button>
+    <button class="pill" type="button" id="rangePill" aria-pressed="false" aria-haspopup="dialog">Range</button>
+  </nav>
+  <p class="status" id="status"><span id="statusText"></span></p>
+</header>
+
+<main class="band">
+  <div class="band-inner">
+    <section class="tile hero wide loading" id="tile-revenue">
+      <div class="label">Shopify revenue</div>
+      <div class="value"><span>--</span></div>
+      <div class="sub"></div>
+      <svg class="spark" viewBox="0 0 100 36" preserveAspectRatio="none" hidden></svg>
+    </section>
+    <section class="tile loading" id="tile-roas">
+      <div class="label">Blended ROAS</div>
+      <div class="value"><span>--</span></div>
+      <div class="sub"></div>
+      <svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none" hidden></svg>
+    </section>
+    <section class="tile loading" id="tile-repeat">
+      <div class="label">Repeat orders</div>
+      <div class="value"><span>--</span></div>
+      <div class="sub"></div>
+      <svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none" hidden></svg>
+    </section>
+    <section class="tile loading" id="tile-orders">
+      <div class="label">Orders</div>
+      <div class="value"><span>--</span></div>
+      <div class="sub"></div>
+      <svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none" hidden></svg>
+    </section>
+    <section class="tile loading" id="tile-aov">
+      <div class="label">AOV</div>
+      <div class="value"><span>--</span></div>
+      <div class="sub"></div>
+      <svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none" hidden></svg>
+    </section>
+    <section class="tile wide loading" id="tile-amazon">
+      <div class="label">Amazon sales</div>
+      <div class="value"><span>--</span></div>
+      <div class="sub"></div>
+      <svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none" hidden></svg>
+    </section>
+  </div>
+
+  <details class="method">
+    <summary>How these are worked out</summary>
+    <p><strong>Shopify revenue</strong>: total Shopify sales including VAT and shipping, net of refunds (same as the main dashboard).</p>
+    <p><strong>Blended ROAS</strong>: Shopify revenue ÷ Meta and Google ad spend combined. Amber under the figure means it is below the 2.20 target.</p>
+    <p><strong>Repeat orders</strong>: orders from customers who had ordered before ÷ all orders.</p>
+    <p><strong>AOV</strong>: Shopify revenue ÷ orders.</p>
+    <p><strong>Amazon sales</strong>: Amazon ordered product sales (same as the Amazon dashboard). Today's figure is provisional until Amazon's nightly report.</p>
+    <p>Every day is a UK day. Weeks run Monday to Sunday; the financial year starts on 1 June. Shopify figures refresh every 10 minutes, Amazon sales every 30. On the small trend lines, a dashed last step means that day or week is still in progress.</p>
+  </details>
+</main>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" aria-hidden="true">
+  <div class="sheet-inner">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <h2 id="sheetTitle">Date range</h2>
+      <button class="sheet-close" id="sheetClose" type="button">Close</button>
+    </div>
+    <div class="presets" id="presetList">
+      <button class="preset" type="button" data-preset="lastMonth" aria-pressed="false">Last month <span></span></button>
+      <button class="preset" type="button" data-preset="ytd" aria-pressed="false">Year to date <span></span></button>
+      <button class="preset" type="button" data-preset="fy" aria-pressed="false">Current financial year <span></span></button>
+      <button class="preset" type="button" data-preset="last12m" aria-pressed="false">Last 12 months <span></span></button>
+      <button class="preset" type="button" data-preset="lastYear" aria-pressed="false">Last year <span></span></button>
+    </div>
+    <div class="custom-head">Custom dates</div>
+    <div class="custom-range">
+      <label for="fromInput">From<input type="date" id="fromInput"></label>
+      <label for="toInput">To<input type="date" id="toInput"></label>
+    </div>
+    <button class="btn-action" id="applyCustom" type="button">Show range</button>
+    <p class="sheet-msg" id="sheetMsg"></p>
+  </div>
+</div>
+
+<script>
+// ========== CONFIG ==========
+const SUPABASE_URL = 'https://unmkzatppwftnasafhlb.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVubWt6YXRwcHdmdG5hc2FmaGxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDQ5OTIsImV4cCI6MjA4NjU4MDk5Mn0.SYQm1km08xwlJSIf9jq8DXH3Ijxbxqk_LpTRh0PZhD4';
+const AUTH_STORAGE_KEY = 'ks-dashboard-auth';
+const RETURN_KEY = 'ks-return-to';
+const ROAS_TARGET = 2.20;           // King ROAS target (blended, monthly)
+const CACHE_MS = 60 * 1000;         // reuse a range's figures for a minute when switching pills
+const AUTO_REFRESH_MS = 5 * 60 * 1000;
+const IS_STANDALONE = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+
+// ========== THEME ==========
+// Follows the phone's light/dark setting unless a theme was picked on another dashboard page.
+(function applyTheme() {
+  let saved = null;
+  try { saved = localStorage.getItem('ks-theme'); } catch (err) { console.error('[mobile] theme read failed', err); }
+  const media = window.matchMedia('(prefers-color-scheme: dark)');
+  const set = (dark) => document.documentElement.setAttribute('data-theme', dark ? 'dark' : '');
+  set(saved ? saved === 'dark' : media.matches);
+  media.addEventListener('change', (e) => { if (!saved) set(e.matches); });
+})();
+
+// ========== UK TIME ==========
+// Every date on this page is a UK day (GMT in winter, BST in summer), whatever time zone the phone is in.
+const UK_TZ = 'Europe/London';
+// Current UK wall-clock time as a Date whose local getters (getDate, getHours...) read UK time.
+function ukNow() {
+  const p = {};
+  for (const part of new Intl.DateTimeFormat('en-GB', { timeZone: UK_TZ, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).formatToParts(new Date())) p[part.type] = part.value;
+  return new Date(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+}
+// A stored timestamp as UK clock time with its zone, e.g. "14:07 GMT" / "14:07 BST".
+function fmtUkTime(ts) {
+  const d = new Date(ts);
+  const p = {};
+  for (const part of new Intl.DateTimeFormat('en-GB', { timeZone: UK_TZ, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).formatToParts(d)) p[part.type] = part.value;
+  const bst = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute) !== Math.floor(d.getTime() / 60000) * 60000;
+  return `${p.hour}:${p.minute} ${bst ? 'BST' : 'GMT'}`;
+}
+
+// ========== DATES ==========
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+function fmtDate(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function parseDay(s) { return new Date(s + 'T00:00:00'); }
+function addDays(d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
+function todayUk() { const n = ukNow(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); }
+
+// Same windows as index.html's presets: to-date presets include today; "Last 12 months" ends yesterday.
+function presetRange(preset) {
+  const today = todayUk();
+  const yesterday = addDays(today, -1);
+  switch (preset) {
+    case 'today': return { from: fmtDate(today), to: fmtDate(today), title: 'Today' };
+    case 'wtd': return { from: fmtDate(addDays(today, -((today.getDay() + 6) % 7))), to: fmtDate(today), title: 'Week to date' };
+    case 'mtd': return { from: fmtDate(new Date(today.getFullYear(), today.getMonth(), 1)), to: fmtDate(today), title: 'Month to date' };
+    case 'lastMonth': return { from: fmtDate(new Date(today.getFullYear(), today.getMonth() - 1, 1)), to: fmtDate(new Date(today.getFullYear(), today.getMonth(), 0)), title: 'Last month' };
+    case 'ytd': return { from: fmtDate(new Date(today.getFullYear(), 0, 1)), to: fmtDate(today), title: 'Year to date' };
+    case 'fy': {
+      const startYear = today.getMonth() >= 5 ? today.getFullYear() : today.getFullYear() - 1;
+      return { from: fmtDate(new Date(startYear, 5, 1)), to: fmtDate(today), title: `FY${startYear + 1} to date` };
+    }
+    case 'last12m': {
+      const from = new Date(yesterday); from.setFullYear(yesterday.getFullYear() - 1); from.setDate(from.getDate() + 1);
+      return { from: fmtDate(from), to: fmtDate(yesterday), title: 'Last 12 months' };
+    }
+    case 'lastYear': return { from: fmtDate(new Date(today.getFullYear() - 1, 0, 1)), to: fmtDate(new Date(today.getFullYear() - 1, 11, 31)), title: `Last year (${today.getFullYear() - 1})` };
+    default: return null;
+  }
+}
+
+// "Sun 1 Nov 2026" · "1 Oct – 31 Oct 2026" · "1 Nov 2025 – 31 Oct 2026"
+function fmtRange(from, to, withYear = true) {
+  const a = parseDay(from), b = parseDay(to);
+  const day = (d, year) => `${d.getDate()} ${MONTHS[d.getMonth()]}${year ? ' ' + d.getFullYear() : ''}`;
+  if (from === to) return `${DAYS[a.getDay()]} ${day(a, withYear)}`;
+  if (a.getFullYear() === b.getFullYear()) return `${day(a, false)} – ${day(b, withYear)}`;
+  return `${day(a, true)} – ${day(b, true)}`;
+}
+
+// ========== SESSION ==========
+function storedSession() {
+  try { return JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY) || 'null'); }
+  catch (err) { console.error('[mobile] session read failed', err); return null; }
+}
+// A token with at least 30s left. When the phone wakes the app after the token expired, the gate's
+// refresh timer fires and announces a new one with a 'ks-session' event; wait for it. If none comes,
+// reload so the gate sends us through index.html to refresh, and back here.
+function liveToken() {
+  const s = storedSession();
+  if (s && s.access_token && s.expires_at > Math.floor(Date.now() / 1000) + 30) return Promise.resolve(s.access_token);
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => window.location.reload(), 10000);
+    window.addEventListener('ks-session', (e) => { clearTimeout(timer); resolve(e.detail.access_token); }, { once: true });
+  });
+}
+
+// ========== DATA ==========
+class AuthExpiredError extends Error {}
+
+// PostgREST returns at most 1000 rows per request; page through so long custom ranges stay complete.
+async function fetchAllRows(path) {
+  const PAGE = 1000;
+  let all = [], offset = 0;
+  while (true) {
+    const token = await liveToken();
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/${path}&limit=${PAGE}&offset=${offset}`, {
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` }
+    });
+    if (resp.status === 401) throw new AuthExpiredError('token rejected');
+    if (!resp.ok) throw new Error(`HTTP ${resp.status} from ${path.split('?')[0]}`);
+    const rows = await resp.json();
+    if (!Array.isArray(rows)) throw new Error(`Unexpected response from ${path.split('?')[0]}`);
+    all = all.concat(rows);
+    if (rows.length < PAGE) break;
+    offset += PAGE;
+  }
+  return all;
+}
+
+const num = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; };
+const isDay = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
+
+// Two light reads per range: the daily Shopify overview (same table and columns index.html sums)
+// and Amazon's daily sales (same table amazon.html sums). No RPCs.
+async function loadRange(from, to) {
+  const [shopRaw, amzRaw] = await Promise.all([
+    fetchAllRows(`rpt_daily_overview?report_date=gte.${from}&report_date=lte.${to}&order=report_date.asc&select=report_date,total_sales,total_ad_spend,total_orders,orders_from_returning,loaded_at`),
+    fetchAllRows(`raw_amazon_sales_daily?report_date=gte.${from}&report_date=lte.${to}&order=report_date.asc&select=report_date,ordered_product_sales,updated_at`)
+  ]);
+  const shop = shopRaw.filter((r) => isDay(r.report_date)).map((r) => ({
+    day: r.report_date, sales: num(r.total_sales), spend: num(r.total_ad_spend),
+    orders: Math.round(num(r.total_orders)), repeatOrders: Math.round(num(r.orders_from_returning)), loadedAt: r.loaded_at || null
+  }));
+  const amazon = amzRaw.filter((r) => isDay(r.report_date)).map((r) => ({
+    day: r.report_date, sales: num(r.ordered_product_sales), updatedAt: r.updated_at || null
+  }));
+  return { shop, amazon, fetchedAt: Date.now() };
+}
+
+// ========== FIGURES ==========
+function totals(shop, amazon) {
+  const t = shop.reduce((a, r) => {
+    a.sales += r.sales; a.spend += r.spend; a.orders += r.orders; a.repeatOrders += r.repeatOrders;
+    return a;
+  }, { sales: 0, spend: 0, orders: 0, repeatOrders: 0 });
+  t.amazon = amazon.reduce((s, r) => s + r.sales, 0);
+  t.roas = t.spend > 0 ? t.sales / t.spend : null;
+  t.repeatPct = t.orders > 0 ? (t.repeatOrders / t.orders) * 100 : null;
+  t.aov = t.orders > 0 ? t.sales / t.orders : null;
+  return t;
+}
+
+// Trend buckets for the sparklines: daily up to ~2 months, Monday-to-Sunday weeks up to a year, months beyond.
+function buckets(from, to, shop, amazon) {
+  const start = parseDay(from), end = parseDay(to);
+  const span = Math.round((end - start) / 86400000) + 1;
+  const unit = span <= 62 ? 'day' : span <= 400 ? 'week' : 'month';
+  const keyOf = (s) => {
+    const d = parseDay(s);
+    if (unit === 'day') return s;
+    if (unit === 'week') return fmtDate(addDays(d, -((d.getDay() + 6) % 7)));
+    return s.slice(0, 7);
+  };
+  const map = new Map();
+  for (let d = start; d <= end; d = addDays(d, 1)) {
+    const k = keyOf(fmtDate(d));
+    if (!map.has(k)) map.set(k, { sales: 0, spend: 0, orders: 0, repeatOrders: 0, amazon: 0 });
+  }
+  for (const r of shop) { const b = map.get(keyOf(r.day)); if (b) { b.sales += r.sales; b.spend += r.spend; b.orders += r.orders; b.repeatOrders += r.repeatOrders; } }
+  for (const r of amazon) { const b = map.get(keyOf(r.day)); if (b) b.amazon += r.sales; }
+  return [...map.values()];
+}
+
+// ========== FORMAT ==========
+const gbp = (v) => '£' + Math.round(v).toLocaleString('en-GB');
+const count = (v) => Math.round(v).toLocaleString('en-GB');
+
+// ========== RENDER ==========
+function sparkPath(values, w, h) {
+  const pts = values.map((v, i) => [values.length === 1 ? w / 2 : (i / (values.length - 1)) * w, v]).filter((p) => p[1] !== null);
+  if (pts.length < 2) return null;
+  const ys = pts.map((p) => p[1]);
+  const min = Math.min(...ys), max = Math.max(...ys);
+  const pad = 2;
+  const y = (v) => max === min ? h / 2 : h - pad - ((v - min) / (max - min)) * (h - pad * 2);
+  return pts.map((p) => [+(p[0]).toFixed(2), +(y(p[1])).toFixed(2)]);
+}
+
+// Draws the trend; when the range runs to today, the last step is dashed (that bucket is still filling up).
+function drawSpark(svg, values, liveEnd) {
+  const [, , w, h] = svg.getAttribute('viewBox').split(' ').map(Number);
+  const pts = values.length > 1 ? sparkPath(values, w, h) : null;
+  // SVG elements have no .hidden property, so toggle the attribute itself.
+  if (!pts) { svg.setAttribute('hidden', ''); svg.innerHTML = ''; return; }
+  const line = (list) => 'M' + list.map((p) => p.join(',')).join(' L');
+  const solid = liveEnd ? pts.slice(0, -1) : pts;
+  let html = '';
+  if (solid.length > 1) html += `<path d="${line(solid)}" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
+  if (liveEnd) html += `<path d="${line(pts.slice(-2))}" fill="none" stroke="currentColor" stroke-width="1.75" stroke-dasharray="3 3" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
+  svg.innerHTML = html;
+  svg.removeAttribute('hidden');
+}
+
+function setTile(id, value, sub, series, liveEnd) {
+  const tile = document.getElementById(id);
+  tile.querySelector('.value span').textContent = value;
+  tile.querySelector('.sub').textContent = sub || '';
+  drawSpark(tile.querySelector('.spark'), series || [], liveEnd);
+}
+
+function render(range, data) {
+  const t = totals(data.shop, data.amazon);
+  const days = Math.round((parseDay(range.to) - parseDay(range.from)) / 86400000) + 1;
+  const series = days > 1 ? buckets(range.from, range.to, data.shop, data.amazon) : [];
+  const liveEnd = range.to === fmtDate(todayUk());
+  const perDay = (v) => days > 1 ? `${v} a day` : '';
+
+  setTile('tile-revenue', gbp(t.sales), days > 1 ? perDay(gbp(t.sales / days)) : (liveEnd ? 'So far today' : ''), series.map((b) => b.sales), liveEnd);
+  setTile('tile-roas', t.roas === null ? '--' : t.roas.toFixed(2), `Ad spend ${gbp(t.spend)}`, series.map((b) => b.spend > 0 ? b.sales / b.spend : null), liveEnd);
+  document.getElementById('tile-roas').classList.toggle('below', t.roas !== null && t.roas < ROAS_TARGET);
+  setTile('tile-repeat', t.repeatPct === null ? '--' : t.repeatPct.toFixed(1) + '%', t.orders ? `${count(t.repeatOrders)} of ${count(t.orders)} orders` : '', series.map((b) => b.orders > 0 ? (b.repeatOrders / b.orders) * 100 : null), liveEnd);
+  setTile('tile-orders', count(t.orders), perDay((t.orders / days).toFixed(1)), series.map((b) => b.orders), liveEnd);
+  setTile('tile-aov', t.aov === null ? '--' : gbp(t.aov), 'Inc. VAT and shipping', series.map((b) => b.orders > 0 ? b.sales / b.orders : null), liveEnd);
+  setTile('tile-amazon', gbp(t.amazon), `Shopify and Amazon together ${gbp(t.sales + t.amazon)}`, series.map((b) => b.amazon), liveEnd);
+
+  // Freshness only matters while the range is still filling up.
+  const latest = (rows, col) => rows.reduce((m, r) => Math.max(m, r[col] ? Date.parse(r[col]) || 0 : 0), 0);
+  const shopAt = latest(data.shop, 'loadedAt'), amzAt = latest(data.amazon, 'updatedAt');
+  const parts = [];
+  if (liveEnd && shopAt) parts.push(`Shopify ${fmtUkTime(shopAt)}`);
+  if (liveEnd && amzAt) parts.push(`Amazon ${fmtUkTime(amzAt)}`);
+  document.getElementById('freshness').textContent = parts.length ? 'Updated: ' + parts.join(', ') : '';
+}
+
+function setLoading(on) {
+  document.querySelectorAll('.tile').forEach((t) => t.classList.toggle('loading', on));
+  document.getElementById('refreshBtn').classList.toggle('spinning', on);
+}
+function showStatus(text) {
+  const el = document.getElementById('status');
+  document.getElementById('statusText').textContent = text || '';
+  el.classList.toggle('show', !!text);
+}
+
+// ========== STATE ==========
+let current = { preset: 'today', ...presetRange('today') };
+const cache = new Map();   // "from|to" -> loaded data
+let requestSeq = 0;
+
+function showHeader() {
+  document.getElementById('rangeTitle').textContent = current.title;
+  document.getElementById('rangeDates').textContent = fmtRange(current.from, current.to);
+  document.getElementById('freshness').textContent = '';
+  document.querySelectorAll('.pill[data-preset]').forEach((p) => p.setAttribute('aria-pressed', String(p.dataset.preset === current.preset)));
+  const custom = !['today', 'wtd', 'mtd'].includes(current.preset);
+  const rangePill = document.getElementById('rangePill');
+  rangePill.setAttribute('aria-pressed', String(custom));
+  rangePill.textContent = custom ? rangePillLabel(current) : 'Range';
+}
+// Short enough for a quarter of a phone's width; the title above spells the range out.
+function rangePillLabel(range) {
+  const from = parseDay(range.from);
+  switch (range.preset) {
+    case 'lastMonth': return MONTHS[from.getMonth()];
+    case 'ytd': return 'YTD';
+    case 'fy': return 'FY' + String(from.getFullYear() + 1).slice(2);
+    case 'last12m': return '12 mo';
+    case 'lastYear': return String(from.getFullYear());
+    default: return 'Custom';
+  }
+}
+
+async function refresh(force) {
+  const range = current;
+  const key = `${range.from}|${range.to}`;
+  const seq = ++requestSeq;
+  showHeader();
+  const cached = cache.get(key);
+  if (cached) render(range, cached);
+  if (cached && !force && Date.now() - cached.fetchedAt < CACHE_MS) { setLoading(false); showStatus(''); return; }
+  setLoading(true);
+  try {
+    const data = await loadRange(range.from, range.to);
+    cache.set(key, data);
+    if (seq !== requestSeq) return;
+    render(range, data);
+    showStatus('');
+  } catch (err) {
+    console.error('[mobile] load failed', err);
+    if (seq !== requestSeq) return;
+    if (err instanceof AuthExpiredError) { reloadForSession(); return; }
+    showStatus(err instanceof TypeError
+      ? 'Can’t reach the data server. Check your connection or VPN, then tap refresh.'
+      : `Couldn’t load the figures (${err.message}). Tap refresh to try again.`);
+  } finally {
+    if (seq === requestSeq) setLoading(false);
+  }
+}
+
+// A rejected token: reload once so the gate refreshes it (via index.html if needed). Guarded so a
+// persistent 401 shows a message instead of looping.
+function reloadForSession() {
+  let last = 0;
+  try { last = +sessionStorage.getItem('ks-mobile-401') || 0; } catch (err) { console.error(err); }
+  if (Date.now() - last < 30000) { showStatus('Your sign-in was refused. Close the app and open it again to sign in.'); return; }
+  try { sessionStorage.setItem('ks-mobile-401', String(Date.now())); } catch (err) { console.error(err); }
+  window.location.reload();
+}
+
+function choose(preset, range) {
+  current = { preset, ...range };
+  refresh(false);
+}
+
+// ========== RANGE SHEET ==========
+const sheet = document.getElementById('sheet');
+const scrim = document.getElementById('scrim');
+function openSheet() {
+  document.querySelectorAll('#presetList .preset').forEach((b) => {
+    const r = presetRange(b.dataset.preset);
+    b.querySelector('span').textContent = fmtRange(r.from, r.to);
+    b.setAttribute('aria-pressed', String(b.dataset.preset === current.preset));
+  });
+  const today = fmtDate(todayUk());
+  const fromInput = document.getElementById('fromInput'), toInput = document.getElementById('toInput');
+  fromInput.max = today; toInput.max = today;
+  fromInput.value = current.from; toInput.value = current.to;
+  document.getElementById('sheetMsg').textContent = '';
+  sheet.classList.add('open'); scrim.classList.add('open'); sheet.setAttribute('aria-hidden', 'false');
+}
+function closeSheet() { sheet.classList.remove('open'); scrim.classList.remove('open'); sheet.setAttribute('aria-hidden', 'true'); }
+
+document.getElementById('rangePill').addEventListener('click', openSheet);
+document.getElementById('sheetClose').addEventListener('click', closeSheet);
+scrim.addEventListener('click', closeSheet);
+document.querySelectorAll('#presetList .preset').forEach((b) => b.addEventListener('click', () => {
+  closeSheet();
+  choose(b.dataset.preset, presetRange(b.dataset.preset));
+}));
+document.getElementById('applyCustom').addEventListener('click', () => {
+  let from = document.getElementById('fromInput').value, to = document.getElementById('toInput').value;
+  const msg = document.getElementById('sheetMsg');
+  if (!isDay(from) || !isDay(to)) { msg.textContent = 'Pick both dates.'; return; }
+  if (from > to) [from, to] = [to, from];
+  closeSheet();
+  choose('custom', { from, to, title: 'Custom range' });
+});
+
+// ========== CONTROLS ==========
+document.querySelectorAll('.pill[data-preset]').forEach((p) => p.addEventListener('click', () => choose(p.dataset.preset, presetRange(p.dataset.preset))));
+document.getElementById('refreshBtn').addEventListener('click', () => refresh(true));
+
+// The home-screen app has no pull-to-refresh: reload when it comes back to the front, and every
+// five minutes while it is open. A to-date range also rolls over to the new day after midnight.
+let lastShown = Date.now();
+function rollAndRefresh(force) {
+  if (['today', 'wtd', 'mtd', 'ytd', 'fy', 'last12m', 'lastMonth', 'lastYear'].includes(current.preset)) {
+    current = { preset: current.preset, ...presetRange(current.preset) };
+  }
+  refresh(force);
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  if (Date.now() - lastShown > CACHE_MS) rollAndRefresh(true);
+  lastShown = Date.now();
+});
+setInterval(() => { if (document.visibilityState === 'visible') { lastShown = Date.now(); rollAndRefresh(true); } }, AUTO_REFRESH_MS);
+
+// ========== BOOT ==========
+// Wait for the admin gate before reading anything; it has already sent non-admins elsewhere.
+(window.KS_GATE || Promise.resolve(false)).then((ok) => {
+  if (!ok) return;
+  if (!IS_STANDALONE) { try { localStorage.removeItem(RETURN_KEY); } catch (err) { console.error(err); } }
+  refresh(true);
+});
+</script>
+</body>
+</html>

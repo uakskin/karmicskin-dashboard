@@ -127,9 +127,11 @@ anon key. Edge Functions use the service role and are unaffected.
 
 An iPhone home-screen web app has its own storage, separate from Safari, and a magic link opens in Safari,
 so a link can never sign the app in. Since 1 Nov 2026 `index.html`'s login therefore also takes the **code**
-from the same email (`POST /auth/v1/verify`, `type: 'email'`); this needs `{{ .Token }}` in the Supabase
-**Magic Link** email template (Authentication > Emails). The email the code went to is kept in localStorage
-`ks-pending-signin` for an hour so a reloaded app reopens on the code box.
+from the same email (`POST /auth/v1/verify`, `type: 'email'`). The code comes from `{{ .Token }}` in the
+Supabase **Magic link or OTP** email template (Authentication > Emails), added 1 Nov 2026 under the link; it is
+**8 digits** (Email OTP length setting) and lasts an hour. Don't remove it from the template, or the phone app
+can't sign in. The built-in Supabase mailer allows only 2 sign-in emails an hour. The email the code went to is
+kept in localStorage `ks-pending-signin` for an hour so a reloaded app reopens on the code box.
 
 Getting back to the phone view: before the gate runs, `mobile.html` leaves a note in localStorage
 `ks-return-to` (`{page, at}`) when its session is not live, and always when running standalone. `index.html`

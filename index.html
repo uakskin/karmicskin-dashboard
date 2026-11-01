@@ -347,7 +347,7 @@
 
     <div id="authStepSent" class="auth-hidden">
       <label for="authCode">Code from the email</label>
-      <input id="authCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="123456" />
+      <input id="authCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="8-digit code" />
       <button class="auth-btn" id="authVerifyCode" type="button">Sign in with code</button>
       <button class="auth-back" id="authBackToEmail" type="button">Use a different email</button>
     </div>
@@ -2564,7 +2564,8 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
   emailInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendBtn.click(); });
   verifyBtn.addEventListener('click', async () => {
     const token = codeInput.value.replace(/\D/g, '');
-    if (token.length < 6) { setMsg('Type the code from the email (6 or more digits).', 'error'); return; }
+    // Supabase sets the code length (Email OTP length: 8 on this project as of 1 Nov 2026); accept 6-10.
+    if (token.length < 6) { setMsg('Type the whole code from the email.', 'error'); return; }
     if (!pendingEmail) { showStep('email'); setMsg('Enter your email first.', 'error'); return; }
     verifyBtn.disabled = true;
     setMsg('Checking the code…', 'info');

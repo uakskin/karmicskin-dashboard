@@ -8,10 +8,13 @@
 // mobile.html sends people here to sign in or to refresh an expired token and leaves a note
 // (localStorage 'ks-return-to') asking to be sent back. While that is pending, keep this page
 // hidden so the full dashboard does not flash up; authBoot reveals it if a sign-in form is needed.
+// Opened as an iPhone home-screen app (navigator.standalone is only ever true there, never in a
+// desktop browser), this page always hands over to mobile.html, so it stays hidden then too.
 (function hideWhileReturning() {
   try {
     var note = JSON.parse(localStorage.getItem('ks-return-to') || 'null');
-    if (note && note.at && Date.now() - note.at < 30 * 60 * 1000) {
+    var phoneApp = window.navigator.standalone === true && navigator.maxTouchPoints > 0;
+    if (phoneApp || (note && note.at && Date.now() - note.at < 30 * 60 * 1000)) {
       document.documentElement.style.visibility = 'hidden';
       setTimeout(function () { document.documentElement.style.visibility = ''; }, 8000);
     }
@@ -2365,6 +2368,10 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
   const RETURN_KEY = 'ks-return-to';         // set by mobile.html: go back there after signing in
   const RETURN_PAGES = ['mobile.html'];
   const RETURN_MAX_AGE_MS = 30 * 60 * 1000;
+  // A Karmic icon on an iPhone home screen may point at this page (iOS saves whatever page is open when
+  // it is added, and a signed-out visit to mobile.html lands here). The phone app is mobile.html, so go
+  // there after signing in. navigator.standalone is iOS-only; desktop browsers never take this path.
+  const IS_IOS_HOME_SCREEN_APP = window.navigator.standalone === true && navigator.maxTouchPoints > 0;
 
   let pendingEmail = '';
   let refreshTimer = null;
@@ -2536,7 +2543,7 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
     saveStored(s);
     clearPending();
     // Came here from mobile.html to sign in or refresh: go straight back, before the dashboard loads.
-    const returnPage = takeReturnPage();
+    const returnPage = takeReturnPage() || (IS_IOS_HOME_SCREEN_APP ? 'mobile.html' : null);
     if (returnPage) { window.location.replace(returnPage); return true; }
     hideOverlay();
     scheduleRefresh(s);

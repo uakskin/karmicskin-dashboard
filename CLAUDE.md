@@ -139,6 +139,12 @@ hides itself while a fresh note (under 30 minutes) is pending, and after a succe
 refresh it reads and clears the note and goes back to that page (only pages in its `RETURN_PAGES` list)
 before loading the dashboard. Without a note, `index.html` behaves exactly as before.
 
+iOS saves whatever page is open when you tap Add to Home Screen, and a signed-out visit to mobile.html is
+sitting on `index.html` (the login) by then. So `index.html`, when opened as an iPhone home-screen app
+(`navigator.standalone === true` and a touch screen, which never happens in a desktop browser or a normal
+Safari tab), stays hidden and always hands over to `mobile.html` after sign-in (added 1 Nov 2026, after
+Uday's first icon opened the full dashboard).
+
 ### P&L data (`pnl.html`)
 
 The P&L figures are **not in this repo** any more. The repo is public, so anything in the HTML

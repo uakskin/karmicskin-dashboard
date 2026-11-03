@@ -118,7 +118,7 @@
      Palette and type come from design-system.html, applied the way meta.html does: six colours,
      all text Carbon Black (Porcelain on Dark Green), hierarchy from size and weight, borders only
      on things you tap. Porcelain tiles sit on a Citron band; Shopify revenue is the one Dark Green
-     panel; Brick Red is the one main action (Show range); Amber only marks ROAS below target.
+     panel; Brick Red is the one main action (Apply); Amber only marks ROAS below target.
      Dark theme keeps the neutral dark palette shared by the other dashboards. */
   :root {
     --porcelain: #F6F5F0;
@@ -141,7 +141,6 @@
     --btn-ink:   var(--porcelain);
     --action:    var(--red);
     --action-ink: var(--porcelain);
-    --spark:     var(--green);
     --scrim:     rgba(35,37,38,0.4);
 
     --safe-top:    env(safe-area-inset-top, 0px);
@@ -152,7 +151,6 @@
   [data-theme="dark"] {
     --ground: #0f1117; --tint: #1e1e22; --ink: #f4f4f5;
     --btn-fill: #f4f4f5; --btn-ink: #0f1117;
-    --spark: #34d399;
     --scrim: rgba(0,0,0,0.6);
   }
 
@@ -164,41 +162,42 @@
   button { font-family: var(--font-body); color: inherit; background: none; border: none; cursor: pointer; }
 
   /* ========== HEADER ========== */
-  .top { padding: calc(var(--safe-top) + 16px) calc(var(--safe-right) + 16px) 16px calc(var(--safe-left) + 16px); max-width: 640px; width: 100%; margin: 0 auto; }
-  .top-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .top { padding: calc(var(--safe-top) + 12px) calc(var(--safe-right) + 16px) 12px calc(var(--safe-left) + 16px); max-width: 640px; width: 100%; margin: 0 auto; }
+  .top-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
   .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; }
-  .icon-btn { width: 40px; height: 40px; border-radius: 12px; border: 1.5px solid var(--ink); display: inline-flex; align-items: center; justify-content: center; }
-  .icon-btn svg { width: 18px; height: 18px; display: block; }
+  .top-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .icon-btn { width: 36px; height: 36px; border-radius: 12px; border: 1.5px solid var(--ink); display: inline-flex; align-items: center; justify-content: center; }
+  .icon-btn svg { width: 17px; height: 17px; display: block; }
+  .icon-btn:disabled { opacity: 0.3; cursor: default; }
   .icon-btn.spinning svg { animation: spin 0.9s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .range-title { font-size: 30px; margin-top: 12px; }
-  .range-sub { font-size: 13px; font-weight: 500; margin-top: 4px; min-height: 19px; }
-  .fresh { font-size: 12px; font-weight: 500; margin-top: 2px; min-height: 17px; }
+  .range-title { font-size: 26px; margin-top: 4px; }
+  .range-sub { font-size: 13px; font-weight: 500; margin-top: 6px; min-height: 19px; }
+  .fresh { font-size: 12px; font-weight: 500; margin-top: 1px; min-height: 17px; }
 
   /* ========== DATE PILLS ========== */
-  .pills { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 16px; }
-  .pill { height: 40px; border-radius: 12px; border: 1.5px solid var(--ink); font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 8px; }
+  .pills { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+  .pill { height: 38px; border-radius: 12px; border: 1.5px solid var(--ink); font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 8px; }
   .pill[aria-pressed="true"] { background: var(--btn-fill); color: var(--btn-ink); border-color: var(--btn-fill); }
 
   /* ========== STATUS ========== */
-  .status { font-size: 13px; font-weight: 600; margin-top: 12px; display: none; }
+  .status { font-size: 13px; font-weight: 600; margin-top: 10px; display: none; }
   .status.show { display: block; }
   .status span { background: var(--mark); color: var(--carbon); padding: 2px 6px; border-radius: 3px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 
-  /* ========== TILES (Porcelain on a Citron band, revenue on Dark Green) ========== */
-  .band { background: var(--tint); flex: 1; padding: 16px calc(var(--safe-right) + 16px) calc(var(--safe-bottom) + 24px) calc(var(--safe-left) + 16px); }
-  .band-inner { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .tile { background: var(--ground); border-radius: 12px; padding: 14px 16px 12px; min-width: 0; display: flex; flex-direction: column; }
+  /* ========== TILES (Porcelain on a Citron band, revenue on Dark Green) ==========
+     The band fills the rest of the screen and the four tile rows share its height, so all six
+     figures sit in one view with no scrolling; on a short screen the rows shrink to their content. */
+  .band { background: var(--tint); flex: 1; display: flex; flex-direction: column; padding: 12px calc(var(--safe-right) + 16px) calc(var(--safe-bottom) + 12px) calc(var(--safe-left) + 16px); }
+  .band-inner { flex: 1; width: 100%; max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1.25fr 1fr 1fr 1fr; gap: 10px; }
+  .tile { background: var(--ground); border-radius: 12px; padding: 12px 14px; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
   .tile.wide { grid-column: 1 / -1; }
-  .tile.hero { background: var(--panel); color: var(--panel-ink); padding: 18px 18px 14px; }
+  .tile.hero { background: var(--panel); color: var(--panel-ink); padding: 14px 16px; }
   .tile .label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
-  .tile .value { font-family: var(--font-heading); font-size: 30px; font-weight: 700; line-height: 1.15; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .tile.hero .value { font-size: 44px; margin-top: 8px; }
-  .tile .sub { font-size: 12px; font-weight: 500; margin-top: 6px; min-height: 17px; }
-  .tile .spark { display: block; width: 100%; height: 28px; margin-top: 10px; color: var(--spark); overflow: visible; }
-  .tile.hero .spark { color: var(--panel-ink); height: 36px; }
-  .tile .spark[hidden] { display: none; }
-  .tile.loading .value, .tile.loading .sub, .tile.loading .spark { opacity: 0.35; }
+  .tile .value { font-family: var(--font-heading); font-size: 28px; font-weight: 700; line-height: 1.15; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tile.hero .value { font-size: 40px; }
+  .tile .sub { font-size: 12px; font-weight: 500; margin-top: 4px; min-height: 17px; }
+  .tile.loading .value, .tile.loading .sub { opacity: 0.35; }
   /* A new order just came in: the revenue figure nudges once. */
   @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.04); } 100% { transform: scale(1); } }
   .tile.bump .value { animation: bump 0.6s ease; transform-origin: left center; }
@@ -206,46 +205,62 @@
   /* Below-target mark: amber sits beneath the Carbon figure, never as its colour. */
   .tile.below .value span { background-image: linear-gradient(to top, var(--mark) 0.22em, transparent 0.22em); }
 
-  /* ========== METHOD NOTE ========== */
-  .method { max-width: 640px; margin: 20px auto 0; font-size: 12px; }
-  .method summary { font-weight: 600; cursor: pointer; list-style: none; padding: 6px 0; }
-  .method summary::-webkit-details-marker { display: none; }
-  .method summary::after { content: ' +'; }
-  .method[open] summary::after { content: ' −'; }
-  .method p { margin-top: 6px; }
-
-  /* ========== RANGE SHEET ========== */
+  /* ========== SHEETS (date range, how these are worked out) ========== */
   .scrim { position: fixed; inset: 0; background: var(--scrim); opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 50; }
   .scrim.open { opacity: 1; pointer-events: auto; }
-  .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 51; background: var(--ground); border-radius: 16px 16px 0 0; padding: 10px calc(var(--safe-right) + 16px) calc(var(--safe-bottom) + 16px) calc(var(--safe-left) + 16px); transform: translateY(105%); transition: transform 0.25s ease; max-height: 88vh; overflow-y: auto; }
+  .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 51; background: var(--ground); border-radius: 16px 16px 0 0; padding: 10px calc(var(--safe-right) + 16px) calc(var(--safe-bottom) + 16px) calc(var(--safe-left) + 16px); transform: translateY(105%); transition: transform 0.25s ease; max-height: 92vh; max-height: 92dvh; overflow-y: auto; }
   .sheet.open { transform: translateY(0); }
   .sheet-inner { max-width: 640px; margin: 0 auto; }
-  .sheet-handle { width: 40px; height: 4px; border-radius: 2px; background: var(--ink); opacity: 0.25; margin: 0 auto 14px; }
-  .sheet-head { display: flex; align-items: center; justify-content: space-between; }
+  .sheet-handle { width: 40px; height: 4px; border-radius: 2px; background: var(--ink); opacity: 0.25; margin: 0 auto 10px; }
+  .sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .sheet h2 { font-size: 22px; }
-  .sheet-close { font-size: 14px; font-weight: 600; padding: 8px 4px; }
-  .presets { margin-top: 12px; display: flex; flex-direction: column; gap: 4px; }
-  .preset { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; width: 100%; text-align: left; padding: 12px 12px; border-radius: 12px; font-size: 15px; font-weight: 600; }
-  .preset span { font-size: 12px; font-weight: 500; white-space: nowrap; }
-  .preset[aria-pressed="true"] { background: var(--tint); }
-  .custom-head { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 20px; }
-  .custom-range { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
-  .custom-range label { font-size: 12px; font-weight: 600; display: block; }
-  .custom-range input { display: block; width: 100%; margin-top: 4px; height: 44px; padding: 0 10px; border: 1px solid var(--ink); border-radius: 12px; background: var(--ground); color: var(--ink); font-family: var(--font-body); font-size: 15px; -webkit-appearance: none; appearance: none; }
-  .btn-action { width: 100%; height: 48px; margin-top: 16px; border-radius: 12px; background: var(--action); color: var(--action-ink); font-size: 15px; font-weight: 700; }
-  .sheet-msg { font-size: 12px; font-weight: 600; margin-top: 8px; min-height: 17px; }
+  .sheet-close { width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; margin-right: -8px; }
+  .sheet-close svg { width: 20px; height: 20px; display: block; }
+  .sheet p { font-size: 13px; margin-top: 10px; }
+  .sheet p:first-of-type { margin-top: 12px; }
+
+  /* Presets: two columns of buttons, so the calendar fits below them without scrolling. */
+  .presets { margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .preset { height: 40px; border-radius: 12px; border: 1.5px solid var(--ink); font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 10px; }
+  .preset[aria-pressed="true"] { background: var(--btn-fill); color: var(--btn-ink); border-color: var(--btn-fill); }
+
+  /* One calendar for both dates: first tap = first day, second tap = last day. Monday-first weeks. */
+  .cal-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-top: 18px; }
+  .custom-head { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
+  .cal-pick { font-size: 13px; font-weight: 600; text-align: right; }
+  .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+  .cal-month { font-size: 15px; font-weight: 700; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); margin-top: 6px; row-gap: 2px; }
+  .cal-dow { font-size: 11px; font-weight: 700; text-align: center; padding: 2px 0 4px; }
+  .cal-day { height: 36px; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; }
+  .cal-day span { width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; }
+  .cal-day.in-range { background: var(--tint); }
+  .cal-day.band-right { background: linear-gradient(to right, transparent 50%, var(--tint) 50%); }
+  .cal-day.band-left { background: linear-gradient(to left, transparent 50%, var(--tint) 50%); }
+  .cal-day.picked span { background: var(--btn-fill); color: var(--btn-ink); font-weight: 700; }
+  .cal-day.is-today span { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+  .cal-day:disabled { opacity: 0.3; cursor: default; }
+  .btn-action { width: 100%; height: 48px; margin-top: 14px; border-radius: 12px; background: var(--action); color: var(--action-ink); font-size: 15px; font-weight: 700; }
+  .btn-action:disabled { opacity: 0.5; cursor: default; }
 </style>
 </head>
 <body>
 
 <header class="top">
   <div class="top-row">
-    <div class="eyebrow">Karmic Skin</div>
-    <button class="icon-btn" id="refreshBtn" type="button" aria-label="Refresh figures">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>
-    </button>
+    <div>
+      <div class="eyebrow">Karmic Skin</div>
+      <h1 class="range-title" id="rangeTitle">Today</h1>
+    </div>
+    <div class="top-actions">
+      <button class="icon-btn" id="infoBtn" type="button" aria-label="How these are worked out" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.6v.01"/></svg>
+      </button>
+      <button class="icon-btn" id="refreshBtn" type="button" aria-label="Refresh figures">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>
+      </button>
+    </div>
   </div>
-  <h1 class="range-title" id="rangeTitle">Today</h1>
   <p class="range-sub" id="rangeDates"></p>
   <p class="fresh" id="freshness"></p>
   <nav class="pills" aria-label="Date range">
@@ -263,74 +278,80 @@
       <div class="label">Shopify revenue</div>
       <div class="value"><span>--</span></div>
       <div class="sub"></div>
-      <svg class="spark" viewBox="0 0 100 36" preserveAspectRatio="none" hidden></svg>
     </section>
     <section class="tile loading" id="tile-roas">
       <div class="label">Blended ROAS</div>
       <div class="value"><span>--</span></div>
       <div class="sub"></div>
-      <svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none" hidden></svg>
     </section>
     <section class="tile loading" id="tile-repeat">
       <div class="label">Repeat orders</div>
       <div class="value"><span>--</span></div>
       <div class="sub"></div>
-      <svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none" hidden></svg>
     </section>
     <section class="tile loading" id="tile-orders">
       <div class="label">Orders</div>
       <div class="value"><span>--</span></div>
       <div class="sub"></div>
-      <svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none" hidden></svg>
     </section>
     <section class="tile loading" id="tile-aov">
       <div class="label">AOV</div>
       <div class="value"><span>--</span></div>
       <div class="sub"></div>
-      <svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none" hidden></svg>
     </section>
     <section class="tile wide loading" id="tile-amazon">
       <div class="label">Amazon sales</div>
       <div class="value"><span>--</span></div>
       <div class="sub"></div>
-      <svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none" hidden></svg>
     </section>
   </div>
 
-  <details class="method">
-    <summary>How these are worked out</summary>
+</main>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="rangeSheet" role="dialog" aria-modal="true" aria-labelledby="rangeSheetTitle" aria-hidden="true">
+  <div class="sheet-inner">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <h2 id="rangeSheetTitle">Date range</h2>
+      <button class="sheet-close" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg></button>
+    </div>
+    <div class="presets" id="presetList">
+      <button class="preset" type="button" data-preset="yesterday" aria-pressed="false">Yesterday</button>
+      <button class="preset" type="button" data-preset="lastMonth" aria-pressed="false">Last month</button>
+      <button class="preset" type="button" data-preset="ytd" aria-pressed="false">Year to date</button>
+      <button class="preset" type="button" data-preset="fy" aria-pressed="false">This financial year</button>
+      <button class="preset" type="button" data-preset="last12m" aria-pressed="false">Last 12 months</button>
+      <button class="preset" type="button" data-preset="lastYear" aria-pressed="false">Last year</button>
+    </div>
+    <div class="cal-head">
+      <div class="custom-head">Custom dates</div>
+      <div class="cal-pick" id="calPick"></div>
+    </div>
+    <div class="cal-nav">
+      <button class="icon-btn" id="calPrev" type="button" aria-label="Previous month"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+      <div class="cal-month" id="calMonth"></div>
+      <button class="icon-btn" id="calNext" type="button" aria-label="Next month"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <button class="btn-action" id="applyCustom" type="button">Apply</button>
+  </div>
+</div>
+
+<div class="sheet" id="infoSheet" role="dialog" aria-modal="true" aria-labelledby="infoSheetTitle" aria-hidden="true">
+  <div class="sheet-inner">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <h2 id="infoSheetTitle">How these are worked out</h2>
+      <button class="sheet-close" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg></button>
+    </div>
     <p><strong>Shopify revenue</strong>: total Shopify sales including VAT and shipping, net of refunds (same as the main dashboard).</p>
     <p><strong>Blended ROAS</strong>: Shopify revenue ÷ Meta and Google ad spend combined. Amber under the figure means it is below the 2.20 target.</p>
     <p><strong>Repeat orders</strong>: orders from customers who had ordered before ÷ all orders.</p>
     <p><strong>AOV</strong>: Shopify revenue ÷ orders.</p>
     <p><strong>Amazon sales</strong>: Amazon ordered product sales (same as the Amazon dashboard). Today's figure is provisional until Amazon's nightly report.</p>
     <p>Today's Shopify revenue, orders and repeat orders are live: they come straight from the orders, which reach us within seconds, and the page checks every 15 seconds while it is open. Earlier days and ad spend refresh every 10 minutes (Meta sends spend every 30), Amazon sales every 30. So today's ROAS is live revenue over the latest ad spend.</p>
-    <p>Every day is a UK day. Weeks run Monday to Sunday; the financial year starts on 1 June. On the small trend lines, a dashed last step means that day or week is still in progress.</p>
-  </details>
-</main>
-
-<div class="scrim" id="scrim"></div>
-<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" aria-hidden="true">
-  <div class="sheet-inner">
-    <div class="sheet-handle"></div>
-    <div class="sheet-head">
-      <h2 id="sheetTitle">Date range</h2>
-      <button class="sheet-close" id="sheetClose" type="button">Close</button>
-    </div>
-    <div class="presets" id="presetList">
-      <button class="preset" type="button" data-preset="lastMonth" aria-pressed="false">Last month <span></span></button>
-      <button class="preset" type="button" data-preset="ytd" aria-pressed="false">Year to date <span></span></button>
-      <button class="preset" type="button" data-preset="fy" aria-pressed="false">Current financial year <span></span></button>
-      <button class="preset" type="button" data-preset="last12m" aria-pressed="false">Last 12 months <span></span></button>
-      <button class="preset" type="button" data-preset="lastYear" aria-pressed="false">Last year <span></span></button>
-    </div>
-    <div class="custom-head">Custom dates</div>
-    <div class="custom-range">
-      <label for="fromInput">From<input type="date" id="fromInput"></label>
-      <label for="toInput">To<input type="date" id="toInput"></label>
-    </div>
-    <button class="btn-action" id="applyCustom" type="button">Show range</button>
-    <p class="sheet-msg" id="sheetMsg"></p>
+    <p>Every day is a UK day. Weeks run Monday to Sunday; the financial year starts on 1 June.</p>
   </div>
 </div>
 
@@ -389,6 +410,7 @@ function presetRange(preset) {
   const yesterday = addDays(today, -1);
   switch (preset) {
     case 'today': return { from: fmtDate(today), to: fmtDate(today), title: 'Today' };
+    case 'yesterday': return { from: fmtDate(yesterday), to: fmtDate(yesterday), title: 'Yesterday' };
     case 'wtd': return { from: fmtDate(addDays(today, -((today.getDay() + 6) % 7))), to: fmtDate(today), title: 'Week to date' };
     case 'mtd': return { from: fmtDate(new Date(today.getFullYear(), today.getMonth(), 1)), to: fmtDate(today), title: 'Month to date' };
     case 'lastMonth': return { from: fmtDate(new Date(today.getFullYear(), today.getMonth() - 1, 1)), to: fmtDate(new Date(today.getFullYear(), today.getMonth(), 0)), title: 'Last month' };
@@ -523,81 +545,33 @@ function totals(shop, amazon) {
   return t;
 }
 
-// Trend buckets for the sparklines: daily up to ~2 months, Monday-to-Sunday weeks up to a year, months beyond.
-function buckets(from, to, shop, amazon) {
-  const start = parseDay(from), end = parseDay(to);
-  const span = Math.round((end - start) / 86400000) + 1;
-  const unit = span <= 62 ? 'day' : span <= 400 ? 'week' : 'month';
-  const keyOf = (s) => {
-    const d = parseDay(s);
-    if (unit === 'day') return s;
-    if (unit === 'week') return fmtDate(addDays(d, -((d.getDay() + 6) % 7)));
-    return s.slice(0, 7);
-  };
-  const map = new Map();
-  for (let d = start; d <= end; d = addDays(d, 1)) {
-    const k = keyOf(fmtDate(d));
-    if (!map.has(k)) map.set(k, { sales: 0, spend: 0, orders: 0, repeatOrders: 0, amazon: 0 });
-  }
-  for (const r of shop) { const b = map.get(keyOf(r.day)); if (b) { b.sales += r.sales; b.spend += r.spend; b.orders += r.orders; b.repeatOrders += r.repeatOrders; } }
-  for (const r of amazon) { const b = map.get(keyOf(r.day)); if (b) b.amazon += r.sales; }
-  return [...map.values()];
-}
-
 // ========== FORMAT ==========
 const gbp = (v) => '£' + Math.round(v).toLocaleString('en-GB');
 const count = (v) => Math.round(v).toLocaleString('en-GB');
 
 // ========== RENDER ==========
-function sparkPath(values, w, h) {
-  const pts = values.map((v, i) => [values.length === 1 ? w / 2 : (i / (values.length - 1)) * w, v]).filter((p) => p[1] !== null);
-  if (pts.length < 2) return null;
-  const ys = pts.map((p) => p[1]);
-  const min = Math.min(...ys), max = Math.max(...ys);
-  const pad = 2;
-  const y = (v) => max === min ? h / 2 : h - pad - ((v - min) / (max - min)) * (h - pad * 2);
-  return pts.map((p) => [+(p[0]).toFixed(2), +(y(p[1])).toFixed(2)]);
-}
-
-// Draws the trend; when the range runs to today, the last step is dashed (that bucket is still filling up).
-function drawSpark(svg, values, liveEnd) {
-  const [, , w, h] = svg.getAttribute('viewBox').split(' ').map(Number);
-  const pts = values.length > 1 ? sparkPath(values, w, h) : null;
-  // SVG elements have no .hidden property, so toggle the attribute itself.
-  if (!pts) { svg.setAttribute('hidden', ''); svg.innerHTML = ''; return; }
-  const line = (list) => 'M' + list.map((p) => p.join(',')).join(' L');
-  const solid = liveEnd ? pts.slice(0, -1) : pts;
-  let html = '';
-  if (solid.length > 1) html += `<path d="${line(solid)}" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
-  if (liveEnd) html += `<path d="${line(pts.slice(-2))}" fill="none" stroke="currentColor" stroke-width="1.75" stroke-dasharray="3 3" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
-  svg.innerHTML = html;
-  svg.removeAttribute('hidden');
-}
-
-function setTile(id, value, sub, series, liveEnd) {
+function setTile(id, value, sub) {
   const tile = document.getElementById(id);
   tile.querySelector('.value span').textContent = value;
   tile.querySelector('.sub').textContent = sub || '';
-  drawSpark(tile.querySelector('.spark'), series || [], liveEnd);
 }
 
 function render(range, data) {
   const shop = withLive(range, data.shop);
   const t = totals(shop, data.amazon);
   const days = Math.round((parseDay(range.to) - parseDay(range.from)) / 86400000) + 1;
-  const series = days > 1 ? buckets(range.from, range.to, shop, data.amazon) : [];
   const liveEnd = range.to === fmtDate(todayUk());
   const perDay = (v) => days > 1 ? `${v} a day` : '';
 
   const liveToday = liveEnd && live && live.day === range.to;
   const todaySub = liveToday && live.lastOrderAt ? `Last order ${fmtUkTime(live.lastOrderAt)}` : (liveEnd ? 'So far today' : '');
-  setTile('tile-revenue', gbp(t.sales), days > 1 ? perDay(gbp(t.sales / days)) : todaySub, series.map((b) => b.sales), liveEnd);
-  setTile('tile-roas', t.roas === null ? '--' : t.roas.toFixed(2), `Ad spend ${gbp(t.spend)}`, series.map((b) => b.spend > 0 ? b.sales / b.spend : null), liveEnd);
+  setTile('tile-revenue', gbp(t.sales), days > 1 ? perDay(gbp(t.sales / days)) : todaySub);
+  setTile('tile-roas', t.roas === null ? '--' : t.roas.toFixed(2), `Ad spend ${gbp(t.spend)}`);
   document.getElementById('tile-roas').classList.toggle('below', t.roas !== null && t.roas < ROAS_TARGET);
-  setTile('tile-repeat', t.repeatPct === null ? '--' : t.repeatPct.toFixed(1) + '%', t.orders ? `${count(t.repeatOrders)} of ${count(t.orders)} orders` : '', series.map((b) => b.orders > 0 ? (b.repeatOrders / b.orders) * 100 : null), liveEnd);
-  setTile('tile-orders', count(t.orders), perDay((t.orders / days).toFixed(1)), series.map((b) => b.orders), liveEnd);
-  setTile('tile-aov', t.aov === null ? '--' : gbp(t.aov), 'Inc. VAT and shipping', series.map((b) => b.orders > 0 ? b.sales / b.orders : null), liveEnd);
-  setTile('tile-amazon', gbp(t.amazon), `Shopify and Amazon together ${gbp(t.sales + t.amazon)}`, series.map((b) => b.amazon), liveEnd);
+  setTile('tile-repeat', t.repeatPct === null ? '--' : t.repeatPct.toFixed(1) + '%', t.orders ? `${count(t.repeatOrders)} of ${count(t.orders)} orders` : '');
+  setTile('tile-orders', count(t.orders), perDay((t.orders / days).toFixed(1)));
+  setTile('tile-aov', t.aov === null ? '--' : gbp(t.aov), 'Inc. VAT and shipping');
+  setTile('tile-amazon', gbp(t.amazon), `Shopify and Amazon together ${gbp(t.sales + t.amazon)}`);
 
   // Freshness only matters while the range is still filling up. Orders are live when the live read
   // worked; ad spend is as of the last rebuild of the overview; Amazon as of its last sync.
@@ -611,7 +585,8 @@ function render(range, data) {
     if (shopAt) parts.push(`ad spend ${clock(shopAt)}`);
     if (amzAt) parts.push(`Amazon ${clock(amzAt)}`);
   }
-  document.getElementById('freshness').textContent = parts.length ? `${parts.join(' · ')} ${fmtUkTime(Date.now()).split(' ')[1]}` : '';
+  const hasClock = parts.some((p) => /\d/.test(p));   // the zone only follows a clock time
+  document.getElementById('freshness').textContent = parts.join(' · ') + (hasClock ? ` ${fmtUkTime(Date.now()).split(' ')[1]}` : '');
 }
 
 // A new order just came in: the revenue figure nudges once.
@@ -651,6 +626,7 @@ function showHeader() {
 function rangePillLabel(range) {
   const from = parseDay(range.from);
   switch (range.preset) {
+    case 'yesterday': return 'Y\u2019day';
     case 'lastMonth': return MONTHS[from.getMonth()];
     case 'ytd': return 'YTD';
     case 'fy': return 'FY' + String(from.getFullYear() + 1).slice(2);
@@ -710,39 +686,95 @@ function choose(preset, range) {
   refresh(false);
 }
 
-// ========== RANGE SHEET ==========
-const sheet = document.getElementById('sheet');
+// ========== SHEETS ==========
 const scrim = document.getElementById('scrim');
-function openSheet() {
-  document.querySelectorAll('#presetList .preset').forEach((b) => {
-    const r = presetRange(b.dataset.preset);
-    b.querySelector('span').textContent = fmtRange(r.from, r.to);
-    b.setAttribute('aria-pressed', String(b.dataset.preset === current.preset));
-  });
-  const today = fmtDate(todayUk());
-  const fromInput = document.getElementById('fromInput'), toInput = document.getElementById('toInput');
-  fromInput.max = today; toInput.max = today;
-  fromInput.value = current.from; toInput.value = current.to;
-  document.getElementById('sheetMsg').textContent = '';
-  sheet.classList.add('open'); scrim.classList.add('open'); sheet.setAttribute('aria-hidden', 'false');
+let openSheetEl = null;
+function openSheet(el) {
+  openSheetEl = el;
+  el.classList.add('open'); scrim.classList.add('open'); el.setAttribute('aria-hidden', 'false');
 }
-function closeSheet() { sheet.classList.remove('open'); scrim.classList.remove('open'); sheet.setAttribute('aria-hidden', 'true'); }
-
-document.getElementById('rangePill').addEventListener('click', openSheet);
-document.getElementById('sheetClose').addEventListener('click', closeSheet);
+function closeSheet() {
+  if (!openSheetEl) return;
+  openSheetEl.classList.remove('open'); scrim.classList.remove('open'); openSheetEl.setAttribute('aria-hidden', 'true');
+  openSheetEl = null;
+}
 scrim.addEventListener('click', closeSheet);
+document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', closeSheet));
+document.getElementById('infoBtn').addEventListener('click', () => openSheet(document.getElementById('infoSheet')));
+
+// ========== DATE RANGE SHEET ==========
+// Presets apply at once. Custom dates use one calendar for both ends, as Shopify does: tap the first
+// day, then the last day, then Apply. Tapping a day before the first day starts again from there.
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const cal = { start: null, end: null, month: null };   // month = the 1st of the month on show
+
+function openRangeSheet() {
+  document.querySelectorAll('#presetList .preset').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.preset === current.preset)));
+  cal.start = current.from;
+  cal.end = current.to;
+  const last = parseDay(current.to);
+  cal.month = new Date(last.getFullYear(), last.getMonth(), 1);
+  renderCalendar();
+  openSheet(document.getElementById('rangeSheet'));
+}
+
+function renderCalendar() {
+  const today = fmtDate(todayUk());
+  const first = cal.month;
+  const lead = (first.getDay() + 6) % 7;   // blank cells before the 1st (weeks start on Monday)
+  const daysInMonth = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate();
+  const spans = cal.end && cal.end !== cal.start;
+  let html = ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d) => `<div class="cal-dow" aria-hidden="true">${d}</div>`).join('');
+  for (let i = 0; i < 42; i++) {   // always six rows, so the sheet keeps its height month to month
+    const n = i - lead + 1;
+    if (n < 1 || n > daysInMonth) { html += '<div class="cal-day"></div>'; continue; }
+    const iso = fmtDate(new Date(first.getFullYear(), first.getMonth(), n));
+    const cls = ['cal-day'];
+    if (iso === cal.start || iso === cal.end) cls.push('picked');
+    if (spans && iso > cal.start && iso < cal.end) cls.push('in-range');
+    if (spans && iso === cal.start) cls.push('band-right');
+    if (spans && iso === cal.end) cls.push('band-left');
+    if (iso === today) cls.push('is-today');
+    const label = `${n} ${MONTH_NAMES[first.getMonth()]} ${first.getFullYear()}`;
+    html += `<button type="button" class="${cls.join(' ')}" data-day="${iso}" aria-label="${label}"${iso > today ? ' disabled' : ''}><span>${n}</span></button>`;
+  }
+  document.getElementById('calGrid').innerHTML = html;
+  document.getElementById('calMonth').textContent = `${MONTH_NAMES[first.getMonth()]} ${first.getFullYear()}`;
+  const thisMonth = todayUk();
+  document.getElementById('calNext').disabled = first.getFullYear() > thisMonth.getFullYear()
+    || (first.getFullYear() === thisMonth.getFullYear() && first.getMonth() >= thisMonth.getMonth());
+  document.getElementById('calPick').textContent = !cal.start ? 'Tap the first day'
+    : cal.end ? fmtRange(cal.start, cal.end) : `${fmtRange(cal.start, cal.start)}, now tap the last day`;
+  document.getElementById('applyCustom').disabled = !cal.start;
+}
+
+document.getElementById('calGrid').addEventListener('click', (e) => {
+  const day = e.target.closest('button[data-day]');
+  if (!day || day.disabled) return;
+  const iso = day.dataset.day;
+  if (!cal.start || cal.end || iso < cal.start) { cal.start = iso; cal.end = null; }
+  else cal.end = iso;
+  renderCalendar();
+});
+document.getElementById('calPrev').addEventListener('click', () => {
+  cal.month = new Date(cal.month.getFullYear(), cal.month.getMonth() - 1, 1);
+  renderCalendar();
+});
+document.getElementById('calNext').addEventListener('click', () => {
+  cal.month = new Date(cal.month.getFullYear(), cal.month.getMonth() + 1, 1);
+  renderCalendar();
+});
+document.getElementById('applyCustom').addEventListener('click', () => {
+  if (!cal.start) return;
+  const from = cal.start, to = cal.end || cal.start;   // one tap = that single day
+  closeSheet();
+  choose('custom', { from, to, title: 'Custom dates' });
+});
+document.getElementById('rangePill').addEventListener('click', openRangeSheet);
 document.querySelectorAll('#presetList .preset').forEach((b) => b.addEventListener('click', () => {
   closeSheet();
   choose(b.dataset.preset, presetRange(b.dataset.preset));
 }));
-document.getElementById('applyCustom').addEventListener('click', () => {
-  let from = document.getElementById('fromInput').value, to = document.getElementById('toInput').value;
-  const msg = document.getElementById('sheetMsg');
-  if (!isDay(from) || !isDay(to)) { msg.textContent = 'Pick both dates.'; return; }
-  if (from > to) [from, to] = [to, from];
-  closeSheet();
-  choose('custom', { from, to, title: 'Custom range' });
-});
 
 // ========== CONTROLS ==========
 document.querySelectorAll('.pill[data-preset]').forEach((p) => p.addEventListener('click', () => choose(p.dataset.preset, presetRange(p.dataset.preset))));
@@ -752,7 +784,7 @@ document.getElementById('refreshBtn').addEventListener('click', () => refresh(tr
 // five minutes while it is open. A to-date range also rolls over to the new day after midnight.
 let lastShown = Date.now();
 function rollAndRefresh(force) {
-  if (['today', 'wtd', 'mtd', 'ytd', 'fy', 'last12m', 'lastMonth', 'lastYear'].includes(current.preset)) {
+  if (['today', 'yesterday', 'wtd', 'mtd', 'ytd', 'fy', 'last12m', 'lastMonth', 'lastYear'].includes(current.preset)) {
     current = { preset: current.preset, ...presetRange(current.preset) };
   }
   refresh(force);

@@ -52,8 +52,11 @@ JS in one `<script>`).
 - `mobile.html` — **Topline**, Uday's phone view (added 1 Nov 2026), installed on his iPhone home screen as
   its own app (`mobile.webmanifest`, `mobile-icon-180/192/512.png`, scope = this folder, start = mobile.html).
   Six tiles: Shopify revenue, blended ROAS (vs 2.20, amber mark when below), repeat orders %, orders, AOV,
-  Amazon sales; Today by default, WTD / MTD pills, and a Range sheet (last month, YTD, current FY from 1 June,
-  last 12 months, last year, custom dates). It reads `rpt_daily_overview` and `raw_amazon_sales_daily`
+  Amazon sales; Today by default, WTD / MTD pills, and a Range sheet (yesterday, last month, YTD, current FY
+  from 1 June, last 12 months, last year, plus one calendar where you tap the first and last day, then Apply).
+  Uday's rules (3 Nov 2026): **no trend lines, and everything fits one screen with no scrolling** (the tile
+  rows share the screen height; checked at 393x700 Safari and 402x874 home-screen); the method notes sit
+  behind the (i) button. It reads `rpt_daily_overview` and `raw_amazon_sales_daily`
   (two light REST reads per range) with the same sums as `index.html` / `amazon.html`, so the figures
   match them; QA'd 1 Nov 2026 against both pages' own code on a fixture for eight ranges.
   **Live orders:** for today it swaps in Shopify revenue, orders and repeat orders from the SQL function

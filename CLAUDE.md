@@ -52,7 +52,7 @@ JS in one `<script>`).
 - `mobile.html` — **Topline**, Uday's phone view (added 1 Nov 2026), installed on his iPhone home screen as
   its own app (`mobile.webmanifest`, `mobile-icon-180/192/512.png`, scope = this folder, start = mobile.html).
   Six tiles: Shopify revenue, blended ROAS (vs 2.20, amber mark when below), repeat orders %, orders, AOV,
-  Amazon sales (with "All Sales = Shopify + Amazon" and, on the right of the same tile, Amazon ROAS worked out
+  Amazon sales (with "All Sales = Shopify + Amazon") and Amazon ROAS as its own tile (phone only), worked out
   exactly as amazon.html does: daily SP+SB+SD spend, monthly spend spread over sales days before 22 Dec 2025,
   sales counted only on days whose spend has landed); Today by default, WTD / MTD pills, and a Range sheet (yesterday, last month, YTD, current FY
   from 1 June, last 12 months, last year, plus one calendar where you tap the first and last day, then Apply).

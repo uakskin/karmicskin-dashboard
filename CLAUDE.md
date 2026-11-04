@@ -52,7 +52,9 @@ JS in one `<script>`).
 - `mobile.html` — **Topline**, Uday's phone view (added 1 Nov 2026), installed on his iPhone home screen as
   its own app (`mobile.webmanifest`, `mobile-icon-180/192/512.png`, scope = this folder, start = mobile.html).
   Six tiles: Shopify revenue, blended ROAS (vs 2.20, amber mark when below), repeat orders %, orders, AOV,
-  Amazon sales; Today by default, WTD / MTD pills, and a Range sheet (yesterday, last month, YTD, current FY
+  Amazon sales (with "All Sales = Shopify + Amazon" and, on the right of the same tile, Amazon ROAS worked out
+  exactly as amazon.html does: daily SP+SB+SD spend, monthly spend spread over sales days before 22 Dec 2025,
+  sales counted only on days whose spend has landed); Today by default, WTD / MTD pills, and a Range sheet (yesterday, last month, YTD, current FY
   from 1 June, last 12 months, last year, plus one calendar where you tap the first and last day, then Apply).
   Uday's rules (3 Nov 2026): **no trend lines, and everything fits one screen with no scrolling** (the tile
   rows share the screen height; checked at 393x700 Safari and 402x874 home-screen); the method notes sit
@@ -105,6 +107,24 @@ summer), whatever time zone the viewer's computer is in (Uday often views from I
 
 The warehouse follows the same rule: daily tables and the order RPCs bucket by
 `(created_at AT TIME ZONE 'Europe/London')::date`, never `::date` on a UTC timestamp or `CURRENT_DATE`.
+
+## Shopify figures in the warehouse (since 4 Nov 2026)
+
+`rpt_daily_overview`'s Shopify columns (total_sales, net_revenue, total_orders, orders_from_new/returning,
+new/returning_customer_orders and _revenue, net_product_revenue, aov, total_discounts, total_refunds and the
+percentages built on them) come from **Shopify's own daily figures**, so every page that reads the overview
+(index, meta, email, creative, mobile, the weekly/monthly views and the day-of-week / LTV RPCs) matches
+Shopify Analytics. `sync-shopify-sales` (pg_cron `sync-shopify-sales-10m` at :03/:13/..., last 3 days; nightly
+`sync-shopify-sales-nightly` last 35 days) writes ShopifyQL `FROM sales ... GROUP BY day[, new_or_returning_customer]`
+into `raw_shopify_sales_daily` (admin-only RLS, one row per UK day, zeros for quiet days); `rebuild-reporting`
+(v44) uses those rows for its 7-day window and keeps the old order-based count (still in `mod_daily_sales`) as
+the fallback for any day without Shopify figures, and for today when the Shopify row is over 30 minutes old.
+History was switched in one UPDATE; the previous values are in `bak_rpt_daily_overview_20261104`.
+Why: Shopify books order edits, returns and cancellations on the day they happen (e.g. Oct 2026 was
+£73,688.74 / 1,363 orders order-based vs Shopify £73,756.93 / 1,364). Known Shopify quirk: an order with sales
+activity on two days counts as an order on both days, so adding up days can be 1 order above Shopify's own
+total for a long range (once in 2025: 5 Oct 2025). Percent columns are numeric(5,2): the rebuild stores 1000%+
+as blank so one odd day can't fail the insert after the window was deleted.
 
 ## Amazon page data rules (`amazon.html`)
 

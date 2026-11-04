@@ -192,6 +192,8 @@
   .band-inner { flex: 1; width: 100%; max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1.25fr 1fr 1fr 1fr; gap: 10px; }
   .tile { background: var(--ground); border-radius: 12px; padding: 12px 14px; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
   .tile.wide { grid-column: 1 / -1; }
+  .tile.split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: center; }
+  .tile.split .part { min-width: 0; }
   .tile.hero { background: var(--panel); color: var(--panel-ink); padding: 14px 16px; }
   .tile .label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
   .tile .value { font-family: var(--font-heading); font-size: 28px; font-weight: 700; line-height: 1.15; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -299,10 +301,17 @@
       <div class="value"><span>--</span></div>
       <div class="sub"></div>
     </section>
-    <section class="tile wide loading" id="tile-amazon">
-      <div class="label">Amazon sales</div>
-      <div class="value"><span>--</span></div>
-      <div class="sub"></div>
+    <section class="tile wide split loading" id="tile-amazon">
+      <div class="part" id="amazon-sales">
+        <div class="label">Amazon sales</div>
+        <div class="value"><span>--</span></div>
+        <div class="sub"></div>
+      </div>
+      <div class="part" id="amazon-roas">
+        <div class="label">Amazon ROAS</div>
+        <div class="value"><span>--</span></div>
+        <div class="sub"></div>
+      </div>
     </section>
   </div>
 
@@ -349,7 +358,8 @@
     <p><strong>Blended ROAS</strong>: Shopify revenue ÷ Meta and Google ad spend combined. Amber under the figure means it is below the 2.20 target.</p>
     <p><strong>Repeat orders</strong>: orders from returning customers, as Shopify counts them, ÷ all orders.</p>
     <p><strong>AOV</strong>: Shopify revenue ÷ orders, so it includes VAT and shipping. Shopify's own "Average order value" leaves both out, so it reads lower.</p>
-    <p><strong>Amazon sales</strong>: Amazon ordered product sales (same as the Amazon dashboard). Today's figure is provisional until Amazon's nightly report.</p>
+    <p><strong>Amazon sales</strong>: Amazon ordered product sales (same as the Amazon dashboard). Today's figure is provisional until Amazon's nightly report. <strong>All Sales</strong> = Shopify revenue + Amazon sales.</p>
+    <p><strong>Amazon ROAS</strong>: Amazon sales ÷ Amazon ad spend (Sponsored Products, Brands and Display), worked out the same way as the Amazon dashboard: sales only count on days whose ad spend has arrived.</p>
     <p>Shopify figures are live: the page asks Shopify every 15 seconds while it is open. Ad spend refreshes every 10 minutes (Meta sends spend every 30), Amazon sales every 30, so today's ROAS is live revenue over the latest ad spend.</p>
     <p>The main dashboard on the computer still uses the warehouse's own count of Shopify sales, which can differ from Shopify by a few pounds a day.</p>
     <p>Every day is a UK day. Weeks run Monday to Sunday; the financial year starts on 1 June.</p>
@@ -465,8 +475,8 @@ function liveToken() {
 class AuthExpiredError extends Error {}
 
 // PostgREST returns at most 1000 rows per request; page through so long custom ranges stay complete.
-async function fetchAllRows(path) {
-  const PAGE = 1000;
+async function fetchAllRows(path, maxRows) {
+  const PAGE = maxRows || 1000;
   let all = [], offset = 0;
   while (true) {
     const token = await liveToken();
@@ -478,7 +488,7 @@ async function fetchAllRows(path) {
     const rows = await resp.json();
     if (!Array.isArray(rows)) throw new Error(`Unexpected response from ${path.split('?')[0]}`);
     all = all.concat(rows);
-    if (rows.length < PAGE) break;
+    if (rows.length < PAGE || maxRows) break;   // maxRows: just the first page
     offset += PAGE;
   }
   return all;
@@ -505,13 +515,21 @@ async function loadShopify(from, to) {
   return { sales: Number(r.total_sales), orders: Number(r.orders), repeatOrders: Number(r.returning_orders), lastOrderAt: r.last_order_at || null };
 }
 
-// Three reads per range: Shopify's figures (above), the daily overview for ad spend (and as the
-// fallback for Shopify's figures; same table and columns index.html sums) and Amazon's daily sales
-// (same table amazon.html sums). If Shopify fails, today's warehouse figures come from loadLiveToday().
+// Reads per range: Shopify's figures (above), the daily overview for Meta + Google ad spend (and as the
+// fallback for Shopify's figures; same table and columns index.html sums), and Amazon's daily sales and
+// ad spend (same tables amazon.html uses). The Amazon reads cover the range's whole months, because
+// amazon.html spreads a month's ad spend over that month's sales days when there is no daily spend.
+// If Shopify fails, today's warehouse figures come from loadLiveToday().
 async function loadRange(from, to) {
-  const [shopRaw, amzRaw, shopify] = await Promise.all([
+  const monthFrom = from.slice(0, 7) + '-01';
+  const monthTo = fmtDate(new Date(+to.slice(0, 4), +to.slice(5, 7), 0));             // last day of to's month
+  const monthAfter = fmtDate(new Date(+to.slice(0, 4), +to.slice(5, 7), 1)).slice(0, 7);  // 'YYYY-MM' after to's month
+  const [shopRaw, amzRaw, amzAdsDaily, amzAdsMonthly, amzAdsLatest, shopify] = await Promise.all([
     fetchAllRows(`rpt_daily_overview?report_date=gte.${from}&report_date=lte.${to}&order=report_date.asc&select=report_date,total_sales,total_ad_spend,total_orders,orders_from_returning,loaded_at`),
-    fetchAllRows(`raw_amazon_sales_daily?report_date=gte.${from}&report_date=lte.${to}&order=report_date.asc&select=report_date,ordered_product_sales,updated_at`),
+    fetchAllRows(`raw_amazon_sales_daily?report_date=gte.${monthFrom}&report_date=lte.${monthTo}&order=report_date.asc&select=report_date,ordered_product_sales,updated_at`),
+    fetchAllRows(`raw_amazon_ads_daily?report_date=gte.${monthFrom}&report_date=lte.${monthTo}&order=report_date.asc&select=report_date,spend`),
+    fetchAllRows(`raw_amazon_ads_monthly?month=gte.${from.slice(0, 7)}&month=lt.${monthAfter}&order=month.asc&select=month,spend`),
+    fetchAllRows(`raw_amazon_ads_daily?order=report_date.desc&select=report_date`, 1),
     loadShopify(from, to).catch((err) => {
       if (err instanceof AuthExpiredError) throw err;
       console.error('[mobile] Shopify figures failed; using the warehouse figures', err);
@@ -522,10 +540,35 @@ async function loadRange(from, to) {
     day: r.report_date, sales: num(r.total_sales), spend: num(r.total_ad_spend),
     orders: Math.round(num(r.total_orders)), repeatOrders: Math.round(num(r.orders_from_returning)), loadedAt: r.loaded_at || null
   }));
-  const amazon = amzRaw.filter((r) => isDay(r.report_date)).map((r) => ({
+  const amazonMonths = amzRaw.filter((r) => isDay(r.report_date)).map((r) => ({
     day: r.report_date, sales: num(r.ordered_product_sales), updatedAt: r.updated_at || null
   }));
-  return { shop, amazon, shopify, fetchedAt: Date.now() };
+  const amazon = amazonMonths.filter((r) => r.day >= from && r.day <= to);
+  const amazonAds = amazonAdSpend(from, to, amazonMonths, amzAdsDaily, amzAdsMonthly, amzAdsLatest[0] ? amzAdsLatest[0].report_date : null);
+  return { shop, amazon, amazonAds, shopify, fetchedAt: Date.now() };
+}
+
+// Amazon ad spend and ROAS exactly as amazon.html works them out: daily spend (Sponsored Products, Brands
+// and Display) where the month has daily rows, otherwise the month's total spread evenly over that month's
+// sales days; ROAS only counts sales on days whose ad spend has landed (up to the latest daily spend).
+function amazonAdSpend(from, to, salesMonths, adsDaily, adsMonthly, adsThrough) {
+  const dailySpend = {}, monthsWithDaily = new Set(), monthlySpend = {}, salesDaysPerMonth = {};
+  for (const r of adsDaily) {
+    if (!isDay(r.report_date)) continue;
+    dailySpend[r.report_date] = (dailySpend[r.report_date] || 0) + num(r.spend);
+    monthsWithDaily.add(r.report_date.slice(0, 7));
+  }
+  for (const r of adsMonthly) monthlySpend[String(r.month || '').slice(0, 7)] = num(r.spend);
+  for (const r of salesMonths) { const mk = r.day.slice(0, 7); salesDaysPerMonth[mk] = (salesDaysPerMonth[mk] || 0) + 1; }
+  let spend = 0, roasSales = 0;
+  for (const r of salesMonths) {
+    if (r.day < from || r.day > to) continue;
+    const mk = r.day.slice(0, 7);
+    const daily = monthsWithDaily.has(mk);
+    spend += daily ? (dailySpend[r.day] || 0) : (monthlySpend[mk] || 0) / (salesDaysPerMonth[mk] || 1);
+    if (!adsThrough || !daily || r.day <= adsThrough) roasSales += r.sales;
+  }
+  return { spend, roas: spend > 0 ? roasSales / spend : null };
 }
 
 // Fallback when Shopify does not answer: today's revenue, orders and repeat orders straight from the raw
@@ -604,7 +647,9 @@ function render(range, data) {
   setTile('tile-repeat', t.repeatPct === null ? '--' : t.repeatPct.toFixed(1) + '%', t.orders ? `${count(t.repeatOrders)} of ${count(t.orders)} orders` : '');
   setTile('tile-orders', count(t.orders), perDay((t.orders / days).toFixed(1)));
   setTile('tile-aov', t.aov === null ? '--' : gbp(t.aov), 'Inc. VAT and shipping');
-  setTile('tile-amazon', gbp(t.amazon), `Shopify and Amazon together ${gbp(t.sales + t.amazon)}`);
+  setTile('amazon-sales', gbp(t.amazon), `All Sales = ${gbp(t.sales + t.amazon)}`);
+  const amz = data.amazonAds;
+  setTile('amazon-roas', amz && amz.roas !== null ? amz.roas.toFixed(2) : '--', amz ? `Ad spend ${gbp(amz.spend)}` : '');
 
   // Freshness only matters while the range is still filling up. Orders are live when the live read
   // worked; ad spend is as of the last rebuild of the overview; Amazon as of its last sync.

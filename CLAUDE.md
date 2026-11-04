@@ -59,7 +59,16 @@ JS in one `<script>`).
   behind the (i) button. It reads `rpt_daily_overview` and `raw_amazon_sales_daily`
   (two light REST reads per range) with the same sums as `index.html` / `amazon.html`, so the figures
   match them; QA'd 1 Nov 2026 against both pages' own code on a fixture for eight ranges.
-  **Live orders:** for today it swaps in Shopify revenue, orders and repeat orders from the SQL function
+  **Shopify figures come from Shopify itself (4 Nov 2026):** revenue (Shopify "Total sales"), orders and
+  returning-customer orders are read from Shopify Analytics (ShopifyQL `FROM sales SHOW orders, total_sales
+  GROUP BY new_or_returning_customer`) through the admin-only Edge Function `shopify-sales` (checks the
+  caller against allowed_emails; Shopify token in its secrets; CORS only for uakskin.github.io), so they match
+  Shopify's reports exactly; the page re-asks every 15 s while a range includes today. Why: Shopify books order
+  edits, returns and cancellations on the day they happen, while rebuild-reporting applies them to the order's
+  own day, so the warehouse (and index.html) can be a few pounds and a few returning orders off Shopify.
+  Ad spend still comes from `rpt_daily_overview`; Amazon unchanged. If `shopify-sales` fails, the page falls
+  back to the warehouse path below and says so.
+  **Fallback live orders:** for today it swaps in Shopify revenue, orders and repeat orders from the SQL function
   `get_shopify_live_day(p_day)` (SECURITY INVOKER, authenticated only), which computes them straight from
   `raw_shopify_orders` / `raw_shopify_refunds` with rebuild-reporting's exact rules (verified equal to the
   rebuilt rows for 8 days, ~20 ms). The Shopify webhook lands orders in seconds, and the page re-checks every

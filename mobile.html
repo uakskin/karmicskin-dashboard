@@ -345,12 +345,13 @@
       <h2 id="infoSheetTitle">How these are worked out</h2>
       <button class="sheet-close" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg></button>
     </div>
-    <p><strong>Shopify revenue</strong>: total Shopify sales including VAT and shipping, net of refunds (same as the main dashboard).</p>
+    <p><strong>Shopify revenue</strong>: Shopify's own "Total sales" (from Shopify Analytics), so it matches Shopify exactly: sales after discounts and returns, including VAT and shipping. Like Shopify, an order edit, return or cancellation counts on the day it happens.</p>
     <p><strong>Blended ROAS</strong>: Shopify revenue ÷ Meta and Google ad spend combined. Amber under the figure means it is below the 2.20 target.</p>
-    <p><strong>Repeat orders</strong>: orders from customers who had ordered before ÷ all orders.</p>
-    <p><strong>AOV</strong>: Shopify revenue ÷ orders.</p>
+    <p><strong>Repeat orders</strong>: orders from returning customers, as Shopify counts them, ÷ all orders.</p>
+    <p><strong>AOV</strong>: Shopify revenue ÷ orders, so it includes VAT and shipping. Shopify's own "Average order value" leaves both out, so it reads lower.</p>
     <p><strong>Amazon sales</strong>: Amazon ordered product sales (same as the Amazon dashboard). Today's figure is provisional until Amazon's nightly report.</p>
-    <p>Today's Shopify revenue, orders and repeat orders are live: they come straight from the orders, which reach us within seconds, and the page checks every 15 seconds while it is open. Earlier days and ad spend refresh every 10 minutes (Meta sends spend every 30), Amazon sales every 30. So today's ROAS is live revenue over the latest ad spend.</p>
+    <p>Shopify figures are live: the page asks Shopify every 15 seconds while it is open. Ad spend refreshes every 10 minutes (Meta sends spend every 30), Amazon sales every 30, so today's ROAS is live revenue over the latest ad spend.</p>
+    <p>The main dashboard on the computer still uses the warehouse's own count of Shopify sales, which can differ from Shopify by a few pounds a day.</p>
     <p>Every day is a UK day. Weeks run Monday to Sunday; the financial year starts on 1 June.</p>
   </div>
 </div>
@@ -365,6 +366,8 @@ const ROAS_TARGET = 2.20;           // King ROAS target (blended, monthly)
 const CACHE_MS = 60 * 1000;         // reuse a range's figures for a minute when switching pills
 const AUTO_REFRESH_MS = 5 * 60 * 1000;
 const LIVE_POLL_MS = 15 * 1000;     // how often today's Shopify orders are re-checked while the app is open
+const SHOPIFY_SALES_URL = `${SUPABASE_URL}/functions/v1/shopify-sales`;
+const SHOPIFY_FALLBACK_NOTE = 'Shopify didn’t answer, so Shopify figures come from our warehouse for now (they can differ from Shopify by a few pounds). Tap refresh to try again.';
 const IS_STANDALONE = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
 
 // ========== THEME ==========
@@ -480,13 +483,36 @@ async function fetchAllRows(path) {
 const num = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; };
 const isDay = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
 
-// Two light reads per range: the daily Shopify overview (same table and columns index.html sums)
-// and Amazon's daily sales (same table amazon.html sums). Today's Shopify figures come from
-// loadLiveToday() instead, because the overview is only rebuilt every 10 minutes.
+// Shopify's own revenue, orders and returning-customer orders for a range, from Shopify Analytics via the
+// admin-only shopify-sales Edge Function, so they match Shopify's reports exactly (Shopify books order
+// edits, returns and cancellations on the day they happen; the warehouse does not).
+async function loadShopify(from, to) {
+  const token = await liveToken();
+  const resp = await fetch(SHOPIFY_SALES_URL, {
+    method: 'POST',
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from, to })
+  });
+  if (resp.status === 401) throw new AuthExpiredError('token rejected');
+  if (!resp.ok) throw new Error(`HTTP ${resp.status} from shopify-sales`);
+  const r = await resp.json();
+  const valid = r && r.from === from && r.to === to && [r.total_sales, r.orders, r.returning_orders].every((v) => Number.isFinite(Number(v)));
+  if (!valid) throw new Error('Unexpected response from shopify-sales');
+  return { sales: Number(r.total_sales), orders: Number(r.orders), repeatOrders: Number(r.returning_orders), lastOrderAt: r.last_order_at || null };
+}
+
+// Three reads per range: Shopify's figures (above), the daily overview for ad spend (and as the
+// fallback for Shopify's figures; same table and columns index.html sums) and Amazon's daily sales
+// (same table amazon.html sums). If Shopify fails, today's warehouse figures come from loadLiveToday().
 async function loadRange(from, to) {
-  const [shopRaw, amzRaw] = await Promise.all([
+  const [shopRaw, amzRaw, shopify] = await Promise.all([
     fetchAllRows(`rpt_daily_overview?report_date=gte.${from}&report_date=lte.${to}&order=report_date.asc&select=report_date,total_sales,total_ad_spend,total_orders,orders_from_returning,loaded_at`),
-    fetchAllRows(`raw_amazon_sales_daily?report_date=gte.${from}&report_date=lte.${to}&order=report_date.asc&select=report_date,ordered_product_sales,updated_at`)
+    fetchAllRows(`raw_amazon_sales_daily?report_date=gte.${from}&report_date=lte.${to}&order=report_date.asc&select=report_date,ordered_product_sales,updated_at`),
+    loadShopify(from, to).catch((err) => {
+      if (err instanceof AuthExpiredError) throw err;
+      console.error('[mobile] Shopify figures failed; using the warehouse figures', err);
+      return null;
+    })
   ]);
   const shop = shopRaw.filter((r) => isDay(r.report_date)).map((r) => ({
     day: r.report_date, sales: num(r.total_sales), spend: num(r.total_ad_spend),
@@ -495,12 +521,11 @@ async function loadRange(from, to) {
   const amazon = amzRaw.filter((r) => isDay(r.report_date)).map((r) => ({
     day: r.report_date, sales: num(r.ordered_product_sales), updatedAt: r.updated_at || null
   }));
-  return { shop, amazon, fetchedAt: Date.now() };
+  return { shop, amazon, shopify, fetchedAt: Date.now() };
 }
 
-// Today's Shopify revenue, orders and repeat orders straight from the raw orders, via the SQL function
-// get_shopify_live_day (same rules as the 10-minute rebuild, checked equal day by day). The Shopify
-// webhook writes each order within seconds, so these are live. Ad spend is not part of it.
+// Fallback when Shopify does not answer: today's revenue, orders and repeat orders straight from the raw
+// orders, via the SQL function get_shopify_live_day (same rules as the 10-minute warehouse rebuild).
 let live = null;   // { day, sales, orders, repeatOrders, lastOrderAt }
 async function loadLiveToday() {
   const day = fmtDate(todayUk());
@@ -533,11 +558,13 @@ function withLive(range, shop) {
 const includesToday = (range) => { const today = fmtDate(todayUk()); return range.from <= today && range.to >= today; };
 
 // ========== FIGURES ==========
-function totals(shop, amazon) {
+// Shopify's figures when we have them; ad spend always comes from the overview (Meta + Google).
+function totals(shop, amazon, shopify) {
   const t = shop.reduce((a, r) => {
     a.sales += r.sales; a.spend += r.spend; a.orders += r.orders; a.repeatOrders += r.repeatOrders;
     return a;
   }, { sales: 0, spend: 0, orders: 0, repeatOrders: 0 });
+  if (shopify) { t.sales = shopify.sales; t.orders = shopify.orders; t.repeatOrders = shopify.repeatOrders; }
   t.amazon = amazon.reduce((s, r) => s + r.sales, 0);
   t.roas = t.spend > 0 ? t.sales / t.spend : null;
   t.repeatPct = t.orders > 0 ? (t.repeatOrders / t.orders) * 100 : null;
@@ -557,14 +584,15 @@ function setTile(id, value, sub) {
 }
 
 function render(range, data) {
-  const shop = withLive(range, data.shop);
-  const t = totals(shop, data.amazon);
+  const shop = data.shopify ? data.shop : withLive(range, data.shop);
+  const t = totals(shop, data.amazon, data.shopify);
   const days = Math.round((parseDay(range.to) - parseDay(range.from)) / 86400000) + 1;
   const liveEnd = range.to === fmtDate(todayUk());
   const perDay = (v) => days > 1 ? `${v} a day` : '';
 
-  const liveToday = liveEnd && live && live.day === range.to;
-  const todaySub = liveToday && live.lastOrderAt ? `Last order ${fmtUkTime(live.lastOrderAt)}` : (liveEnd ? 'So far today' : '');
+  const liveToday = liveEnd && (data.shopify || (live && live.day === range.to));
+  const lastOrderAt = data.shopify ? data.shopify.lastOrderAt : (live && live.lastOrderAt);
+  const todaySub = liveToday && lastOrderAt ? `Last order ${fmtUkTime(lastOrderAt)}` : (liveEnd ? 'So far today' : '');
   setTile('tile-revenue', gbp(t.sales), days > 1 ? perDay(gbp(t.sales / days)) : todaySub);
   setTile('tile-roas', t.roas === null ? '--' : t.roas.toFixed(2), `Ad spend ${gbp(t.spend)}`);
   document.getElementById('tile-roas').classList.toggle('below', t.roas !== null && t.roas < ROAS_TARGET);
@@ -580,7 +608,7 @@ function render(range, data) {
   const clock = (ts) => fmtUkTime(ts).split(' ')[0];
   const parts = [];
   if (liveEnd) {
-    if (liveToday) parts.push('Orders live');
+    if (liveToday) parts.push(data.shopify ? 'Shopify live' : 'Orders live');
     else if (shopAt) parts.push(`Orders ${clock(shopAt)}`);
     if (shopAt) parts.push(`ad spend ${clock(shopAt)}`);
     if (amzAt) parts.push(`Amazon ${clock(amzAt)}`);
@@ -643,22 +671,22 @@ async function refresh(force) {
   showHeader();
   const cached = cache.get(key);
   if (cached) render(range, cached);
-  if (cached && !force && Date.now() - cached.fetchedAt < CACHE_MS) { setLoading(false); showStatus(''); return; }
+  if (cached && !force && Date.now() - cached.fetchedAt < CACHE_MS) { setLoading(false); showStatus(cached.shopify ? '' : SHOPIFY_FALLBACK_NOTE); return; }
   setLoading(true);
   try {
-    // A failed live read falls back to the overview's figures for today rather than failing the page.
-    const liveRead = includesToday(range)
-      ? loadLiveToday().catch((err) => {
-          if (err instanceof AuthExpiredError) throw err;
-          console.error('[mobile] live orders failed; showing the 10-minute figures for today', err);
-          live = null;
-        })
-      : Promise.resolve();
-    const [data] = await Promise.all([loadRange(range.from, range.to), liveRead]);
+    const data = await loadRange(range.from, range.to);
+    // Shopify did not answer: today's part comes from the raw orders, else the overview's 10-minute figures.
+    if (!data.shopify && includesToday(range)) {
+      await loadLiveToday().catch((err) => {
+        if (err instanceof AuthExpiredError) throw err;
+        console.error('[mobile] live orders failed; showing the 10-minute figures for today', err);
+        live = null;
+      });
+    }
     cache.set(key, data);
     if (seq !== requestSeq) return;
     render(range, data);
-    showStatus('');
+    showStatus(data.shopify ? '' : SHOPIFY_FALLBACK_NOTE);
   } catch (err) {
     console.error('[mobile] load failed', err);
     if (seq !== requestSeq) return;
@@ -796,14 +824,21 @@ document.addEventListener('visibilitychange', () => {
 });
 setInterval(() => { if (document.visibilityState === 'visible') { lastShown = Date.now(); rollAndRefresh(true); } }, AUTO_REFRESH_MS);
 
-// While a range that includes today is on screen, re-check today's Shopify orders every 15 seconds
-// (one small query) so a new order shows up almost as soon as Shopify sends it.
+// While a range that includes today is on screen, re-check Shopify every 15 seconds (one small query)
+// so a new order shows up within seconds. A failed check keeps the last good figures until the next one.
 setInterval(async () => {
   const range = current;
   const data = cache.get(`${range.from}|${range.to}`);
   if (document.visibilityState !== 'visible' || !data || !includesToday(range)) return;
   try {
-    const newOrder = await loadLiveToday();
+    let newOrder;
+    if (data.shopify) {
+      const before = data.shopify.orders;
+      data.shopify = await loadShopify(range.from, range.to);
+      newOrder = data.shopify.orders > before;
+    } else {
+      newOrder = await loadLiveToday();
+    }
     if (range !== current) return;
     render(range, data);
     if (newOrder) pulseRevenue();

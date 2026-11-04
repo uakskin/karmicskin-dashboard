@@ -399,6 +399,10 @@ function fmtUkTime(ts) {
   return `${p.hour}:${p.minute} ${bst ? 'BST' : 'GMT'}`;
 }
 
+// A stored timestamp's UK calendar day, as YYYY-MM-DD.
+const UK_DAY_FMT = new Intl.DateTimeFormat('en-CA', { timeZone: UK_TZ });
+function ukDayOf(ts) { return UK_DAY_FMT.format(new Date(ts)); }
+
 // ========== DATES ==========
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -592,7 +596,8 @@ function render(range, data) {
 
   const liveToday = liveEnd && (data.shopify || (live && live.day === range.to));
   const lastOrderAt = data.shopify ? data.shopify.lastOrderAt : (live && live.lastOrderAt);
-  const todaySub = liveToday && lastOrderAt ? `Last order ${fmtUkTime(lastOrderAt)}` : (liveEnd ? 'So far today' : '');
+  const orderedToday = lastOrderAt && ukDayOf(lastOrderAt) === range.to;   // yesterday's last order is not news today
+  const todaySub = liveToday && orderedToday ? `Last order ${fmtUkTime(lastOrderAt)}` : (liveEnd ? 'So far today' : '');
   setTile('tile-revenue', gbp(t.sales), days > 1 ? perDay(gbp(t.sales / days)) : todaySub);
   setTile('tile-roas', t.roas === null ? '--' : t.roas.toFixed(2), `Ad spend ${gbp(t.spend)}`);
   document.getElementById('tile-roas').classList.toggle('below', t.roas !== null && t.roas < ROAS_TARGET);

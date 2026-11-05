@@ -154,6 +154,17 @@ it expires and announces the new one with a `ks-session` window event, which eve
 `USER_JWT` listens for. Keep the block **byte-identical across pages** (same rule as the
 sidebar). `creative.html` keeps its own `creative_access` gate and is not part of this rule.
 
+**A Supabase hiccup never signs anyone out** (5 Nov 2026). A timeout, 5xx, 429 or dropped
+connection (including an ISP blocking supabase.co) means Supabase didn't answer, not that the
+session is bad: the gate, `index.html` and `creative.html` keep the stored session and retry
+(gate: 15s, 30s, 60s, then every 2 min; index/creative: 15s, 30s, 1m, 2m, then every 5m, with a
+"you're still signed in" note on the login card while it retries). Only a refresh token Supabase
+rejects (400/401/403) clears the session and shows the login. The same goes for the
+allowed_emails / creative_access checks: a 5xx there is retried, never read as "not on the list".
+Why: on 5 Nov 2026 a 10-second Supabase Auth timeout made the old code delete a valid session;
+the retries then hit the 2-emails-an-hour limit and Uday was locked out for an hour. Any new
+page or auth change must keep this rule.
+
 The gate is the front door, not the only lock: every table behind these pages is RLS-limited
 to `public.is_allowed_user()` (allowed_emails) for the `authenticated` role, with no anon
 policies. That includes `launch_plan_state`, `diary_state`, `ugc_creators`,
@@ -168,7 +179,11 @@ so a link can never sign the app in. Since 1 Nov 2026 `index.html`'s login there
 from the same email (`POST /auth/v1/verify`, `type: 'email'`). The code comes from `{{ .Token }}` in the
 Supabase **Magic link or OTP** email template (Authentication > Emails), added 1 Nov 2026 under the link; it is
 **8 digits** (Email OTP length setting) and lasts an hour. Don't remove it from the template, or the phone app
-can't sign in. The built-in Supabase mailer allows only 2 sign-in emails an hour. The email the code went to is
+can't sign in. The built-in Supabase mailer allows only 2 sign-in emails an hour, across the whole project
+(every page, every person); past that `/otp` answers 429 `over_email_send_rate_limit` and the login says so in
+plain words. The **"I already have a code"** button under "Send sign-in email" goes straight to the code box
+without sending another email. Lifting the cap needs custom SMTP in Supabase (Authentication > Emails > SMTP),
+then a higher "email sent" rate limit. The email the code went to is
 kept in localStorage `ks-pending-signin` for an hour so a reloaded app reopens on the code box.
 
 Getting back to the phone view: before the gate runs, `mobile.html` leaves a note in localStorage

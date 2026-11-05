@@ -717,33 +717,68 @@ function uniq(arr) { return Array.from(new Set(arr)); }
   const clearStored = () => localStorage.removeItem(AUTH_STORAGE_KEY);
   const isExpired = (s) => !s || !s.expires_at || s.expires_at <= Math.floor(Date.now() / 1000);
 
+  // Supabase hiccups never sign anyone out (same rule as index.html, 5 Nov 2026): a timeout, 5xx, 429 or
+  // dropped connection keeps the session and retries (15s, 30s, 1m, 2m, then every 5m). Only a refresh
+  // token Supabase rejects (400/401/403) ends a session.
+  const RETRY_STEPS_MS = [15000, 30000, 60000, 120000, 300000];
+  let retryCount = 0, retryTimer = null;
+  const nextRetryDelay = () => RETRY_STEPS_MS[Math.min(retryCount++, RETRY_STEPS_MS.length - 1)];
+  function authError(message, dead) { const e = new Error(message); e.dead = !!dead; return e; }
+  const isServerHiccup = (status) => status >= 500 || status === 429 || status === 408;
+  async function authFetch(url, opts) {
+    try { return await fetch(url, opts); }
+    catch (e) { throw authError('Could not reach Supabase (' + (e.message || 'network error') + ')', false); }
+  }
+
   async function verifyAccess(accessToken) {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/creative_access?select=email,role&limit=1`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${accessToken}` } });
+    const r = await authFetch(`${SUPABASE_URL}/rest/v1/creative_access?select=email,role&limit=1`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${accessToken}` } });
+    if (isServerHiccup(r.status)) throw authError('access check failed: ' + r.status, false);
     if (!r.ok) return null;
     const data = await r.json();
     return Array.isArray(data) && data.length ? data[0] : null;
   }
   async function refreshAccessToken(refreshToken) {
-    const r = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, { method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: refreshToken }) });
-    if (!r.ok) throw new Error('refresh failed: ' + r.status);
-    return await r.json();
+    const r = await authFetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, { method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: refreshToken }) });
+    if (r.status === 400 || r.status === 401 || r.status === 403) throw authError('refresh token rejected: ' + r.status, true);
+    if (!r.ok) throw authError('refresh failed: ' + r.status, false);
+    const s = await r.json();
+    if (!s || !s.access_token || !s.refresh_token) throw authError('refresh returned no session', false);
+    if (!s.expires_at) s.expires_at = Math.floor(Date.now() / 1000) + (s.expires_in || 3600);
+    return s;
   }
   async function sendMagicLink(email) {
     const redirectTo = window.location.origin + window.location.pathname;
-    const r = await fetch(`${SUPABASE_URL}/auth/v1/otp?redirect_to=${encodeURIComponent(redirectTo)}`, { method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ email, create_user: true, gotrue_meta_security: {} }) });
-    if (!r.ok) { let m = 'Failed to send link.'; try { const e = await r.json(); m = e.msg || e.error_description || e.error || m; } catch {} throw new Error(m); }
+    const r = await authFetch(`${SUPABASE_URL}/auth/v1/otp?redirect_to=${encodeURIComponent(redirectTo)}`, { method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ email, create_user: true, gotrue_meta_security: {} }) });
+    if (!r.ok) {
+      let e = {};
+      try { e = await r.json(); } catch (parseErr) { console.error('[auth] sign-in email error unreadable', parseErr); }
+      const serverMsg = e.msg || e.message || e.error_description || e.error || '';
+      if (r.status === 429 && /seconds?\b/i.test(serverMsg)) throw new Error(serverMsg);
+      if (r.status === 429 || e.error_code === 'over_email_send_rate_limit') throw new Error("Supabase sends at most 2 sign-in emails an hour, and they're used up. If a sign-in email reached you in the last hour, click the link in it. Otherwise try again within the hour.");
+      if (isServerHiccup(r.status)) throw new Error("Supabase didn't answer in time, but the email may still arrive. Check your inbox (and Spam) for a couple of minutes before sending another: only 2 sign-in emails an hour are allowed.");
+      throw new Error(serverMsg || 'Failed to send the sign-in email.');
+    }
   }
-  function scheduleRefresh(s) {
+  // Refreshes 60s before expiry (or after delayMs when retrying), using the newest session any tab has stored.
+  function scheduleRefresh(s, delayMs) {
     if (refreshTimer) clearTimeout(refreshTimer);
-    const refreshIn = Math.max(15000, (s.expires_at * 1000) - Date.now() - 60000);
+    const refreshIn = delayMs != null ? delayMs : Math.max(15000, (s.expires_at * 1000) - Date.now() - 60000);
     refreshTimer = setTimeout(async () => {
-      try { const refreshed = await refreshAccessToken(s.refresh_token); USER_JWT = refreshed.access_token; saveStored(refreshed); scheduleRefresh(refreshed); }
-      catch (e) { console.error('[auth] refresh failed', e); clearStored(); USER_JWT = SUPABASE_KEY; showOverlay(); showStep('email'); setMsg('Your session expired. Sign in again.', 'info'); }
+      const stored = readStored(), current = stored && stored.refresh_token ? stored : s;
+      if (current.expires_at - Math.floor(Date.now() / 1000) > 120) { USER_JWT = current.access_token; retryCount = 0; scheduleRefresh(current); return; }   // another tab already refreshed
+      try { const refreshed = await refreshAccessToken(current.refresh_token); USER_JWT = refreshed.access_token; saveStored(refreshed); retryCount = 0; scheduleRefresh(refreshed); }
+      catch (e) {
+        if (!e.dead) { const wait = nextRetryDelay(); console.error(`[auth] refresh failed, keeping the session and retrying in ${wait / 1000}s`, e); scheduleRefresh(current, wait); return; }
+        console.error('[auth] refresh token rejected, signing out', e); clearStored(); USER_JWT = SUPABASE_KEY; showOverlay(); showStep('email'); setMsg('Your session expired. Sign in again.', 'info');
+      }
     }, refreshIn);
   }
+  // Throws a retryable error (after storing the session) when Supabase doesn't answer the access check.
   async function adoptSession(s) {
     USER_JWT = s.access_token;
-    const access = await verifyAccess(s.access_token);
+    let access;
+    try { access = await verifyAccess(s.access_token); }
+    catch (e) { saveStored(s); USER_JWT = SUPABASE_KEY; throw e; }
     if (!access) { clearStored(); USER_JWT = SUPABASE_KEY; showOverlay(); showStep('email'); setMsg('That email is not on the Creative Analytics access list. Contact Uday to be added.', 'error'); return false; }
     saveStored(s);
     USER_EMAIL = access.email; USER_ROLE = access.role;
@@ -767,25 +802,42 @@ function uniq(arr) { return Array.from(new Set(arr)); }
   backBtn.addEventListener('click', () => { pendingEmail = ''; showStep('email'); });
   window.ksSignOut = () => { clearStored(); location.reload(); };
 
+  // Signs in from the stored session (refreshing it if expired). false = no usable session; true = handled
+  // (signed in, told they're not on the list, or Supabase not answering: session kept, retrying).
+  async function resumeStoredSession() {
+    clearTimeout(retryTimer);
+    const stored = readStored();
+    if (!stored || !stored.access_token) return false;
+    if (isExpired(stored) && !stored.refresh_token) { clearStored(); return false; }
+    try {
+      let s = stored;
+      if (isExpired(stored)) { s = await refreshAccessToken(stored.refresh_token); saveStored(s); }
+      await adoptSession(s);
+      retryCount = 0;
+      return true;
+    } catch (e) {
+      if (e.dead) { console.warn('[auth] stored session rejected by Supabase', e); clearStored(); return false; }
+      const wait = nextRetryDelay();
+      console.error(`[auth] Supabase did not answer, keeping the session and retrying in ${wait / 1000}s`, e);
+      showOverlay(); showStep('email');
+      setMsg(`Can't reach Supabase right now, but you're still signed in. Trying again in ${Math.round(wait / 1000)} seconds, so there's no need to send a sign-in email.`, 'info');
+      retryTimer = setTimeout(resumeStoredSession, wait);
+      return true;
+    }
+  }
+
   (async () => {
+    // A magic link: store its tokens, then sign in from storage like any other visit.
     if (window.location.hash.includes('access_token')) {
       const params = new URLSearchParams(window.location.hash.slice(1));
       const access_token = params.get('access_token'), refresh_token = params.get('refresh_token');
       const expires_at = parseInt(params.get('expires_at') || '0', 10), expires_in = parseInt(params.get('expires_in') || '0', 10);
       history.replaceState(null, '', window.location.pathname + window.location.search);
       if (access_token && refresh_token && (expires_at || expires_in)) {
-        const s = { access_token, refresh_token, expires_at: expires_at || (Math.floor(Date.now() / 1000) + expires_in), expires_in, token_type: 'bearer' };
-        if (await adoptSession(s)) return;
+        saveStored({ access_token, refresh_token, expires_at: expires_at || (Math.floor(Date.now() / 1000) + expires_in), expires_in, token_type: 'bearer' });
       }
     }
-    const stored = readStored();
-    if (stored && stored.access_token) {
-      if (!isExpired(stored)) { if (await adoptSession(stored)) return; }
-      else if (stored.refresh_token) {
-        try { const refreshed = await refreshAccessToken(stored.refresh_token); if (await adoptSession(refreshed)) return; }
-        catch (e) { console.warn('[auth] boot refresh failed', e); clearStored(); }
-      }
-    }
+    if (await resumeStoredSession()) return;
     showOverlay(); showStep('email');
   })();
 })();

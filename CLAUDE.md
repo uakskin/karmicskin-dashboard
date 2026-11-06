@@ -172,6 +172,29 @@ policies. That includes `launch_plan_state`, `diary_state`, `ugc_creators`,
 tables. `launch.html`, `diary.html` and `ugc.html` therefore send the admin's token, not the
 anon key. Edge Functions use the service role and are unaffected.
 
+**Write every policy check as `(select public.is_allowed_user())`, never bare `is_allowed_user()`**
+(same for `is_creative_user()`, `is_creative_admin()` and `auth.email()`). Bare, Postgres runs the check
+once per row; wrapped, once per query. All 62 policies were rewritten this way on 5 Nov 2026 (migration
+`rls_helper_checks_once_per_query`) after the bare form made the cohort/LTV/product reports 10x slower
+(3-4 s each) and helped push the free-tier database into a disk stall. Who can see what is unchanged.
+
+### Sign-in emails (custom SMTP since 5 Nov 2026)
+
+Supabase sends the sign-in emails through **Gmail's mail server**, not its own built-in mailer (which allows only
+2 emails an hour for the whole project and caused the 5 Nov lockout). Settings live in Supabase > Authentication >
+Emails > SMTP Settings: host `smtp.gmail.com`, port 465, username `uday@karmicskin.com`, sender
+"Karmic Skin <uday@karmicskin.com>". The password is a Google **app password** on Uday's account named
+"Supabase sign-in emails"; it is stored only in Supabase, never in any file. If that app password is ever
+revoked, or the uday@ account's password changes (Google then revokes app passwords), sign-in emails stop:
+create a new app password and paste it into the same screen. SPF (`include:_spf.google.com`) and Google DKIM
+already cover uday@, so these emails pass DMARC. Because Gmail sends them as uday@, every sign-in email
+(anyone's, Aayushi's and Ananya's too) also appears in uday@'s Sent folder. That is expected.
+
+The project-wide limit is now **30 sign-in emails an hour** (Authentication > Rate Limits), plus a 60-second gap
+between emails to the same person. Past either, `/otp` answers 429 and the login explains it in plain words.
+Saving SMTP or rate-limit settings restarts Supabase Auth, which took several minutes on 5 Nov (free plan,
+Disk IO budget nearly used up): sign-ins fail during that window, existing sessions ride it out.
+
 ### Phone sign-in (`mobile.html` home-screen app)
 
 An iPhone home-screen web app has its own storage, separate from Safari, and a magic link opens in Safari,
@@ -179,11 +202,8 @@ so a link can never sign the app in. Since 1 Nov 2026 `index.html`'s login there
 from the same email (`POST /auth/v1/verify`, `type: 'email'`). The code comes from `{{ .Token }}` in the
 Supabase **Magic link or OTP** email template (Authentication > Emails), added 1 Nov 2026 under the link; it is
 **8 digits** (Email OTP length setting) and lasts an hour. Don't remove it from the template, or the phone app
-can't sign in. The built-in Supabase mailer allows only 2 sign-in emails an hour, across the whole project
-(every page, every person); past that `/otp` answers 429 `over_email_send_rate_limit` and the login says so in
-plain words. The **"I already have a code"** button under "Send sign-in email" goes straight to the code box
-without sending another email. Lifting the cap needs custom SMTP in Supabase (Authentication > Emails > SMTP),
-then a higher "email sent" rate limit. The email the code went to is
+can't sign in. The **"I already have a code"** button under "Send sign-in email" goes straight to the code box
+without sending another email. The email the code went to is
 kept in localStorage `ks-pending-signin` for an hour so a reloaded app reopens on the code box.
 
 Getting back to the phone view: before the gate runs, `mobile.html` leaves a note in localStorage

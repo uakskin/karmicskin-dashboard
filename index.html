@@ -2381,7 +2381,7 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
   // ---- Supabase hiccups never sign anyone out ----
   // A timeout, 5xx, 429 or dropped connection means Supabase didn't answer, not that the session is bad.
   // On 5 Nov 2026 a 10-second Auth timeout made the old code delete a good session, and the retries then
-  // hit Supabase's limit of 2 sign-in emails an hour. Only an answer that rejects the refresh token itself
+  // hit Supabase's hourly limit on sign-in emails. Only an answer that rejects the refresh token itself
   // (400/401/403) ends a session; anything else keeps it and retries: 15s, 30s, 1m, 2m, then every 5m.
   const RETRY_STEPS_MS = [15000, 30000, 60000, 120000, 300000];
   let retryCount = 0;
@@ -2500,12 +2500,12 @@ document.querySelectorAll('.cat-info-icon').forEach(icon => {
       const serverMsg = e.msg || e.message || e.error_description || e.error || '';
       // "For security purposes, you can only request this after N seconds" (same address, too soon).
       if (r.status === 429 && /seconds?\b/i.test(serverMsg)) throw new Error(serverMsg);
-      // The project-wide cap of the built-in Supabase mailer: 2 sign-in emails an hour.
+      // The project-wide cap on sign-in emails: 30 an hour since custom SMTP went in (5 Nov 2026).
       if (r.status === 429 || e.error_code === 'over_email_send_rate_limit') {
-        throw new Error("Supabase sends at most 2 sign-in emails an hour, and they're used up. If a sign-in email reached you in the last hour, click its link or tap \"I already have a code\". Otherwise try again within the hour.");
+        throw new Error("Too many sign-in emails have gone out in the last hour (the limit is 30 an hour for everyone together). If a sign-in email reached you in the last hour, click its link or tap \"I already have a code\". Otherwise try again within the hour.");
       }
       if (isServerHiccup(r.status)) {
-        throw new Error("Supabase didn't answer in time, but the email may still arrive. Check your inbox (and Spam) for a couple of minutes before sending another: only 2 sign-in emails an hour are allowed.");
+        throw new Error("Supabase didn't answer in time, but the email may still arrive. Check your inbox (and Spam) for a couple of minutes before sending another.");
       }
       throw new Error(serverMsg || 'Failed to send the sign-in email.');
     }

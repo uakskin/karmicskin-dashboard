@@ -754,8 +754,8 @@ function uniq(arr) { return Array.from(new Set(arr)); }
       try { e = await r.json(); } catch (parseErr) { console.error('[auth] sign-in email error unreadable', parseErr); }
       const serverMsg = e.msg || e.message || e.error_description || e.error || '';
       if (r.status === 429 && /seconds?\b/i.test(serverMsg)) throw new Error(serverMsg);
-      if (r.status === 429 || e.error_code === 'over_email_send_rate_limit') throw new Error("Supabase sends at most 2 sign-in emails an hour, and they're used up. If a sign-in email reached you in the last hour, click the link in it. Otherwise try again within the hour.");
-      if (isServerHiccup(r.status)) throw new Error("Supabase didn't answer in time, but the email may still arrive. Check your inbox (and Spam) for a couple of minutes before sending another: only 2 sign-in emails an hour are allowed.");
+      if (r.status === 429 || e.error_code === 'over_email_send_rate_limit') throw new Error("Too many sign-in emails have gone out in the last hour (the limit is 30 an hour for everyone together). If a sign-in email reached you in the last hour, click the link in it. Otherwise try again within the hour.");
+      if (isServerHiccup(r.status)) throw new Error("Supabase didn't answer in time, but the email may still arrive. Check your inbox (and Spam) for a couple of minutes before sending another.");
       throw new Error(serverMsg || 'Failed to send the sign-in email.');
     }
   }
